@@ -1,5 +1,5 @@
 # Facility Reconciliation Tool
-This tool enables matching of facility lists including nested lists and with a pluggable architecture to enable a myriad of data sources and matching algorigthms.
+This tool enables matching of facility lists including nested lists and with a pluggable architecture to enable a myriad of data sources and matching algorithms.
 
 ## Features
 * Both automatic and manual matching, including monitoring the status of existing matches.
