@@ -1,0 +1,14 @@
+{
+  "name": "dhis2sync",
+  "version": "1.0.0",
+  "description": "",
+  "main": "loadDHIS2Metadata.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "nconf": "^0.10.0"
+  }
+}

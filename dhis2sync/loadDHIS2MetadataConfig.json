@@ -1,0 +1,14 @@
+{
+  "ilr": {
+    "url": "",
+    "user": "",
+    "pass": ""
+  },
+  "dhis2": {
+    "url": "",
+    "user": "",
+    "pass": "",
+    "dousers": false,
+    "doservices": true
+  }
+}
