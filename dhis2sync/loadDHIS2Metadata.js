@@ -1,7 +1,10 @@
-var nconf = require('nconf')
-var http = require('http')
-var https = require('https')
-var url = require('url')
+const nconf = require('nconf')
+const http = require('http')
+const https = require('https')
+const url = require('url')
+
+http.globalAgent.maxSockets = 32
+https.globalAgent.maxSockets = 32
 
 function usage() {
     process.stdout.write("Usage " + process.argv[0] + " " + process.argv[1] + " [--help] [--config <FILE>] [--reset-time] [--full]\n")
