@@ -145,7 +145,7 @@ function processOrgUnit( metadata, i, max ) {
     let level = metadata.organisationUnitLevels.find( x => x.level == path.length-1 )
     fhir.meta.tag = [
         { 
-            system: "http://test.geoaling.datim.org/organistionUnitLevels",
+            system: "http://test.geoalign.datim.org/organistionUnitLevels",
             code: level.id,
             display: level.name
         }
