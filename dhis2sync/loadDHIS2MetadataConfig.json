@@ -2,7 +2,8 @@
   "ilr": {
     "url": "",
     "user": "",
-    "pass": ""
+    "pass": "",
+    "doc": ""
   },
   "dhis2": {
     "url": "",
