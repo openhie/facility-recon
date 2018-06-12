@@ -1,0 +1,23 @@
+{
+    "version": "1.0",
+    "appType": "APP",
+    "name": "Facility Reconciliation",
+    "description": "Facility Reconciliation",
+    "launch_path": "index.html",
+    "icons": {
+        "16": "pepfar.jpeg",
+        "48": "pepfar.jpeg",
+        "128": "pepfar.jpeg"
+    },
+    "developer": {
+        "name": "Intrahealth - Digital Health Team",
+        "url": "http://ihris.intrahealth.org/dhis"
+    },
+    "default_locale": "en",
+    "activities": {
+        "dhis": {
+            "href": "http://app.gofr.org/dhis",
+            "namespace":"GOFR"
+        }
+    }
+}
