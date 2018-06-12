@@ -44,6 +44,15 @@
     "Longitude",
     "MOH_Facility_ID"
   ],
+  "levels":[
+    "level1",
+    "level2",
+    "level3",
+    "level4",
+    "level5",
+    "level6",
+    "level7"
+  ],
   "matchResults":{
     "maxSuggestions":5
   }
