@@ -1,69 +1,130 @@
-var nconf = require('nconf')
-var http = require('http')
-var https = require('https')
-var url = require('url')
+const nconf = require('nconf')
+const http = require('http')
+const https = require('https')
+const url = require('url')
 
+http.globalAgent.maxSockets = 32
+https.globalAgent.maxSockets = 32
 
-nconf.argv().file( { file: './loadDHIS2MetadataConfig.json' } )
-
-let uflag = 'false'
-if ( nconf.get('dhis2:dousers') ) {
-    uflag = 'true'
+function usage() {
+    process.stdout.write("Usage " + process.argv[0] + " " + process.argv[1] + " [--help] [--config <FILE>] [--reset-time] [--full]\n")
+    process.stdout.write("       --help            Display this message and exit.\n")
+    process.stdout.write("       --config <FILE>   Load from given configuration file.\n")
+    process.stdout.write("       --reset-time      Reset last exported time and exit.\n")
+    process.stdout.write("       --full            Ignore the last exported time.\n")
+    process.exit(0)
 }
-let sflag = 'false'
-if ( nconf.get('dhis2:doservices') ) {
-    sflag = 'true'
-}
 
-const metadataOpts = [
-    'assumeTrue=false',
-    'organisationUnits=true',
-    'organisationUnitGroups=true',
-    'organisationUnitLevels=true',
-    'organisationUnitGroupSets=true',
-    "categoryOptions="+sflag,
-    "optionSets="+sflag,
-    "dataElementGroupSets="+sflag,
-    "categoryOptionGroupSets="+sflag,
-    "categoryCombos="+sflag,
-    "options="+sflag,
-    "categoryOptionCombos="+sflag,
-    "dataSets="+sflag,
-    "dataElementGroups="+sflag,
-    "dataElements="+sflag,
-    "categoryOptionGroups="+sflag,
-    "categories="+sflag,
-    "users="+uflag,
-    "userGroups="+uflag,
-    "userRoles="+uflag,
-]
+nconf.argv().file( { file: (nconf.get("config") ? nconf.get("config") : './loadDHIS2MetadataConfig.json' ) } )
+
+
+if ( nconf.get("help") ) {
+    usage();
+}
 
 const dhis2URL = url.parse( nconf.get('dhis2:url') )
-let auth = 'Basic ' + Buffer.from( nconf.get('dhis2:user') + ':' + nconf.get('dhis2:pass') ).toString('base64')
+const auth = 'Basic ' + Buffer.from( nconf.get('dhis2:user') + ':' + nconf.get('dhis2:pass') ).toString('base64')
 
-let req = (dhis2URL.protocol == 'https:' ? https : http).request({
-    hostname: dhis2URL.hostname,
-    port: dhis2URL.port,
-    path: dhis2URL.path + '/api/metadata.json?' + metadataOpts.join('&'),
-    headers: {
-        Authorization: auth
-    },
-    method: 'GET'
-}, (res) => {
-    console.log('STATUS: '+res.statusCode)
-    console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
-    var body = ''
-    res.on('data', (chunk) => {
-        body += chunk
-    })
-    res.on('end', () => {
-        let metadata = JSON.parse(body);
-        processOrgUnit( metadata, 0, metadata.organisationUnits.length  )
-    })
-    res.on('error', (e) => {
-        console.log('ERROR: ' +e.message)
-    })
-}).end()
+if ( nconf.get("reset-time") ) {
+
+    process.stdout.write("Attempting to reset time on " + nconf.get("dhis2:url") + "\n")
+
+    let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+        hostname: dhis2URL.hostname,
+        port: dhis2URL.port,
+        path: dhis2URL.path + '/api/dataStore/CSD-Loader-Last-Export/' + nconf.get("ilr:doc"),
+        headers: {
+            Authorization: auth
+        },
+        method: 'DELETE'
+    }, (res) => {
+        console.log('STATUS: '+res.statusCode)
+        console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+        res.on('end', () => {
+        })
+        res.on('error', (e) => {
+            console.log('ERROR: ' +e.message)
+        })
+    }).end()
+
+} else {
+
+    processMetaData();
+    
+}
+
+async function processMetaData() {
+
+    let hasKey = await checkLoaderDataStore()
+    let lastUpdate = false
+    if ( !nconf.get("full") && hasKey ) {
+        lastUpdate = await getLastUpdate()
+        // Convert to yyyy-mm-dd format (dropping time as it is ignored by DHIS2)
+        lastUpdate = new Date( Date.parse( lastUpdate ) ).toISOString().substr(0,10)
+    }
+
+    let uflag = 'false'
+    if ( nconf.get('dhis2:dousers') ) {
+        uflag = 'true'
+    }
+    let sflag = 'false'
+    if ( nconf.get('dhis2:doservices') ) {
+        sflag = 'true'
+    }
+
+    const metadataOpts = [
+        'assumeTrue=false',
+        'organisationUnits=true',
+        'organisationUnitGroups=true',
+        'organisationUnitLevels=true',
+        'organisationUnitGroupSets=true',
+        "categoryOptions="+sflag,
+        "optionSets="+sflag,
+        "dataElementGroupSets="+sflag,
+        "categoryOptionGroupSets="+sflag,
+        "categoryCombos="+sflag,
+        "options="+sflag,
+        "categoryOptionCombos="+sflag,
+        "dataSets="+sflag,
+        "dataElementGroups="+sflag,
+        "dataElements="+sflag,
+        "categoryOptionGroups="+sflag,
+        "categories="+sflag,
+        "users="+uflag,
+        "userGroups="+uflag,
+        "userRoles="+uflag,
+    ]
+
+    if ( lastUpdate ) {
+        metadataOpts.push( "filter=lastUpdated:gt:"+lastUpdate )
+    }
+
+    console.log( "GETTING "+dhis2URL.protocol+"//"+dhis2URL.hostname+":"+dhis2URL.port+dhis2URL.path+"/api/metadata.json?" 
+        +metadataOpts.join('&') )
+    let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+        hostname: dhis2URL.hostname,
+        port: dhis2URL.port,
+        path: dhis2URL.path + '/api/metadata.json?' + metadataOpts.join('&'),
+        headers: {
+            Authorization: auth
+        },
+        method: 'GET'
+    }, (res) => {
+        console.log('STATUS: '+res.statusCode)
+        console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+        var body = ''
+        res.on('data', (chunk) => {
+            body += chunk
+        })
+        res.on('end', () => {
+            let metadata = JSON.parse(body);
+            processOrgUnit( metadata, 0, metadata.organisationUnits.length  )
+        })
+        res.on('error', (e) => {
+            console.log('ERROR: ' +e.message)
+        })
+    }).end()
+}
 
 function processOrgUnit( metadata, i, max ) {
     org = metadata.organisationUnits[i]
@@ -87,7 +148,7 @@ function processOrgUnit( metadata, i, max ) {
     let level = metadata.organisationUnitLevels.find( x => x.level == path.length-1 )
     fhir.meta.tag = [
         { 
-            system: "http://test.geoaling.datim.org/organistionUnitLevels",
+            system: "http://test.geoalign.datim.org/organistionUnitLevels",
             code: level.id,
             display: level.name
         }
@@ -148,7 +209,7 @@ function processOrgUnit( metadata, i, max ) {
     }
 
     const ilrURL = url.parse( nconf.get('ilr:url') )
-    let auth = 'Basic ' + Buffer.from( nconf.get('ilr:user') + ':' + nconf.get('ilr:pass') ).toString('base64')
+    const ilrAuth = 'Basic ' + Buffer.from( nconf.get('ilr:user') + ':' + nconf.get('ilr:pass') ).toString('base64')
 
     console.log("Sending FHIR to " +ilrURL.hostname+" "+ilrURL.port+" "+ilrURL.path+"/Location/"+fhir.id)
     let req = (ilrURL.protocol == 'https:' ? https : http).request({
@@ -157,7 +218,7 @@ function processOrgUnit( metadata, i, max ) {
         path: ilrURL.path + '/Location/'+ fhir.id,
         headers: {
             'Content-Type': 'application/fhir+json'
-            //Authorization: auth
+            //Authorization: ilrAuth
         },
         method: 'PUT'
     }, (res) => {
@@ -187,5 +248,103 @@ function processOrgUnit( metadata, i, max ) {
         setTimeout( () => { processOrgUnit( metadata, i, max ) }, 0 )
     }
 
+}
+
+
+function checkLoaderDataStore() {
+    return new Promise( (resolve,reject) => {
+        let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+            hostname: dhis2URL.hostname,
+            port: dhis2URL.port,
+            path: dhis2URL.path + '/api/dataStore/CSD-Loader-Last-Export/' + nconf.get("ilr:doc"),
+            headers: {
+                Authorization: auth
+            },
+            method: 'GET'
+        })
+        req.on('response', (res) => {
+            console.log('STATUS: '+res.statusCode)
+            console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+            if ( res.statusCode == 200 || res.statusCode == 201 ) {
+                resolve(true)
+            } else {
+                resolve(false)
+            }
+        })
+        req.on('error', (err) => {
+            reject(err)
+        })
+        req.end()
+    })
+}
+
+function getLastUpdate() {
+    return new Promise( (resolve,reject) => {
+        let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+            hostname: dhis2URL.hostname,
+            port: dhis2URL.port,
+            path: dhis2URL.path + '/api/dataStore/CSD-Loader-Last-Export/' + nconf.get("ilr:doc"),
+            headers: {
+                Authorization: auth
+            },
+            method: 'GET'
+        })
+        req.on('response', (res) => {
+            console.log('STATUS: '+res.statusCode)
+            console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+            let body = ''
+            res.on('data', (chunk) => {
+                body += chunk
+            })
+            res.on('end', () => {
+                let dataStore = JSON.parse(body);
+                console.log(dataStore)
+                resolve(dataStore.value)
+            })
+            res.on('error', (e) => {
+                console.log('ERROR: ' +e.message)
+                reject(e)
+            })
+        })
+        req.on('error', (err) => {
+            reject(err)
+        })
+        req.end()
+    })
+}
+
+function setLastUpdate( hasKey, lastUpdate ) {
+    let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+        hostname: dhis2URL.hostname,
+        port: dhis2URL.port,
+        path: dhis2URL.path + '/api/dataStore/CSD-Loader-Last-Export/' + nconf.get("ilr:doc"),
+        headers: {
+            Authorization: auth,
+            "Content-Type": "application/json"
+        },
+        method: (hasKey ? 'PUT' : 'POST')
+    }, (res) => {
+        console.log('STATUS: '+res.statusCode)
+        console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+        if ( res.statusCode == 200 || res.statusCode == 201 ) {
+            console.log("Last update dataStore set.")
+        } else {
+            console.log("Last update dataStore FAILED.")
+        }
+        let body = ''
+        res.on('data', (chunk) => {
+            body += chunk
+        })
+        res.on('end', () => {
+            let dataStore = JSON.parse(body);
+            console.log(dataStore)
+        })
+        res.on('error', (e) => {
+            console.log('ERROR: ' +e.message)
+        })
+    })
+    let payload = { value: lastUpdate }
+    req.write(JSON.stringify(payload)) 
+    req.end()
 }
 
