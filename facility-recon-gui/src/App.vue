@@ -32,7 +32,8 @@ export default {
   },
   methods: {
     getOrgHierarchy(){
-      axios.get('http://localhost:3000/hierarchy/XtxUYCsDWrR').then((hierarchy)=>{
+      //lZsCb6y0KDX Malawi
+      axios.get('http://localhost:3000/hierarchy/PqlFzhuPcF1').then((hierarchy)=>{
         this.$store.state.datimHierarchy = hierarchy
       })
     }

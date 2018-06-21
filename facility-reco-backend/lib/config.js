@@ -31,6 +31,7 @@ if (ops && ops.conf) {
   const environment = nconf.get('NODE_ENV') || 'development'
   nconf.file('environment', path.resolve(`${global.appRoot}/config`, environment + '.json'))
   nconf.file('default', path.resolve(`${global.appRoot}/config`, 'default.json'))
+  //nconf.file('custom', path.resolve(`${global.appRoot}/config`, 'default_multiple_instances.json'))
 }
 
 if (ops && ops.createIndexes) {

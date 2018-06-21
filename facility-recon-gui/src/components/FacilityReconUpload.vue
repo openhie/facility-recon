@@ -1,5 +1,20 @@
 <template>
   <v-container fluid>
+    <v-dialog v-model="dialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          Alert
+        </v-card-title>
+        <v-card-text>
+          Data submitted and scores are being calculated
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" @click.native="closeDialog('FacilityReconHome')">Close</v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')" >View Data</v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')" >View Scores</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-slide-y-transition mode="out-in">
       <v-stepper v-model="e1">
         <v-stepper-header>
@@ -186,6 +201,7 @@ import { required } from 'vuelidate/lib/validators'
 export default {
   data () {
     return {
+      dialog: false,
       file: '',
       uploadedFileName: '',
       e1: 0,
@@ -270,7 +286,8 @@ export default {
       formData.append('level5',this.level5)
       formData.append('level6',this.level6)
       formData.append('level7',this.level7)
-      axios.post('http://localhost:3000/reconcile/XtxUYCsDWrR',
+      //this.dialog = true
+      axios.post('http://localhost:3000/reconcile/lZsCb6y0KDX',
         formData,
         {
           headers: {
@@ -283,7 +300,10 @@ export default {
         console.log(err)
       })
 
-      axios.get(location.origin + "#/view")
+    },
+    closeDialog (component) {
+      this.$router.push({name: component})
+      this.dialog = false
     }
   },
   computed: {

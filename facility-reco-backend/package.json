@@ -4,7 +4,7 @@
   "description": "GOFR",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --max-old-space-size=6076 lib/index.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "fast-csv": "^2.4.1",
     "fast-levenshtein": "^2.0.6",
     "geodist": "^0.2.1",
+    "memory-cache": "^0.2.0",
     "mongoose": "^4.1.11",
     "multer": "^1.3.0",
     "nconf": "^0.10.0",

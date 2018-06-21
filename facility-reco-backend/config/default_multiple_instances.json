@@ -16,7 +16,7 @@
     "password":""
   },
   "mCSDMOH":{
-    "url":"http://localhost:3447/fhir",
+    "url":"http://localhost:3449/fhir",
     "username":"",
     "password":""
   },
@@ -35,15 +35,6 @@
   "logger": {
     "level": "info"
   },
-  "CSVHeaders":[
-    "Region",
-    "Zone",
-    "District",
-    "Site_name",
-    "Latitude",
-    "Longitude",
-    "MOH_Facility_ID"
-  ],
   "levels":[
     "level1",
     "level2",

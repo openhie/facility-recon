@@ -1,0 +1,46 @@
+{
+  "server": {
+    "hostname": "0.0.0.0",
+    "port": 3000
+  },
+  "mongodb": {
+    "host":"localhost",
+    "port":"27017",
+    "database":"gofr",
+    "user":"",
+    "password":""
+  },
+  "mCSD":{
+    "url":"http://localhost:3447",
+    "database": "GeoAlign",
+    "username": "",
+    "password": ""
+  },
+  "CSD":{
+    "url":"http://localhost:8984/CSD",
+    "username":"",
+    "password":""
+  },
+  "UUID":{
+    "namespace":"de2026e0-62ad-11e8-98ab-fb2f18c02667"
+  },
+  "oauth": {
+    "accessTokenLifetime": 3600,
+    "debug":true
+  },
+  "logger": {
+    "level": "info"
+  },
+  "levels":[
+    "level1",
+    "level2",
+    "level3",
+    "level4",
+    "level5",
+    "level6",
+    "level7"
+  ],
+  "matchResults":{
+    "maxSuggestions":5
+  }
+}
