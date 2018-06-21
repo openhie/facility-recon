@@ -31,15 +31,23 @@ export default {
     }
   },
   methods: {
-    getOrgHierarchy(){
-      //lZsCb6y0KDX Malawi
-      axios.get('http://localhost:3000/hierarchy/PqlFzhuPcF1').then((hierarchy)=>{
+    getOrgHierarchy () {
+      // lZsCb6y0KDX Malawi
+      var orgUnit = this.$store.state.orgUnit
+      axios.get('http://localhost:3000/hierarchy/' + orgUnit).then((hierarchy) => {
         this.$store.state.datimHierarchy = hierarchy
       })
+    },
+    getTotalLevels () {
+      var orgUnit = this.$store.state.orgUnit
+      axios.get('http://localhost:3000/countLevels/' + orgUnit).then((levels) => {
+        this.$store.state.totalLevels = levels.data.totalLevels
+      })
     }
-  },  
-  created() {
-    this.getOrgHierarchy()
+  },
+  created () {
+    // this.getOrgHierarchy()
+    this.getTotalLevels()
   },
   name: 'App'
 }

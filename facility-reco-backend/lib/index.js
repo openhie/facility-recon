@@ -46,6 +46,27 @@ app.post('/oauth/registerUser',  function (req, res) {
 	})
 })
 
+app.get('/countLevels/:orgid',(req,res)=>{
+	if(!req.params.orgid){
+		winston.error({"error":"Missing Orgid"})
+		res.set('Access-Control-Allow-Origin','*')
+		res.status(401).json({"error":"Missing Orgid"})
+	}
+	else {
+		var orgid = req.params.orgid
+		mcsd.countLevels('DATIM',orgid,(err,totalLevels)=>{
+			res.set('Access-Control-Allow-Origin','*')
+			if(err){
+				winston.error(err)
+				res.status(401).json({"error":"Missing Orgid"})
+			}
+			else{
+				res.status(200).json({totalLevels:totalLevels})
+			}
+		})
+	}
+})
+
 app.get('/hierarchy/:orgid',(req,res)=>{
 	if(!req.params.orgid){
 		winston.error({"error":"Missing Orgid"})

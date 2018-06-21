@@ -97,92 +97,106 @@
                   single-line
                   clearable></v-select>
                 </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 1</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel1"
-                  v-model="level1"
-                  @blur="$v.level1.$touch()"
-                  @change="$v.level1.$touch()"
-                  :error-messages="level1Errors"
-                  required
-                  label="Select"
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 2</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel2"
-                  v-model="level2"
-                  @blur="$v.level2.$touch()"
-                  @change="$v.level2.$touch()"
-                  :error-messages="level2Errors"
-                  label="Select"
-                  required
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 3</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel3"
-                  v-model="level3"
-                  @blur="$v.level3.$touch()"
-                  @change="$v.level3.$touch()"
-                  :error-messages="level3Errors"
-                  label="Select"
-                  required
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 4</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel4"
-                  v-model="level4"
-                  @blur="$v.level4.$touch()"
-                  @change="$v.level4.$touch()"
-                  :error-messages="level4Errors"
-                  required
-                  label="Select"
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 5</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel5"
-                  v-model="level5"
-                  label="Select"
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 6</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel6"
-                  v-model="level6"
-                  label="Select"
-                  single-line
-                  clearable></v-select>
-                </v-flex>
-                <v-flex xs6>
-                  <v-subheader>Level 7</v-subheader>
-                </v-flex>
-                <v-flex xs6>
-                  <v-select :items="filteredItemLevel7"
-                  v-model="level7"
-                  label="Select"
-                  single-line
-                  clearable></v-select>
-                </v-flex>
+                <template v-if='$store.state.totalLevels > 1'>
+                  <v-flex xs6>
+                    <v-subheader>Level 1</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel1"
+                    v-model="level1"
+                    @blur="$v.level1.$touch()"
+                    @change="$v.level1.$touch()"
+                    :error-messages="level1Errors"
+                    required
+                    label="Select"
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 2'>
+                  <v-flex xs6>
+                    <v-subheader>Level 2</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel2"
+                    v-model="level2"
+                    @blur="$v.level2.$touch()"
+                    @change="$v.level2.$touch()"
+                    :error-messages="level2Errors"
+                    label="Select"
+                    required
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 3'>
+                  <v-flex xs6>
+                    <v-subheader>Level 3</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel3"
+                    v-model="level3"
+                    @blur="$v.level3.$touch()"
+                    @change="$v.level3.$touch()"
+                    :error-messages="level3Errors"
+                    label="Select"
+                    required
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 4'>
+                  <v-flex xs6>
+                    <v-subheader>Level 4</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel4"
+                    v-model="level4"
+                    @blur="$v.level4.$touch()"
+                    @change="$v.level4.$touch()"
+                    :error-messages="level4Errors"
+                    required
+                    label="Select"
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 5'>
+                  <v-flex xs6>
+                    <v-subheader>Level 5</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel5"
+                    v-model="level5"
+                    label="Select"
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 6'>
+                  <v-flex xs6>
+                    <v-subheader>Level 6</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel6"
+                    v-model="level6"
+                    label="Select"
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
+                <template v-if='$store.state.totalLevels > 7'>
+                  <v-flex xs6>
+                    <v-subheader>Level 7</v-subheader>
+                  </v-flex>
+                  <v-flex xs6>
+                    <v-select :items="filteredItemLevel7"
+                    v-model="level7"
+                    label="Select"
+                    single-line
+                    clearable></v-select>
+                  </v-flex>
+                </template>
               </v-layout>
             </v-container>
             <v-btn color="primary" @click.native="submitCSV" :disabled="$v.$invalid">Upload</v-btn>
@@ -217,7 +231,6 @@ export default {
       level6: null,
       level7: null,
       uploadedHeaders: [
-        
       ],
       mappedHeaders: [],
       valid: false
@@ -275,18 +288,18 @@ export default {
     submitCSV () {
       let formData = new FormData()
       formData.append('file', this.file)
-      formData.append('facility',this.facility)
-      formData.append('code',this.code)
-      formData.append('lat',this.lat)
-      formData.append('long',this.long)
-      formData.append('level1',this.level1)
-      formData.append('level2',this.level2)
-      formData.append('level3',this.level3)
-      formData.append('level4',this.level4)
-      formData.append('level5',this.level5)
-      formData.append('level6',this.level6)
-      formData.append('level7',this.level7)
-      //this.dialog = true
+      formData.append('facility', this.facility)
+      formData.append('code', this.code)
+      formData.append('lat', this.lat)
+      formData.append('long', this.long)
+      formData.append('level1', this.level1)
+      formData.append('level2', this.level2)
+      formData.append('level3', this.level3)
+      formData.append('level4', this.level4)
+      formData.append('level5', this.level5)
+      formData.append('level6', this.level6)
+      formData.append('level7', this.level7)
+      // this.dialog = true
       axios.post('http://localhost:3000/reconcile/lZsCb6y0KDX',
         formData,
         {
@@ -294,12 +307,11 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         }
-      ).then((data)=>{
+      ).then((data) => {
         this.$store.state.mohHierarchy = data
-      }).catch((err)=> {
+      }).catch((err) => {
         console.log(err)
       })
-
     },
     closeDialog (component) {
       this.$router.push({name: component})

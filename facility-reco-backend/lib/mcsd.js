@@ -75,6 +75,55 @@ module.exports = function () {
         })
       })
     },
+    countLevels:function(source,parentOrgid,callback){
+      const database = config.getConf("mCSD:database")
+      if(source == "MOH")
+        var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
+      else if(source == "DATIM")
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
+
+      var totalLevels = 1
+      function cntLvls(url,callback) {
+        var options = {
+          url: url
+        }
+        request.get(options, (err, res, body) => {
+          body = JSON.parse(body)
+          if(body.total == 0)
+            return callback(totalLevels)
+          var counter = 0
+          async.eachSeries(body.entry,(entry,nxtEntry)=>{
+            if(entry.resource.name.startsWith('_') || counter > 0){
+              return nxtEntry()
+            }
+            totalLevels++
+            counter++
+            if(entry.resource.hasOwnProperty("id") && 
+              entry.resource.id != false &&
+              entry.resource.id != null &&
+              entry.resource.id != undefined){
+              var reference = entry.resource.id
+
+              if(source == "MOH")
+                var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
+              else if(source == "DATIM")
+                var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
+              cntLvls(url,(totalLevels)=>{
+                return callback(totalLevels)
+              })
+            }
+            else
+              return callback(totalLevels)
+          },function(){
+            return callback(totalLevels)
+          })
+        })
+      }
+
+      cntLvls(url,(totalLevels)=>{
+        return callback(false,totalLevels)
+      })
+    },
     saveLocations:function(mCSD,orgid,callback){
       let url = URI(config.getConf("mCSD:url")).segment(orgid).segment('fhir').toString()
       var options = {
@@ -338,11 +387,13 @@ module.exports = function () {
 
         var splParent = entityParent.split("/")
         entityParent = splParent[(splParent.length-1)]
-        //var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + entityParent.toString()
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + entityParent.toString()
+        /*
         if(source == "MOH")
           var url = URI(config.getConf("mCSDMOH:url")).segment('Location') + "?_id=" + entityParent.toString()
         else if(source == "DATIM")
           var url = URI(config.getConf("mCSDDATIM:url")).segment('Location') + "?_id=" + entityParent.toString()
+        */
 
         var options = {
           url: url

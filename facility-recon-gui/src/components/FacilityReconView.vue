@@ -148,8 +148,8 @@ export default {
       ],
       searchMOH: '',
       searchDATIM: '',
-      datimPagination: {rowsPerPage:20},
-      mohPagination: {rowsPerPage:20}
+      datimPagination: { rowsPerPage: 20 },
+      mohPagination: { rowsPerPage: 20 }
     }
   },
   computed: {
@@ -177,7 +177,7 @@ export default {
       return results
     },
     mohGridData () {
-      var results = [  ]
+      var results = [ ]
       for (var i in this.mohTreeData) {
         for (var j in this.mohTreeData[i].children) {
           for (var k in this.mohTreeData[i].children[j].children) {
@@ -200,19 +200,21 @@ export default {
       return results
     },
     datimPages () {
-      if (this.datimPagination.rowsPerPage == null ||  this.datimPagination.totalItems == null ) 
+      if (this.datimPagination.rowsPerPage == null || this.datimPagination.totalItems == null) {
         return 0
+      }
       return Math.ceil(this.datimPagination.totalItems / this.datimPagination.rowsPerPage)
     },
     mohPages () {
-      if (this.mohPagination.rowsPerPage == null ||  this.mohPagination.totalItems == null ) 
+      if (this.mohPagination.rowsPerPage == null || this.mohPagination.totalItems == null) {
         return 0
+      }
       return Math.ceil(this.mohPagination.totalItems / this.mohPagination.rowsPerPage)
     },
-    datimTreeData(){
+    datimTreeData () {
       return this.$store.state.datimHierarchy.data
     },
-    mohTreeData(){
+    mohTreeData () {
       return this.$store.state.mohHierarchy.data
     }
   },
