@@ -9,7 +9,7 @@ const config = require('./config')
 const mcsd = require("./mcsd")()
 module.exports = function(){
 	return {
-		getScores:function(mcsdMOH,mcsdDATIM,mohDB,datimDB,callback){
+		getScores:function(mcsdMOH,mcsdDATIM,mohDB,datimDB,topOrg,callback){
 			const scoreResults = []
 			const maxSuggestions = config.getConf("matchResults:maxSuggestions")
 			if(mcsdDATIM.total == 0){
@@ -32,7 +32,7 @@ module.exports = function(){
 					if(mohEntry.resource.hasOwnProperty("partOf")){
 						var entityParent = mohEntry.resource.partOf.reference
 						var mohParentReceived = new Promise((resolve,reject)=>{
-							mcsd.getParentsFromDB('MOH',mohDB,entityParent,"names",(mohParents)=>{
+							mcsd.getParentsFromDB('MOH',mohDB,entityParent,false,"names",(mohParents)=>{
 							//mcsd.getParents(reference,mcsdMOH,"names",(mohParents)=>{
 								resolve(mohParents)
 							})
@@ -67,7 +67,7 @@ module.exports = function(){
 								if(datimEntry.resource.hasOwnProperty("partOf")){
 									var entityParent = datimEntry.resource.partOf.reference
 									var datimParentReceived = new Promise((resolve,reject)=>{
-										mcsd.getParentsFromDB('DATIM',datimDB,entityParent,"names",(datimParents)=>{
+										mcsd.getParentsFromDB('DATIM',datimDB,entityParent,topOrg,"names",(datimParents)=>{
 										//mcsd.getParents(reference,mcsdDATIM,"names",(datimParents)=>{
 											resolve(datimParents)
 										})

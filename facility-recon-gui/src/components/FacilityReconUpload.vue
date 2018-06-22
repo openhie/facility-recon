@@ -300,7 +300,7 @@ export default {
       formData.append('level6', this.level6)
       formData.append('level7', this.level7)
       // this.dialog = true
-      axios.post('http://localhost:3000/reconcile/lZsCb6y0KDX',
+      axios.post('http://localhost:3000/uploadCSV/lZsCb6y0KDX',
         formData,
         {
           headers: {

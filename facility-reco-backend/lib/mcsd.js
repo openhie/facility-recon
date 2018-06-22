@@ -11,76 +11,111 @@ const csv = require('fast-csv')
 var cache = require('memory-cache');
 
 module.exports = function () {
-  const globalProcessed = {}
   return{
-    getLocations:function(source,parentOrgid,callback){
-      const database = config.getConf("mCSD:database")
-      if(source == "MOH")
-        var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
-      else if(source == "DATIM")
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
-      var mcsd = {}
-      mcsd.entry = []
-      function getLoc(url,mcsd,callback) {
-        var options = {
-          url: url
-        }
-        request.get(options, (err, res, body) => {
-          body = JSON.parse(body)
-          mcsd.entry = mcsd.entry.concat(body.entry)
-          const promises = []
-          if(body.total == 0)
+    getLocations:function(source,topOrgId,totalLevels,callback){
+      //if its MOH,fetch everything
+      if(source == "MOH") {
+        var mcsd = {}
+        mcsd.entry = []
+        var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + '?_count=500'.toString()
+        async.doWhilst(
+          function(callback){
+            var options = {
+              url: url
+            }
+            url = false
+            request.get(options, (err, res, body) => {
+              body = JSON.parse(body)
+              mcsd.entry = mcsd.entry.concat(body.entry)
+              var link = body.link.find((link)=>{
+                return link.relation == "next"
+              })
+              if(link)
+              url = link.url
+              return callback(false,url)
+            })
+          },
+          function(){
+            return (url!=false)
+          },
+          function(){
             return callback(mcsd)
-          body.entry.forEach((entry)=>{
-            promises.push(new Promise((resolve,reject)=>{
-              if(entry.resource.hasOwnProperty("id") && 
-                entry.resource.id != false &&
-                entry.resource.id != null &&
-                entry.resource.id != undefined){
-                var reference = entry.resource.id
+          }
+        )
+      }
+      else{
+        const database = config.getConf("mCSD:database")
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
+        var mcsd = {}
+        mcsd.entry = []
+        var hierarchy = [topOrgId]
+        function getLoc(url,mcsd,callback) {
+          var options = {
+            url: url
+          }
+          request.get(options, (err, res, body) => {
+            body = JSON.parse(body)
+            mcsd.entry = mcsd.entry.concat(body.entry)
 
-                if(source == "MOH")
-                  var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
-                else if(source == "DATIM")
-                  var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
-                getLoc(url,mcsd,(storage)=>{
-                  resolve()
+            const promises = []
+            if(body.total == 0)
+              return callback(mcsd)
+            body.entry.forEach((entry)=>{
+              promises.push(new Promise((resolve,reject)=>{
+                var parent = entry.resource.partOf.reference
+                var element = hierarchy.find((element)=>{
+                  if(element.toString().endsWith(parent.replace('Location/',''))){
+                    return element
+                  }
                 })
-              }
-              else
-                resolve()
-            }))
+                var newElement = element + "=>" + entry.resource.id
+                hierarchy.push(newElement)
+                if(newElement.split("=>").length == totalLevels){
+                  return resolve()
+                }
+                if(entry.resource.hasOwnProperty("id") && 
+                  entry.resource.id != false &&
+                  entry.resource.id != null &&
+                  entry.resource.id != undefined){
+                  var entityID = entry.resource.id
+                  var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + entityID.toString()
+                  getLoc(url,mcsd,(storage)=>{
+                    resolve()
+                  })
+                }
+                else
+                  resolve()
+              }))
+            })
+            
+            Promise.all(promises).then(()=>{
+              return callback(mcsd)
+            }).catch((err)=>{
+              winston.error(err)
+            })
           })
-          
-          Promise.all(promises).then(()=>{
-            return callback(mcsd)
-          }).catch((err)=>{
-            winston.error(err)
+        }
+
+        getLoc(url,mcsd,(mcsd)=>{
+          var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + topOrgId.toString()
+          var options = {
+            url: url
+          }
+          request.get(options, (err, res, body) => {
+            body = JSON.parse(body)
+            mcsd.entry = mcsd.entry.concat(body.entry)
+            callback(mcsd)
           })
         })
       }
-
-      getLoc(url,mcsd,(mcsd)=>{
-        if(source == "MOH")
-          var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?_id=" + parentOrgid.toString()
-        else if(source == "DATIM")
-          var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + parentOrgid.toString()
-        var options = {
-          url: url
-        }
-        request.get(options, (err, res, body) => {
-          body = JSON.parse(body)
-          mcsd.entry = mcsd.entry.concat(body.entry)
-          callback(mcsd)
-        })
-      })
     },
-    countLevels:function(source,parentOrgid,callback){
+
+    countLevels:function(source,topOrgId,callback){
       const database = config.getConf("mCSD:database")
       if(source == "MOH")
-        var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
+        var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
       else if(source == "DATIM")
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + parentOrgid.toString()
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
 
       var totalLevels = 1
       function cntLvls(url,callback) {
@@ -105,7 +140,7 @@ module.exports = function () {
               var reference = entry.resource.id
 
               if(source == "MOH")
-                var url = URI(config.getConf("mCSD:url")).segment(parentOrgid).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
+                var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
               else if(source == "DATIM")
                 var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
               cntLvls(url,(totalLevels)=>{
@@ -119,7 +154,6 @@ module.exports = function () {
           })
         })
       }
-
       cntLvls(url,(totalLevels)=>{
         return callback(false,totalLevels)
       })
@@ -285,7 +319,7 @@ module.exports = function () {
       return callback(entry)
     },
 
-    createTree: function(mcsd,source,callback){
+    createTree: function(mcsd,source,database,topOrg,callback){
       const datimPromises = []
       let tree = []
       var me = this
@@ -295,6 +329,9 @@ module.exports = function () {
         if(mcsdEntry.resource.hasOwnProperty('position')){
           long = mcsdEntry.resource.position.longitude
           lat = mcsdEntry.resource.position.latitude
+        }
+        if(mcsdEntry.resource.id == topOrg){
+          return nxtMCSDEntry()
         }
         if(!mcsdEntry.resource.hasOwnProperty('partOf')){
           var parent = {text:mcsdEntry.resource.name,id:mcsdEntry.resource.id,lat:lat,long:long,children:[]}
@@ -309,7 +346,8 @@ module.exports = function () {
         else {
           var reference = mcsdEntry.resource.partOf.reference
           var currentItem = {text:mcsdEntry.resource.name,id:mcsdEntry.resource.id,lat:lat,long:long,children:[]}
-          this.getParents(reference,mcsd,'all',(parents)=>{
+          this.getParentsFromDB(source,database,reference,topOrg,'all',(parents)=>{
+          //this.getParentsFromData(reference,mcsd,'all',(parents)=>{
             parents.reverse()
             //push the current element on top of the list
             parents.push(currentItem)
@@ -369,15 +407,11 @@ module.exports = function () {
     },
 
     /*
-      This function was intended to replace the corresponding function getParents but this function is slower than getParents. The reason i wanted to replace
-      getParents function is just because getParents gets mcsd Document as an argument which can be large while getParentsNew uses mongoDB to search parents
-
-      SO this function is not used any where
+      This function finds parents of an entity by fetching data from DB
     */
-    getParentsFromDB:function(source,database,entityParent,details,callback) {
+    getParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
+      var sourceEntityID = entityParent
       const parents = []
-      if(cache.size() == 0)
-      winston.error(cache.size())
       function getPar(entityParent,callback){
         if(entityParent == null || entityParent == false || entityParent == undefined){
           winston.error("Error " + entityParent)
@@ -410,6 +444,16 @@ module.exports = function () {
             parents.push(cachedData.text)
           else
             winston.error("parent details (either id,names or all) to be returned not specified")
+
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
+            return callback(parents)
+          }
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if(topOrg && sourceEntityID.endsWith(topOrg)){
+            return callback(parents) 
+          }
+
           if(entityParent){
             getPar(entityParent,(parents)=>{
               callback(parents)
@@ -449,6 +493,18 @@ module.exports = function () {
           else
             winston.error("parent details (either id,names or all) to be returned not specified")
 
+          //stop after we reach the topOrg which is the country
+          var entityID = body.entry[0].resource.id
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
+            return callback(parents)
+          }
+
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if(topOrg && sourceEntityID.endsWith(topOrg)){
+            return callback(parents) 
+          }
+
           if(body.entry[0].resource.hasOwnProperty("partOf") && 
             body.entry[0].resource.partOf.reference != false &&
             body.entry[0].resource.partOf.reference != null &&
@@ -467,7 +523,10 @@ module.exports = function () {
         return callback(parents)
       })
     },
-    getParents:function(entityParent,mcsd,details,callback){
+    /*
+    This function finds parents of an entity from passed mCSD data
+    */
+    getParentsFromData:function(entityParent,mcsd,details,callback){
       const parents = []
       function getPar(parents,entityParent,callback){
         if(entityParent == null || entityParent == false || entityParent == undefined){
@@ -550,6 +609,8 @@ module.exports = function () {
 
         Promise.all(promises).then(()=>{
           return callback(parents)
+        }).catch((err)=>{
+          winston.error(err)
         })
       }
       getPar(parents,entityParent,(parents)=>{

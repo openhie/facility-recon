@@ -32,21 +32,23 @@ export default {
   },
   methods: {
     getOrgHierarchy () {
-      // lZsCb6y0KDX Malawi
       var orgUnit = this.$store.state.orgUnit
-      axios.get('http://localhost:3000/hierarchy/' + orgUnit).then((hierarchy) => {
+      axios.get('http://localhost:3000/hierarchy/datim/' + orgUnit).then((hierarchy) => {
         this.$store.state.datimHierarchy = hierarchy
+        axios.get('http://localhost:3000/hierarchy/moh/' + orgUnit).then((hierarchy) => {
+          this.$store.state.mohHierarchy = hierarchy
+        })
       })
     },
     getTotalLevels () {
       var orgUnit = this.$store.state.orgUnit
       axios.get('http://localhost:3000/countLevels/' + orgUnit).then((levels) => {
         this.$store.state.totalLevels = levels.data.totalLevels
+        this.getOrgHierarchy()
       })
     }
   },
   created () {
-    // this.getOrgHierarchy()
     this.getTotalLevels()
   },
   name: 'App'

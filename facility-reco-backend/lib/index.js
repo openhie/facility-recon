@@ -67,28 +67,62 @@ app.get('/countLevels/:orgid',(req,res)=>{
 	}
 })
 
-app.get('/hierarchy/:orgid',(req,res)=>{
-	if(!req.params.orgid){
-		winston.error({"error":"Missing Orgid"})
+app.get('/hierarchy/:source/:orgid',(req,res)=>{
+	if(!req.params.orgid || !req.params.source){
+		winston.error({"error":"Missing Orgid or source"})
 		res.set('Access-Control-Allow-Origin','*')
-		res.status(401).json({"error":"Missing Orgid"})
+		res.status(401).json({"error":"Missing Orgid or source"})
 	}
 	else {
 		var orgid = req.params.orgid
-		winston.info("Fetching DATIM Locations For " + orgid)
-		mcsd.getLocations("DATIM",orgid,(mcsdDATIM)=>{
-			winston.info("Done Fetching DATIM Locations")
-			winston.info("Creating DATIM Tree")
-			mcsd.createTree(mcsdDATIM,'DATIM',(tree)=>{
-				winston.info("Done Creating DATIM Tree")
+		var source = req.params.source.toUpperCase()
+		if(source == "DATIM")
+			var database = config.getConf("mCSD:database")
+		else if(source == "MOH")
+			var database = orgid
+
+		winston.info(`Fetching ${source} Locations For ${orgid}`)
+		mcsd.getLocations(source,orgid,5,(mcsdData)=>{
+			winston.info(`Done Fetching ${source} Locations`)
+			winston.info(`Creating ${source} Tree`)
+			mcsd.createTree(mcsdData,source,database,orgid,(tree)=>{
+				winston.info(`Done Creating ${source} Tree`)
 				res.set('Access-Control-Allow-Origin','*')
 				res.status(200).json(tree)
 			})
 		})
 	}
 })
-
 app.post('/reconcile/:orgid', (req,res)=>{
+	if(!req.params.orgid || !req.params.source){
+		winston.error({"error":"Missing Orgid or source"})
+		res.set('Access-Control-Allow-Origin','*')
+		res.status(401).json({"error":"Missing Orgid or source"})
+	}
+	else {
+		var orgid = req.params.orgid
+		var source = req.params.source.toUpperCase()
+		if(source == "DATIM")
+			var database = config.getConf("mCSD:database")
+		else if(source == "MOH")
+			var database = orgid
+		winston.info("Getting DATIM Locations for this orgid")
+		mcsd.getLocations("DATIM",orgid,totalLevels,(mcsdDATIM)=>{
+			mcsd.getLocations("MOH",orgid,totalLevels,(mcsdMOH)=>{
+				winston.info("Received DATIM Locations for this orgid")
+				winston.info("Getting Scores")
+				scores.getScores(mcsdMOH,mcsdDATIM,orgid,database,orgid,(scoreResults)=>{
+					winston.error(JSON.stringify(scoreResults,null,2))
+					winston.info("Done calculating scores")
+					res.set('Access-Control-Allow-Origin','*')
+					res.status(200).json(scoreResults)
+				})
+			})
+		})
+	}
+})
+
+app.post('/uploadCSV/:orgid', (req,res)=>{
 	winston.info("Received MOH Data with fields Mapping " + JSON.stringify(req.fields))
 	if(!req.params.orgid){
 		winston.error({"error":"Missing Orgid"})
@@ -124,37 +158,23 @@ app.post('/reconcile/:orgid', (req,res)=>{
 		winston.info("CSV File Passed Validation")
 		winston.info("Converting CSV to mCSD")
 		var convertedTomCSD = new Promise((resolve,reject)=>{
-				mcsd.CSVTomCSD(req.files[fileName].path,req.fields,(mcsdMOH)=>{
-					resolve(mcsdMOH)
-				})
+			mcsd.CSVTomCSD(req.files[fileName].path,req.fields,(mcsdMOH)=>{
+				resolve(mcsdMOH)
 			})
-		winston.info("CSV Converted to mCSD")
+		})
+		
 		convertedTomCSD.then((mcsdMOH)=>{
-			winston.info("Getting DATIM Locations for this orgid")
-			mcsd.getLocations("DATIM",orgid,(mcsdDATIM)=>{
-				winston.info("Received DATIM Locations for this orgid")
-				winston.info("Getting Scores")
-				scores.getScores(mcsdMOH,mcsdDATIM,orgid,database,(scoreResults)=>{
-					//winston.error(JSON.stringify(scoreResults,null,2))
-					winston.info("Done calculating scores")
-				})
-			})
-			/*
-			winston.info("Getting tree view of MOH data")
-			var mohTreeReceived = new Promise((resolve,reject)=>{
-				mcsd.saveLocations(mcsdMOH,orgid,(err,body)=>{
-					mcsd.createTree(mcsdMOH,'MOH',(tree)=>{
-						resolve(tree)
-					})
-				})
-			})
-
-			mohTreeReceived.then((tree)=>{
-				winston.info("Sending back tree view of MOH Data")
+			winston.info("Creating MOH Tree")
+			mcsd.createTree(mcsdMOH,'MOH',orgid,orgid,(tree)=>{
+				winston.info(`Done Creating MOH Tree`)
 				res.set('Access-Control-Allow-Origin','*')
 				res.status(200).json(tree)
 			})
-			*/
+			winston.info("CSV Converted to mCSD")
+			winston.info("Saving MOH CSV into database")
+			mcsd.saveLocations(mcsdMOH,orgid,(err,body)=>{
+				winston.info("MOH mCSD Saved")
+			})	
 		}).catch((err)=>{
 			winston.error(err)
 		})
