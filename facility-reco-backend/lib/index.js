@@ -82,7 +82,7 @@ app.get('/hierarchy/:source/:orgid',(req,res)=>{
 			var database = orgid
 
 		winston.info(`Fetching ${source} Locations For ${orgid}`)
-		mcsd.getLocations(source,orgid,5,(mcsdData)=>{
+		mcsd.getLocations(source,orgid,5,1,(mcsdData)=>{
 			winston.info(`Done Fetching ${source} Locations`)
 			winston.info(`Creating ${source} Tree`)
 			mcsd.createTree(mcsdData,source,database,orgid,(tree)=>{

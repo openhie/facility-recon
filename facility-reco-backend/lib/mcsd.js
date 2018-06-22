@@ -12,7 +12,7 @@ var cache = require('memory-cache');
 
 module.exports = function () {
   return{
-    getLocations:function(source,topOrgId,totalLevels,callback){
+    getLocations:function(source,topOrgId,totalLevels,levelNumber,callback){
       //if its MOH,fetch everything
       if(source == "MOH") {
         var mcsd = {}
@@ -46,20 +46,26 @@ module.exports = function () {
       else{
         const database = config.getConf("mCSD:database")
         var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
-        var mcsd = {}
-        mcsd.entry = []
+        //holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
+        var mcsdTotalLevels = {}
+        //holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
+        var mcsdlevelNumber = {}
+        mcsdTotalLevels.entry = []
+        mcsdlevelNumber.entry = []
         var hierarchy = [topOrgId]
-        function getLoc(url,mcsd,callback) {
+
+        function getLoc(url,callback) {
           var options = {
             url: url
           }
           request.get(options, (err, res, body) => {
             body = JSON.parse(body)
-            mcsd.entry = mcsd.entry.concat(body.entry)
+            if(totalLevels > 0)
+              mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(body.entry)
 
             const promises = []
             if(body.total == 0)
-              return callback(mcsd)
+              return callback(mcsdTotalLevels)
             body.entry.forEach((entry)=>{
               promises.push(new Promise((resolve,reject)=>{
                 var parent = entry.resource.partOf.reference
@@ -70,6 +76,9 @@ module.exports = function () {
                 })
                 var newElement = element + "=>" + entry.resource.id
                 hierarchy.push(newElement)
+                if(levelNumber && newElement.split("=>").length == levelNumber){
+                  mcsdlevelNumber.entry.push(entry)
+                }
                 if(newElement.split("=>").length == totalLevels){
                   return resolve()
                 }
@@ -79,7 +88,7 @@ module.exports = function () {
                   entry.resource.id != undefined){
                   var entityID = entry.resource.id
                   var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + entityID.toString()
-                  getLoc(url,mcsd,(storage)=>{
+                  getLoc(url,(storage)=>{
                     resolve()
                   })
                 }
@@ -89,22 +98,25 @@ module.exports = function () {
             })
             
             Promise.all(promises).then(()=>{
-              return callback(mcsd)
+              return callback(mcsdTotalLevels)
             }).catch((err)=>{
               winston.error(err)
             })
           })
         }
 
-        getLoc(url,mcsd,(mcsd)=>{
+        getLoc(url,(mcsdTotalLevels)=>{
           var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + topOrgId.toString()
           var options = {
             url: url
           }
           request.get(options, (err, res, body) => {
             body = JSON.parse(body)
-            mcsd.entry = mcsd.entry.concat(body.entry)
-            callback(mcsd)
+            if(totalLevels > 0)
+              mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(body.entry)
+            if(levelNumber == 1)
+              mcsdlevelNumber.entry.push(body.entry)
+            callback(mcsdTotalLevels)
           })
         })
       }
