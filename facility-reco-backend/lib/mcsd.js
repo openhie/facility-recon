@@ -12,114 +12,322 @@ var cache = require('memory-cache');
 
 module.exports = function () {
   return{
-    getLocations:function(source,topOrgId,totalLevels,levelNumber,callback){
-      //if its MOH,fetch everything
-      if(source == "MOH") {
-        var mcsd = {}
-        mcsd.entry = []
-        var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + '?_count=500'.toString()
-        async.doWhilst(
-          function(callback){
-            var options = {
-              url: url
-            }
-            url = false
-            request.get(options, (err, res, body) => {
-              body = JSON.parse(body)
-              mcsd.entry = mcsd.entry.concat(body.entry)
-              var link = body.link.find((link)=>{
-                return link.relation == "next"
-              })
-              if(link)
-              url = link.url
-              return callback(false,url)
-            })
-          },
-          function(){
-            return (url!=false)
-          },
-          function(){
-            return callback(mcsd)
-          }
-        )
+    getLocationByID:function(database,id,callback){
+      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
+      var options = {
+        url: url
       }
-      else{
-        const database = config.getConf("mCSD:database")
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
-        //holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
-        var mcsdTotalLevels = {}
-        //holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
-        var mcsdlevelNumber = {}
-        mcsdTotalLevels.entry = []
-        mcsdlevelNumber.entry = []
-        var hierarchy = [topOrgId]
+      let cachedData = cache.get('getLocationByID' + url)
+      if(cachedData){
+        return callback(cachedData)
+      }
+      request.get(options, (err, res, body) => {
+        var cacheData = JSON.parse(body)
+        cache.put('getLocationByID' + url,cacheData,120*1000)
+        return callback(cacheData)
+      })
+    },
 
-        function getLoc(url,callback) {
-          var options = {
-            url: url
-          }
-          request.get(options, (err, res, body) => {
-            body = JSON.parse(body)
-            if(totalLevels > 0)
-              mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(body.entry)
-
-            const promises = []
-            if(body.total == 0)
-              return callback(mcsdTotalLevels)
-            body.entry.forEach((entry)=>{
-              promises.push(new Promise((resolve,reject)=>{
-                var parent = entry.resource.partOf.reference
-                var element = hierarchy.find((element)=>{
-                  if(element.toString().endsWith(parent.replace('Location/',''))){
-                    return element
-                  }
-                })
-                var newElement = element + "=>" + entry.resource.id
-                hierarchy.push(newElement)
-                if(levelNumber && newElement.split("=>").length == levelNumber){
-                  mcsdlevelNumber.entry.push(entry)
-                }
-                if(newElement.split("=>").length == totalLevels){
-                  return resolve()
-                }
-                if(entry.resource.hasOwnProperty("id") && 
-                  entry.resource.id != false &&
-                  entry.resource.id != null &&
-                  entry.resource.id != undefined){
-                  var entityID = entry.resource.id
-                  var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + entityID.toString()
-                  getLoc(url,(storage)=>{
-                    resolve()
-                  })
-                }
-                else
-                  resolve()
-              }))
-            })
-            
-            Promise.all(promises).then(()=>{
-              return callback(mcsdTotalLevels)
-            }).catch((err)=>{
-              winston.error(err)
-            })
-          })
+    getLocationChildren(database,topOrgId,callback){
+      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(topOrgId).segment('$hierarchy').toString()
+      var options = {
+        url: url
+      }
+      request.get(options, (err, res, body1) => {
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + topOrgId.toString()
+        var options = {
+          url: url
+        }
+        request.get(options, (err, res, body2) => {
+          body1 = JSON.parse(body1)
+          body2 = JSON.parse(body2)
+          body1.entry = body1.entry.concat(body2.entry)
+          callback(body1)
+        })
+      })
+    },
+    /*
+      This function finds parents of an entity by fetching data from DB
+    */
+    getLocationParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
+      var sourceEntityID = entityParent
+      const parents = []
+      var me = this
+      function getPar(entityParent,callback){
+        if(entityParent == null || entityParent == false || entityParent == undefined){
+          winston.error("Error " + entityParent)
+          winston.error(JSON.stringify(mcsdEntry))
+          return callback(parents)
         }
 
-        getLoc(url,(mcsdTotalLevels)=>{
-          var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + topOrgId.toString()
-          var options = {
-            url: url
+        var splParent = entityParent.split("/")
+        entityParent = splParent[(splParent.length-1)]
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + entityParent.toString()
+
+        var options = {
+          url: url
+        }
+
+        let cachedData = cache.get(url)
+        if(cachedData) {
+          var entityParent = cachedData.entityParent
+          if(details == "all")
+            parents.push({text:cachedData.text,id:cachedData.id,lat:cachedData.lat,long:cachedData.long})
+          else if(details == "id")
+            parents.push(cachedData.id)
+          else if(details == "names")
+            parents.push(cachedData.text)
+          else
+            winston.error("parent details (either id,names or all) to be returned not specified")
+
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
+            me.getLocationByID(database,topOrg,(loc)=>{
+              if(details == "all")
+                parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:cachedData.lat,long:cachedData.long})
+              else if(details == "id")
+                parents.push(loc.entry[0].resource.id)
+              else if(details == "names")
+                parents.push(loc.entry[0].resource.name)
+              return callback(parents)
+            })
           }
+          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          else if(topOrg && sourceEntityID.endsWith(topOrg)){
+            return callback(parents) 
+          }
+          else {
+            if(entityParent){
+            getPar(entityParent,(parents)=>{
+              callback(parents)
+            })
+          }
+          else
+            return callback(parents)
+          }
+        }
+        else{
           request.get(options, (err, res, body) => {
             body = JSON.parse(body)
-            if(totalLevels > 0)
-              mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(body.entry)
-            if(levelNumber == 1)
-              mcsdlevelNumber.entry.push(body.entry)
-            callback(mcsdTotalLevels)
+            var long = null
+            var lat = null
+            if(body.entry[0].resource.hasOwnProperty('position')){
+              long = body.entry[0].resource.position.longitude
+              lat = body.entry[0].resource.position.latitude
+            }
+            var entityParent = null
+            if(body.entry[0].resource.hasOwnProperty("partOf"))
+              entityParent = body.entry[0].resource.partOf.reference
+
+            var cacheData = {text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long,entityParent:entityParent}
+            cache.put(url,cacheData,120*1000)
+            if(details == "all")
+              parents.push({text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long})
+            else if(details == "id")
+              parents.push(body.entry[0].resource.id)
+            else if(details == "names")
+              parents.push(body.entry[0].resource.name)
+            else
+              winston.error("parent details (either id,names or all) to be returned not specified")
+
+            //stop after we reach the topOrg which is the country
+            var entityID = body.entry[0].resource.id
+            //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+            if(entityParent && topOrg && entityParent.endsWith(topOrg)){
+              me.getLocationByID(database,topOrg,(loc)=>{
+                if(details == "all")
+                  parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:lat,long:long})
+                else if(details == "id")
+                  parents.push(loc.entry[0].resource.id)
+                else if(details == "names")
+                  parents.push(loc.entry[0].resource.name)
+                return callback(parents)
+              })
+            }
+
+            //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+            else if(topOrg && sourceEntityID.endsWith(topOrg)){
+              return callback(parents) 
+            }
+
+            else {
+              if(body.entry[0].resource.hasOwnProperty("partOf") && 
+                body.entry[0].resource.partOf.reference != false &&
+                body.entry[0].resource.partOf.reference != null &&
+                body.entry[0].resource.partOf.reference != undefined){
+                var entityParent = body.entry[0].resource.partOf.reference
+                getPar(entityParent,(parents)=>{
+                  callback(parents)
+                })
+              }
+              else
+                callback(parents)
+            }
           })
-        })
+        }
       }
+      getPar(entityParent,(parents)=>{
+        return callback(parents)
+      })
+    },
+
+    /*
+    This function finds parents of an entity from passed mCSD data
+    */
+    getLocationParentsFromData:function(entityParent,mcsd,details,callback){
+      const parents = []
+      function filter(entityParent,callback){
+        var splParent = entityParent.split("/")
+        entityParent = splParent[(splParent.length-1)]
+
+        var entry = mcsd.entry.find((entry)=>{
+          return entry.resource.id == entityParent
+        })
+        
+        if(entry){
+          var long = null
+          var lat = null
+          if(entry.resource.hasOwnProperty('position')){
+            long = entry.resource.position.longitude
+            lat = entry.resource.position.latitude
+          }
+          var oldEntityParent = entityParent
+          var entityParent = null
+          if(entry.resource.hasOwnProperty("partOf"))
+            entityParent = entry.resource.partOf.reference
+
+          if(details == "all")
+          parents.push({text:entry.resource.name,id:entry.resource.id,lat:lat,long:long})
+          else if(details == "id")
+            parents.push(entry.resource.id)
+          else if(details == "names")
+            parents.push(entry.resource.name)
+          else
+            winston.error("parent details (either id,names or all) to be returned not specified")
+
+          if(entry.resource.hasOwnProperty("partOf") && 
+            entry.resource.partOf.reference != false &&
+            entry.resource.partOf.reference != null &&
+            entry.resource.partOf.reference != undefined){
+            entityParent = entry.resource.partOf.reference
+            filter(entityParent,(parents)=>{
+              return callback(parents)
+            })
+          }
+          else
+            return callback(parents)
+        }
+        else
+          return callback(parents)
+      }
+
+      filter(entityParent,(parents)=>{
+        return callback(parents)
+      })
+    },
+
+    /*
+    if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
+    if levelNumber is set then it returns locations at level levelNumber only
+    if buildings is set then it returns all buildings
+    buildings argument accepts a building level
+    */
+    filterLocations:function(mcsd,topOrgId,totalLevels,levelNumber,buildings,callback){
+      //holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
+      var mcsdTotalLevels = {}
+      //holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
+      var mcsdlevelNumber = {}
+      //holds buildings only
+      var mcsdBuildings = {}
+      mcsdTotalLevels.entry = []
+      mcsdlevelNumber.entry = []
+      mcsdBuildings.entry = []
+      if(!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0){
+        return callback(mcsdTotalLevels,mcsdlevelNumber,mcsdBuildings)
+      }
+      var entry = mcsd.entry.find((entry)=>{
+          return entry.resource.id == topOrgId
+      })
+      if(levelNumber == 1){
+        mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry)
+      }
+      if(totalLevels){
+        mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry)
+      }
+
+      var building = entry.resource.physicalType.coding.find((coding)=>{
+        return coding.code == 'building'
+      })
+
+      if(building){
+        mcsdBuildings.entry = mcsdBuildings.entry.concat(entry)
+      }
+
+      function filter(id,callback){
+        var res =  mcsd.entry.filter((entry)=>{
+            if(entry.resource.hasOwnProperty('partOf')){
+              return entry.resource.partOf.reference.endsWith(id)
+            }
+          })
+        return callback(res)
+      }
+
+      var totalLoops = 0
+      if(totalLevels >= levelNumber && totalLevels >= buildings){
+        totalLoops = totalLevels
+      }
+      else if(levelNumber >= totalLevels && levelNumber >= buildings){
+        totalLoops = levelNumber
+      }
+      else if(buildings >= totalLevels && buildings >= levelNumber){
+        totalLoops = buildings
+      }
+
+      var tmpArr = []
+      tmpArr.push(entry)
+      totalLoops = Array.from(new Array(totalLoops-1),(val,index)=>index+1)
+      async.eachSeries(totalLoops,(loop,nxtLoop)=>{
+        var totalElements = 0
+        const promises = []
+        tmpArr.forEach((arr)=>{
+          promises.push(new Promise((resolve,reject)=>{
+            filter(arr.resource.id,(res)=>{
+              tmpArr = tmpArr.concat(res)
+              if(totalLevels){
+                mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(res)
+              }
+              if(levelNumber == loop+1){
+                mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(res)
+              }
+              const promises1 = []
+              for(var k in res){
+                promises1.push(new Promise((resolve1,reject1)=>{
+                  var building = res[k].resource.physicalType.coding.find((coding)=>{
+                    if(building){
+                      mcsdBuildings.entry = mcsdBuildings.entry.concat(entry)
+                    }
+                  })
+                  resolve1()
+                }))
+              }
+              Promise.all(promises1).then(()=>{
+                totalElements++
+                resolve()
+              }).catch((err)=>{
+                winston.error(err)
+              })
+            })
+          }))
+        })
+        Promise.all(promises).then(()=>{
+          tmpArr.splice(0,totalElements)
+          return nxtLoop()
+        }).catch((err)=>{
+          winston.error(err)
+        })
+      },function(){
+        callback(mcsdTotalLevels,mcsdlevelNumber,mcsdBuildings)
+      })
     },
 
     countLevels:function(source,topOrgId,callback){
@@ -191,6 +399,9 @@ module.exports = function () {
     CSVTomCSD: function(filePath,headerMapping,callback){
       var namespace = config.getConf("UUID:namespace")
       var levels = config.getConf("levels")
+      var orgid = headerMapping.orgid
+      var orgname = headerMapping.orgname
+      var countryUUID = uuid5(orgid,namespace+'000')
       var fhir = {}
       fhir.type = "document"
       fhir.entry = []
@@ -209,8 +420,13 @@ module.exports = function () {
             if(data[headerMapping[level]] != null && data[headerMapping[level]] != undefined && data[headerMapping[level]] != false) {
               var name = data[headerMapping[level]]
               var levelNumber = level.replace('level','')
-              var UUID = uuid5(name,namespace+level)
-
+              if(levelNumber.toString().length < 2){
+                var namespaceMod = namespace + '00' + levelNumber
+              }
+              else{
+                var namespaceMod = namespace + '0' + levelNumber
+              }
+              var UUID = uuid5(name,namespaceMod)
               var topLevels = Array.apply(null, {length: levelNumber}).map(Number.call, Number)
               //removing zero as levels starts from 1
               topLevels.splice(0,1)
@@ -218,15 +434,26 @@ module.exports = function () {
               var parentFound = false
               var parentUUID = null
               var parent = null
+              if(levelNumber == 1){
+                parent = orgname
+                parentUUID = countryUUID
+              }
+
               if(!facilityParent){
                 facilityParent = name
                 facilityParentUUID = UUID
               }
               async.eachSeries(topLevels,(topLevel,nxtTopLevel)=>{
-                var topLevel = 'level' + topLevel
-                if(data[headerMapping[topLevel]] != "" && parentFound == false){
-                  parent = data[headerMapping[topLevel]]
-                  parentUUID = uuid5(parent,namespace+topLevel)
+                var topLevelName = 'level' + topLevel
+                if(data[headerMapping[topLevelName]] != "" && parentFound == false){
+                  parent = data[headerMapping[topLevelName]]
+                  if(topLevel.toString().length < 2){
+                    var namespaceMod = namespace + '00' + topLevel
+                  }
+                  else{
+                    var namespaceMod = namespace + '0' + topLevel
+                  }
+                  parentUUID = uuid5(parent,namespaceMod)
                   parentFound = true
                 }
                 nxtTopLevel()
@@ -242,13 +469,14 @@ module.exports = function () {
               nxtLevel()
             }
           },()=>{
+            jurisdictions.push({name:orgname,parent:null,uuid:countryUUID,parentUUID:null})
             this.translateToJurisdiction(jurisdictions,(resources)=>{
               fhir.entry = fhir.entry.concat(resources)
             })
           })
 
           var facilityName = data[headerMapping.facility]
-          var UUID = uuid5(data[headerMapping.code],namespace+'ID')
+          var UUID = uuid5(data[headerMapping.code],namespace+'100')
           var building = {
             uuid:UUID,
             id:data[headerMapping.code],
@@ -334,7 +562,6 @@ module.exports = function () {
     createTree: function(mcsd,source,database,topOrg,callback){
       const datimPromises = []
       let tree = []
-      var me = this
       async.eachSeries(mcsd.entry,(mcsdEntry,nxtMCSDEntry)=>{
         var long = null
         var lat = null
@@ -358,8 +585,7 @@ module.exports = function () {
         else {
           var reference = mcsdEntry.resource.partOf.reference
           var currentItem = {text:mcsdEntry.resource.name,id:mcsdEntry.resource.id,lat:lat,long:long,children:[]}
-          this.getParentsFromDB(source,database,reference,topOrg,'all',(parents)=>{
-          //this.getParentsFromData(reference,mcsd,'all',(parents)=>{
+          this.getLocationParentsFromData(reference,mcsd,'all',(parents)=>{
             parents.reverse()
             //push the current element on top of the list
             parents.push(currentItem)
@@ -390,8 +616,9 @@ module.exports = function () {
     },
     addToTree:function(tree,item,parent){
       tree.forEach((treeElements)=>{
-        if(treeElements.text == parent.text){
+        if(treeElements.id == parent.id){
           treeElements.children.push(item)
+          return
         }
         else
           this.addToTree(treeElements.children,item,parent)
@@ -402,7 +629,7 @@ module.exports = function () {
         return callback(false)
       }
       async.eachSeries(tree,(element,nxtEl)=>{
-        if(element.text == item.text){
+        if(element.id == item.id){
           return callback(true)
         }
         else {
@@ -415,218 +642,6 @@ module.exports = function () {
         }
       },()=>{
         return callback(false)
-      })
-    },
-
-    /*
-      This function finds parents of an entity by fetching data from DB
-    */
-    getParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
-      var sourceEntityID = entityParent
-      const parents = []
-      function getPar(entityParent,callback){
-        if(entityParent == null || entityParent == false || entityParent == undefined){
-          winston.error("Error " + entityParent)
-          winston.error(JSON.stringify(mcsdEntry))
-          return callback(parents)
-        }
-
-        var splParent = entityParent.split("/")
-        entityParent = splParent[(splParent.length-1)]
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + entityParent.toString()
-        /*
-        if(source == "MOH")
-          var url = URI(config.getConf("mCSDMOH:url")).segment('Location') + "?_id=" + entityParent.toString()
-        else if(source == "DATIM")
-          var url = URI(config.getConf("mCSDDATIM:url")).segment('Location') + "?_id=" + entityParent.toString()
-        */
-
-        var options = {
-          url: url
-        }
-
-        let cachedData = cache.get(url)
-        if(cachedData) {
-          var entityParent = cachedData.entityParent
-          if(details == "all")
-            parents.push({text:cachedData.text,id:cachedData.id,lat:cachedData.lat,long:cachedData.long})
-          else if(details == "id")
-            parents.push(cachedData.id)
-          else if(details == "names")
-            parents.push(cachedData.text)
-          else
-            winston.error("parent details (either id,names or all) to be returned not specified")
-
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-            return callback(parents)
-          }
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          if(topOrg && sourceEntityID.endsWith(topOrg)){
-            return callback(parents) 
-          }
-
-          if(entityParent){
-            getPar(entityParent,(parents)=>{
-              callback(parents)
-            })
-          }
-          else
-            return callback(parents)
-        }
-        else{
-        request.get(options, (err, res, body) => {
-          try {
-            body = JSON.parse(body)  
-          } catch(e) {
-            winston.error(e)
-            winston.error(JSON.stringify(parents))
-            return callback(parents)
-          }
-          
-          var long = null
-          var lat = null
-          if(body.entry[0].resource.hasOwnProperty('position')){
-            long = body.entry[0].resource.position.longitude
-            lat = body.entry[0].resource.position.latitude
-          }
-          var entityParent = null
-          if(body.entry[0].resource.hasOwnProperty("partOf"))
-            entityParent = body.entry[0].resource.partOf.reference
-
-          var cacheData = {text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long,entityParent:entityParent}
-          cache.put(url,cacheData,120*1000)
-          if(details == "all")
-            parents.push({text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long})
-          else if(details == "id")
-            parents.push(body.entry[0].resource.id)
-          else if(details == "names")
-            parents.push(body.entry[0].resource.name)
-          else
-            winston.error("parent details (either id,names or all) to be returned not specified")
-
-          //stop after we reach the topOrg which is the country
-          var entityID = body.entry[0].resource.id
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-            return callback(parents)
-          }
-
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          if(topOrg && sourceEntityID.endsWith(topOrg)){
-            return callback(parents) 
-          }
-
-          if(body.entry[0].resource.hasOwnProperty("partOf") && 
-            body.entry[0].resource.partOf.reference != false &&
-            body.entry[0].resource.partOf.reference != null &&
-            body.entry[0].resource.partOf.reference != undefined){
-            var entityParent = body.entry[0].resource.partOf.reference
-            getPar(entityParent,(parents)=>{
-              callback(parents)
-            })
-          }
-          else
-            callback(parents)
-        })
-        }
-      }
-      getPar(entityParent,(parents)=>{
-        return callback(parents)
-      })
-    },
-    /*
-    This function finds parents of an entity from passed mCSD data
-    */
-    getParentsFromData:function(entityParent,mcsd,details,callback){
-      const parents = []
-      function getPar(parents,entityParent,callback){
-        if(entityParent == null || entityParent == false || entityParent == undefined){
-          winston.error("Error " + entityParent)
-          winston.error(JSON.stringify(mcsdEntry))
-          return callback(parents)
-        }
-
-        var splParent = entityParent.split("/")
-        entityParent = splParent[(splParent.length-1)]
-        const promises = []
-        mcsd.entry.forEach((entry)=>{
-          promises.push(new Promise((resolve,reject)=>{
-            var long = null
-            var lat = null
-            if(entry.resource.hasOwnProperty('position')){
-              long = entry.resource.position.longitude
-              lat = entry.resource.position.latitude
-            }
-            if(entry.resource.id == entityParent) {
-              if(details == "all")
-                parents.push({text:entry.resource.name,id:entry.resource.id,lat:lat,long:long})
-              else if(details == "id")
-                parents.push(entry.resource.id)
-              else if(details == "names")
-                parents.push(entry.resource.name)
-              else
-                winston.error("parent details (either id,names or all) to be returned not specified")
-
-              if(entry.resource.hasOwnProperty("partOf") && 
-                entry.resource.partOf.reference != false &&
-                entry.resource.partOf.reference != null &&
-                entry.resource.partOf.reference != undefined){
-                entityParent = entry.resource.partOf.reference
-                getPar(parents,entityParent,(parents)=>{
-                  return callback(parents)
-                })
-              }
-              else
-                return callback(parents)
-            }
-            else if(entry.resource.hasOwnProperty(identifier) && Object.keys(entry.resource.identifier).length>0){
-              var identifier = entry.resource.identifier.find((identifier)=>{
-                if(identifier.value == entityParent || identifier.value == "Location/" + entityParent)
-                  return true
-                else return false
-              })
-              if(identifier) {
-                if(details == "all")
-                  parents.push({text:entry.resource.name,id:entry.resource.id,lat:lat,long:long})
-                else if(details == "id")
-                  parents.push(entry.resource.id)
-                else if(details == "names")
-                  parents.push(entry.resource.name)
-                else
-                  winston.error("parent details (either id,names or all) to be returned not specified")
-
-                if(entry.resource.hasOwnProperty("partOf") && 
-                  entry.resource.partOf.reference != false &&
-                  entry.resource.partOf.reference != null &&
-                  entry.resource.partOf.reference != undefined){
-                  entityParent = entry.resource.partOf.reference
-                  getPar(parents,entityParent,(parents)=>{
-                    return callback(parents)
-                  })
-                }
-                else
-                  return callback(parents)
-              }
-              else {
-                //return callback(parents)
-                resolve()
-              }
-            }
-            else {
-              return resolve()
-            }
-          }))
-        })
-
-        Promise.all(promises).then(()=>{
-          return callback(parents)
-        }).catch((err)=>{
-          winston.error(err)
-        })
-      }
-      getPar(parents,entityParent,(parents)=>{
-        return callback(parents)
       })
     }
   }

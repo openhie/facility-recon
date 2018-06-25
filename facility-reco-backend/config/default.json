@@ -22,7 +22,7 @@
     "password":""
   },
   "UUID":{
-    "namespace":"de2026e0-62ad-11e8-98ab-fb2f18c02667"
+    "namespace":"de2026e0-62ad-11e8-98ab-fb2f18c02"
   },
   "oauth": {
     "accessTokenLifetime": 3600,

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="dialog" max-width="500px">
+    <v-dialog persistent v-model="dialog" max-width="500px">
       <v-card>
         <v-card-title>
           Alert
@@ -97,7 +97,7 @@
                   single-line
                   clearable></v-select>
                 </v-flex>
-                <template v-if='$store.state.totalLevels > 1'>
+                <template v-if='$store.state.totalLevels-1 > 1'>
                   <v-flex xs6>
                     <v-subheader>Level 1</v-subheader>
                   </v-flex>
@@ -113,7 +113,7 @@
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 2'>
+                <template v-if='$store.state.totalLevels-1 > 2'>
                   <v-flex xs6>
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
@@ -129,39 +129,31 @@
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 3'>
+                <template v-if='$store.state.totalLevels-1 > 3'>
                   <v-flex xs6>
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select :items="filteredItemLevel3"
                     v-model="level3"
-                    @blur="$v.level3.$touch()"
-                    @change="$v.level3.$touch()"
-                    :error-messages="level3Errors"
                     label="Select"
-                    required
                     single-line
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 4'>
+                <template v-if='$store.state.totalLevels-1 > 4'>
                   <v-flex xs6>
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select :items="filteredItemLevel4"
                     v-model="level4"
-                    @blur="$v.level4.$touch()"
-                    @change="$v.level4.$touch()"
-                    :error-messages="level4Errors"
-                    required
                     label="Select"
                     single-line
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 5'>
+                <template v-if='$store.state.totalLevels-1 > 5'>
                   <v-flex xs6>
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
@@ -173,7 +165,7 @@
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 6'>
+                <template v-if='$store.state.totalLevels-1 > 6'>
                   <v-flex xs6>
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
@@ -185,7 +177,7 @@
                     clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels > 7'>
+                <template v-if='$store.state.totalLevels-1 > 7'>
                   <v-flex xs6>
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
@@ -254,12 +246,6 @@ export default {
     },
     level2: {
       required: required
-    },
-    level3: {
-      required: required
-    },
-    level4: {
-      required: required
     }
   },
   methods: {
@@ -299,8 +285,10 @@ export default {
       formData.append('level5', this.level5)
       formData.append('level6', this.level6)
       formData.append('level7', this.level7)
+      formData.append('orgid', this.$store.state.orgUnit.OrgId)
+      formData.append('orgname', this.$store.state.orgUnit.OrgName)
       // this.dialog = true
-      axios.post('http://localhost:3000/uploadCSV/lZsCb6y0KDX',
+      axios.post('http://localhost:3000/uploadCSV',
         formData,
         {
           headers: {
@@ -355,12 +343,14 @@ export default {
       !this.$v.level2.required && errors.push('Level 2 is required')
       return errors
     },
+    /*
     level3Errors () {
       const errors = []
       if (!this.$v.level3.$dirty) return errors
       !this.$v.level3.required && errors.push('Level 3 is required')
       return errors
     },
+    */
     level4Errors () {
       const errors = []
       if (!this.$v.level4.$dirty) return errors
