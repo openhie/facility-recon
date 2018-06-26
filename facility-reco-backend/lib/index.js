@@ -55,8 +55,9 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
+				var recoLevel = 2
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
-				res.status(200).json({totalLevels:totalLevels})
+				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
 		})
 	}
@@ -100,15 +101,16 @@ app.get('/hierarchy/:source',(req,res)=>{
 	}
 })
 
-app.get('/reconcile/:orgid', (req,res)=>{
-	if(!req.params.orgid){
-		winston.error({"error":"Missing Orgid or source"})
+app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
+	if(!req.params.orgid || !req.params.recoLevel){
+		winston.error({"error":"Missing Orgid or reconciliation Level"})
 		res.set('Access-Control-Allow-Origin','*')
-		res.status(401).json({"error":"Missing Orgid or source"})
+		res.status(401).json({"error":"Missing Orgid or reconciliation Level"})
 	}
 	else {
 		winston.info("Getting scores")
 		var orgid = req.params.orgid
+		var recoLevel = req.params.recoLevel
 		var datimDB = config.getConf("mCSD:database")
 		var mohDB = orgid
 		var namespace = config.getConf("UUID:namespace")
@@ -116,7 +118,6 @@ app.get('/reconcile/:orgid', (req,res)=>{
 		var datimTopId = orgid
 		var datim = {}
 		var moh = {}
-		var recoLevel = 2
 		var datimLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(datimDB,datimTopId,(mcsdDATIM)=>{
 				datim = mcsdDATIM
@@ -143,6 +144,28 @@ app.get('/reconcile/:orgid', (req,res)=>{
 			})
 		})
 	}
+})
+
+app.get('/getUnmatched/:orgid/:source/:recoLevel',(req,res)=>{
+	winston.info("Received data for matching")
+	if(!req.params.orgid || !req.params.source){
+		winston.error({"error":"Missing Orgid or Source"})
+		res.set('Access-Control-Allow-Origin','*')
+		res.status(401).json({"error":"Missing Orgid or Source"})
+		return
+	}
+	var orgid = req.params.orgid
+	var source = req.params.source.toUpperCase()
+	var recoLevel = req.params.recoLevel
+	var datimDB = config.getConf("mCSD:database")
+	mcsd.getLocationChildren(datimDB,orgid,(locations)=>{
+		mcsd.filterLocations(locations,orgid,0,recoLevel,0,(mcsdLevels,mcsdLevel,mcsdBuildings)=>{
+			scores.getUnmatched(mcsdLevel,orgid,(unmatched)=>{
+				res.set('Access-Control-Allow-Origin','*')
+				res.status(200).json(unmatched)
+			})
+		})
+	})
 })
 
 app.post('/match/:orgid', (req,res)=>{

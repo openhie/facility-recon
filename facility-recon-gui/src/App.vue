@@ -45,6 +45,7 @@ export default {
       var orgUnit = this.$store.state.orgUnit
       axios.get('http://localhost:3000/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.$store.state.totalLevels = levels.data.totalLevels
+        this.$store.state.recoLevel = levels.data.recoLevel
         this.getOrgHierarchy()
       })
     }

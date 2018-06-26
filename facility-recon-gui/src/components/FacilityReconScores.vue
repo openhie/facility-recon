@@ -65,7 +65,18 @@
         	<v-card-title primary-title>
         	  DATIM Unmatched
         	</v-card-title>
-          <v-card-text>Org1<br>org2</v-card-text>
+          <v-card-text>
+          	<v-list light dense expand>
+          	  <template v-for="(unMatched,key) in datimUnMatched">
+          	  	<v-list-tile @click.native="" :key='unMatched.id'>
+          	  		<v-list-tile-content>
+          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
+          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
+          	  		</v-list-tile-content>
+          	  	</v-list-tile>
+        	  	</template>
+          	</v-list>
+          </v-card-text>
         </v-card>
       </v-flex>
     </v-layout>
@@ -104,9 +115,9 @@
 		data(){
 			return {
 				scoreResults: {},
-				recoLevel:0,
 				potentialMatches: [],
 				matchedContent: [],
+				datimUnMatched: [],
 				selectedMohName: '',
 				selectedMohId: '',
 				selectedDatimId: '',
@@ -131,9 +142,9 @@
 		methods: {
 			getScores(){
 				var orgid = this.$store.state.orgUnit.OrgId
-				axios.get('http://localhost:3000/reconcile/' + orgid).then((scores) => {
+				var recoLevel = this.$store.state.recoLevel
+				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + recoLevel).then((scores) => {
 					this.scoreResults = scores.data.scoreResults
-					this.recoLevel = scores.data.recoLevel
 					for(var k in this.scoreResults){
 						var scoreResult = this.scoreResults[k]
 						if(Object.keys(scoreResult.exactMatch).length > 0){
@@ -146,6 +157,13 @@
 							)
 						}
 					}
+				})
+			},
+			getDatimUnmached(){
+				var orgid = this.$store.state.orgUnit.OrgId
+				var recoLevel = this.$store.state.recoLevel
+				axios.get('http://localhost:3000/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
+					this.datimUnMatched = unmatched.data
 				})
 			},
 			getPotentialMatch(id){
@@ -181,9 +199,10 @@
 				let formData = new FormData()
 				formData.append('mohId', this.selectedMohId)
 				formData.append('datimId', this.selectedDatimId)
-				formData.append('recoLevel',this.recoLevel)
+				formData.append('recoLevel',this.$store.state.recoLevel)
 				formData.append('totalLevels',this.$store.state.totalLevels)
 				var orgid = this.$store.state.orgUnit.OrgId
+				//Add from a list of MOH Matched
 				for(var k in this.mohUnMatched) {
 					if(this.mohUnMatched[k].id == this.selectedMohId){
 						this.mohUnMatched.splice(k,1)
@@ -193,6 +212,12 @@
 							datimName: this.selectedDatimName,
 							datimId: this.selectedDatimId
 						})
+					}
+				}
+				//remove from DATIM Unmatched
+				for(var k in this.datimUnMatched) {
+					if(this.datimUnMatched[k].id == this.selectedDatimId){
+						this.datimUnMatched.splice(k,1)
 					}
 				}
 				this.selectedMohId = null
@@ -261,6 +286,7 @@
 		},
 		created() {
 			this.getScores()
+			this.getDatimUnmached()
 		}
 	}
 </script>

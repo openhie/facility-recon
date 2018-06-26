@@ -11,6 +11,7 @@ export const store = new Vuex.Store({
 			datimHierarchy: '',
 			mohHierarchy: '',
 			orgUnit: {OrgId:'lZsCb6y0KDX',OrgName:'Malawi'},
-			totalLevels: ''
+			totalLevels: '',
+			recoLevel: null
 		}
 })

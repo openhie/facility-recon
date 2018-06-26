@@ -21,7 +21,6 @@ module.exports = function(){
 				return callback()	
 			}
 			async.eachSeries(mcsdMOH.entry,(mohEntry,nxtMohEntry)=>{
-			//mcsdMOH.entry.forEach((mohEntry)=>{
 				var mohName = mohEntry.resource.name
 				if(mohEntry.resource.hasOwnProperty("partOf")){
 					var entityParent = mohEntry.resource.partOf.reference
@@ -46,13 +45,11 @@ module.exports = function(){
 					thisRanking.exactMatch = {}
 					const datimPromises = []
 					async.eachSeries(mcsdDATIM.entry,(datimEntry,nxtDatimEntry)=>{
-					//mcsdDATIM.entry.forEach((datimEntry)=>{
 						datimPromises.push(new Promise((datimResolve,datimReject)=>{
 							var datimName = datimEntry.resource.name
 							if(datimEntry.resource.hasOwnProperty("partOf")){
 								var entityParent = datimEntry.resource.partOf.reference
 								var datimParentReceived = new Promise((resolve,reject)=>{
-									//mcsd.getLocationParentsFromData(entityParent,mcsd1,'names',(datimParents)=>{
 									mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
 										resolve(datimParents)
 									})
@@ -473,64 +470,29 @@ module.exports = function(){
         winston.error(reason)
       })
 		},
-		//this function is deprecated
-		getParents:function(reference,source,callback){
-			const parents = []
-			var nextParent = false
-			async.doWhilst(
-				function(callback){
-					var splParent = reference.split("/")
-					reference = splParent[(splParent.length-1)]
-					if(source == "MOH")
-		        var url = URI(config.getConf("mCSDMOH:url")).segment('Location')
-		      else if(source == "DATIM")
-		        var url = URI(config.getConf("mCSDDATIM:url")).segment('Location')
-		      var options = {
-		        url: url + '?_id=' + reference.toString()
-		      }
-
-		      request.get(options, (err, res, body) => {
-		      	body = JSON.parse(body)
-		        if(body.total == 0){
-		        	var options = {
-				        url: url + '?identifier=' + reference.toString()
-				      }
-				      request.get(options,(err,res,body)=>{
-				      	body = JSON.parse(body)
-				      	if(body.total == 1)
-				      		parents.push(body.entry[0].resource.name)
-				      	if(body.total = 1 && body.entry.length>0 && body.entry[0].resource.hasOwnProperty("partOf") && body.entry[0].resource.partOf.display != ""){
-				      		reference = body.entry[0].resource.partOf.reference
-				      		nextParent = true
-				      	}
-				      	else{
-				      		nextParent = false
-				      	}
-				      	return callback(null,nextParent)
-				      })
-		        }
-
-		        else if(body.total == 1){
-			      	parents.push(body.entry[0].resource.name)
-
-			      	if(body.entry[0].resource.hasOwnProperty("partOf") && body.entry[0].resource.partOf.display != ""){
-			      		reference = body.entry[0].resource.partOf.reference
-			      		nextParent = true
-			      	}
-			      	else{
-			      		nextParent = false
-			      	}
-			      	return callback(null,nextParent)
-		        }
-		      })
-				},
-				function(){
-					return nextParent!=false
-				},
-				function(){
-					return callback(parents)
-				}
-			)
+		getUnmatched:function(mcsdDatim,topOrgId,callback){
+			var database = "MOHDATIM" + topOrgId
+			var unmatched = []
+			async.eachSeries(mcsdDatim.entry,(datimEntry,nxtEntry)=>{
+				mcsd.getLocationByID(database,datimEntry.resource.id,(location)=>{
+					if(location.total == 0){
+						var name = datimEntry.resource.name
+						var id = datimEntry.resource.id
+						var parents = 
+						unmatched.push({
+							id: id,
+							name: name,
+							parents: null
+						})
+						return nxtEntry()
+					}
+					else{
+						return nxtEntry()
+					}
+				})
+			},()=>{
+				callback(unmatched)
+			})
 		}
 
 	}
