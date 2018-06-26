@@ -378,8 +378,8 @@ module.exports = function () {
         return callback(false,totalLevels)
       })
     },
-    saveLocations:function(mCSD,orgid,callback){
-      let url = URI(config.getConf("mCSD:url")).segment(orgid).segment('fhir').toString()
+    saveLocations:function(mCSD,database,callback){
+      let url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').toString()
       var options = {
         url: url.toString(),
         headers: {
@@ -394,6 +394,82 @@ module.exports = function () {
         }
         winston.info("Data saved successfully")
         callback(err,body)
+      })
+    },
+    saveMatch: function(mohId,datimId,topOrgId,recoLevel,totalLevels,callback){
+      const database = config.getConf("mCSD:database")
+      var namespace = config.getConf("UUID:namespace")
+      this.getLocationByID(database,datimId,(mcsd)=>{
+        if(recoLevel.toString().length < 2){
+          var namespaceMod = namespace + '00' + recoLevel
+        }
+        else{
+          var namespaceMod = namespace + '0' + recoLevel
+        }
+        if(recoLevel == totalLevels){
+          var namespaceMod = namespace + '100'
+        }
+
+        var UUID = uuid5(mcsd.entry[0].resource.name,namespaceMod)
+
+        var fhir = {}
+        fhir.entry = []
+        fhir.type = "document"
+        var entry = []
+        var resource = {}
+        resource.resourceType = "Location"
+        resource.name = mcsd.entry[0].resource.name
+        resource.id = datimId
+        resource.identifier = []
+        var datimURL = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment(datimId).toString()
+        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(UUID).toString()
+        resource.identifier.push({"system":"http://geoalign.datim.org/DATIM","value":datimURL})
+        resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":mohURL})
+
+        if(mcsd.entry[0].resource.hasOwnProperty('partOf'))
+          resource.partOf = {"display": mcsd.entry[0].resource.partOf.display,"reference": mcsd.entry[0].resource.partOf.reference}
+        if(recoLevel == totalLevels){
+          var typeCode = 'bu'
+          var typeCode = 'building'
+        }
+        else{
+          var typeCode = 'jdn'
+          var typeName = 'Jurisdiction'
+        }
+        resource.physicalType = {
+          "coding":[
+                      {
+                        "code": typeCode,
+                        "display": typeName,
+                        "system": "http://hl7.org/fhir/location-physical-type"
+                      }
+                    ]
+        }
+        entry.push({"resource":resource})
+        fhir.entry = fhir.entry.concat(entry)
+        var mappingDB = 'MOHDATIM' + topOrgId
+        this.saveLocations (fhir,mappingDB,(err,res)=>{
+          if(err){
+            winston.error(err)
+          }
+          callback(err)
+        })
+      })
+    },
+    breakMatch: function(id,database,callback){
+      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(id).toString()
+      var options = {
+        url: url
+      }
+      let cachedData = cache.get('getLocationByID' + url)
+      if(cachedData){
+        return callback(cachedData)
+      }
+      request.delete(options, (err, res, body) => {
+        if(err){
+          winston.error(err)
+        }
+        callback(err)
       })
     },
     CSVTomCSD: function(filePath,headerMapping,callback){

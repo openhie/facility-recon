@@ -3,30 +3,29 @@ require('./init')
 
 const express = require('express')
 const bodyParser = require('body-parser')
-const oauthserver = require('node-oauth2-server')
+//const oauthserver = require('node-oauth2-server')
+//const oAuthModel = require('./oauth/model')()
 const csv = require('fast-csv')
 const uuid5 = require('uuid/v5')
-const formidable = require('express-formidable')
+const formidable = require('formidable')
 const winston = require('winston')
 const config = require('./config')
 const mcsd = require('./mcsd')()
 const scores = require('./scores')()
-const oAuthModel = require('./oauth/model')()
 
 const app = express(); 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
-//app.use(formidable())
-
-app.oauth = oauthserver({
+//app.use(app.oauth.errorHandler());
+/*app.oauth = oauthserver({
   model: oAuthModel,
   grants: ['password'],
   accessTokenLifetime:config.getConf('oauth:accessTokenLifetime'),
   debug: config.getConf('oauth:debug')
-});
+});*/
  
 //get access token
-app.all('/oauth/token', app.oauth.grant());
+//app.all('/oauth/token', app.oauth.grant());
 
 //register user
 app.post('/oauth/registerUser',  function (req, res) {
@@ -117,10 +116,11 @@ app.get('/reconcile/:orgid', (req,res)=>{
 		var datimTopId = orgid
 		var datim = {}
 		var moh = {}
+		var recoLevel = 2
 		var datimLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(datimDB,datimTopId,(mcsdDATIM)=>{
 				datim = mcsdDATIM
-				mcsd.filterLocations(mcsdDATIM,datimTopId,0,2,0,(mcsdDatimTotalLevels,mcsdDatimLevel,mcsdDatimBuildings)=>{
+				mcsd.filterLocations(mcsdDATIM,datimTopId,0,recoLevel,0,(mcsdDatimTotalLevels,mcsdDatimLevel,mcsdDatimBuildings)=>{
 					resolve(mcsdDatimLevel)
 				})
 			})
@@ -129,7 +129,7 @@ app.get('/reconcile/:orgid', (req,res)=>{
 		var mohLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(mohDB,mohTopId,(mcsdMOH)=>{
 				moh = mcsdMOH
-				mcsd.filterLocations(mcsdMOH,mohTopId,0,2,0,(mcsdMohTotalLevels,mcsdMohLevel,mcsdMohBuildings)=>{
+				mcsd.filterLocations(mcsdMOH,mohTopId,0,recoLevel,0,(mcsdMohTotalLevels,mcsdMohLevel,mcsdMohBuildings)=>{
 					resolve(mcsdMohLevel)
 				})
 			})
@@ -138,72 +138,127 @@ app.get('/reconcile/:orgid', (req,res)=>{
 		Promise.all([datimLocationReceived,mohLocationReceived]).then((locations)=>{
 			scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,moh,datim,(scoreResults)=>{
 				res.set('Access-Control-Allow-Origin','*')
-				res.status(200).json(scoreResults)
+				res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
 				winston.info('Score results sent back')
 			})
 		})
 	}
 })
 
-app.post('/uploadCSV', (req,res)=>{
-	winston.info("Received MOH Data with fields Mapping " + JSON.stringify(req.fields))
-	if(!req.fields.orgid){
+app.post('/match/:orgid', (req,res)=>{
+	winston.info("Received data for matching")
+	if(!req.params.orgid){
 		winston.error({"error":"Missing Orgid"})
 		res.set('Access-Control-Allow-Origin','*')
 		res.status(401).json({"error":"Missing Orgid"})
 		return
 	}
-	var orgid = req.fields.orgid
-	var orgname = req.fields.orgname
-	const database = config.getConf("mCSD:database")
-	var expectedLevels = config.getConf("levels")
-	if(!Array.isArray(expectedLevels)){
-		winston.error("Invalid config data for key Levels ")
-		res.set('Access-Control-Allow-Origin','*')
-		res.status(401).json({"error":"Un expected error occured while processing this request"})
-		res.end()
-		return
-	}
-	if(Object.keys(req.files).length == 0) {
-		winston.error("No file submitted for reconciliation")
-		res.status(401).json({"error":"Please submit CSV file for facility reconciliation"})
-		res.end()
-		return
-	}
-	var fileName = Object.keys(req.files)[0]
-	winston.info("validating CSV File")
-	validateCSV(req.fields,(valid,missing)=>{
-		if(!valid){
-			winston.error({"MissingHeaders": missing})
+	var orgid = req.params.orgid
+	var form = new formidable.IncomingForm()
+	form.parse(req,(err,fields,files)=>{
+		var mohId = fields.mohId
+		var datimId = fields.datimId
+		var recoLevel = fields.recoLevel
+		var totalLevels = fields.totalLevels
+		if(!mohId || !datimId){
+			winston.error({"error":"Missing either MOHID or DATIMID or both"})
 			res.set('Access-Control-Allow-Origin','*')
-			res.status(401).json({"MissingHeaders": missing})
+			res.status(401).json({"error":"Missing either MOHID or DATIMID or both"})
+			return
+		}
+		mcsd.saveMatch(mohId,datimId,orgid,recoLevel,totalLevels,(err)=>{
+			winston.info("Done matching")
+			res.set('Access-Control-Allow-Origin','*')
+			if(err)
+				res.status(401).send({"error":err})
+			else
+				res.status(200).send()
+		})
+	})
+})
+
+app.post('/breakMatch/:orgid', (req,res)=>{
+	if(!req.params.orgid){
+		winston.error({"error":"Missing Orgid"})
+		res.set('Access-Control-Allow-Origin','*')
+		res.status(401).json({"error":"Missing Orgid"})
+		return
+	}
+	var form = new formidable.IncomingForm()
+	form.parse(req,(err,fields,files)=>{
+		winston.info("Received break match request for " + fields.datimId)
+		var datimId = fields.datimId
+		var database = 'MOHDATIM' + req.params.orgid
+		mcsd.breakMatch(datimId,database,(err)=>{
+			winston.info("break match done for " + fields.datimId)
+			res.set('Access-Control-Allow-Origin','*')
+			res.status(200).send(err)
+		})
+	})
+})
+
+app.post('/uploadCSV', (req,res)=>{
+	var form = new formidable.IncomingForm()
+	form.parse(req,(err,fields,files)=>{
+		winston.info("Received MOH Data with fields Mapping " + JSON.stringify(fields))
+		if(!fields.orgid){
+			winston.error({"error":"Missing Orgid"})
+			res.set('Access-Control-Allow-Origin','*')
+			res.status(401).json({"error":"Missing Orgid"})
+			return
+		}
+		var orgid = fields.orgid
+		var orgname = fields.orgname
+		const database = config.getConf("mCSD:database")
+		var expectedLevels = config.getConf("levels")
+		if(!Array.isArray(expectedLevels)){
+			winston.error("Invalid config data for key Levels ")
+			res.set('Access-Control-Allow-Origin','*')
+			res.status(401).json({"error":"Un expected error occured while processing this request"})
 			res.end()
 			return
 		}
-		winston.info("CSV File Passed Validation")
-		winston.info("Converting CSV to mCSD")
-		var convertedTomCSD = new Promise((resolve,reject)=>{
-			mcsd.CSVTomCSD(req.files[fileName].path,req.fields,(mcsdMOH)=>{
-				resolve(mcsdMOH)
-			})
-		})
-		
-		convertedTomCSD.then((mcsdMOH)=>{
-			winston.info("CSV Converted to mCSD")
-			winston.info("Saving MOH CSV into database")
-			mcsd.saveLocations(mcsdMOH,orgid,(err,body)=>{
-				winston.info("MOH mCSD Saved")
+		if(Object.keys(files).length == 0) {
+			winston.error("No file submitted for reconciliation")
+			res.status(401).json({"error":"Please submit CSV file for facility reconciliation"})
+			res.end()
+			return
+		}
+		var fileName = Object.keys(files)[0]
+		winston.info("validating CSV File")
+		validateCSV(fields,(valid,missing)=>{
+			if(!valid){
+				winston.error({"MissingHeaders": missing})
 				res.set('Access-Control-Allow-Origin','*')
-				if(err){
-					res.status(400).send(err)
-					return
-				}
-				res.status(200).end()
+				res.status(401).json({"MissingHeaders": missing})
+				res.end()
+				return
+			}
+			winston.info("CSV File Passed Validation")
+			winston.info("Converting CSV to mCSD")
+			var convertedTomCSD = new Promise((resolve,reject)=>{
+				mcsd.CSVTomCSD(files[fileName].path,fields,(mcsdMOH)=>{
+					resolve(mcsdMOH)
+				})
 			})
-		}).catch((err)=>{
-			winston.error(err)
-		})
+			
+			convertedTomCSD.then((mcsdMOH)=>{
+				winston.info("CSV Converted to mCSD")
+				winston.info("Saving MOH CSV into database")
+				mcsd.saveLocations(mcsdMOH,orgid,(err,body)=>{
+					winston.info("MOH mCSD Saved")
+					res.set('Access-Control-Allow-Origin','*')
+					if(err){
+						res.status(400).send(err)
+						return
+					}
+					res.status(200).end()
+				})
+			}).catch((err)=>{
+				winston.error(err)
+			})
 
+		})
 	})
 	
 	function validateCSV(cols,callback) {
@@ -239,12 +294,6 @@ app.post('/uploadCSV', (req,res)=>{
 			return callback(true,missing)
 	}
 })
-
-app.post('/test',  (req,res)=>{
-	res.send("Authorised")
-})
- 
-app.use(app.oauth.errorHandler());
- 
+  
 var server = app.listen(config.getConf('server:port'));
 winston.info("Server is running and listening on port " + server.address().port)

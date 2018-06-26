@@ -27,6 +27,7 @@
     "express-formidable": "^1.0.0",
     "fast-csv": "^2.4.1",
     "fast-levenshtein": "^2.0.6",
+    "formidable": "^1.2.1",
     "geodist": "^0.2.1",
     "memory-cache": "^0.2.0",
     "mongoose": "^5.1.6",
