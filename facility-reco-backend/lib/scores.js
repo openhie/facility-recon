@@ -9,7 +9,7 @@ const config = require('./config')
 const mcsd = require("./mcsd")()
 module.exports = function(){
 	return {
-		getJurisdictionScore:function(mcsdMOH,mcsdDATIM,mohDB,datimDB,mohTopId,datimTopId,moh,datim,callback){
+		getJurisdictionScore:function(mcsdMOH,mcsdDATIM,mohDB,datimDB,mohTopId,datimTopId,callback){
 			const scoreResults = []
 			const maxSuggestions = config.getConf("matchResults:maxSuggestions")
 			if(mcsdDATIM.total == 0){
@@ -20,100 +20,142 @@ module.exports = function(){
 				winston.error("No MOH data found")
 				return callback()	
 			}
-			async.eachSeries(mcsdMOH.entry,(mohEntry,nxtMohEntry)=>{
-				var mohName = mohEntry.resource.name
-				if(mohEntry.resource.hasOwnProperty("partOf")){
-					var entityParent = mohEntry.resource.partOf.reference
-					var mohParentReceived = new Promise((resolve,reject)=>{
-						mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
-							resolve(mohParents)
-						})
-					})
-				}
-				else{
-					var mohParentReceived = Promise.resolve([])
-				}
 
-				mohParentReceived.then((mohParents)=>{
-					var thisRanking = {}
-					thisRanking.moh = {
-						name:mohName,
-						parents:mohParents,
-						id:mohEntry.resource.id
-					}
-					thisRanking.potentialMatches = {}
-					thisRanking.exactMatch = {}
-					const datimPromises = []
-					async.eachSeries(mcsdDATIM.entry,(datimEntry,nxtDatimEntry)=>{
-						datimPromises.push(new Promise((datimResolve,datimReject)=>{
-							var datimName = datimEntry.resource.name
-							if(datimEntry.resource.hasOwnProperty("partOf")){
-								var entityParent = datimEntry.resource.partOf.reference
-								var datimParentReceived = new Promise((resolve,reject)=>{
-									mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
-										resolve(datimParents)
-									})
+			async.eachSeries(mcsdMOH.entry,(mohEntry,nxtMohEntry)=>{
+				var database = "MOHDATIM" + datimTopId
+				//check if this MOH Orgid is mapped
+				var mohId = mohEntry.resource.id
+				var mohIdentifier = URI(config.getConf("mCSD:url")).segment(datimTopId).segment('fhir').segment(mohId).toString()
+				var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?identifier=" + mohIdentifier.toString()
+				var options = {
+	        url: url
+	      }
+	      request.get(options, (err, res, body) => {
+	      	body = JSON.parse(body)
+	      	if(body.total == 1) {
+	      		var entityParent = null
+	      		if(mohEntry.resource.hasOwnProperty("partOf")){
+	      			entityParent = mohEntry.resource.partOf.reference
+	      		}
+	      		mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
+	      			if(body.entry[0].resource.hasOwnProperty("partOf")){
+								entityParent = body.entry[0].resource.partOf.reference
+							}
+	      			mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
+								var thisRanking = {}
+								thisRanking.moh = {
+									name:mohEntry.resource.name,
+									parents:mohParents,
+									id:mohEntry.resource.id
+								}
+								thisRanking.potentialMatches = {}
+								thisRanking.exactMatch = {}
+								thisRanking.exactMatch = {
+									name:body.entry[0].resource.name,
+									parents:datimParents,
+									id:body.entry[0].resource.id
+								}
+								scoreResults.push(thisRanking)
+								return nxtMohEntry()
+							})
+						})
+	      	}
+	      	else{
+						var mohName = mohEntry.resource.name
+						if(mohEntry.resource.hasOwnProperty("partOf")){
+							var entityParent = mohEntry.resource.partOf.reference
+							var mohParentReceived = new Promise((resolve,reject)=>{
+								mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
+									resolve(mohParents)
 								})
+							})
+						}
+						else{
+							var mohParentReceived = Promise.resolve([])
+						}
+
+						mohParentReceived.then((mohParents)=>{
+							var thisRanking = {}
+							thisRanking.moh = {
+								name:mohName,
+								parents:mohParents,
+								id:mohEntry.resource.id
 							}
-							else{
-								var datimParentReceived = Promise.resolve([])
-							}
-							datimParentReceived.then((datimParents)=>{
-								lev = levenshtein.get(datimName,mohName)
-								//if names mathes exactly and the two has same parents then this is an exact match
-								//var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
-								var parentsEquals = false
-								if(mohParents.length >0 && datimParents.length > 0){
-									parentsEquals = mohParents[0] == datimParents[0]
-								}
-								if(lev == 0 && parentsEquals){
-									if(Object.keys(datimParents).length == Object.keys(mohParents).length && datimParents[0] == mohParents[0]){
-										thisRanking.exactMatch = {
-											name:datimName,
-											parents:datimParents,
-											id:datimEntry.resource.id
-										}
-										thisRanking.potentialMatches = {}
-									}
-								}
-								if(Object.keys(thisRanking.exactMatch).length == 0){
-									if(thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions){
-										if(!thisRanking.potentialMatches.hasOwnProperty(lev)){
-											thisRanking.potentialMatches[lev] = []
-										}
-										thisRanking.potentialMatches[lev].push({
-											name:datimName,
-											parents:datimParents,
-											id:datimEntry.resource.id
+							thisRanking.potentialMatches = {}
+							thisRanking.exactMatch = {}
+							const datimPromises = []
+							async.eachSeries(mcsdDATIM.entry,(datimEntry,nxtDatimEntry)=>{
+								datimPromises.push(new Promise((datimResolve,datimReject)=>{
+									var datimName = datimEntry.resource.name
+									if(datimEntry.resource.hasOwnProperty("partOf")){
+										var entityParent = datimEntry.resource.partOf.reference
+										var datimParentReceived = new Promise((resolve,reject)=>{
+											mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
+												resolve(datimParents)
+											})
 										})
 									}
 									else{
-										var existingLev = Object.keys(thisRanking.potentialMatches)
-										var max = _.max(existingLev)
-										if(lev<max){
-											delete thisRanking.potentialMatches[max]
-											thisRanking.potentialMatches[lev] = []
-											thisRanking.potentialMatches[lev].push({
-												name:datimName,
-												parents:datimParents,
-												id:datimEntry.resource.id
-											})
-										}
+										var datimParentReceived = Promise.resolve([])
 									}
-								}
-								return nxtDatimEntry()
-								datimResolve()
-							}).catch((err)=>{
+									datimParentReceived.then((datimParents)=>{
+										lev = levenshtein.get(datimName,mohName)
+										//if names mathes exactly and the two has same parents then this is an exact match
+										//var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
+										var parentsEquals = false
+										if(mohParents.length >0 && datimParents.length > 0){
+											parentsEquals = mohParents[0] == datimParents[0]
+										}
+										if(lev == 0 && parentsEquals){
+											if(Object.keys(datimParents).length == Object.keys(mohParents).length && datimParents[0] == mohParents[0]){
+												thisRanking.exactMatch = {
+													name:datimName,
+													parents:datimParents,
+													id:datimEntry.resource.id
+												}
+												thisRanking.potentialMatches = {}
+											}
+										}
+										if(Object.keys(thisRanking.exactMatch).length == 0){
+											if(thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions){
+												if(!thisRanking.potentialMatches.hasOwnProperty(lev)){
+													thisRanking.potentialMatches[lev] = []
+												}
+												thisRanking.potentialMatches[lev].push({
+													name:datimName,
+													parents:datimParents,
+													id:datimEntry.resource.id
+												})
+											}
+											else{
+												var existingLev = Object.keys(thisRanking.potentialMatches)
+												var max = _.max(existingLev)
+												if(lev<max){
+													delete thisRanking.potentialMatches[max]
+													thisRanking.potentialMatches[lev] = []
+													thisRanking.potentialMatches[lev].push({
+														name:datimName,
+														parents:datimParents,
+														id:datimEntry.resource.id
+													})
+												}
+											}
+										}
+										return nxtDatimEntry()
+										datimResolve()
+									}).catch((err)=>{
+										winston.error(err)
+									})
+								}))
+							},()=>{
+								scoreResults.push(thisRanking)
+								return nxtMohEntry()
+							})
+						}).catch((err)=>{
 								winston.error(err)
 							})
-						}))
-					},()=>{
-						scoreResults.push(thisRanking)
-						return nxtMohEntry()
-					})
-				}).catch((err)=>{
-						winston.error(err)
-					})
+					}
+				})
 			},()=>{
 				return callback(scoreResults)
 			})
@@ -361,7 +403,6 @@ module.exports = function(){
 								}
 								datimParentReceived.then((datimParents)=>{
 									counter++
-									winston.error(counter)
 									//get distance between the coordinates
 									if(datimLatitude && datimLongitude)
 										var dist = geodist({datimLatitude,datimLongitude},{mohLatitude,mohLongitude},{exact:true,unit:"miles"})

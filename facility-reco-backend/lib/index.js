@@ -116,11 +116,8 @@ app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
 		var namespace = config.getConf("UUID:namespace")
 		var mohTopId = uuid5(orgid,namespace+'000')
 		var datimTopId = orgid
-		var datim = {}
-		var moh = {}
 		var datimLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(datimDB,datimTopId,(mcsdDATIM)=>{
-				datim = mcsdDATIM
 				mcsd.filterLocations(mcsdDATIM,datimTopId,0,recoLevel,0,(mcsdDatimTotalLevels,mcsdDatimLevel,mcsdDatimBuildings)=>{
 					resolve(mcsdDatimLevel)
 				})
@@ -129,7 +126,6 @@ app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
 
 		var mohLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(mohDB,mohTopId,(mcsdMOH)=>{
-				moh = mcsdMOH
 				mcsd.filterLocations(mcsdMOH,mohTopId,0,recoLevel,0,(mcsdMohTotalLevels,mcsdMohLevel,mcsdMohBuildings)=>{
 					resolve(mcsdMohLevel)
 				})
@@ -137,7 +133,7 @@ app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
 		})
 
 		Promise.all([datimLocationReceived,mohLocationReceived]).then((locations)=>{
-			scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,moh,datim,(scoreResults)=>{
+			scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,(scoreResults)=>{
 				res.set('Access-Control-Allow-Origin','*')
 				res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
 				winston.info('Score results sent back')

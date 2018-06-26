@@ -50,8 +50,15 @@ module.exports = function () {
       This function finds parents of an entity by fetching data from DB
     */
     getLocationParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
-      var sourceEntityID = entityParent
       const parents = []
+      if(entityParent == null ||
+        entityParent == false || 
+        entityParent == undefined
+        ) {
+        winston.error(source + ' ==> ' + database + '  ==> ' + entityParent)
+        return parents
+      }
+      var sourceEntityID = entityParent
       var me = this
       function getPar(entityParent,callback){
         if(entityParent == null || entityParent == false || entityParent == undefined){
@@ -400,18 +407,6 @@ module.exports = function () {
       const database = config.getConf("mCSD:database")
       var namespace = config.getConf("UUID:namespace")
       this.getLocationByID(database,datimId,(mcsd)=>{
-        if(recoLevel.toString().length < 2){
-          var namespaceMod = namespace + '00' + recoLevel
-        }
-        else{
-          var namespaceMod = namespace + '0' + recoLevel
-        }
-        if(recoLevel == totalLevels){
-          var namespaceMod = namespace + '100'
-        }
-
-        var UUID = uuid5(mcsd.entry[0].resource.name,namespaceMod)
-
         var fhir = {}
         fhir.entry = []
         fhir.type = "document"
@@ -422,7 +417,7 @@ module.exports = function () {
         resource.id = datimId
         resource.identifier = []
         var datimURL = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment(datimId).toString()
-        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(UUID).toString()
+        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(mohId).toString()
         resource.identifier.push({"system":"http://geoalign.datim.org/DATIM","value":datimURL})
         resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":mohURL})
 
@@ -502,6 +497,7 @@ module.exports = function () {
               else{
                 var namespaceMod = namespace + '0' + levelNumber
               }
+
               var UUID = uuid5(name,namespaceMod)
               var topLevels = Array.apply(null, {length: levelNumber}).map(Number.call, Number)
               //removing zero as levels starts from 1

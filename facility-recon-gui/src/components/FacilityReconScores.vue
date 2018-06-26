@@ -52,7 +52,7 @@
           	  	<v-list-tile @click="getPotentialMatch(unMatched.id)" :key='unMatched.id'>
           	  		<v-list-tile-content>
           	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
-          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
+          	  			<v-list-tile-sub-title v-html="unMatched.id"></v-list-tile-sub-title>
           	  		</v-list-tile-content>
           	  	</v-list-tile>
         	  	</template>
@@ -163,6 +163,7 @@
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
 				axios.get('http://localhost:3000/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
+					console.log('here')
 					this.datimUnMatched = unmatched.data
 				})
 			},
