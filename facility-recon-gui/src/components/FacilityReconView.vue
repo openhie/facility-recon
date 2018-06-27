@@ -40,7 +40,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-data-table
-                    :headers="headers"
+                    :headers="datimGridHeader"
                     :items="datimGridData"
                     :search="searchDATIM"
                     :pagination.sync="datimPagination"
@@ -101,7 +101,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-data-table
-                    :headers="headers"
+                    :headers="mohGridHeader"
                     :items="mohGridData"
                     :search="searchMOH"
                     :pagination.sync="mohPagination"
@@ -134,6 +134,39 @@
 
 <script scoped>
 import LiquorTree from 'liquor-tree'
+
+const addChildren = ( treeData, results, ...rest ) => {
+  for( const node of treeData ) { 
+    if ( node.children && node.children.length > 0 ) { 
+      addChildren( node.children, results, node.text, ...rest )
+    } else {
+      let row = {} 
+      for( let i = rest.length-1, level = 1; i >= 0; i--, level++) {
+        row['level'+level] = rest[i]
+      }
+      row.facility = node.text
+      row.lat = node.lat
+      row.long = node.long
+      results.push(row)
+    }
+  }   
+}
+const headerText = {
+  level1: 'Level 1',
+  level2: 'Level 2',
+  level3: 'Level 3',
+  level4: 'Level 4',
+  level5: 'Level 5',
+  level6: 'Level 6',
+  level7: 'Level 7',
+  level8: 'Level 8',
+  level9: 'Level 9',
+  facility: 'Facility',
+  latitude: 'Latitude',
+  longitude: 'Longitude'
+}
+
+
 export default {
   data () {
     return {
@@ -155,49 +188,31 @@ export default {
   computed: {
     datimGridData () {
       var results = [ ]
-      for (var i in this.datimTreeData) {
-        for (var j in this.datimTreeData[i].children) {
-          for (var k in this.datimTreeData[i].children[j].children) {
-            for (var l in this.datimTreeData[i].children[j].children[k].children) {
-              for (var m in this.datimTreeData[i].children[j].children[k].children[l].children) {
-                results.push({
-                  level1: this.datimTreeData[i].text,
-                  level2: this.datimTreeData[i].children[j].text,
-                  level3: this.datimTreeData[i].children[j].children[k].text,
-                  level4: this.datimTreeData[i].children[j].children[k].children[l].text,
-                  facility: this.datimTreeData[i].children[j].children[k].children[l].children[m].text,
-                  latitude: this.datimTreeData[i].children[j].children[k].children[l].children[m].lat,
-                  longitude: this.datimTreeData[i].children[j].children[k].children[l].children[m].long
-                })
-              }
-            }
-          }
+      addChildren( this.datimTreeData, results )
+      return results
+    },
+    datimGridHeader () {
+      header = {}
+      if ( this.datimGridData && this.datimGridData.length > 0 ) {
+        for( let key of this.datimGridData[0].keys() ) {
+          header[key] = { text: headerText[key], value: key }
         }
       }
-      return results
+      return [ header ]
     },
     mohGridData () {
       var results = [ ]
-      for (var i in this.mohTreeData) {
-        for (var j in this.mohTreeData[i].children) {
-          for (var k in this.mohTreeData[i].children[j].children) {
-            for (var l in this.mohTreeData[i].children[j].children[k].children) {
-              for (var m in this.mohTreeData[i].children[j].children[k].children[l].children) {
-                results.push({
-                  level1: this.mohTreeData[i].text,
-                  level2: this.mohTreeData[i].children[j].text,
-                  level3: this.mohTreeData[i].children[j].children[k].text,
-                  level4: this.mohTreeData[i].children[j].children[k].children[l].text,
-                  facility: this.mohTreeData[i].children[j].children[k].children[l].children[m].text,
-                  latitude: this.mohTreeData[i].children[j].children[k].children[l].children[m].lat,
-                  longitude: this.mohTreeData[i].children[j].children[k].children[l].children[m].long
-                })
-              }
-            }
-          }
+      addChildren( this.mohTreeData, results )
+      return results
+    },
+    mohGridHeader () {
+      header = {}
+      if ( this.mohGridData && this.mohGridData.length > 0 ) {
+        for( let key of this.mohGridData[0].keys() ) {
+          header[key] = { text: headerText[key], value: key }
         }
       }
-      return results
+      return [ header ]
     },
     datimPages () {
       if (this.datimPagination.rowsPerPage == null || this.datimPagination.totalItems == null) {
