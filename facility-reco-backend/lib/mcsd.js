@@ -12,13 +12,13 @@ var cache = require('memory-cache');
 
 module.exports = function () {
   return{
-    getLocationByID:function(database,id,callback){
+    getLocationByID:function(database,id,getCached,callback){
       var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
       var options = {
         url: url
       }
       let cachedData = cache.get('getLocationByID' + url)
-      if(cachedData){
+      if(cachedData && getCached){
         return callback(cachedData)
       }
       request.get(options, (err, res, body) => {
@@ -49,14 +49,23 @@ module.exports = function () {
     /*
       This function finds parents of an entity by fetching data from DB
     */
+    getLocationParentsFromDBMod:function(database,entityParent,topOrg,details,callback) {
+      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(entityParent).segment('$parents').toString()
+      var options = {
+        url: url
+      }
+      request.get(options, (err, res, body) => {
+        callback(body)
+      })
+    },
+
     getLocationParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
       const parents = []
       if(entityParent == null ||
         entityParent == false || 
         entityParent == undefined
         ) {
-        winston.error(source + ' ==> ' + database + '  ==> ' + entityParent)
-        return parents
+        return callback(parents)
       }
       var sourceEntityID = entityParent
       var me = this
@@ -89,7 +98,7 @@ module.exports = function () {
 
           //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
           if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-            me.getLocationByID(database,topOrg,(loc)=>{
+            me.getLocationByID(database,topOrg,false,(loc)=>{
               if(details == "all")
                 parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:cachedData.lat,long:cachedData.long})
               else if(details == "id")
@@ -141,7 +150,7 @@ module.exports = function () {
             var entityID = body.entry[0].resource.id
             //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
             if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-              me.getLocationByID(database,topOrg,(loc)=>{
+              me.getLocationByID(database,topOrg,false,(loc)=>{
                 if(details == "all")
                   parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:lat,long:long})
                 else if(details == "id")
@@ -406,7 +415,7 @@ module.exports = function () {
     saveMatch: function(mohId,datimId,topOrgId,recoLevel,totalLevels,callback){
       const database = config.getConf("mCSD:database")
       var namespace = config.getConf("UUID:namespace")
-      this.getLocationByID(database,datimId,(mcsd)=>{
+      this.getLocationByID(database,datimId,false,(mcsd)=>{
         var fhir = {}
         fhir.entry = []
         fhir.type = "document"

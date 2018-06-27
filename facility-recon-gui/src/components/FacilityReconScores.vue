@@ -28,9 +28,10 @@
           </v-data-table>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="error" @click.native="flag(selectedDatimId)"><v-icon>notification_important</v-icon>Flag</v-btn>
-          <v-btn color="primary" dark @click.native="noMatch" ><v-icon>block</v-icon>No Match</v-btn>
-          <v-btn color="primary" dark @click.native="match(selectedDatimId)" ><v-icon>save</v-icon>Save</v-btn>
+          <v-btn color="error" @click.native="flag(selectedDatimId)"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
+          <v-btn color="green" dark @click.native="noMatch" ><v-icon left>block</v-icon>No Match</v-btn>
+          <v-btn color="primary" dark @click.native="match(selectedDatimId)" ><v-icon left>save</v-icon>Save</v-btn>
+          <v-btn color="orange darken-2" @click.native="dialog = !dialog" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -46,18 +47,23 @@
         	<v-card-title primary-title>
         	  MOH Unmatched
         	</v-card-title>
-          <v-card-text>
-          	<v-list light dense expand>
-          	  <template v-for="(unMatched,key) in mohUnMatched">
-          	  	<v-list-tile @click="getPotentialMatch(unMatched.id)" :key='unMatched.id'>
-          	  		<v-list-tile-content>
-          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
-          	  			<v-list-tile-sub-title v-html="unMatched.id"></v-list-tile-sub-title>
-          	  		</v-list-tile-content>
-          	  	</v-list-tile>
-        	  	</template>
-          	</v-list>
-          </v-card-text>
+        	<template v-if='mohUnMatched.length > 0'>
+        		<v-card-text>
+	          	<v-list light dense expand>
+	          	  <template v-for="(unMatched,key) in mohUnMatched">
+	          	  	<v-list-tile @click="getPotentialMatch(unMatched.id)" :key='unMatched.id'>
+	          	  		<v-list-tile-content>
+	          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
+	          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
+	          	  		</v-list-tile-content>
+	          	  	</v-list-tile>
+	        	  	</template>
+	          	</v-list>
+	          </v-card-text>
+        	</template>
+        	<template v-else>
+        		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+        	</template>
         </v-card>
       </v-flex>
       <v-flex xs12 sm6 md5>
@@ -65,18 +71,23 @@
         	<v-card-title primary-title>
         	  DATIM Unmatched
         	</v-card-title>
-          <v-card-text>
-          	<v-list light dense expand>
-          	  <template v-for="(unMatched,key) in datimUnMatched">
-          	  	<v-list-tile @click.native="" :key='unMatched.id'>
-          	  		<v-list-tile-content>
-          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
-          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
-          	  		</v-list-tile-content>
-          	  	</v-list-tile>
-        	  	</template>
-          	</v-list>
-          </v-card-text>
+        	<template v-if='datimUnMatched.length > 0'>
+	          <v-card-text>
+	          	<v-list light dense expand>
+	          	  <template v-for="(unMatched,key) in datimUnMatched">
+	          	  	<v-list-tile @click.native="" :key='unMatched.id'>
+	          	  		<v-list-tile-content>
+	          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
+	          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
+	          	  		</v-list-tile-content>
+	          	  	</v-list-tile>
+	        	  	</template>
+	          	</v-list>
+	          </v-card-text>
+        	</template>
+          <template v-else>
+        		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+        	</template>
         </v-card>
       </v-flex>
     </v-layout>
@@ -116,6 +127,7 @@
 			return {
 				scoreResults: {},
 				potentialMatches: [],
+				mapped: [],
 				matchedContent: [],
 				datimUnMatched: [],
 				selectedMohName: '',
@@ -143,16 +155,21 @@
 			getScores(){
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
-				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + recoLevel).then((scores) => {
+				var totalLevels = this.$store.state.totalLevels
+				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+					this.getDatimUnmached()
 					this.scoreResults = scores.data.scoreResults
 					for(var k in this.scoreResults){
 						var scoreResult = this.scoreResults[k]
 						if(Object.keys(scoreResult.exactMatch).length > 0){
+							this.mapped.push(scoreResult.exactMatch.id)
 							this.matchedContent.push({
 								mohName:scoreResult.moh.name,
 								mohId:scoreResult.moh.id,
+								mohParents: scoreResult.moh.parents.join('->'),
 								datimName:scoreResult.exactMatch.name,
-								datimId:scoreResult.exactMatch.id
+								datimId:scoreResult.exactMatch.id,
+								datimParents: scoreResult.exactMatch.parents.join('->')
 								}
 							)
 						}
@@ -163,7 +180,6 @@
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
 				axios.get('http://localhost:3000/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
-					console.log('here')
 					this.datimUnMatched = unmatched.data
 				})
 			},
@@ -177,10 +193,13 @@
 						for(var score in scoreResult.potentialMatches){
 							for(var j in scoreResult.potentialMatches[score]){
 								var potentials = scoreResult.potentialMatches[score][j]
+								if(this.mapped.indexOf(potentials.id) > -1)
+									continue
 								this.potentialMatches.push({
 										score: score,
 										name: potentials.name,
-										id: potentials.id
+										id: potentials.id,
+										parents: potentials.parents.join('->')
 									}
 								)
 							}
@@ -197,28 +216,37 @@
 
 			},
 			match(){
+				if(this.selectedDatimId == ''){
+					return alert('select datim org')
+				}
 				let formData = new FormData()
 				formData.append('mohId', this.selectedMohId)
 				formData.append('datimId', this.selectedDatimId)
 				formData.append('recoLevel',this.$store.state.recoLevel)
 				formData.append('totalLevels',this.$store.state.totalLevels)
 				var orgid = this.$store.state.orgUnit.OrgId
+				this.mapped.push(this.selectedDatimId)
+				//remove from DATIM Unmatched
+				var datimParents = null
+				for(var k in this.datimUnMatched) {
+					if(this.datimUnMatched[k].id == this.selectedDatimId){
+						datimParents = this.datimUnMatched[k].parents
+						this.datimUnMatched.splice(k,1)
+					}
+				}
+
 				//Add from a list of MOH Matched
 				for(var k in this.mohUnMatched) {
 					if(this.mohUnMatched[k].id == this.selectedMohId){
-						this.mohUnMatched.splice(k,1)
 						this.matchedContent.push({
 							mohName: this.selectedMohName,
 							mohId: this.selectedMohId,
+							mohParents: this.mohUnMatched[k].parents,
 							datimName: this.selectedDatimName,
-							datimId: this.selectedDatimId
+							datimId: this.selectedDatimId,
+							datimParents: datimParents
 						})
-					}
-				}
-				//remove from DATIM Unmatched
-				for(var k in this.datimUnMatched) {
-					if(this.datimUnMatched[k].id == this.selectedDatimId){
-						this.datimUnMatched.splice(k,1)
+						this.mohUnMatched.splice(k,1)
 					}
 				}
 				this.selectedMohId = null
@@ -252,12 +280,20 @@
 				).catch((err)=>{
 					console.log(err)
 				})
+
+				if(this.mapped.indexOf(datimId) > -1)
+					this.mapped.splice(0,1)
 				for(var k in this.matchedContent){
 					if(this.matchedContent[k].datimId == datimId){
 						this.mohUnMatched.push({
 							name: this.matchedContent[k].mohName,
 							id:this.matchedContent[k].mohId,
-							parents:''
+							parents:this.matchedContent[k].mohParents
+						})
+						this.datimUnMatched.push({
+							name: this.matchedContent[k].datimName,
+							id:this.matchedContent[k].datimId,
+							parents:this.matchedContent[k].datimParents
 						})
 						this.matchedContent.splice(k,1)
 					}
@@ -287,7 +323,6 @@
 		},
 		created() {
 			this.getScores()
-			this.getDatimUnmached()
 		}
 	}
 </script>

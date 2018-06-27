@@ -55,12 +55,23 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
-				var recoLevel = 2
+				var recoLevel = 5
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
 				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
 		})
 	}
+})
+
+app.get('/test',(req,res)=>{
+	winston.error('start')
+	/*mcsd.getLocationParentsFromDB('DATIM','GeoAlign','kW20AkBWGNa','lZsCb6y0KDX','names',(parents)=>{
+		winston.error('end')
+	})*/
+
+	mcsd.getLocationParentsFromDBMod('GeoAlign','kW20AkBWGNa','lZsCb6y0KDX','names',(parents)=>{
+		winston.error('end')
+	})
 })
 
 app.get('/hierarchy/:source',(req,res)=>{
@@ -101,7 +112,7 @@ app.get('/hierarchy/:source',(req,res)=>{
 	}
 })
 
-app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
+app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req,res)=>{
 	if(!req.params.orgid || !req.params.recoLevel){
 		winston.error({"error":"Missing Orgid or reconciliation Level"})
 		res.set('Access-Control-Allow-Origin','*')
@@ -111,6 +122,7 @@ app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
 		winston.info("Getting scores")
 		var orgid = req.params.orgid
 		var recoLevel = req.params.recoLevel
+		var totalLevels = req.params.totalLevels
 		var datimDB = config.getConf("mCSD:database")
 		var mohDB = orgid
 		var namespace = config.getConf("UUID:namespace")
@@ -133,17 +145,26 @@ app.get('/reconcile/:orgid/:recoLevel', (req,res)=>{
 		})
 
 		Promise.all([datimLocationReceived,mohLocationReceived]).then((locations)=>{
-			scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,(scoreResults)=>{
-				res.set('Access-Control-Allow-Origin','*')
-				res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
-				winston.info('Score results sent back')
-			})
+			if(recoLevel == totalLevels){
+				scores.getBuildingsScores(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
+					res.set('Access-Control-Allow-Origin','*')
+					res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
+					winston.info('Score results sent back')
+				})
+			}
+			else {
+				scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
+					res.set('Access-Control-Allow-Origin','*')
+					res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
+					winston.info('Score results sent back')
+				})
+			}
 		})
 	}
 })
 
 app.get('/getUnmatched/:orgid/:source/:recoLevel',(req,res)=>{
-	winston.info("Received data for matching")
+	winston.info("Getting DATIM Unmatched Orgs for " + req.params.orgid)
 	if(!req.params.orgid || !req.params.source){
 		winston.error({"error":"Missing Orgid or Source"})
 		res.set('Access-Control-Allow-Origin','*')
@@ -157,6 +178,7 @@ app.get('/getUnmatched/:orgid/:source/:recoLevel',(req,res)=>{
 	mcsd.getLocationChildren(datimDB,orgid,(locations)=>{
 		mcsd.filterLocations(locations,orgid,0,recoLevel,0,(mcsdLevels,mcsdLevel,mcsdBuildings)=>{
 			scores.getUnmatched(mcsdLevel,orgid,(unmatched)=>{
+				winston.info('sending back DATIM unmatched Orgs for ' + req.params.orgid)
 				res.set('Access-Control-Allow-Origin','*')
 				res.status(200).json(unmatched)
 			})
