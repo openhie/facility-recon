@@ -55,23 +55,12 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
-				var recoLevel = 5
+				var recoLevel = 3
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
 				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
 		})
 	}
-})
-
-app.get('/test',(req,res)=>{
-	winston.error('start')
-	/*mcsd.getLocationParentsFromDB('DATIM','GeoAlign','kW20AkBWGNa','lZsCb6y0KDX','names',(parents)=>{
-		winston.error('end')
-	})*/
-
-	mcsd.getLocationParentsFromDBMod('GeoAlign','kW20AkBWGNa','lZsCb6y0KDX','names',(parents)=>{
-		winston.error('end')
-	})
 })
 
 app.get('/hierarchy/:source',(req,res)=>{
@@ -144,7 +133,14 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req,res)=>{
 			})
 		})
 
-		Promise.all([datimLocationReceived,mohLocationReceived]).then((locations)=>{
+		var mappingDB = "MOHDATIM" + orgid
+		var mappingLocationReceived = new Promise((resolve,reject)=>{
+			mcsd.getLocationByID(mappingDB,false,false,(mcsdMapped)=>{
+				resolve(mcsdMapped)
+			})
+		})
+
+		Promise.all([datimLocationReceived,mohLocationReceived,mappingLocationReceived]).then((locations)=>{
 			if(recoLevel == totalLevels){
 				scores.getBuildingsScores(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
 					res.set('Access-Control-Allow-Origin','*')

@@ -145,31 +145,30 @@ const addChildren = ( treeData, results, ...rest ) => {
         row['level'+level] = rest[i]
       }
       row.facility = node.text
-      row.lat = node.lat
-      row.long = node.long
+      row.latitude = node.lat
+      row.longitude = node.long
       results.push(row)
     }
   }   
 }
-const headerText = {
-  level1: 'Level 1',
-  level2: 'Level 2',
-  level3: 'Level 3',
-  level4: 'Level 4',
-  level5: 'Level 5',
-  level6: 'Level 6',
-  level7: 'Level 7',
-  level8: 'Level 8',
-  level9: 'Level 9',
-  facility: 'Facility',
-  latitude: 'Latitude',
-  longitude: 'Longitude'
-}
-
 
 export default {
   data () {
     return {
+      headerText: {
+        level1: 'Level 1',
+        level2: 'Level 2',
+        level3: 'Level 3',
+        level4: 'Level 4',
+        level5: 'Level 5',
+        level6: 'Level 6',
+        level7: 'Level 7',
+        level8: 'Level 8',
+        level9: 'Level 9',
+        facility: 'Facility',
+        latitude: 'Latitude',
+        longitude: 'Longitude'
+      },
       headers: [
         { text: 'Level 1', value: 'level1' },
         { text: 'Level 2', value: 'level2' },
@@ -192,13 +191,14 @@ export default {
       return results
     },
     datimGridHeader () {
-      header = {}
-      if ( this.datimGridData && this.datimGridData.length > 0 ) {
-        for( let key of this.datimGridData[0].keys() ) {
-          header[key] = { text: headerText[key], value: key }
+      let header = []
+      if ( this.mohGridData && this.mohGridData.length > 0 ) { 
+        console.log(this.mohGridData[0])
+        for( const key in this.mohGridData[0] ) {
+          header.push( { text: this.headerText[key], value: key } )
         }
-      }
-      return [ header ]
+      }   
+      return header
     },
     mohGridData () {
       var results = [ ]
@@ -206,13 +206,13 @@ export default {
       return results
     },
     mohGridHeader () {
-      header = {}
-      if ( this.mohGridData && this.mohGridData.length > 0 ) {
-        for( let key of this.mohGridData[0].keys() ) {
-          header[key] = { text: headerText[key], value: key }
+      let header = []
+      if ( this.mohGridData && this.mohGridData.length > 0 ) { 
+        for( const key in this.mohGridData[0] ) {
+          header.push( { text: this.headerText[key], value: key } )
         }
-      }
-      return [ header ]
+      }   
+      return header
     },
     datimPages () {
       if (this.datimPagination.rowsPerPage == null || this.datimPagination.totalItems == null) {

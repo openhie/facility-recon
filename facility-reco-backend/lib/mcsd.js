@@ -13,7 +13,11 @@ var cache = require('memory-cache');
 module.exports = function () {
   return{
     getLocationByID:function(database,id,getCached,callback){
-      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
+      if(id)
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
+      else
+        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').toString()
+
       var options = {
         url: url
       }

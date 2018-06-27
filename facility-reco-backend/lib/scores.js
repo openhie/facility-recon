@@ -187,7 +187,7 @@ module.exports = function(){
 				winston.error("No MOH data found")
 				return callback()	
 			}
-
+			var counter = 0
 			async.eachSeries(mcsdMOH.entry,(mohEntry,nxtMohEntry)=>{
 				var database = "MOHDATIM" + datimTopId
 				//check if this MOH Orgid is mapped
@@ -264,13 +264,18 @@ module.exports = function(){
 							thisRanking.potentialMatches = {}
 							thisRanking.exactMatch = {}
 							const datimPromises = []
+							var counts = 0
 							async.eachSeries(mcsdDATIM.entry,(datimEntry,nxtDatimEntry)=>{
 								var database = "MOHDATIM" + datimTopId
 								var id = datimEntry.resource.id
 								var datimIdentifiers = datimEntry.resource.identifier
 								//check if this is already mapped
+								//this.isMapped(mcsdMapped,id,(mapped)=>{
 								mcsd.getLocationByID(database,id,true,(locations)=>{
-									if(locations.total == 1){
+									/*if(locations.total == 1){
+										return nxtDatimEntry()
+									}*/
+									if(mapped){
 										return nxtDatimEntry()
 									}
 									var datimName = datimEntry.resource.name
@@ -597,6 +602,12 @@ module.exports = function(){
 			}).catch((reason)=>{
         winston.error(reason)
       })
+		},
+		isMapped(mcsdMapped,id,callback){
+			var mapped = mcsdMapped.entry.find((entry)=>{
+				return entry.resource.id == id
+			})
+			return callback(mapped)
 		},
 		getUnmatched:function(mcsdDatim,topOrgId,callback){
 			var database = "MOHDATIM" + topOrgId
