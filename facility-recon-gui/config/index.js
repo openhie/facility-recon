@@ -19,6 +19,7 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
+    backend: "http://localhost:3000",
 
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and
@@ -51,6 +52,8 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/vue/prod/',
+
+    backend: "http://localhost:3000",
 
     /**
      * Source Maps

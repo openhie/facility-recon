@@ -122,6 +122,11 @@
 
 <script>
 	import axios from 'axios'
+
+const config = require('../../config')
+const isProduction = process.env.NODE_ENV === 'production'
+const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+
 	export default {
 		data(){
 			return {
@@ -156,7 +161,7 @@
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
 				var totalLevels = this.$store.state.totalLevels
-				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+				axios.get(backendServer+'/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
 					this.getDatimUnmached()
 					this.scoreResults = scores.data.scoreResults
 					for(var k in this.scoreResults){
@@ -179,7 +184,7 @@
 			getDatimUnmached(){
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
-				axios.get('http://localhost:3000/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
+				axios.get(backendServer+'/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
 					this.datimUnMatched = unmatched.data
 				})
 			},
@@ -253,7 +258,7 @@
 				this.selectedMohName = null
 				this.selectedDatimId = null
 				this.dialog = false
-				axios.post('http://localhost:3000/match/' + orgid,
+				axios.post(backendServer+'/match/' + orgid,
 					formData,
 					{
           	headers: {
@@ -270,7 +275,7 @@
 				var orgid = this.$store.state.orgUnit.OrgId
 				let formData = new FormData()
 				formData.append('datimId', datimId)
-				axios.post('http://localhost:3000/breakMatch/' + orgid,
+				axios.post(backendServer+'/breakMatch/' + orgid,
 					formData,
 					{
 						headers: {
