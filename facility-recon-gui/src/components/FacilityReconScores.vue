@@ -212,306 +212,288 @@
 </template>
 
 <script>
-	import axios from 'axios'
-	export default {
-		data(){
-			return {
-				searchUnmatchedDatim: '',
-				searchUnmatchedMoh: '',
-				searchMatched: '',
-				searchNotMatched: '',
-				searchFlagged: '',
-				scoreResults: {},
-				potentialMatches: [],
-				matchedContent: [],
-				noMatchContent: [],
-				flagged: [],
-				datimUnMatched: [],
-				mohUnMatched: [],
-				selectedMohName: '',
-				selectedMohId: '',
-				selectedDatimId: '',
-				selectedDatimName: '',
-				dialog: false,
-				mohUnmatchedHeaders: [
-	        { text: 'Location', value: 'name' }
-      	],
-      	matchedHeaders: [
-	        { text: 'MOH Location', value: 'mohName' },
-	        { text: 'MOH ID', value: 'mohId' },
-	        { text: 'DATIM Location', value: 'datimName' },
-	        { text: 'DATIM ID', value: 'datimId' }
-      	],
-      	noMatchHeaders: [
-	        { text: 'MOH Location', value: 'mohName' },
-	        { text: 'MOH ID', value: 'mohId' },
-	        { text: 'Parents', value: 'parents' }
-      	],
-      	flaggedHeaders: [
-	        { text: 'MOH Location', value: 'mohName' },
-	        { text: 'MOH ID', value: 'mohId' },
-	        { text: 'DATIM Location', value: 'datimName' },
-	        { text: 'DATIM ID', value: 'datimId' }
-      	],
-				potentialHeaders: [
-					{sortable: false},
-	        { text: 'DATIM Location', value: 'name', sortable: false },
-	        { text: 'ID', value: 'id', sortable: false },
-	        { text: 'Lat', value: 'lat', sortable: false },
-	        { text: 'Long', value: 'long', sortable: false },
-	        { text: 'Score', value: 'score' }
-      	]
-			}
-		},
-		methods: {
-			getScores(){
-				var orgid = this.$store.state.orgUnit.OrgId
-				var recoLevel = this.$store.state.recoLevel
-				var totalLevels = this.$store.state.totalLevels
-				this.matchedContent = []
-				this.noMatchContent = []
-				this.datimUnMatched = []
-				this.mohUnMatched = []
-				this.flagged = []
-				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
-					this.getDatimUnmached()
-					this.scoreResults = scores.data.scoreResults
-					for(var k in this.scoreResults){
-						var scoreResult = this.scoreResults[k]
-						if(scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag == 'flagged') {
-							this.flagged.push({
-								mohName:scoreResult.moh.name,
-								mohId:scoreResult.moh.id,
-								mohParents: scoreResult.moh.parents.join('->'),
-								datimName:scoreResult.exactMatch.name,
-								datimId:scoreResult.exactMatch.id,
-								datimParents: scoreResult.exactMatch.parents.join('->')
-							})
-						}
-						else if(scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag == 'noMatch') {
-							var parents = scoreResult.moh.parents.join('->')
-							this.noMatchContent.push({
-								mohName: scoreResult.moh.name,
-								mohId: scoreResult.moh.id,
-								parents: parents
-								}
-							)	
-						}
-						else if(Object.keys(scoreResult.exactMatch).length > 0){
-							this.matchedContent.push({
-								mohName:scoreResult.moh.name,
-								mohId:scoreResult.moh.id,
-								mohParents: scoreResult.moh.parents.join('->'),
-								datimName:scoreResult.exactMatch.name,
-								datimId:scoreResult.exactMatch.id,
-								datimParents: scoreResult.exactMatch.parents.join('->')
-								}
-							)
-						}
-						else if(Object.keys(scoreResult.potentialMatches).length > 0) {
-							var parents = scoreResult.moh.parents.join('->')
-							this.mohUnMatched.push({
-								name: scoreResult.moh.name,
-								id: scoreResult.moh.id,
-								parents: parents
-								}
-							)
-						}
-					}
-				})
-			},
-			getDatimUnmached(){
-				var orgid = this.$store.state.orgUnit.OrgId
-				var recoLevel = this.$store.state.recoLevel
-				axios.get('http://localhost:3000/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
-					this.datimUnMatched = unmatched.data
-				})
-			},
-			getPotentialMatch(id){
-				this.potentialMatches = []
-				for(var k in this.scoreResults) {
-					var scoreResult = this.scoreResults[k]
-					if(scoreResult.moh.id == id) {
-						this.selectedMohName = scoreResult.moh.name
-						this.selectedMohId = scoreResult.moh.id
-						for(var score in scoreResult.potentialMatches){
-							for(var j in scoreResult.potentialMatches[score]){
-								var potentials = scoreResult.potentialMatches[score][j]
-								var matched = this.matchedContent.find((matched)=>{
-									return matched.datimId ==potentials.id
-								})
-								if(matched)
-									continue
-								this.potentialMatches.push({
-										score: score,
-										name: potentials.name,
-										id: potentials.id,
-										parents: potentials.parents.join('->')
-									}
-								)
-							}
-						}
-					}
-				}
-				this.dialog = true
-			},
-			changeMappingSelection(id,name){
-				this.selectedDatimId = id
-				this.selectedDatimName = name
-			},
-			match(type){
-				if(this.selectedDatimId == ''){
-					return alert('select datim org')
-				}
-				let formData = new FormData()
-				formData.append('mohId', this.selectedMohId)
-				formData.append('datimId', this.selectedDatimId)
-				formData.append('recoLevel',this.$store.state.recoLevel)
-				formData.append('totalLevels',this.$store.state.totalLevels)
-				var orgid = this.$store.state.orgUnit.OrgId
-				//remove from DATIM Unmatched
-				var datimParents = null
-				for(var k in this.datimUnMatched) {
-					if(this.datimUnMatched[k].id == this.selectedDatimId){
-						datimParents = this.datimUnMatched[k].parents
-						this.datimUnMatched.splice(k,1)
-					}
-				}
+import axios from 'axios'
+const config = require('../../config')
+const isProduction = process.env.NODE_ENV === 'production'
+const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
-				//Add from a list of MOH Matched and remove from list of MOH unMatched
-				for(var k in this.mohUnMatched) {
-					if(this.mohUnMatched[k].id == this.selectedMohId){
-						if(type == 'match') {
-							this.matchedContent.push({
-								mohName: this.selectedMohName,
-								mohId: this.selectedMohId,
-								mohParents: this.mohUnMatched[k].parents,
-								datimName: this.selectedDatimName,
-								datimId: this.selectedDatimId,
-								datimParents: datimParents
-							})
-						}
-						else if(type == 'flag') {
-							this.flagged.push({
-								mohName: this.selectedMohName,
-								mohId: this.selectedMohId,
-								mohParents: this.mohUnMatched[k].parents,
-								datimName: this.selectedDatimName,
-								datimId: this.selectedDatimId,
-								datimParents: datimParents
-							})
-						}
-						this.mohUnMatched.splice(k,1)
-					}
-				}
-				this.selectedMohId = null
-				this.selectedMohName = null
-				this.selectedDatimId = null
-				this.dialog = false
-				axios.post('http://localhost:3000/match/' + type + '/' + orgid,
-					formData,
-					{
-          	headers: {
-            'Content-Type': 'multipart/form-data'
-          	}
-        	}
-				).then(()=>{
+export default {
+  data () {
+    return {
+      searchUnmatchedDatim: '',
+      searchUnmatchedMoh: '',
+      searchMatched: '',
+      searchNotMatched: '',
+      searchFlagged: '',
+      scoreResults: {},
+      potentialMatches: [],
+      matchedContent: [],
+      noMatchContent: [],
+      flagged: [],
+      datimUnMatched: [],
+      mohUnMatched: [],
+      selectedMohName: '',
+      selectedMohId: '',
+      selectedDatimId: '',
+      selectedDatimName: '',
+      dialog: false,
+      mohUnmatchedHeaders: [
+        { text: 'Location', value: 'name' }
+      ],
+      matchedHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' },
+        { text: 'DATIM Location', value: 'datimName' },
+        { text: 'DATIM ID', value: 'datimId' }
+      ],
+      noMatchHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' },
+        { text: 'Parents', value: 'parents' }
+      ],
+      flaggedHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' },
+        { text: 'DATIM Location', value: 'datimName' },
+        { text: 'DATIM ID', value: 'datimId' }
+      ],
+      potentialHeaders: [
+        { sortable: false },
+        { text: 'DATIM Location', value: 'name', sortable: false },
+        { text: 'ID', value: 'id', sortable: false },
+        { text: 'Lat', value: 'lat', sortable: false },
+        { text: 'Long', value: 'long', sortable: false },
+        { text: 'Score', value: 'score' }
+      ]
+    }
+  },
+  methods: {
+    getScores () {
+      let orgid = this.$store.state.orgUnit.OrgId
+      let recoLevel = this.$store.state.recoLevel
+      let totalLevels = this.$store.state.totalLevels
+      this.matchedContent = []
+      this.noMatchContent = []
+      this.datimUnMatched = []
+      this.mohUnMatched = []
+      this.flagged = []
+      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+        this.getDatimUnmached()
+        this.scoreResults = scores.data.scoreResults
+        for (let scoreResult of this.scoreResults) {
+          if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
+            this.flagged.push({
+              mohName: scoreResult.moh.name,
+              mohId: scoreResult.moh.id,
+              mohParents: scoreResult.moh.parents.join('->'),
+              datimName: scoreResult.exactMatch.name,
+              datimId: scoreResult.exactMatch.id,
+              datimParents: scoreResult.exactMatch.parents.join('->')
+            })
+          } else if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'noMatch') {
+            let parents = scoreResult.moh.parents.join('->')
+            this.noMatchContent.push({
+              mohName: scoreResult.moh.name,
+              mohId: scoreResult.moh.id,
+              parents: parents
+            })
+          } else if (Object.keys(scoreResult.exactMatch).length > 0) {
+            this.matchedContent.push({
+              mohName: scoreResult.moh.name,
+              mohId: scoreResult.moh.id,
+              mohParents: scoreResult.moh.parents.join('->'),
+              datimName: scoreResult.exactMatch.name,
+              datimId: scoreResult.exactMatch.id,
+              datimParents: scoreResult.exactMatch.parents.join('->')
+            })
+          } else if (Object.keys(scoreResult.potentialMatches).length > 0) {
+            let parents = scoreResult.moh.parents.join('->')
+            this.mohUnMatched.push({
+              name: scoreResult.moh.name,
+              id: scoreResult.moh.id,
+              parents: parents
+            })
+          }
+        }
+      })
+    },
+    getDatimUnmached () {
+      let orgid = this.$store.state.orgUnit.OrgId
+      let recoLevel = this.$store.state.recoLevel
+      axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
+        this.datimUnMatched = unmatched.data
+      })
+    },
+    getPotentialMatch (id) {
+      this.potentialMatches = []
+      for (let scoreResult of this.scoreResults) {
+        if (scoreResult.moh.id === id) {
+          this.selectedMohName = scoreResult.moh.name
+          this.selectedMohId = scoreResult.moh.id
+          for (let score in scoreResult.potentialMatches) {
+            for (let j in scoreResult.potentialMatches[score]) {
+              let potentials = scoreResult.potentialMatches[score][j]
+              var matched = this.matchedContent.find((matched) => {
+                return matched.datimId === potentials.id
+              })
+              if (matched) {
+                continue
+              }
+              this.potentialMatches.push({
+                score: score,
+                name: potentials.name,
+                id: potentials.id,
+                parents: potentials.parents.join('->')
+              })
+            }
+          }
+        }
+      }
+      this.dialog = true
+    },
+    changeMappingSelection (id, name) {
+      this.selectedDatimId = id
+      this.selectedDatimName = name
+    },
+    match (type) {
+      if (this.selectedDatimId === '') {
+        return alert('select datim org')
+      }
+      let formData = new FormData()
+      formData.append('mohId', this.selectedMohId)
+      formData.append('datimId', this.selectedDatimId)
+      formData.append('recoLevel', this.$store.state.recoLevel)
+      formData.append('totalLevels', this.$store.state.totalLevels)
+      var orgid = this.$store.state.orgUnit.OrgId
+      // remove from DATIM Unmatched
+      let datimParents = null
+      for (let k in this.datimUnMatched) {
+        if (this.datimUnMatched[k].id === this.selectedDatimId) {
+          datimParents = this.datimUnMatched[k].parents
+          this.datimUnMatched.splice(k, 1)
+        }
+      }
 
-				}).catch((err)=>{
-					console.log(err)
-				})
-			},
-			breakMatch(datimId){
-				var orgid = this.$store.state.orgUnit.OrgId
-				let formData = new FormData()
-				formData.append('datimId', datimId)
-				axios.post('http://localhost:3000/breakMatch/' + orgid,
-					formData,
-					{
-						headers: {
-            'Content-Type': 'multipart/form-data'
-          	}
-					}
-				).catch((err)=>{
-					console.log(err)
-				})
+      // Add from a list of MOH Matched and remove from list of MOH unMatched
+      for (let k in this.mohUnMatched) {
+        if (this.mohUnMatched[k].id === this.selectedMohId) {
+          if (type === 'match') {
+            this.matchedContent.push({
+              mohName: this.selectedMohName,
+              mohId: this.selectedMohId,
+              mohParents: this.mohUnMatched[k].parents,
+              datimName: this.selectedDatimName,
+              datimId: this.selectedDatimId,
+              datimParents: datimParents
+            })
+          } else if (type === 'flag') {
+            this.flagged.push({
+              mohName: this.selectedMohName,
+              mohId: this.selectedMohId,
+              mohParents: this.mohUnMatched[k].parents,
+              datimName: this.selectedDatimName,
+              datimId: this.selectedDatimId,
+              datimParents: datimParents
+            })
+          }
+          this.mohUnMatched.splice(k, 1)
+        }
+      }
+      this.selectedMohId = null
+      this.selectedMohName = null
+      this.selectedDatimId = null
+      this.dialog = false
+      axios.post(backendServer + '/match/' + type + '/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(() => {
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
+    breakMatch (datimId) {
+      let orgid = this.$store.state.orgUnit.OrgId
+      let formData = new FormData()
+      formData.append('datimId', datimId)
+      axios.post(backendServer + '/breakMatch/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
 
-				for(var k in this.matchedContent){
-					if(this.matchedContent[k].datimId == datimId){
-						this.mohUnMatched.push({
-							name: this.matchedContent[k].mohName,
-							id:this.matchedContent[k].mohId,
-							parents:this.matchedContent[k].mohParents
-						})
-						this.datimUnMatched.push({
-							name: this.matchedContent[k].datimName,
-							id:this.matchedContent[k].datimId,
-							parents:this.matchedContent[k].datimParents
-						})
-						this.matchedContent.splice(k,1)
-					}
-				}
-			},
-			noMatch(){
-				let formData = new FormData()
-				formData.append('mohId', this.selectedMohId)
-				formData.append('recoLevel',this.$store.state.recoLevel)
-				formData.append('totalLevels',this.$store.state.totalLevels)
-				var orgid = this.$store.state.orgUnit.OrgId
+      for (let k in this.matchedContent) {
+        if (this.matchedContent[k].datimId === datimId) {
+          this.mohUnMatched.push({
+            name: this.matchedContent[k].mohName,
+            id: this.matchedContent[k].mohId,
+            parents: this.matchedContent[k].mohParents
+          })
+          this.datimUnMatched.push({
+            name: this.matchedContent[k].datimName,
+            id: this.matchedContent[k].datimId,
+            parents: this.matchedContent[k].datimParents
+          })
+          this.matchedContent.splice(k, 1)
+        }
+      }
+    },
+    noMatch () {
+      let formData = new FormData()
+      formData.append('mohId', this.selectedMohId)
+      formData.append('recoLevel', this.$store.state.recoLevel)
+      formData.append('totalLevels', this.$store.state.totalLevels)
+      let orgid = this.$store.state.orgUnit.OrgId
 
-				//remove from MOH Unmatched
-				for(var k in this.mohUnMatched) {
-					if(this.mohUnMatched[k].id == this.selectedMohId){
-						this.noMatchContent.push({
-							mohName: this.selectedMohName,
-							mohId: this.selectedMohId,
-							parents: this.mohUnMatched[k].parents,
-						})
-						this.mohUnMatched.splice(k,1)
-					}
-				}
-				this.dialog = false
-				this.selectedMohId = null
-				this.selectedMohName = null
-				this.selectedDatimId = null
-				axios.post('http://localhost:3000/noMatch/' + orgid,
-					formData,
-					{
-          	headers: {
-            'Content-Type': 'multipart/form-data'
-          	}
-        	}
-				).then(()=>{
-
-				}).catch((err)=>{
-					console.log(err)
-				})
-			}
-		},
-		computed: {
-			/*
-			mohUnMatched() {
-				var results = []
-				for(var k in this.scoreResults){
-					var scoreResult = this.scoreResults[k]
-					if(Object.keys(scoreResult.exactMatch) == 0){
-						var parents = scoreResult.moh.parents.join('->')
-						results.push({
-							name: scoreResult.moh.name,
-							id: scoreResult.moh.id,
-							parents: parents
-							}
-						)
-					}
-				}
-				return results
-			}
-			*/
-		},
-		created() {
-			this.getScores()
-		}
-	}
+      // remove from MOH Unmatched
+      for (let k in this.mohUnMatched) {
+        if (this.mohUnMatched[k].id === this.selectedMohId) {
+          this.noMatchContent.push({
+            mohName: this.selectedMohName,
+            mohId: this.selectedMohId,
+            parents: this.mohUnMatched[k].parents
+          })
+          this.mohUnMatched.splice(k, 1)
+        }
+      }
+      this.dialog = false
+      this.selectedMohId = null
+      this.selectedMohName = null
+      this.selectedDatimId = null
+      axios.post(backendServer + '/noMatch/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(() => {
+      }).catch((err) => {
+        console.log(err)
+      })
+    }
+  },
+  computed: {
+    /*
+    mohUnMatched () {
+      let results = []
+      for (let scoreresult of this.scoreResults){
+        if( Object.keys(scoreResult.exactMatch) === 0) {
+          let parents = scoreResult.moh.parents.join('->')
+          results.push({
+            name: scoreResult.moh.name,
+            id: scoreResult.moh.id,
+            parents: parents
+          })
+        }
+      }
+      return results
+    }
+    */
+  },
+  created () {
+    this.getScores()
+  }
+}
 </script>
 
 <style>
