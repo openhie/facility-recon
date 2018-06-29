@@ -65,15 +65,19 @@
             ></v-text-field>
         	</v-card-title>
         	<template v-if='mohUnMatched.length > 0'>
+              <liquor-tree :data="mohTree" ref="mohTree" />
 	          <v-data-table
-	            :headers="mohUnmatchedHeaders"
-	            :items="mohUnMatched"
+	            :headers="mohGridHeaders"
+	            :items="mohGrid"
 	            :search="searchUnmatchedMoh"
 	            light
 	            class="elevation-1"
 	          >
 		          <template slot="items" slot-scope="props">
-			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}} <br>{{props.item.parents}}</td>
+			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}}</td>
+                        <td v-for="parent in props.item.parents">
+                          {{parent}}
+                        </td>
 		          </template>
           	</v-data-table>
         	</template>
@@ -213,6 +217,8 @@
 
 <script>
 import axios from 'axios'
+import LiquorTree from 'liquor-tree'
+
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
@@ -232,6 +238,8 @@ export default {
       flagged: [],
       datimUnMatched: [],
       mohUnMatched: [],
+      mohParents: {},
+      mohFilter: { text: '', level: '' },
       selectedMohName: '',
       selectedMohId: '',
       selectedDatimId: '',
@@ -307,11 +315,19 @@ export default {
               datimParents: scoreResult.exactMatch.parents.join('->')
             })
           } else if (Object.keys(scoreResult.potentialMatches).length > 0) {
-            let parents = scoreResult.moh.parents.join('->')
+            // let parents = scoreResult.moh.parents.join('->')
+            let addTree = this.mohParents
+            for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {
+              if (!addTree[scoreResult.moh.parents[i]]) {
+                addTree[scoreResult.moh.parents[i]] = {}
+              }
+              addTree = addTree[scoreResult.moh.parents[i]]
+            }
             this.mohUnMatched.push({
               name: scoreResult.moh.name,
               id: scoreResult.moh.id,
-              parents: parents
+              // parents: parents
+              parents: scoreResult.moh.parents
             })
           }
         }
@@ -473,6 +489,38 @@ export default {
     }
   },
   computed: {
+    mohGridHeaders () {
+      let header = [ { text: 'Location', value: 'name' } ]
+      if (this.mohUnMatched.length > 0) {
+        for (let i = this.mohUnMatched[0].parents.length; i > 0; i--) {
+          header.push({ text: 'Level ' + i, value: 'level' + i })
+        }
+      }
+      return header
+    },
+    mohTree () {
+      const createTree = (current, results) => {
+        for (let name in current) {
+          let add = { text: name }
+          add.children = []
+          createTree(current[name], add.children)
+          if (add.children.length === 0) {
+            delete add.children
+          }
+          results.push(add)
+        }
+      }
+      let results = []
+      createTree(this.mohParents, results)
+      return results
+    },
+    mohGrid () {
+      if (this.mohUnMatched.length > 0 && this.mohFilter.level !== '') {
+        let parentIdx = this.mohUnMatched[0].parents.length - this.mohFilter.level
+        return this.mohUnMatched.filter((location) => location.parents[parentIdx] === this.mohFilter.text)
+      }
+      return this.mohUnMatched
+    }
     /*
     mohUnMatched () {
       let results = []
@@ -492,6 +540,27 @@ export default {
   },
   created () {
     this.getScores()
+  },
+  mounted () {
+    const setListener = () => {
+      if (this.$refs && this.$refs.mohTree) {
+        this.$refs.mohTree.$on('node:selected', (node) => {
+          this.mohFilter.text = node.data.text
+          let level = 1
+          while (node.parent) {
+            node = node.parent
+            level++
+          }
+          this.mohFilter.level = level
+        })
+      } else {
+        setTimeout(function () { setListener() }, 500)
+      }
+    }
+    setListener()
+  },
+  components: {
+    'liquor-tree': LiquorTree
   }
 }
 </script>
