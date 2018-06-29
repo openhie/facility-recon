@@ -213,6 +213,7 @@ app.post('/match/:type/:orgid', (req,res)=>{
 			return
 		}
 		if(recoLevel == totalLevels) {
+			var namespace = config.getConf("UUID:namespace")
       mohId = uuid5(mohId,namespace+'100')
     }
 		mcsd.saveMatch(mohId,datimId,orgid,recoLevel,totalLevels,type,(err)=>{
@@ -247,6 +248,7 @@ app.post('/noMatch/:orgid', (req,res)=>{
 			return
 		}
 		if(recoLevel == totalLevels) {
+			var namespace = config.getConf("UUID:namespace")
       mohId = uuid5(mohId,namespace+'100')
     }
 		mcsd.saveNoMatch(mohId,orgid,recoLevel,totalLevels,(err)=>{
