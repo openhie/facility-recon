@@ -135,23 +135,23 @@
 <script scoped>
 import LiquorTree from 'liquor-tree'
 
-const addChildren = ( treeData, results, filter, ...rest ) => {
-  for( const node of treeData ) { 
-    if ( node.children && node.children.length > 0 ) { 
-      addChildren( node.children, results, filter, node.text, ...rest )
+const addChildren = (treeData, results, filter, ...rest) => {
+  for (const node of treeData) {
+    if (node.children && node.children.length > 0) {
+      addChildren(node.children, results, filter, node.text, ...rest)
     } else {
-      let row = {} 
-      for( let i = rest.length-1, level = 1; i >= 0; i--, level++) {
-        row['level'+level] = rest[i]
+      let row = {}
+      for (let i = rest.length - 1, level = 1; i >= 0; i--, level++) {
+        row['level' + level] = rest[i]
       }
       row.facility = node.text
       row.latitude = node.lat
       row.longitude = node.long
-      if ( (filter.level === '' ? true : row[filter.level] && row[filter.level] === filter.text ) ) {
+      if (filter.level === '' ? true : row[filter.level] && row[filter.level] === filter.text) {
         results.push(row)
       }
     }
-  }   
+  }
 }
 
 export default {
@@ -191,30 +191,30 @@ export default {
   computed: {
     datimGridData () {
       var results = [ ]
-      addChildren( this.datimTreeData, results, this.filterDATIM )
+      addChildren(this.datimTreeData, results, this.filterDATIM)
       return results
     },
     datimGridHeader () {
       let header = []
-      if ( this.mohGridData && this.mohGridData.length > 0 ) { 
-        for( const key in this.mohGridData[0] ) {
-          header.push( { text: this.headerText[key], value: key } )
+      if (this.mohGridData && this.mohGridData.length > 0) {
+        for (const key in this.mohGridData[0]) {
+          header.push({ text: this.headerText[key], value: key })
         }
-      }   
+      }
       return header
     },
     mohGridData () {
       var results = [ ]
-      addChildren( this.mohTreeData, results, this.filterMOH )
+      addChildren(this.mohTreeData, results, this.filterMOH)
       return results
     },
     mohGridHeader () {
       let header = []
-      if ( this.mohGridData && this.mohGridData.length > 0 ) { 
-        for( const key in this.mohGridData[0] ) {
-          header.push( { text: this.headerText[key], value: key } )
+      if (this.mohGridData && this.mohGridData.length > 0) {
+        for (const key in this.mohGridData[0]) {
+          header.push({ text: this.headerText[key], value: key })
         }
-      }   
+      }
       return header
     },
     datimPages () {
@@ -236,36 +236,36 @@ export default {
       return this.$store.state.mohHierarchy.data
     }
   },
-  mounted() {
+  mounted () {
     const setListener = () => {
-      if ( this.$refs && this.$refs.datimTree && this.$refs.mohTree ) {
-        this.$refs.datimTree.$on("node:selected", (node) => {
+      if (this.$refs && this.$refs.datimTree && this.$refs.mohTree) {
+        this.$refs.datimTree.$on('node:selected', (node) => {
           this.filterDATIM.text = node.data.text
           let level = 1
-          while( node.parent ) {
+          while (node.parent) {
             node = node.parent
             level++
           }
-          this.filterDATIM.level = 'level'+level
+          this.filterDATIM.level = 'level' + level
         })
-        this.$refs.mohTree.$on("node:selected", (node) => {
+        this.$refs.mohTree.$on('node:selected', (node) => {
           this.filterMOH.text = node.data.text
           let level = 1
-          while( node.parent ) {
+          while (node.parent) {
             node = node.parent
             level++
           }
-          this.filterMOH.level = 'level'+level
+          this.filterMOH.level = 'level' + level
         })
       } else {
-        setTimeout( function() { setListener() }, 500 )
+        setTimeout(function () { setListener() }, 500)
       }
     }
     setListener()
   },
   components: {
     'liquor-tree': LiquorTree
-  },
+  }
 }
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->

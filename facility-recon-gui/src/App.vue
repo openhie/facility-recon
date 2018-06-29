@@ -41,17 +41,17 @@ export default {
   methods: {
     getOrgHierarchy () {
       var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer+'/hierarchy/datim',{params:orgUnit}).then((hierarchy) => {
+      axios.get(backendServer + '/hierarchy/datim', { params: orgUnit }).then((hierarchy) => {
         this.$store.state.datimHierarchy = hierarchy
       })
 
-      axios.get(backendServer+'/hierarchy/moh/',{params:orgUnit}).then((hierarchy) => {
+      axios.get(backendServer + '/hierarchy/moh/', { params: orgUnit }).then((hierarchy) => {
         this.$store.state.mohHierarchy = hierarchy
       })
     },
     getTotalLevels () {
       var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer+'/countLevels/' + orgUnit.OrgId).then((levels) => {
+      axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.$store.state.totalLevels = levels.data.totalLevels
         this.$store.state.recoLevel = levels.data.recoLevel
         this.getOrgHierarchy()
