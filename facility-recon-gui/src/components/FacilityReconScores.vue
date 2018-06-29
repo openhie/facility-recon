@@ -1,5 +1,5 @@
 <template>
-	<v-container grid-list-xl >
+	<v-container grid-list-lg >
 		<v-dialog persistent v-model="dialog" width="800px">
       <v-card>
         <v-card-title>
@@ -35,23 +35,40 @@
       </v-card>
     </v-dialog>
     <v-layout row wrap>
-      <v-flex xs1 sm2 md2>
+    	<v-spacer></v-spacer>
+    	<v-flex xs1 sm2 md2 right>
+	      <v-select
+	        :items="levelArray"
+	        v-model="$store.state.recoLevel"
+	        :item-value = 'levelArray.value'
+	        :item-name = 'levelArray.text'
+	        label="Level"
+	        class="input-group--focused"
+	        height = '1'
+	        single-line
+	        @change="levelChanged"
+	      	>
+	      </v-select>
+    	</v-flex>
+    	<v-flex xs1 sm2 md2>
         <v-menu offset-y>
-      <v-btn slot="activator" color="primary" dark><v-icon>more_vert</v-icon>Actions</v-btn>
-      <v-list>
-        <v-list-tile :key="1" @click="getScores">
-          <v-list-tile-title>Recalculate Scores</v-list-tile-title>
-        </v-list-tile>
-        <v-list-tile :key="2" @click="">
-        	<v-list-tile-title>Action 2</v-list-tile-title>
-      	</v-list-tile>
-      	<v-list-tile :key="3" @click="">
-        	<v-list-tile-title>Action 3</v-list-tile-title>
-      	</v-list-tile>
-      </v-list>
-    </v-menu>
+		      <v-btn slot="activator" color="primary" dark><v-icon>more_vert</v-icon>Actions</v-btn>
+		      <v-list>
+		        <v-list-tile :key="1" @click="getScores">
+		          <v-list-tile-title>Recalculate Scores</v-list-tile-title>
+		        </v-list-tile>
+		        <v-list-tile :key="2" @click="">
+		        	<v-list-tile-title>Action 2</v-list-tile-title>
+		      	</v-list-tile>
+		      	<v-list-tile :key="3" @click="">
+		        	<v-list-tile-title>Action 3</v-list-tile-title>
+		      	</v-list-tile>
+		      </v-list>
+    		</v-menu>
       </v-flex>
-      <v-flex xs12 sm6 md5 child-flex>
+    </v-layout>
+    <v-layout row wrap>
+      <v-flex xs12 sm6 md6 child-flex>
         <v-card color="green lighten-2" dark>
         	<v-card-title primary-title>
         	  MOH Unmatched
@@ -86,7 +103,7 @@
         	</template>
         </v-card>
       </v-flex>
-      <v-flex xs12 sm6 md5>
+      <v-flex xs12 sm6 md6>
         <v-card color="blue lighten-2" dark>
         	<v-card-title primary-title>
         	  DATIM Unmatched
@@ -226,6 +243,8 @@ const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
   data () {
     return {
+      levelArray: [],
+      recoLevel: 0,
       searchUnmatchedDatim: '',
       searchUnmatchedMoh: '',
       searchMatched: '',
@@ -276,6 +295,10 @@ export default {
     }
   },
   methods: {
+    levelChanged (level) {
+      this.$store.state.recoLevel = level
+      this.getScores()
+    },
     getScores () {
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
@@ -285,6 +308,11 @@ export default {
       this.datimUnMatched = []
       this.mohUnMatched = []
       this.flagged = []
+      // generating levels
+      this.levelArray = []
+      for (var k = 1; k <= this.$store.state.totalLevels; k++) {
+        this.levelArray.push({text: 'Level ' + k, value: k})
+      }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
         this.getDatimUnmached()
         this.scoreResults = scores.data.scoreResults

@@ -61,7 +61,7 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
-				var recoLevel = 5
+				var recoLevel = 2
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
 				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
@@ -213,6 +213,7 @@ app.post('/match/:type/:orgid', (req,res)=>{
 			return
 		}
 		if(recoLevel == totalLevels) {
+			var namespace = config.getConf("UUID:namespace")
       mohId = uuid5(mohId,namespace+'100')
     }
 		mcsd.saveMatch(mohId,datimId,orgid,recoLevel,totalLevels,type,(err)=>{
@@ -247,6 +248,7 @@ app.post('/noMatch/:orgid', (req,res)=>{
 			return
 		}
 		if(recoLevel == totalLevels) {
+			var namespace = config.getConf("UUID:namespace")
       mohId = uuid5(mohId,namespace+'100')
     }
 		mcsd.saveNoMatch(mohId,orgid,recoLevel,totalLevels,(err)=>{
