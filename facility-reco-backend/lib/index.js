@@ -61,7 +61,7 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
-				var recoLevel = 5
+				var recoLevel = 2
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
 				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
