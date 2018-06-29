@@ -17,19 +17,38 @@ module.exports = function () {
         var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
       else
         var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').toString()
-
-      var options = {
-        url: url
-      }
-      let cachedData = cache.get('getLocationByID' + url)
-      if(cachedData && getCached){
-        return callback(cachedData)
-      }
-      request.get(options, (err, res, body) => {
-        var cacheData = JSON.parse(body)
-        cache.put('getLocationByID' + url,cacheData,120*1000)
-        return callback(cacheData)
-      })
+      var locations = {}
+      locations.entry = []
+      async.doWhilst(
+        function(callback){
+          var options = {
+            url: url
+          }
+          url = false
+          let cachedData = cache.get('getLocationByID' + url)
+          if(cachedData && getCached){
+            return callback(cachedData)
+          }
+          request.get(options, (err, res, body) => {
+            var cacheData = JSON.parse(body)
+            var next = cacheData.link.find((link)=>{
+              return link.relation == 'next'
+            })
+            if(next){
+              url = next.url
+            }
+            cache.put('getLocationByID' + url,cacheData,120*1000)
+            locations.entry = locations.entry.concat(cacheData.entry)
+            return callback(false,url)
+          })
+        },
+        function(){
+          return url != false
+        },
+        function(){
+          callback(locations)
+        }
+      )
     },
 
     getLocationChildren(database,topOrgId,callback){
@@ -416,9 +435,12 @@ module.exports = function () {
         callback(err,body)
       })
     },
-    saveMatch: function(mohId,datimId,topOrgId,recoLevel,totalLevels,callback){
+    saveMatch: function(mohId,datimId,topOrgId,recoLevel,totalLevels,type,callback){
       const database = config.getConf("mCSD:database")
+      const flagCode = config.getConf("mapping:flagCode")
       var namespace = config.getConf("UUID:namespace")
+      var mohSystem = "http://geoalign.datim.org/MOH"
+      var datimSystem = "http://geoalign.datim.org/DATIM"
       this.getLocationByID(database,datimId,false,(mcsd)=>{
         var fhir = {}
         fhir.entry = []
@@ -431,8 +453,8 @@ module.exports = function () {
         resource.identifier = []
         var datimURL = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment(datimId).toString()
         var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(mohId).toString()
-        resource.identifier.push({"system":"http://geoalign.datim.org/DATIM","value":datimURL})
-        resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":mohURL})
+        resource.identifier.push({"system": datimSystem ,"value":datimURL})
+        resource.identifier.push({"system": mohSystem ,"value":mohURL})
 
         if(mcsd.entry[0].resource.hasOwnProperty('partOf'))
           resource.partOf = {"display": mcsd.entry[0].resource.partOf.display,"reference": mcsd.entry[0].resource.partOf.reference}
@@ -453,9 +475,73 @@ module.exports = function () {
                       }
                     ]
         }
+        if(type == 'flag') {
+          resource.tag = []
+          resource.tag.push({
+            "system": mohSystem,
+            "code": flagCode,
+            "display": "To be reviewed"
+          })
+        }
         entry.push({"resource":resource})
         fhir.entry = fhir.entry.concat(entry)
-        var mappingDB = 'MOHDATIM' + topOrgId
+        var mappingDB = config.getConf("mapping:dbPrefix") + topOrgId
+        this.saveLocations (fhir,mappingDB,(err,res)=>{
+          if(err){
+            winston.error(err)
+          }
+          callback(err)
+        })
+      })
+    },
+    saveNoMatch(mohId,topOrgId,recoLevel,totalLevels,callback){
+      const database = topOrgId
+      var namespace = config.getConf("UUID:namespace")
+      var mohSystem = "http://geoalign.datim.org/MOH"
+      const noMatchCode = config.getConf("mapping:noMatchCode")
+      this.getLocationByID(database,mohId,false,(mcsd)=>{
+        winston.error(mcsd)
+        var fhir = {}
+        fhir.entry = []
+        fhir.type = "document"
+        var entry = []
+        var resource = {}
+        resource.resourceType = "Location"
+        resource.name = mcsd.entry[0].resource.name
+        resource.id = mohId
+
+        if(mcsd.entry[0].resource.hasOwnProperty('partOf'))
+          resource.partOf = {"display": mcsd.entry[0].resource.partOf.display,"reference": mcsd.entry[0].resource.partOf.reference}
+        if(recoLevel == totalLevels){
+          var typeCode = 'bu'
+          var typeCode = 'building'
+        }
+        else{
+          var typeCode = 'jdn'
+          var typeName = 'Jurisdiction'
+        }
+        resource.physicalType = {
+          "coding":[
+                      {
+                        "code": typeCode,
+                        "display": typeName,
+                        "system": "http://hl7.org/fhir/location-physical-type"
+                      }
+                    ]
+        }
+        resource.identifier = []
+        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(mohId).toString()
+        resource.identifier.push({"system": mohSystem ,"value":mohURL})
+
+        resource.tag = []
+        resource.tag.push({
+          "system": mohSystem,
+          "code": noMatchCode,
+          "display": "No Match"
+        })
+        entry.push({"resource":resource})
+        fhir.entry = fhir.entry.concat(entry)
+        var mappingDB = config.getConf("mapping:dbPrefix") + topOrgId
         this.saveLocations (fhir,mappingDB,(err,res)=>{
           if(err){
             winston.error(err)
@@ -480,7 +566,7 @@ module.exports = function () {
         callback(err)
       })
     },
-    CSVTomCSD: function(filePath,headerMapping,callback){
+    CSVTomCSD: function(filePath,headerMapping,orgid,callback){
       var namespace = config.getConf("UUID:namespace")
       var levels = config.getConf("levels")
       var orgid = headerMapping.orgid
@@ -555,8 +641,8 @@ module.exports = function () {
             }
           },()=>{
             jurisdictions.push({name:orgname,parent:null,uuid:countryUUID,parentUUID:null})
-            this.translateToJurisdiction(jurisdictions,(resources)=>{
-              fhir.entry = fhir.entry.concat(resources)
+            this.saveJurisdiction(jurisdictions,orgid,()=>{
+              
             })
           })
 
@@ -571,8 +657,8 @@ module.exports = function () {
             parent:facilityParent,
             parentUUID:facilityParentUUID
           }
-          this.translateToBuilding(building,(resources)=>{
-            fhir.entry = fhir.entry.concat(resources)
+          this.saveBuilding(building,orgid,()=>{
+            
           })          
         })
         .on("end",()=>{
@@ -580,9 +666,8 @@ module.exports = function () {
         })
     },
 
-    translateToJurisdiction:function(jurisdictions,callback){
+    saveJurisdiction:function(jurisdictions,orgid,callback){
       const promises = []
-      var entry = []
       jurisdictions.forEach((jurisdiction)=>{
         promises.push(new Promise((resolve,reject)=>{
           var resource = {}
@@ -592,7 +677,7 @@ module.exports = function () {
           resource.mode = "instance"
           resource.id = jurisdiction.uuid
           resource.identifier = []
-          resource.identifier.push({"system":"gofr.org","value":jurisdiction.uuid})
+          resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":jurisdiction.uuid})
           if(jurisdiction.parentUUID)
             resource.partOf = {"display":jurisdiction.parent,"reference":"Location/" + jurisdiction.parentUUID}
           resource.physicalType = {
@@ -604,20 +689,20 @@ module.exports = function () {
                         }
                       ]
           }
-          entry.push({"resource":resource})
+          var mcsd = {'type':'document',entry:[{"resource":resource}]}
+          this.saveLocations(mcsd,orgid,()=>{})
           resolve()
         }))
       })
 
       Promise.all(promises).then(()=>{
-        return callback(entry)
+        return callback()
       }).catch((reason)=>{
         winston.error(reason)
       })
     },
 
-    translateToBuilding:function(building,callback){
-      var entry = []
+    saveBuilding:function(building,orgid,callback){
       var resource = {}
       resource.resourceType = "Location"
       resource.status = "active"
@@ -625,7 +710,7 @@ module.exports = function () {
       resource.name = building.name
       resource.id = building.uuid
       resource.identifier = []
-      resource.identifier.push({"system":"gofr.org","value":building.id})
+      resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":building.id})
       resource.partOf = {"display":building.parent,"reference":"Location/" + building.parentUUID}
       resource.physicalType = {
         "coding":[
@@ -640,8 +725,9 @@ module.exports = function () {
         "longitude":building.long,
         "latitude":building.lat
       }
-      entry.push({"resource":resource})
-      return callback(entry)
+      var mcsd = {'type':'document',entry:[{"resource":resource}]}
+      this.saveLocations(mcsd,orgid,()=>{})
+      return callback()
     },
 
     createTree: function(mcsd,source,database,topOrg,callback){

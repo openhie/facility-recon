@@ -1,5 +1,5 @@
 <template>
-	<v-container grid-list-xl>
+	<v-container grid-list-xl >
 		<v-dialog persistent v-model="dialog" width="800px">
       <v-card>
         <v-card-title>
@@ -24,42 +24,58 @@
 		            <td>{{props.item.score}}</td>
 	          	</tr>
 	          </template>
-	          </v-radio-group>
           </v-data-table>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="error" @click.native="flag(selectedDatimId)"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
+          <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
           <v-btn color="green" dark @click.native="noMatch" ><v-icon left>block</v-icon>No Match</v-btn>
-          <v-btn color="primary" dark @click.native="match(selectedDatimId)" ><v-icon left>save</v-icon>Save</v-btn>
+          <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>save</v-icon>Save</v-btn>
           <v-btn color="orange darken-2" @click.native="dialog = !dialog" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <v-layout row wrap>
-      <v-flex xs12 sm6 md2>
-        <v-card color="purple" dark>
-          <v-card-title primary class="title">Progress</v-card-title>
-          <v-card-text></v-card-text>
-        </v-card>
+      <v-flex xs1 sm2 md2>
+        <v-menu offset-y>
+      <v-btn slot="activator" color="primary" dark><v-icon>more_vert</v-icon>Actions</v-btn>
+      <v-list>
+        <v-list-tile :key="1" @click="getScores">
+          <v-list-tile-title>Recalculate Scores</v-list-tile-title>
+        </v-list-tile>
+        <v-list-tile :key="2" @click="">
+        	<v-list-tile-title>Action 2</v-list-tile-title>
+      	</v-list-tile>
+      	<v-list-tile :key="3" @click="">
+        	<v-list-tile-title>Action 3</v-list-tile-title>
+      	</v-list-tile>
+      </v-list>
+    </v-menu>
       </v-flex>
       <v-flex xs12 sm6 md5 child-flex>
         <v-card color="green lighten-2" dark>
         	<v-card-title primary-title>
         	  MOH Unmatched
+        	  <v-spacer></v-spacer>
+        	  <v-text-field
+              v-model="searchUnmatchedMoh"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
         	</v-card-title>
         	<template v-if='mohUnMatched.length > 0'>
-        		<v-card-text>
-	          	<v-list light dense expand>
-	          	  <template v-for="(unMatched,key) in mohUnMatched">
-	          	  	<v-list-tile @click="getPotentialMatch(unMatched.id)" :key='unMatched.id'>
-	          	  		<v-list-tile-content>
-	          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
-	          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
-	          	  		</v-list-tile-content>
-	          	  	</v-list-tile>
-	        	  	</template>
-	          	</v-list>
-	          </v-card-text>
+	          <v-data-table
+	            :headers="mohUnmatchedHeaders"
+	            :items="mohUnMatched"
+	            :search="searchUnmatchedMoh"
+	            light
+	            class="elevation-1"
+	          >
+		          <template slot="items" slot-scope="props">
+			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}} <br>{{props.item.parents}}</td>
+		          </template>
+          	</v-data-table>
         	</template>
         	<template v-else>
         		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
@@ -70,20 +86,27 @@
         <v-card color="blue lighten-2" dark>
         	<v-card-title primary-title>
         	  DATIM Unmatched
+        	  <v-spacer></v-spacer>
+        	  <v-text-field
+              v-model="searchUnmatchedDatim"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
         	</v-card-title>
         	<template v-if='datimUnMatched.length > 0'>
-	          <v-card-text>
-	          	<v-list light dense expand>
-	          	  <template v-for="(unMatched,key) in datimUnMatched">
-	          	  	<v-list-tile @click.native="" :key='unMatched.id'>
-	          	  		<v-list-tile-content>
-	          	  			<v-list-tile-title v-html="unMatched.name"></v-list-tile-title>
-	          	  			<v-list-tile-sub-title v-html="unMatched.parents"></v-list-tile-sub-title>
-	          	  		</v-list-tile-content>
-	          	  	</v-list-tile>
-	        	  	</template>
-	          	</v-list>
-	          </v-card-text>
+	          <v-data-table
+	            :headers="mohUnmatchedHeaders"
+	            :items="datimUnMatched"
+	            :search="searchUnmatchedDatim"
+	            light
+	            class="elevation-1"
+	          >
+		          <template slot="items" slot-scope="props">
+			            <td>{{props.item.name}} <br>{{props.item.parents}}</td>
+		          </template>
+          	</v-data-table>
         	</template>
           <template v-else>
         		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
@@ -92,18 +115,34 @@
       </v-flex>
     </v-layout>
     <v-layout column wrap>
-      <v-flex d-flex xs12 sm6 md5>
-        <v-card color="blue lighten-2" dark>
-        	<v-card-title primary-title>
-        		MOH to DATIM Matched Locations
-        	</v-card-title>
-          <v-card-text>
-          	<v-data-table
-              :headers="matchedHeaders"
-              :items="matchedContent"
-              hide-actions
-              class="elevation-1"
-            >
+      <v-tabs icons-and-text centered grow dark color="cyan">
+        <v-tabs-slider color="red"></v-tabs-slider>
+        <v-tab key="match">
+          MATCHED
+          <v-icon color="white" right>thumb_up</v-icon>
+        </v-tab>
+        <v-tab key="nomatch">
+          NO MATCH
+          <v-icon color="white" right>thumb_down</v-icon>
+        </v-tab>
+        <v-tab key="flagged">
+          FLAGGED
+          <v-icon color="white" right>notification_important</v-icon>
+        </v-tab>
+        <v-tab-item key="match">
+      	  <v-text-field
+            v-model="searchMatched"
+            append-icon="search"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+	      	<v-data-table
+	              :headers="matchedHeaders"
+	              :items="matchedContent"
+	              :search="searchMatched"
+	              class="elevation-1"
+	            >
             <template slot="items" slot-scope="props">
               <td>{{props.item.mohName}}</td>
               <td>{{props.item.mohId}}</td>
@@ -111,9 +150,61 @@
               <td>{{props.item.datimId}}</td>
               <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>cached</v-icon>Break Match</v-btn></td>
             </template>
-          	</v-data-table>
-          </v-card-text>
-        </v-card>
+	        </v-data-table>
+		    </v-tab-item>
+		    <v-tab-item key="nomatch">
+		    	<v-text-field
+            v-model="searchNotMatched"
+            append-icon="search"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+	      	<v-data-table
+	              :headers="noMatchHeaders"
+	              :items="noMatchContent"
+	              :search="searchNotMatched"
+	              class="elevation-1"
+	            >
+            <template slot="items" slot-scope="props">
+              <td>{{props.item.mohName}}</td>
+              <td>{{props.item.mohId}}</td>
+              <td>{{props.item.parents}}</td>
+              <td><v-btn color="error" style='text-transform: none' small @click=''><v-icon>cached</v-icon>Break No Match</v-btn></td>
+            </template>
+	        </v-data-table>
+		    </v-tab-item>
+		    <v-tab-item key="flagged">
+		    	<v-text-field
+            v-model="searchFlagged"
+            append-icon="search"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+	      	<v-data-table
+	              :headers="flaggedHeaders"
+	              :items="flagged"
+	              :search="searchFlagged"
+	              class="elevation-1"
+	            >
+            <template slot="items" slot-scope="props">
+              <td>{{props.item.mohName}}</td>
+              <td>{{props.item.mohId}}</td>
+              <td>{{props.item.datimName}}</td>
+              <td>{{props.item.datimId}}</td>
+              <td>
+              	<v-btn color="primary" style='text-transform: none' small @click=''>
+              		<v-icon>thumb_up</v-icon>Confirm Match
+              	</v-btn>
+              	<v-btn color="error" style='text-transform: none' small @click=''>
+              		<v-icon>cached</v-icon>Release
+              	</v-btn>
+              </td>
+            </template>
+	        </v-data-table>
+		    </v-tab-item>
+      </v-tabs>
       </v-flex>
     </v-layout>
   </v-container>
@@ -125,17 +216,38 @@
 	export default {
 		data(){
 			return {
+				searchUnmatchedDatim: '',
+				searchUnmatchedMoh: '',
+				searchMatched: '',
+				searchNotMatched: '',
+				searchFlagged: '',
 				scoreResults: {},
 				potentialMatches: [],
-				mapped: [],
 				matchedContent: [],
+				noMatchContent: [],
+				flagged: [],
 				datimUnMatched: [],
+				mohUnMatched: [],
 				selectedMohName: '',
 				selectedMohId: '',
 				selectedDatimId: '',
 				selectedDatimName: '',
 				dialog: false,
-				matchedHeaders: [
+				mohUnmatchedHeaders: [
+	        { text: 'Location', value: 'name' }
+      	],
+      	matchedHeaders: [
+	        { text: 'MOH Location', value: 'mohName' },
+	        { text: 'MOH ID', value: 'mohId' },
+	        { text: 'DATIM Location', value: 'datimName' },
+	        { text: 'DATIM ID', value: 'datimId' }
+      	],
+      	noMatchHeaders: [
+	        { text: 'MOH Location', value: 'mohName' },
+	        { text: 'MOH ID', value: 'mohId' },
+	        { text: 'Parents', value: 'parents' }
+      	],
+      	flaggedHeaders: [
 	        { text: 'MOH Location', value: 'mohName' },
 	        { text: 'MOH ID', value: 'mohId' },
 	        { text: 'DATIM Location', value: 'datimName' },
@@ -156,13 +268,36 @@
 				var orgid = this.$store.state.orgUnit.OrgId
 				var recoLevel = this.$store.state.recoLevel
 				var totalLevels = this.$store.state.totalLevels
+				this.matchedContent = []
+				this.noMatchContent = []
+				this.datimUnMatched = []
+				this.mohUnMatched = []
+				this.flagged = []
 				axios.get('http://localhost:3000/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
 					this.getDatimUnmached()
 					this.scoreResults = scores.data.scoreResults
 					for(var k in this.scoreResults){
 						var scoreResult = this.scoreResults[k]
-						if(Object.keys(scoreResult.exactMatch).length > 0){
-							this.mapped.push(scoreResult.exactMatch.id)
+						if(scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag == 'flagged') {
+							this.flagged.push({
+								mohName:scoreResult.moh.name,
+								mohId:scoreResult.moh.id,
+								mohParents: scoreResult.moh.parents.join('->'),
+								datimName:scoreResult.exactMatch.name,
+								datimId:scoreResult.exactMatch.id,
+								datimParents: scoreResult.exactMatch.parents.join('->')
+							})
+						}
+						else if(scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag == 'noMatch') {
+							var parents = scoreResult.moh.parents.join('->')
+							this.noMatchContent.push({
+								mohName: scoreResult.moh.name,
+								mohId: scoreResult.moh.id,
+								parents: parents
+								}
+							)	
+						}
+						else if(Object.keys(scoreResult.exactMatch).length > 0){
 							this.matchedContent.push({
 								mohName:scoreResult.moh.name,
 								mohId:scoreResult.moh.id,
@@ -170,6 +305,15 @@
 								datimName:scoreResult.exactMatch.name,
 								datimId:scoreResult.exactMatch.id,
 								datimParents: scoreResult.exactMatch.parents.join('->')
+								}
+							)
+						}
+						else if(Object.keys(scoreResult.potentialMatches).length > 0) {
+							var parents = scoreResult.moh.parents.join('->')
+							this.mohUnMatched.push({
+								name: scoreResult.moh.name,
+								id: scoreResult.moh.id,
+								parents: parents
 								}
 							)
 						}
@@ -193,7 +337,10 @@
 						for(var score in scoreResult.potentialMatches){
 							for(var j in scoreResult.potentialMatches[score]){
 								var potentials = scoreResult.potentialMatches[score][j]
-								if(this.mapped.indexOf(potentials.id) > -1)
+								var matched = this.matchedContent.find((matched)=>{
+									return matched.datimId ==potentials.id
+								})
+								if(matched)
 									continue
 								this.potentialMatches.push({
 										score: score,
@@ -212,10 +359,7 @@
 				this.selectedDatimId = id
 				this.selectedDatimName = name
 			},
-			flag(){
-
-			},
-			match(){
+			match(type){
 				if(this.selectedDatimId == ''){
 					return alert('select datim org')
 				}
@@ -225,7 +369,6 @@
 				formData.append('recoLevel',this.$store.state.recoLevel)
 				formData.append('totalLevels',this.$store.state.totalLevels)
 				var orgid = this.$store.state.orgUnit.OrgId
-				this.mapped.push(this.selectedDatimId)
 				//remove from DATIM Unmatched
 				var datimParents = null
 				for(var k in this.datimUnMatched) {
@@ -235,17 +378,29 @@
 					}
 				}
 
-				//Add from a list of MOH Matched
+				//Add from a list of MOH Matched and remove from list of MOH unMatched
 				for(var k in this.mohUnMatched) {
 					if(this.mohUnMatched[k].id == this.selectedMohId){
-						this.matchedContent.push({
-							mohName: this.selectedMohName,
-							mohId: this.selectedMohId,
-							mohParents: this.mohUnMatched[k].parents,
-							datimName: this.selectedDatimName,
-							datimId: this.selectedDatimId,
-							datimParents: datimParents
-						})
+						if(type == 'match') {
+							this.matchedContent.push({
+								mohName: this.selectedMohName,
+								mohId: this.selectedMohId,
+								mohParents: this.mohUnMatched[k].parents,
+								datimName: this.selectedDatimName,
+								datimId: this.selectedDatimId,
+								datimParents: datimParents
+							})
+						}
+						else if(type == 'flag') {
+							this.flagged.push({
+								mohName: this.selectedMohName,
+								mohId: this.selectedMohId,
+								mohParents: this.mohUnMatched[k].parents,
+								datimName: this.selectedDatimName,
+								datimId: this.selectedDatimId,
+								datimParents: datimParents
+							})
+						}
 						this.mohUnMatched.splice(k,1)
 					}
 				}
@@ -253,7 +408,7 @@
 				this.selectedMohName = null
 				this.selectedDatimId = null
 				this.dialog = false
-				axios.post('http://localhost:3000/match/' + orgid,
+				axios.post('http://localhost:3000/match/' + type + '/' + orgid,
 					formData,
 					{
           	headers: {
@@ -281,8 +436,6 @@
 					console.log(err)
 				})
 
-				if(this.mapped.indexOf(datimId) > -1)
-					this.mapped.splice(0,1)
 				for(var k in this.matchedContent){
 					if(this.matchedContent[k].datimId == datimId){
 						this.mohUnMatched.push({
@@ -300,10 +453,43 @@
 				}
 			},
 			noMatch(){
+				let formData = new FormData()
+				formData.append('mohId', this.selectedMohId)
+				formData.append('recoLevel',this.$store.state.recoLevel)
+				formData.append('totalLevels',this.$store.state.totalLevels)
+				var orgid = this.$store.state.orgUnit.OrgId
+
+				//remove from MOH Unmatched
+				for(var k in this.mohUnMatched) {
+					if(this.mohUnMatched[k].id == this.selectedMohId){
+						this.noMatchContent.push({
+							mohName: this.selectedMohName,
+							mohId: this.selectedMohId,
+							parents: this.mohUnMatched[k].parents,
+						})
+						this.mohUnMatched.splice(k,1)
+					}
+				}
 				this.dialog = false
+				this.selectedMohId = null
+				this.selectedMohName = null
+				this.selectedDatimId = null
+				axios.post('http://localhost:3000/noMatch/' + orgid,
+					formData,
+					{
+          	headers: {
+            'Content-Type': 'multipart/form-data'
+          	}
+        	}
+				).then(()=>{
+
+				}).catch((err)=>{
+					console.log(err)
+				})
 			}
 		},
 		computed: {
+			/*
 			mohUnMatched() {
 				var results = []
 				for(var k in this.scoreResults){
@@ -320,6 +506,7 @@
 				}
 				return results
 			}
+			*/
 		},
 		created() {
 			this.getScores()

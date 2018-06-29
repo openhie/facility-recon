@@ -192,8 +192,7 @@ export default {
     },
     datimGridHeader () {
       let header = []
-      if ( this.mohGridData && this.mohGridData.length > 0 ) { 
-        console.log(this.mohGridData[0])
+      if ( this.mohGridData && this.mohGridData.length > 0 ) {
         for( const key in this.mohGridData[0] ) {
           header.push( { text: this.headerText[key], value: key } )
         }

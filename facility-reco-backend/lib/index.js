@@ -16,6 +16,12 @@ const scores = require('./scores')()
 const app = express(); 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+// socket config - large documents can cause machine to max files open
+const https = require('https')
+const http = require('http')
+
+https.globalAgent.maxSockets = 5
+http.globalAgent.maxSockets = 5
 //app.use(app.oauth.errorHandler());
 /*app.oauth = oauthserver({
   model: oAuthModel,
@@ -55,7 +61,7 @@ app.get('/countLevels/:orgid',(req,res)=>{
 				res.status(401).json({"error":"Missing Orgid"})
 			}
 			else{
-				var recoLevel = 3
+				var recoLevel = 5
 				winston.info(`Received total levels of ${totalLevels} for ${orgid}`)
 				res.status(200).json({totalLevels:totalLevels,recoLevel:recoLevel})
 			}
@@ -117,8 +123,10 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req,res)=>{
 		var namespace = config.getConf("UUID:namespace")
 		var mohTopId = uuid5(orgid,namespace+'000')
 		var datimTopId = orgid
+		var mcsdWhole = null
 		var datimLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationChildren(datimDB,datimTopId,(mcsdDATIM)=>{
+				mcsdWhole = mcsdDATIM
 				mcsd.filterLocations(mcsdDATIM,datimTopId,0,recoLevel,0,(mcsdDatimTotalLevels,mcsdDatimLevel,mcsdDatimBuildings)=>{
 					resolve(mcsdDatimLevel)
 				})
@@ -133,7 +141,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req,res)=>{
 			})
 		})
 
-		var mappingDB = "MOHDATIM" + orgid
+		var mappingDB = config.getConf("mapping:dbPrefix") + orgid
 		var mappingLocationReceived = new Promise((resolve,reject)=>{
 			mcsd.getLocationByID(mappingDB,false,false,(mcsdMapped)=>{
 				resolve(mcsdMapped)
@@ -142,14 +150,14 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req,res)=>{
 
 		Promise.all([datimLocationReceived,mohLocationReceived,mappingLocationReceived]).then((locations)=>{
 			if(recoLevel == totalLevels){
-				scores.getBuildingsScores(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
+				scores.getBuildingsScores(locations[1],locations[0],locations[2],mcsdWhole,mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
 					res.set('Access-Control-Allow-Origin','*')
 					res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
 					winston.info('Score results sent back')
 				})
 			}
 			else {
-				scores.getJurisdictionScore(locations[1],locations[0],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
+				scores.getJurisdictionScore(locations[1],locations[0],locations[2],mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,(scoreResults)=>{
 					res.set('Access-Control-Allow-Origin','*')
 					res.status(200).json({scoreResults:scoreResults,recoLevel:recoLevel})
 					winston.info('Score results sent back')
@@ -182,7 +190,7 @@ app.get('/getUnmatched/:orgid/:source/:recoLevel',(req,res)=>{
 	})
 })
 
-app.post('/match/:orgid', (req,res)=>{
+app.post('/match/:type/:orgid', (req,res)=>{
 	winston.info("Received data for matching")
 	if(!req.params.orgid){
 		winston.error({"error":"Missing Orgid"})
@@ -191,6 +199,7 @@ app.post('/match/:orgid', (req,res)=>{
 		return
 	}
 	var orgid = req.params.orgid
+	var type = req.params.type
 	var form = new formidable.IncomingForm()
 	form.parse(req,(err,fields,files)=>{
 		var mohId = fields.mohId
@@ -203,7 +212,44 @@ app.post('/match/:orgid', (req,res)=>{
 			res.status(401).json({"error":"Missing either MOHID or DATIMID or both"})
 			return
 		}
-		mcsd.saveMatch(mohId,datimId,orgid,recoLevel,totalLevels,(err)=>{
+		if(recoLevel == totalLevels) {
+      mohId = uuid5(mohId,namespace+'100')
+    }
+		mcsd.saveMatch(mohId,datimId,orgid,recoLevel,totalLevels,type,(err)=>{
+			winston.info("Done matching")
+			res.set('Access-Control-Allow-Origin','*')
+			if(err)
+				res.status(401).send({"error":err})
+			else
+				res.status(200).send()
+		})
+	})
+})
+
+app.post('/noMatch/:orgid', (req,res)=>{
+	winston.info("Received data for matching")
+	if(!req.params.orgid){
+		winston.error({"error":"Missing Orgid"})
+		res.set('Access-Control-Allow-Origin','*')
+		res.status(401).json({"error":"Missing Orgid"})
+		return
+	}
+	var orgid = req.params.orgid
+	var form = new formidable.IncomingForm()
+	form.parse(req,(err,fields,files)=>{
+		var mohId = fields.mohId
+		var recoLevel = fields.recoLevel
+		var totalLevels = fields.totalLevels
+		if(!mohId){
+			winston.error({"error":"Missing either MOHID"})
+			res.set('Access-Control-Allow-Origin','*')
+			res.status(401).json({"error":"Missing either MOHID"})
+			return
+		}
+		if(recoLevel == totalLevels) {
+      mohId = uuid5(mohId,namespace+'100')
+    }
+		mcsd.saveNoMatch(mohId,orgid,recoLevel,totalLevels,(err)=>{
 			winston.info("Done matching")
 			res.set('Access-Control-Allow-Origin','*')
 			if(err)
@@ -225,7 +271,7 @@ app.post('/breakMatch/:orgid', (req,res)=>{
 	form.parse(req,(err,fields,files)=>{
 		winston.info("Received break match request for " + fields.datimId)
 		var datimId = fields.datimId
-		var database = 'MOHDATIM' + req.params.orgid
+		var database = config.getConf("mapping:dbPrefix") + req.params.orgid
 		mcsd.breakMatch(datimId,database,(err)=>{
 			winston.info("break match done for " + fields.datimId)
 			res.set('Access-Control-Allow-Origin','*')
@@ -274,7 +320,7 @@ app.post('/uploadCSV', (req,res)=>{
 			winston.info("CSV File Passed Validation")
 			winston.info("Converting CSV to mCSD")
 			var convertedTomCSD = new Promise((resolve,reject)=>{
-				mcsd.CSVTomCSD(files[fileName].path,fields,(mcsdMOH)=>{
+				mcsd.CSVTomCSD(files[fileName].path,fields,orgid,(mcsdMOH)=>{
 					resolve(mcsdMOH)
 				})
 			})

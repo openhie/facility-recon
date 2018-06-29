@@ -40,6 +40,12 @@
     "level6",
     "level7"
   ],
+  "mapping": {
+    "maxSuggestions":5,
+    "dbPrefix": "MOHDATIM",
+    "flagCode": "dfcc3da2-7ab4-11e8-adc0-fa7ae01bbebc",
+    "noMatchCode": "cc1f0726-7ab4-11e8-adc0-fa7ae01bbebc"
+  },
   "matchResults":{
     "maxSuggestions":5
   }
