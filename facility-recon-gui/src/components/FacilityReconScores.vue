@@ -237,8 +237,8 @@ const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
   data () {
     return {
-    	levelArray: [ ],
-    	recoLevel: 0,
+      levelArray: [],
+      recoLevel: 0,
       searchUnmatchedDatim: '',
       searchUnmatchedMoh: '',
       searchMatched: '',
@@ -287,24 +287,23 @@ export default {
     }
   },
   methods: {
-  	levelChanged(level) {
-  		this.$store.state.recoLevel = level
-  		this.getScores()
-  	},
+    levelChanged (level) {
+      this.$store.state.recoLevel = level
+      this.getScores()
+    },
     getScores () {
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
       let totalLevels = this.$store.state.totalLevels
-      console.log(this.$store.state.recoLevel)
       this.matchedContent = []
       this.noMatchContent = []
       this.datimUnMatched = []
       this.mohUnMatched = []
       this.flagged = []
-      //generating levels
+      // generating levels
       this.levelArray = []
-      for(var k=1;k<=this.$store.state.totalLevels;k++){
-      	this.levelArray.push({text: 'Level ' + k,value: k})
+      for (var k = 1; k <= this.$store.state.totalLevels; k++) {
+        this.levelArray.push({text: 'Level ' + k, value: k})
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
         this.getDatimUnmached()
