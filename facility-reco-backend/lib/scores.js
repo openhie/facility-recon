@@ -472,7 +472,7 @@ module.exports = function(){
 			var unmatched = []
 			async.eachSeries(mcsdDatim.entry,(datimEntry,nxtEntry)=>{
 				mcsd.getLocationByID(database,datimEntry.resource.id,false,(location)=>{
-					if(location.total == 0){
+					if(location.entry.length == 0){
 						var name = datimEntry.resource.name
 						var id = datimEntry.resource.id
 						var parents = 

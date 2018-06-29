@@ -204,6 +204,11 @@
 <script>
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
+
+const config = require('../../config')
+const isProduction = process.env.NODE_ENV === 'production'
+const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+
 export default {
   data () {
     return {
@@ -287,8 +292,8 @@ export default {
       formData.append('level7', this.level7)
       formData.append('orgid', this.$store.state.orgUnit.OrgId)
       formData.append('orgname', this.$store.state.orgUnit.OrgName)
-      //this.dialog = true
-      axios.post('http://localhost:3000/uploadCSV',
+      this.dialog = true
+      axios.post(backendServer + '/uploadCSV',
         formData,
         {
           headers: {
