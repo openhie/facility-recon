@@ -19,7 +19,7 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-    backend: "https://test.geoalign.datim.org/facrecon",
+    backend: "http://localhost:3000",
 
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and

@@ -12,6 +12,14 @@ export const store = new Vuex.Store({
     mohHierarchy: '',
     orgUnit: { OrgId: 'lZsCb6y0KDX', OrgName: 'Malawi' },
     totalLevels: '',
-    recoLevel: null
+    recoLevel: null,
+    matchedContent: null,
+    noMatchContent: null,
+    flagged: null,
+    mohParents: [],
+    datimUnMatched: null,
+    mohUnMatched: null,
+    scoreResults: [],
+    levelArray: []
   }
 })

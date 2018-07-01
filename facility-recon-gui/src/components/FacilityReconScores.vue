@@ -38,10 +38,10 @@
     	<v-spacer></v-spacer>
     	<v-flex xs1 sm2 md2 right>
 	      <v-select
-	        :items="levelArray"
+	        :items="$store.state.levelArray"
 	        v-model="$store.state.recoLevel"
-	        :item-value = 'levelArray.value'
-	        :item-name = 'levelArray.text'
+	        :item-value = '$store.state.levelArray.value'
+	        :item-name = '$store.state.levelArray.text'
 	        label="Level"
 	        class="input-group--focused"
 	        height = '1'
@@ -54,7 +54,7 @@
         <v-menu offset-y>
 		      <v-btn slot="activator" color="primary" dark><v-icon>more_vert</v-icon>Actions</v-btn>
 		      <v-list>
-		        <v-list-tile :key="1" @click="getScores">
+		        <v-list-tile :key="1" @click="recalculateScores">
 		          <v-list-tile-title>Recalculate Scores</v-list-tile-title>
 		        </v-list-tile>
 		        <v-list-tile :key="2" @click="">
@@ -81,7 +81,7 @@
               hide-details
             ></v-text-field>
         	</v-card-title>
-        	<template v-if='mohUnMatched.length > 0'>
+        	<template v-if='$store.state.mohUnMatched != null'>
               <liquor-tree :data="mohTree" ref="mohTree" />
 	          <v-data-table
 	            :headers="mohGridHeaders"
@@ -116,10 +116,10 @@
               hide-details
             ></v-text-field>
         	</v-card-title>
-        	<template v-if='datimUnMatched.length > 0'>
+        	<template v-if='$store.state.datimUnMatched != null'>
 	          <v-data-table
 	            :headers="mohUnmatchedHeaders"
-	            :items="datimUnMatched"
+	            :items="$store.state.datimUnMatched"
 	            :search="searchUnmatchedDatim"
 	            light
 	            class="elevation-1"
@@ -151,79 +151,94 @@
           <v-icon color="white" right>notification_important</v-icon>
         </v-tab>
         <v-tab-item key="match">
-      	  <v-text-field
-            v-model="searchMatched"
-            append-icon="search"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-	      	<v-data-table
-	              :headers="matchedHeaders"
-	              :items="matchedContent"
-	              :search="searchMatched"
-	              class="elevation-1"
-	            >
-            <template slot="items" slot-scope="props">
-              <td>{{props.item.mohName}}</td>
-              <td>{{props.item.mohId}}</td>
-              <td>{{props.item.datimName}}</td>
-              <td>{{props.item.datimId}}</td>
-              <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>cached</v-icon>Break Match</v-btn></td>
-            </template>
-	        </v-data-table>
-		    </v-tab-item>
+          <template v-if='$store.state.matchedContent != null'>
+        	  <v-text-field
+              v-model="searchMatched"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+  	      	<v-data-table
+  	              :headers="matchedHeaders"
+  	              :items="$store.state.matchedContent"
+  	              :search="searchMatched"
+  	              class="elevation-1"
+  	            >
+              <template slot="items" slot-scope="props">
+                <td>{{props.item.mohName}}</td>
+                <td>{{props.item.mohId}}</td>
+                <td>{{props.item.datimName}}</td>
+                <td>{{props.item.datimId}}</td>
+                <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>cached</v-icon>Break Match</v-btn></td>
+              </template>
+  	        </v-data-table>
+          </template>
+          <template v-else>
+            <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+          </template>
+		    </v-tab-item>        
 		    <v-tab-item key="nomatch">
-		    	<v-text-field
-            v-model="searchNotMatched"
-            append-icon="search"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-	      	<v-data-table
-	              :headers="noMatchHeaders"
-	              :items="noMatchContent"
-	              :search="searchNotMatched"
-	              class="elevation-1"
-	            >
-            <template slot="items" slot-scope="props">
-              <td>{{props.item.mohName}}</td>
-              <td>{{props.item.mohId}}</td>
-              <td>{{props.item.parents}}</td>
-              <td><v-btn color="error" style='text-transform: none' small @click=''><v-icon>cached</v-icon>Break No Match</v-btn></td>
-            </template>
-	        </v-data-table>
+          <template v-if='$store.state.noMatchContent != null'>
+  		    	<v-text-field
+              v-model="searchNotMatched"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+  	      	<v-data-table
+  	              :headers="noMatchHeaders"
+  	              :items="$store.state.noMatchContent"
+  	              :search="searchNotMatched"
+  	              class="elevation-1"
+  	            >
+              <template slot="items" slot-scope="props">
+                <td>{{props.item.mohName}}</td>
+                <td>{{props.item.mohId}}</td>
+                <td>{{props.item.parents}}</td>
+                <td><v-btn color="error" style='text-transform: none' small @click=''><v-icon>cached</v-icon>Break No Match</v-btn></td>
+              </template>
+  	        </v-data-table>
+          </template>
+          <template v-else>
+            <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+          </template>
 		    </v-tab-item>
 		    <v-tab-item key="flagged">
-		    	<v-text-field
-            v-model="searchFlagged"
-            append-icon="search"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-	      	<v-data-table
-	              :headers="flaggedHeaders"
-	              :items="flagged"
-	              :search="searchFlagged"
-	              class="elevation-1"
-	            >
-            <template slot="items" slot-scope="props">
-              <td>{{props.item.mohName}}</td>
-              <td>{{props.item.mohId}}</td>
-              <td>{{props.item.datimName}}</td>
-              <td>{{props.item.datimId}}</td>
-              <td>
-              	<v-btn color="primary" style='text-transform: none' small @click=''>
-              		<v-icon>thumb_up</v-icon>Confirm Match
-              	</v-btn>
-              	<v-btn color="error" style='text-transform: none' small @click=''>
-              		<v-icon>cached</v-icon>Release
-              	</v-btn>
-              </td>
-            </template>
-	        </v-data-table>
+          <template v-if='$store.state.flagged != null'>
+  		    	<v-text-field
+              v-model="searchFlagged"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+  	      	<v-data-table
+  	              :headers="flaggedHeaders"
+  	              :items="$store.state.flagged"
+  	              :search="searchFlagged"
+  	              class="elevation-1"
+  	            >
+              <template slot="items" slot-scope="props">
+                <td>{{props.item.mohName}}</td>
+                <td>{{props.item.mohId}}</td>
+                <td>{{props.item.datimName}}</td>
+                <td>{{props.item.datimId}}</td>
+                <td>
+                	<v-btn color="primary" style='text-transform: none' small @click=''>
+                		<v-icon>thumb_up</v-icon>Confirm Match
+                	</v-btn>
+                	<v-btn color="error" style='text-transform: none' small @click=''>
+                		<v-icon>cached</v-icon>Release
+                	</v-btn>
+                </td>
+              </template>
+  	        </v-data-table>
+          </template>
+          <template v-else>
+            <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+          </template>
 		    </v-tab-item>
       </v-tabs>
       </v-flex>
@@ -243,20 +258,13 @@ const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
   data () {
     return {
-      levelArray: [],
       recoLevel: 0,
       searchUnmatchedDatim: '',
       searchUnmatchedMoh: '',
       searchMatched: '',
       searchNotMatched: '',
       searchFlagged: '',
-      scoreResults: {},
       potentialMatches: [],
-      matchedContent: [],
-      noMatchContent: [],
-      flagged: [],
-      datimUnMatched: [],
-      mohUnMatched: [],
       mohParents: {},
       mohFilter: { text: '', level: '' },
       selectedMohName: '',
@@ -297,87 +305,21 @@ export default {
   methods: {
     levelChanged (level) {
       this.$store.state.recoLevel = level
-      this.getScores()
+      this.$root.$emit('recalculateScores')
     },
-    getScores () {
-      let orgid = this.$store.state.orgUnit.OrgId
-      let recoLevel = this.$store.state.recoLevel
-      let totalLevels = this.$store.state.totalLevels
-      this.matchedContent = []
-      this.noMatchContent = []
-      this.datimUnMatched = []
-      this.mohUnMatched = []
-      this.flagged = []
-      // generating levels
-      this.levelArray = []
-      for (var k = 1; k <= this.$store.state.totalLevels; k++) {
-        this.levelArray.push({text: 'Level ' + k, value: k})
-      }
-      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
-        this.getDatimUnmached()
-        this.scoreResults = scores.data.scoreResults
-        for (let scoreResult of this.scoreResults) {
-          if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
-            this.flagged.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents.join('->'),
-              datimName: scoreResult.exactMatch.name,
-              datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents.join('->')
-            })
-          } else if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'noMatch') {
-            let parents = scoreResult.moh.parents.join('->')
-            this.noMatchContent.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
-              parents: parents
-            })
-          } else if (Object.keys(scoreResult.exactMatch).length > 0) {
-            this.matchedContent.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents.join('->'),
-              datimName: scoreResult.exactMatch.name,
-              datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents.join('->')
-            })
-          } else if (Object.keys(scoreResult.potentialMatches).length > 0) {
-            // let parents = scoreResult.moh.parents.join('->')
-            let addTree = this.mohParents
-            for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {
-              if (!addTree[scoreResult.moh.parents[i]]) {
-                addTree[scoreResult.moh.parents[i]] = {}
-              }
-              addTree = addTree[scoreResult.moh.parents[i]]
-            }
-            this.mohUnMatched.push({
-              name: scoreResult.moh.name,
-              id: scoreResult.moh.id,
-              // parents: parents
-              parents: scoreResult.moh.parents
-            })
-          }
-        }
-      })
-    },
-    getDatimUnmached () {
-      let orgid = this.$store.state.orgUnit.OrgId
-      let recoLevel = this.$store.state.recoLevel
-      axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
-        this.datimUnMatched = unmatched.data
-      })
+    recalculateScores () {
+      this.$root.$emit('recalculateScores')
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
-      for (let scoreResult of this.scoreResults) {
+      for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.moh.id === id) {
           this.selectedMohName = scoreResult.moh.name
           this.selectedMohId = scoreResult.moh.id
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
               let potentials = scoreResult.potentialMatches[score][j]
-              var matched = this.matchedContent.find((matched) => {
+              var matched = this.$store.state.matchedContent.find((matched) => {
                 return matched.datimId === potentials.id
               })
               if (matched) {
@@ -411,36 +353,36 @@ export default {
       var orgid = this.$store.state.orgUnit.OrgId
       // remove from DATIM Unmatched
       let datimParents = null
-      for (let k in this.datimUnMatched) {
-        if (this.datimUnMatched[k].id === this.selectedDatimId) {
-          datimParents = this.datimUnMatched[k].parents
-          this.datimUnMatched.splice(k, 1)
+      for (let k in this.$store.state.datimUnMatched) {
+        if (this.$store.state.datimUnMatched[k].id === this.selectedDatimId) {
+          datimParents = this.$store.state.datimUnMatched[k].parents
+          this.$store.state.datimUnMatched.splice(k, 1)
         }
       }
 
       // Add from a list of MOH Matched and remove from list of MOH unMatched
-      for (let k in this.mohUnMatched) {
-        if (this.mohUnMatched[k].id === this.selectedMohId) {
+      for (let k in this.$store.state.mohUnMatched) {
+        if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
           if (type === 'match') {
-            this.matchedContent.push({
+            this.$store.state.matchedContent.push({
               mohName: this.selectedMohName,
               mohId: this.selectedMohId,
-              mohParents: this.mohUnMatched[k].parents,
+              mohParents: this.$store.state.mohUnMatched[k].parents,
               datimName: this.selectedDatimName,
               datimId: this.selectedDatimId,
               datimParents: datimParents
             })
           } else if (type === 'flag') {
-            this.flagged.push({
+            this.$store.state.flagged.push({
               mohName: this.selectedMohName,
               mohId: this.selectedMohId,
-              mohParents: this.mohUnMatched[k].parents,
+              mohParents: this.$store.state.mohUnMatched[k].parents,
               datimName: this.selectedDatimName,
               datimId: this.selectedDatimId,
               datimParents: datimParents
             })
           }
-          this.mohUnMatched.splice(k, 1)
+          this.$store.state.mohUnMatched.splice(k, 1)
         }
       }
       this.selectedMohId = null
@@ -468,19 +410,19 @@ export default {
         console.log(err)
       })
 
-      for (let k in this.matchedContent) {
-        if (this.matchedContent[k].datimId === datimId) {
-          this.mohUnMatched.push({
-            name: this.matchedContent[k].mohName,
-            id: this.matchedContent[k].mohId,
-            parents: this.matchedContent[k].mohParents
+      for (let k in this.$store.state.matchedContent) {
+        if (this.$store.state.matchedContent[k].datimId === datimId) {
+          this.$store.state.mohUnMatched.push({
+            name: this.$store.state.matchedContent[k].mohName,
+            id: this.$store.state.matchedContent[k].mohId,
+            parents: this.$store.state.matchedContent[k].mohParents
           })
-          this.datimUnMatched.push({
-            name: this.matchedContent[k].datimName,
-            id: this.matchedContent[k].datimId,
-            parents: this.matchedContent[k].datimParents
+          this.$store.state.datimUnMatched.push({
+            name: this.$store.state.matchedContent[k].datimName,
+            id: this.$store.state.matchedContent[k].datimId,
+            parents: this.$store.state.matchedContent[k].datimParents
           })
-          this.matchedContent.splice(k, 1)
+          this.$store.state.matchedContent.splice(k, 1)
         }
       }
     },
@@ -492,14 +434,14 @@ export default {
       let orgid = this.$store.state.orgUnit.OrgId
 
       // remove from MOH Unmatched
-      for (let k in this.mohUnMatched) {
-        if (this.mohUnMatched[k].id === this.selectedMohId) {
-          this.noMatchContent.push({
+      for (let k in this.$store.state.mohUnMatched) {
+        if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
+          this.$store.state.noMatchContent.push({
             mohName: this.selectedMohName,
             mohId: this.selectedMohId,
-            parents: this.mohUnMatched[k].parents
+            parents: this.$store.state.mohUnMatched[k].parents
           })
-          this.mohUnMatched.splice(k, 1)
+          this.$store.state.mohUnMatched.splice(k, 1)
         }
       }
       this.dialog = false
@@ -519,8 +461,8 @@ export default {
   computed: {
     mohGridHeaders () {
       let header = [ { text: 'Location', value: 'name' } ]
-      if (this.mohUnMatched.length > 0) {
-        for (let i = this.mohUnMatched[0].parents.length; i > 0; i--) {
+      if (this.$store.state.mohUnMatched.length > 0) {
+        for (let i = this.$store.state.mohUnMatched[0].parents.length; i > 0; i--) {
           header.push({ text: 'Level ' + i, value: 'level' + i })
         }
       }
@@ -539,20 +481,20 @@ export default {
         }
       }
       let results = []
-      createTree(this.mohParents, results)
+      createTree(this.$store.state.mohParents, results)
       return results
     },
     mohGrid () {
-      if (this.mohUnMatched.length > 0 && this.mohFilter.level !== '') {
-        let parentIdx = this.mohUnMatched[0].parents.length - this.mohFilter.level
-        return this.mohUnMatched.filter((location) => location.parents[parentIdx] === this.mohFilter.text)
+      if (this.$store.state.mohUnMatched.length > 0 && this.mohFilter.level !== '') {
+        let parentIdx = this.$store.state.mohUnMatched[0].parents.length - this.mohFilter.level
+        return this.$store.state.mohUnMatched.filter((location) => location.parents[parentIdx] === this.mohFilter.text)
       }
-      return this.mohUnMatched
+      return this.$store.state.mohUnMatched
     }
     /*
     mohUnMatched () {
       let results = []
-      for (let scoreresult of this.scoreResults){
+      for (let scoreresult of this.$store.state.scoreResults){
         if( Object.keys(scoreResult.exactMatch) === 0) {
           let parents = scoreResult.moh.parents.join('->')
           results.push({
@@ -565,9 +507,6 @@ export default {
       return results
     }
     */
-  },
-  created () {
-    this.getScores()
   },
   mounted () {
     const setListener = () => {
