@@ -19,7 +19,7 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-    backend: "http://localhost:3000",
+    backend: "https://test.geoalign.datim.org/facrecon",
 
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and
@@ -53,7 +53,7 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/vue/prod/',
 
-    backend: "http://localhost:3000",
+    backend: "https://test.geoalign.datim.org/facrecon",
 
     /**
      * Source Maps
