@@ -354,7 +354,7 @@ module.exports = function(){
 										mcsd.getLocationParentsFromData(entityParent,mcsdWhole,"names",(datimParents)=>{
 											//get distance between the coordinates
 											if(datimLatitude && datimLongitude)
-												var dist = geodist({datimLatitude,datimLongitude},{mohLatitude,mohLongitude},{exact:true,unit:"miles"})
+												var dist = geodist({datimLatitude,datimLongitude},{mohLatitude,mohLongitude},{exact:false,unit:"miles"})
 											datimIdPromises = []
 
 											//check if IDS are the same and mark as exact match

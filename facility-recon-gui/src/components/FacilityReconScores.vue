@@ -1,9 +1,17 @@
 <template>
 	<v-container grid-list-lg >
-		<v-dialog persistent v-model="dialog" width="800px">
-      <v-card>
-        <v-card-title>
-        	MOH &nbsp;<b>{{ selectedMohName }}</b>
+		<v-dialog persistent v-model="dialog" width="830px">
+      <v-card width="830">
+        <v-card-title style="width:830px">
+        	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  &nbsp;&nbsp;&nbsp; 
+          <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
+           Latitude: <b>{{selectedMohLat}}</b> &nbsp;&nbsp;&nbsp;
+            Longitude: <b>{{selectedMohLong}}</b>
+          </template>
+          <p>
+            Parents: <b>{{selectedMohParents}}</b>
+          </p>
+        </p>
         </v-card-title>
         <v-card-text>
           <v-data-table
@@ -19,8 +27,9 @@
 		          	</v-radio-group>
 		            <td>{{props.item.name}}</td>
 		            <td>{{props.item.id}}</td>
-		            <td>{{props.item.lat}}</td>
-		            <td>{{props.item.long}}</td>
+		            <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
+                <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
+		            <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
 		            <td>{{props.item.score}}</td>
 	          	</tr>
 	          </template>
@@ -30,7 +39,7 @@
           <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
           <v-btn color="green" dark @click.native="noMatch" ><v-icon left>block</v-icon>No Match</v-btn>
           <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>save</v-icon>Save</v-btn>
-          <v-btn color="orange darken-2" @click.native="dialog = !dialog" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
+          <v-btn color="orange darken-2" @click.native="back" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -269,6 +278,9 @@ export default {
       mohFilter: { text: '', level: '' },
       selectedMohName: '',
       selectedMohId: '',
+      selectedMohLat: '',
+      selectedMohLong: '',
+      selectedMohParents: '',
       selectedDatimId: '',
       selectedDatimName: '',
       dialog: false,
@@ -291,7 +303,8 @@ export default {
         { text: 'MOH ID', value: 'mohId' },
         { text: 'DATIM Location', value: 'datimName' },
         { text: 'DATIM ID', value: 'datimId' }
-      ],
+      ]
+      /*
       potentialHeaders: [
         { sortable: false },
         { text: 'DATIM Location', value: 'name', sortable: false },
@@ -300,6 +313,7 @@ export default {
         { text: 'Long', value: 'long', sortable: false },
         { text: 'Score', value: 'score' }
       ]
+      */
     }
   },
   methods: {
@@ -315,7 +329,10 @@ export default {
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.moh.id === id) {
           this.selectedMohName = scoreResult.moh.name
+          this.selectedMohLat = scoreResult.moh.lat
+          this.selectedMohLong = scoreResult.moh.long
           this.selectedMohId = scoreResult.moh.id
+          this.selectedMohParents = scoreResult.moh.parents.join('->')
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
               let potentials = scoreResult.potentialMatches[score][j]
@@ -329,6 +346,9 @@ export default {
                 score: score,
                 name: potentials.name,
                 id: potentials.id,
+                lat: potentials.lat,
+                long: potentials.long,
+                geoDistance: potentials.geoDistance,
                 parents: potentials.parents.join('->')
               })
             }
@@ -456,6 +476,10 @@ export default {
       }).catch((err) => {
         console.log(err)
       })
+    },
+    back () {
+      this.dialog = false
+      this.selectedDatimId = null
     }
   },
   computed: {
@@ -467,6 +491,25 @@ export default {
         }
       }
       return header
+    },
+    potentialHeaders () {
+      var results = []
+      results.push(
+        { sortable: false },
+        { text: 'DATIM Location', value: 'name', sortable: false },
+        { text: 'ID', value: 'id', sortable: false }
+      )
+      if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+        results.push(
+          { text: 'Lat', value: 'lat', sortable: false },
+          { text: 'Long', value: 'long', sortable: false },
+          { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
+        )
+      }
+      results.push(
+        { text: 'Score', value: 'score' }
+      )
+      return results
     },
     mohTree () {
       const createTree = (current, results) => {
@@ -491,24 +534,8 @@ export default {
       }
       return this.$store.state.mohUnMatched
     }
-    /*
-    mohUnMatched () {
-      let results = []
-      for (let scoreresult of this.$store.state.scoreResults){
-        if( Object.keys(scoreResult.exactMatch) === 0) {
-          let parents = scoreResult.moh.parents.join('->')
-          results.push({
-            name: scoreResult.moh.name,
-            id: scoreResult.moh.id,
-            parents: parents
-          })
-        }
-      }
-      return results
-    }
-    */
   },
-  mounted () {
+  created () {
     const setListener = () => {
       if (this.$refs && this.$refs.mohTree) {
         this.$refs.mohTree.$on('node:selected', (node) => {
