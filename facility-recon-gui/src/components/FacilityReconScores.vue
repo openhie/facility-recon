@@ -1,8 +1,21 @@
 <template>
 	<v-container grid-list-lg >
+    <v-dialog persistent v-model="alert" width="500px">
+      <v-card>
+        <v-card-title>
+          {{alertTitle}}
+        </v-card-title>
+        <v-card-text>
+          {{alertText}}
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="success" @click='alert = false'>OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 		<v-dialog persistent v-model="dialog" width="830px">
-      <v-card width="830">
-        <v-card-title style="width:830px">
+      <v-card>
+        <v-card-title>
         	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  &nbsp;&nbsp;&nbsp; 
           <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
            Latitude: <b>{{selectedMohLat}}</b> &nbsp;&nbsp;&nbsp;
@@ -206,7 +219,7 @@
                 <td>{{props.item.mohName}}</td>
                 <td>{{props.item.mohId}}</td>
                 <td>{{props.item.parents}}</td>
-                <td><v-btn color="error" style='text-transform: none' small @click=''><v-icon>cached</v-icon>Break No Match</v-btn></td>
+                <td><v-btn color="error" style='text-transform: none' small @click='breakNoMatch(props.item.mohId)'><v-icon>cached</v-icon>Break No Match</v-btn></td>
               </template>
   	        </v-data-table>
           </template>
@@ -235,10 +248,10 @@
                 <td>{{props.item.datimName}}</td>
                 <td>{{props.item.datimId}}</td>
                 <td>
-                	<v-btn color="primary" style='text-transform: none' small @click=''>
+                	<v-btn color="primary" style='text-transform: none' small @click='acceptFlag(props.item.datimId)'>
                 		<v-icon>thumb_up</v-icon>Confirm Match
                 	</v-btn>
-                	<v-btn color="error" style='text-transform: none' small @click=''>
+                	<v-btn color="error" style='text-transform: none' small @click='unFlag(props.item.datimId)'>
                 		<v-icon>cached</v-icon>Release
                 	</v-btn>
                 </td>
@@ -274,6 +287,9 @@ export default {
       searchNotMatched: '',
       searchFlagged: '',
       potentialMatches: [],
+      alertText: '',
+      alertTitle: '',
+      alert: false,
       mohParents: {},
       mohFilter: { text: '', level: '' },
       selectedMohName: '',
@@ -363,6 +379,9 @@ export default {
     },
     match (type) {
       if (this.selectedDatimId === '') {
+        this.alert = true
+        this.alertTitle = 'Information'
+        this.alertText = 'Select DATIM Location to match against MOH Location'
         return alert('select datim org')
       }
       let formData = new FormData()
@@ -418,7 +437,39 @@ export default {
         console.log(err)
       })
     },
+    acceptFlag (datimId) {
+      // Add from a list of MOH Matched and remove from list of Flagged
+      for (let k in this.$store.state.flagged) {
+        if (this.$store.state.flagged[k].datimId === datimId) {
+          this.$store.state.matchedContent.push({
+            mohName: this.$store.state.flagged[k].mohName,
+            mohId: this.$store.state.flagged[k].mohId,
+            mohParents: this.$store.state.flagged[k].mohParents,
+            datimName: this.$store.state.flagged[k].datimName,
+            datimId: this.$store.state.flagged[k].datimId,
+            datimParents: this.$store.state.flagged[k].datimParents
+          })
+          this.$store.state.flagged.splice(k, 1)
+        }
+      }
+      let formData = new FormData()
+      formData.append('datimId', datimId)
+      formData.append('recoLevel', this.$store.state.recoLevel)
+      formData.append('totalLevels', this.$store.state.totalLevels)
+      var orgid = this.$store.state.orgUnit.OrgId
+      axios.post(backendServer + '/acceptFlag/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(() => {
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
     breakMatch (datimId) {
+      this.alert = true
+      this.alertTitle = 'Information'
+      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
       let orgid = this.$store.state.orgUnit.OrgId
       let formData = new FormData()
       formData.append('datimId', datimId)
@@ -435,7 +486,7 @@ export default {
           this.$store.state.mohUnMatched.push({
             name: this.$store.state.matchedContent[k].mohName,
             id: this.$store.state.matchedContent[k].mohId,
-            parents: this.$store.state.matchedContent[k].mohParents
+            parents: this.$store.state.matchedContent[k].mohParents.split('->')
           })
           this.$store.state.datimUnMatched.push({
             name: this.$store.state.matchedContent[k].datimName,
@@ -443,6 +494,64 @@ export default {
             parents: this.$store.state.matchedContent[k].datimParents
           })
           this.$store.state.matchedContent.splice(k, 1)
+        }
+      }
+    },
+    unFlag (datimId) {
+      this.alert = true
+      this.alertTitle = 'Information'
+      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      let orgid = this.$store.state.orgUnit.OrgId
+      let formData = new FormData()
+      formData.append('datimId', datimId)
+      axios.post(backendServer + '/breakMatch/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+
+      for (let k in this.$store.state.flagged) {
+        if (this.$store.state.flagged[k].datimId === datimId) {
+          this.$store.state.mohUnMatched.push({
+            name: this.$store.state.flagged[k].mohName,
+            id: this.$store.state.flagged[k].mohId,
+            parents: this.$store.state.flagged[k].mohParents
+          })
+          this.$store.state.datimUnMatched.push({
+            name: this.$store.state.flagged[k].datimName,
+            id: this.$store.state.flagged[k].datimId,
+            parents: this.$store.state.flagged[k].datimParents
+          })
+          this.$store.state.flagged.splice(k, 1)
+        }
+      }
+    },
+    breakNoMatch (mohId) {
+      this.alert = true
+      this.alertTitle = 'Information'
+      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      let orgid = this.$store.state.orgUnit.OrgId
+      let formData = new FormData()
+      formData.append('mohId', mohId)
+      formData.append('recoLevel', this.$store.state.recoLevel)
+      formData.append('totalLevels', this.$store.state.totalLevels)
+      axios.post(backendServer + '/breakNoMatch/' + orgid, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+      for (var k in this.$store.state.noMatchContent) {
+        if (this.$store.state.noMatchContent[k].mohId === mohId) {
+          this.$store.state.mohUnMatched.push({
+            name: this.$store.state.noMatchContent[k].mohName,
+            id: this.$store.state.noMatchContent[k].mohId,
+            parents: this.$store.state.noMatchContent[k].parents.split('->')
+          })
+          this.$store.state.noMatchContent.splice(k, 1)
         }
       }
     },
@@ -459,7 +568,7 @@ export default {
           this.$store.state.noMatchContent.push({
             mohName: this.selectedMohName,
             mohId: this.selectedMohId,
-            parents: this.$store.state.mohUnMatched[k].parents
+            parents: this.$store.state.mohUnMatched[k].parents.join('->')
           })
           this.$store.state.mohUnMatched.splice(k, 1)
         }

@@ -23,6 +23,7 @@
   "homepage": "https://github.com/ashaban/GOFR#readme",
   "dependencies": {
     "async": "^2.6.1",
+    "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "express-formidable": "^1.0.0",
     "fast-csv": "^2.4.1",
@@ -41,5 +42,15 @@
     "urijs": "^1.19.1",
     "uuid": "^3.2.1",
     "winston": "^2.4.2"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.5",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^17.0.0",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-config-google": "^0.9.1",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.10.0"
   }
 }

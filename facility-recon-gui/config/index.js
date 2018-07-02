@@ -51,7 +51,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/vue/prod/',
+    assetsPublicPath: '',
 
     backend: "https://test.geoalign.datim.org/facrecon",
 

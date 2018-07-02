@@ -1,268 +1,244 @@
-'use strict'
-require('./init')
-const config = require('./config')
-const request = require('request')
-const URI = require('urijs')
-const urlTool = require('url')
-const uuid5 = require('uuid/v5')
-const winston = require('winston')
-const async = require('async')
-const csv = require('fast-csv')
-var cache = require('memory-cache');
+
+require('./init');
+const request = require('request');
+const URI = require('urijs');
+const urlTool = require('url');
+const uuid5 = require('uuid/v5');
+const winston = require('winston');
+const async = require('async');
+const csv = require('fast-csv');
+const cache = require('memory-cache');
+const config = require('./config');
 
 module.exports = function () {
-  return{
-    getLocationByID:function(database,id,getCached,callback){
-      if(id)
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + id.toString()
-      else
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').toString()
-      var locations = {}
-      locations.entry = []
+  return {
+    getLocationByID(database, id, getCached, callback) {
+      if (id) var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
+      else {
+        var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+          .toString();
+      }
+      const locations = {};
+      locations.entry = [];
       async.doWhilst(
-        function(callback){
-          var options = {
-            url: url
-          }
-          url = false
-          let cachedData = cache.get('getLocationByID' + url)
-          if(cachedData && getCached){
-            return callback(cachedData)
+        (callback) => {
+          const options = {
+            url,
+          };
+          url = false;
+          const cachedData = cache.get(`getLocationByID${url}`);
+          if (cachedData && getCached) {
+            return callback(cachedData);
           }
           request.get(options, (err, res, body) => {
-            var cacheData = JSON.parse(body)
-            var next = cacheData.link.find((link)=>{
-              return link.relation == 'next'
-            })
-            if(next){
-              url = next.url
+            const cacheData = JSON.parse(body);
+            const next = cacheData.link.find(link => link.relation == 'next');
+            if (next) {
+              url = next.url;
             }
-            cache.put('getLocationByID' + url,cacheData,120*1000)
-            locations.entry = locations.entry.concat(cacheData.entry)
-            return callback(false,url)
-          })
+            cache.put(`getLocationByID${url}`, cacheData, 120 * 1000);
+            locations.entry = locations.entry.concat(cacheData.entry);
+            return callback(false, url);
+          });
         },
-        function(){
-          return url != false
+        () => url != false,
+        () => {
+          callback(locations);
         },
-        function(){
-          callback(locations)
-        }
-      )
+      );
     },
 
-    getLocationChildren(database,topOrgId,callback){
-      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(topOrgId).segment('$hierarchy').toString()
-      var options = {
-        url: url
-      }
+    getLocationChildren(database, topOrgId, callback) {
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .segment(topOrgId)
+        .segment('$hierarchy')
+        .toString();
+      const options = {
+        url,
+      };
       request.get(options, (err, res, body1) => {
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + topOrgId.toString()
-        var options = {
-          url: url
-        }
+        const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${topOrgId.toString()}`;
+        const options = {
+          url,
+        };
         request.get(options, (err, res, body2) => {
-          body1 = JSON.parse(body1)
-          body2 = JSON.parse(body2)
-          body1.entry = body1.entry.concat(body2.entry)
-          callback(body1)
-        })
-      })
+          body1 = JSON.parse(body1);
+          body2 = JSON.parse(body2);
+          body1.entry = body1.entry.concat(body2.entry);
+          callback(body1);
+        });
+      });
     },
     /*
       This function finds parents of an entity by fetching data from DB
     */
-    getLocationParentsFromDBMod:function(database,entityParent,topOrg,details,callback) {
-      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(entityParent).segment('$parents').toString()
-      var options = {
-        url: url
-      }
+    getLocationParentsFromDBMod(database, entityParent, topOrg, details, callback) {
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .segment(entityParent)
+        .segment('$parents')
+        .toString();
+      const options = {
+        url,
+      };
       request.get(options, (err, res, body) => {
-        callback(body)
-      })
+        callback(body);
+      });
     },
 
-    getLocationParentsFromDB:function(source,database,entityParent,topOrg,details,callback) {
-      const parents = []
-      if(entityParent == null ||
-        entityParent == false || 
-        entityParent == undefined
-        ) {
-        return callback(parents)
+    getLocationParentsFromDB(source, database, entityParent, topOrg, details, callback) {
+      const parents = [];
+      if (entityParent == null
+        || entityParent == false
+        || entityParent == undefined
+      ) {
+        return callback(parents);
       }
-      var sourceEntityID = entityParent
-      var me = this
-      function getPar(entityParent,callback){
-        if(entityParent == null || entityParent == false || entityParent == undefined){
-          winston.error("Error " + entityParent)
-          winston.error(JSON.stringify(mcsdEntry))
-          return callback(parents)
+      const sourceEntityID = entityParent;
+      const me = this;
+      function getPar(entityParent, callback) {
+        if (entityParent == null || entityParent == false || entityParent == undefined) {
+          winston.error(`Error ${entityParent}`);
+          winston.error(JSON.stringify(mcsdEntry));
+          return callback(parents);
         }
 
-        var splParent = entityParent.split("/")
-        entityParent = splParent[(splParent.length-1)]
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?_id=" + entityParent.toString()
+        const splParent = entityParent.split('/');
+        entityParent = splParent[(splParent.length - 1)];
+        const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${entityParent.toString()}`;
 
-        var options = {
-          url: url
-        }
+        const options = {
+          url,
+        };
 
-        let cachedData = cache.get(url)
-        if(cachedData) {
-          var entityParent = cachedData.entityParent
-          if(details == "all")
-            parents.push({text:cachedData.text,id:cachedData.id,lat:cachedData.lat,long:cachedData.long})
-          else if(details == "id")
-            parents.push(cachedData.id)
-          else if(details == "names")
-            parents.push(cachedData.text)
-          else
-            winston.error("parent details (either id,names or all) to be returned not specified")
+        const cachedData = cache.get(url);
+        if (cachedData) {
+          var entityParent = cachedData.entityParent;
+          if (details == 'all') {
+            parents.push({
+              text: cachedData.text, id: cachedData.id, lat: cachedData.lat, long: cachedData.long,
+            });
+          } else if (details == 'id') parents.push(cachedData.id);
+          else if (details == 'names') parents.push(cachedData.text);
+          else winston.error('parent details (either id,names or all) to be returned not specified');
 
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-            me.getLocationByID(database,topOrg,false,(loc)=>{
-              if(details == "all")
-                parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:cachedData.lat,long:cachedData.long})
-              else if(details == "id")
-                parents.push(loc.entry[0].resource.id)
-              else if(details == "names")
-                parents.push(loc.entry[0].resource.name)
-              return callback(parents)
-            })
+          // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          if (entityParent && topOrg && entityParent.endsWith(topOrg)) {
+            me.getLocationByID(database, topOrg, false, (loc) => {
+              if (details == 'all') {
+                parents.push({
+                  text: loc.entry[0].resource.name, id: topOrg, lat: cachedData.lat, long: cachedData.long,
+                });
+              } else if (details == 'id') parents.push(loc.entry[0].resource.id);
+              else if (details == 'names') parents.push(loc.entry[0].resource.name);
+              return callback(parents);
+            });
           }
-          //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-          else if(topOrg && sourceEntityID.endsWith(topOrg)){
-            return callback(parents) 
-          }
-          else {
-            if(entityParent){
-            getPar(entityParent,(parents)=>{
-              callback(parents)
-            })
-          }
-          else
-            return callback(parents)
-          }
-        }
-        else{
+          // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+          else if (topOrg && sourceEntityID.endsWith(topOrg)) {
+            return callback(parents);
+          } else if (entityParent) {
+            getPar(entityParent, (parents) => {
+              callback(parents);
+            });
+          } else return callback(parents);
+        } else {
           request.get(options, (err, res, body) => {
-            body = JSON.parse(body)
-            var long = null
-            var lat = null
-            if(body.entry[0].resource.hasOwnProperty('position')){
-              long = body.entry[0].resource.position.longitude
-              lat = body.entry[0].resource.position.latitude
+            body = JSON.parse(body);
+            let long = null;
+            let lat = null;
+            if (body.entry[0].resource.hasOwnProperty('position')) {
+              long = body.entry[0].resource.position.longitude;
+              lat = body.entry[0].resource.position.latitude;
             }
-            var entityParent = null
-            if(body.entry[0].resource.hasOwnProperty("partOf"))
-              entityParent = body.entry[0].resource.partOf.reference
+            var entityParent = null;
+            if (body.entry[0].resource.hasOwnProperty('partOf')) entityParent = body.entry[0].resource.partOf.reference;
 
-            var cacheData = {text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long,entityParent:entityParent}
-            cache.put(url,cacheData,120*1000)
-            if(details == "all")
-              parents.push({text:body.entry[0].resource.name,id:body.entry[0].resource.id,lat:lat,long:long})
-            else if(details == "id")
-              parents.push(body.entry[0].resource.id)
-            else if(details == "names")
-              parents.push(body.entry[0].resource.name)
-            else
-              winston.error("parent details (either id,names or all) to be returned not specified")
+            const cacheData = {
+              text: body.entry[0].resource.name, id: body.entry[0].resource.id, lat, long, entityParent,
+            };
+            cache.put(url, cacheData, 120 * 1000);
+            if (details == 'all') {
+              parents.push({
+                text: body.entry[0].resource.name, id: body.entry[0].resource.id, lat, long,
+              });
+            } else if (details == 'id') parents.push(body.entry[0].resource.id);
+            else if (details == 'names') parents.push(body.entry[0].resource.name);
+            else winston.error('parent details (either id,names or all) to be returned not specified');
 
-            //stop after we reach the topOrg which is the country
-            var entityID = body.entry[0].resource.id
-            //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-            if(entityParent && topOrg && entityParent.endsWith(topOrg)){
-              me.getLocationByID(database,topOrg,false,(loc)=>{
-                if(details == "all")
-                  parents.push({text:loc.entry[0].resource.name,id:topOrg,lat:lat,long:long})
-                else if(details == "id")
-                  parents.push(loc.entry[0].resource.id)
-                else if(details == "names")
-                  parents.push(loc.entry[0].resource.name)
-                return callback(parents)
-              })
-            }
-
-            //if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
-            else if(topOrg && sourceEntityID.endsWith(topOrg)){
-              return callback(parents) 
+            // stop after we reach the topOrg which is the country
+            const entityID = body.entry[0].resource.id;
+            // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+            if (entityParent && topOrg && entityParent.endsWith(topOrg)) {
+              me.getLocationByID(database, topOrg, false, (loc) => {
+                if (details == 'all') {
+                  parents.push({
+                    text: loc.entry[0].resource.name, id: topOrg, lat, long,
+                  });
+                } else if (details == 'id') parents.push(loc.entry[0].resource.id);
+                else if (details == 'names') parents.push(loc.entry[0].resource.name);
+                return callback(parents);
+              });
             }
 
-            else {
-              if(body.entry[0].resource.hasOwnProperty("partOf") && 
-                body.entry[0].resource.partOf.reference != false &&
-                body.entry[0].resource.partOf.reference != null &&
-                body.entry[0].resource.partOf.reference != undefined){
-                var entityParent = body.entry[0].resource.partOf.reference
-                getPar(entityParent,(parents)=>{
-                  callback(parents)
-                })
-              }
-              else
-                callback(parents)
-            }
-          })
+            // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
+            else if (topOrg && sourceEntityID.endsWith(topOrg)) {
+              return callback(parents);
+            } else if (body.entry[0].resource.hasOwnProperty('partOf')
+                && body.entry[0].resource.partOf.reference != false
+                && body.entry[0].resource.partOf.reference != null
+                && body.entry[0].resource.partOf.reference != undefined) {
+              var entityParent = body.entry[0].resource.partOf.reference;
+              getPar(entityParent, (parents) => {
+                callback(parents);
+              });
+            } else callback(parents);
+          });
         }
       }
-      getPar(entityParent,(parents)=>{
-        return callback(parents)
-      })
+      getPar(entityParent, parents => callback(parents));
     },
 
     /*
     This function finds parents of an entity from passed mCSD data
     */
-    getLocationParentsFromData:function(entityParent,mcsd,details,callback){
-      const parents = []
-      function filter(entityParent,callback){
-        var splParent = entityParent.split("/")
-        entityParent = splParent[(splParent.length-1)]
+    getLocationParentsFromData(entityParent, mcsd, details, callback) {
+      const parents = [];
+      function filter(entityParent, callback) {
+        const splParent = entityParent.split('/');
+        entityParent = splParent[(splParent.length - 1)];
 
-        var entry = mcsd.entry.find((entry)=>{
-          return entry.resource.id == entityParent
-        })
-        
-        if(entry){
-          var long = null
-          var lat = null
-          if(entry.resource.hasOwnProperty('position')){
-            long = entry.resource.position.longitude
-            lat = entry.resource.position.latitude
+        const entry = mcsd.entry.find(entry => entry.resource.id == entityParent);
+
+        if (entry) {
+          let long = null;
+          let lat = null;
+          if (entry.resource.hasOwnProperty('position')) {
+            long = entry.resource.position.longitude;
+            lat = entry.resource.position.latitude;
           }
-          var oldEntityParent = entityParent
-          var entityParent = null
-          if(entry.resource.hasOwnProperty("partOf"))
-            entityParent = entry.resource.partOf.reference
+          const oldEntityParent = entityParent;
+          var entityParent = null;
+          if (entry.resource.hasOwnProperty('partOf')) entityParent = entry.resource.partOf.reference;
 
-          if(details == "all")
-          parents.push({text:entry.resource.name,id:entry.resource.id,lat:lat,long:long})
-          else if(details == "id")
-            parents.push(entry.resource.id)
-          else if(details == "names")
-            parents.push(entry.resource.name)
-          else
-            winston.error("parent details (either id,names or all) to be returned not specified")
+          if (details == 'all') {
+            parents.push({
+              text: entry.resource.name, id: entry.resource.id, lat, long,
+            });
+          } else if (details == 'id') parents.push(entry.resource.id);
+          else if (details == 'names') parents.push(entry.resource.name);
+          else winston.error('parent details (either id,names or all) to be returned not specified');
 
-          if(entry.resource.hasOwnProperty("partOf") && 
-            entry.resource.partOf.reference != false &&
-            entry.resource.partOf.reference != null &&
-            entry.resource.partOf.reference != undefined){
-            entityParent = entry.resource.partOf.reference
-            filter(entityParent,(parents)=>{
-              return callback(parents)
-            })
-          }
-          else
-            return callback(parents)
-        }
-        else
-          return callback(parents)
+          if (entry.resource.hasOwnProperty('partOf')
+            && entry.resource.partOf.reference != false
+            && entry.resource.partOf.reference != null
+            && entry.resource.partOf.reference != undefined) {
+            entityParent = entry.resource.partOf.reference;
+            filter(entityParent, parents => callback(parents));
+          } else return callback(parents);
+        } else return callback(parents);
       }
 
-      filter(entityParent,(parents)=>{
-        return callback(parents)
-      })
+      filter(entityParent, parents => callback(parents));
     },
 
     /*
@@ -271,549 +247,576 @@ module.exports = function () {
     if buildings is set then it returns all buildings
     buildings argument accepts a building level
     */
-    filterLocations:function(mcsd,topOrgId,totalLevels,levelNumber,buildings,callback){
-      //holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
-      var mcsdTotalLevels = {}
-      //holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
-      var mcsdlevelNumber = {}
-      //holds buildings only
-      var mcsdBuildings = {}
-      mcsdTotalLevels.entry = []
-      mcsdlevelNumber.entry = []
-      mcsdBuildings.entry = []
-      if(!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0){
-        return callback(mcsdTotalLevels,mcsdlevelNumber,mcsdBuildings)
+    filterLocations(mcsd, topOrgId, totalLevels, levelNumber, buildings, callback) {
+      // holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
+      const mcsdTotalLevels = {};
+      // holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
+      const mcsdlevelNumber = {};
+      // holds buildings only
+      const mcsdBuildings = {};
+      mcsdTotalLevels.entry = [];
+      mcsdlevelNumber.entry = [];
+      mcsdBuildings.entry = [];
+      if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0) {
+        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
       }
-      var entry = mcsd.entry.find((entry)=>{
-          return entry.resource.id == topOrgId
-      })
-      if(levelNumber == 1){
-        mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry)
+      const entry = mcsd.entry.find(entry => entry.resource.id == topOrgId);
+      if (levelNumber == 1) {
+        mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry);
       }
-      if(totalLevels){
-        mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry)
+      if (totalLevels) {
+        mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
       }
 
-      var building = entry.resource.physicalType.coding.find((coding)=>{
-        return coding.code == 'building'
-      })
+      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'building');
 
-      if(building){
-        mcsdBuildings.entry = mcsdBuildings.entry.concat(entry)
+      if (building) {
+        mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
       }
 
-      function filter(id,callback){
-        var res =  mcsd.entry.filter((entry)=>{
-            if(entry.resource.hasOwnProperty('partOf')){
-              return entry.resource.partOf.reference.endsWith(id)
-            }
-          })
-        return callback(res)
+      function filter(id, callback) {
+        const res = mcsd.entry.filter((entry) => {
+          if (entry.resource.hasOwnProperty('partOf')) {
+            return entry.resource.partOf.reference.endsWith(id);
+          }
+        });
+        return callback(res);
       }
 
-      var totalLoops = 0
-      if(totalLevels >= levelNumber && totalLevels >= buildings){
-        totalLoops = totalLevels
-      }
-      else if(levelNumber >= totalLevels && levelNumber >= buildings){
-        totalLoops = levelNumber
-      }
-      else if(buildings >= totalLevels && buildings >= levelNumber){
-        totalLoops = buildings
+      let totalLoops = 0;
+      if (totalLevels >= levelNumber && totalLevels >= buildings) {
+        totalLoops = totalLevels;
+      } else if (levelNumber >= totalLevels && levelNumber >= buildings) {
+        totalLoops = levelNumber;
+      } else if (buildings >= totalLevels && buildings >= levelNumber) {
+        totalLoops = buildings;
       }
 
-      var tmpArr = []
-      tmpArr.push(entry)
-      totalLoops = Array.from(new Array(totalLoops-1),(val,index)=>index+1)
-      async.eachSeries(totalLoops,(loop,nxtLoop)=>{
-        var totalElements = 0
-        const promises = []
-        tmpArr.forEach((arr)=>{
-          promises.push(new Promise((resolve,reject)=>{
-            filter(arr.resource.id,(res)=>{
-              tmpArr = tmpArr.concat(res)
-              if(totalLevels){
-                mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(res)
+      let tmpArr = [];
+      tmpArr.push(entry);
+      totalLoops = Array.from(new Array(totalLoops - 1), (val, index) => index + 1);
+      async.eachSeries(totalLoops, (loop, nxtLoop) => {
+        let totalElements = 0;
+        const promises = [];
+        tmpArr.forEach((arr) => {
+          promises.push(new Promise((resolve, reject) => {
+            filter(arr.resource.id, (res) => {
+              tmpArr = tmpArr.concat(res);
+              if (totalLevels) {
+                mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(res);
               }
-              if(levelNumber == loop+1){
-                mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(res)
+              if (levelNumber == loop + 1) {
+                mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(res);
               }
-              const promises1 = []
-              for(var k in res){
-                promises1.push(new Promise((resolve1,reject1)=>{
-                  var building = res[k].resource.physicalType.coding.find((coding)=>{
-                    if(building){
-                      mcsdBuildings.entry = mcsdBuildings.entry.concat(entry)
+              const promises1 = [];
+              for (var k in res) {
+                promises1.push(new Promise((resolve1, reject1) => {
+                  var building = res[k].resource.physicalType.coding.find((coding) => {
+                    if (building) {
+                      mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
                     }
-                  })
-                  resolve1()
-                }))
+                  });
+                  resolve1();
+                }));
               }
-              Promise.all(promises1).then(()=>{
-                totalElements++
-                resolve()
-              }).catch((err)=>{
-                winston.error(err)
-              })
-            })
-          }))
-        })
-        Promise.all(promises).then(()=>{
-          tmpArr.splice(0,totalElements)
-          return nxtLoop()
-        }).catch((err)=>{
-          winston.error(err)
-        })
-      },function(){
-        callback(mcsdTotalLevels,mcsdlevelNumber,mcsdBuildings)
-      })
+              Promise.all(promises1).then(() => {
+                totalElements++;
+                resolve();
+              }).catch((err) => {
+                winston.error(err);
+              });
+            });
+          }));
+        });
+        Promise.all(promises).then(() => {
+          tmpArr.splice(0, totalElements);
+          return nxtLoop();
+        }).catch((err) => {
+          winston.error(err);
+        });
+      }, () => {
+        callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+      });
     },
 
-    countLevels:function(source,topOrgId,callback){
-      const database = config.getConf("mCSD:database")
-      if(source == "MOH")
-        var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
-      else if(source == "DATIM")
-        var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + topOrgId.toString()
+    countLevels(source, topOrgId, callback) {
+      const database = config.getConf('mCSD:database');
+      if (source == 'MOH') var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+      else if (source == 'DATIM') var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
 
-      var totalLevels = 1
-      function cntLvls(url,callback) {
-        var options = {
-          url: url
-        }
+      let totalLevels = 1;
+      function cntLvls(url, callback) {
+        const options = {
+          url,
+        };
         request.get(options, (err, res, body) => {
-          body = JSON.parse(body)
-          if(body.total == 0)
-            return callback(totalLevels)
-          var counter = 0
-          async.eachSeries(body.entry,(entry,nxtEntry)=>{
-            if(entry.resource.name.startsWith('_') || counter > 0){
-              return nxtEntry()
+          body = JSON.parse(body);
+          if (body.total == 0) return callback(totalLevels);
+          let counter = 0;
+          async.eachSeries(body.entry, (entry, nxtEntry) => {
+            if (entry.resource.name.startsWith('_') || counter > 0) {
+              return nxtEntry();
             }
-            totalLevels++
-            counter++
-            if(entry.resource.hasOwnProperty("id") && 
-              entry.resource.id != false &&
-              entry.resource.id != null &&
-              entry.resource.id != undefined){
-              var reference = entry.resource.id
+            totalLevels++;
+            counter++;
+            if (entry.resource.hasOwnProperty('id')
+              && entry.resource.id != false
+              && entry.resource.id != null
+              && entry.resource.id != undefined) {
+              const reference = entry.resource.id;
 
-              if(source == "MOH")
-                var url = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
-              else if(source == "DATIM")
-                var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location') + "?partof=Location/" + reference.toString()
-              cntLvls(url,(totalLevels)=>{
-                return callback(totalLevels)
-              })
-            }
-            else
-              return callback(totalLevels)
-          },function(){
-            return callback(totalLevels)
-          })
-        })
+              if (source == 'MOH') {
+                var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
+              }
+              else if (source == 'DATIM') {
+                var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
+              }
+              cntLvls(url, totalLevels => callback(totalLevels));
+            } else return callback(totalLevels);
+          }, () => callback(totalLevels));
+        });
       }
-      cntLvls(url,(totalLevels)=>{
-        return callback(false,totalLevels)
-      })
+      cntLvls(url, totalLevels => callback(false, totalLevels));
     },
-    saveLocations:function(mCSD,database,callback){
-      let url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').toString()
-      var options = {
+    saveLocations(mCSD, database, callback) {
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').toString();
+      const options = {
         url: url.toString(),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        json:mCSD
-      }
-      request.post(options, function (err, res, body) {
-        if(err){
-          winston.error(err)
-          return callback(err)
+        json: mCSD,
+      };
+      request.post(options, (err, res, body) => {
+        if (err) {
+          winston.error(err);
+          return callback(err);
         }
-        winston.info("Data saved successfully")
-        callback(err,body)
-      })
+        winston.info('Data saved successfully');
+        callback(err, body);
+      });
     },
-    saveMatch: function(mohId,datimId,topOrgId,recoLevel,totalLevels,type,callback){
-      const database = config.getConf("mCSD:database")
-      const flagCode = config.getConf("mapping:flagCode")
-      var namespace = config.getConf("UUID:namespace")
-      var mohSystem = "http://geoalign.datim.org/MOH"
-      var datimSystem = "http://geoalign.datim.org/DATIM"
-      this.getLocationByID(database,datimId,false,(mcsd)=>{
-        var fhir = {}
-        fhir.entry = []
-        fhir.type = "document"
-        var entry = []
-        var resource = {}
-        resource.resourceType = "Location"
-        resource.name = mcsd.entry[0].resource.name
-        resource.id = datimId
-        resource.identifier = []
-        var datimURL = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment(datimId).toString()
-        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(mohId).toString()
-        resource.identifier.push({"system": datimSystem ,"value":datimURL})
-        resource.identifier.push({"system": mohSystem ,"value":mohURL})
+    saveMatch(mohId, datimId, topOrgId, recoLevel, totalLevels, type, callback) {
+      const database = config.getConf('mCSD:database');
+      const flagCode = config.getConf('mapping:flagCode');
+      const namespace = config.getConf('UUID:namespace');
+      const mohSystem = 'http://geoalign.datim.org/MOH';
+      const datimSystem = 'http://geoalign.datim.org/DATIM';
+      this.getLocationByID(database, datimId, false, (mcsd) => {
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'document';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = mcsd.entry[0].resource.name;
+        resource.id = datimId;
+        resource.identifier = [];
+        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment(datimId)
+          .toString();
+        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment(mohId)
+          .toString();
+        resource.identifier.push({ system: datimSystem, value: datimURL });
+        resource.identifier.push({ system: mohSystem, value: mohURL });
 
-        if(mcsd.entry[0].resource.hasOwnProperty('partOf'))
-          resource.partOf = {"display": mcsd.entry[0].resource.partOf.display,"reference": mcsd.entry[0].resource.partOf.reference}
-        if(recoLevel == totalLevels){
-          var typeCode = 'bu'
-          var typeCode = 'building'
+        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+          resource.partOf = { display: mcsd.entry[0].resource.partOf.display, reference: mcsd.entry[0].resource.partOf.reference };
         }
-        else{
-          var typeCode = 'jdn'
-          var typeName = 'Jurisdiction'
+        if (recoLevel == totalLevels) {
+          var typeCode = 'bu';
+          var typeCode = 'building';
+        } else {
+          var typeCode = 'jdn';
+          var typeName = 'Jurisdiction';
         }
         resource.physicalType = {
-          "coding":[
-                      {
-                        "code": typeCode,
-                        "display": typeName,
-                        "system": "http://hl7.org/fhir/location-physical-type"
-                      }
-                    ]
-        }
-        if(type == 'flag') {
-          resource.tag = []
+          coding: [
+            {
+              code: typeCode,
+              display: typeName,
+              system: 'http://hl7.org/fhir/location-physical-type',
+            },
+          ],
+        };
+        if (type == 'flag') {
+          resource.tag = [];
           resource.tag.push({
-            "system": mohSystem,
-            "code": flagCode,
-            "display": "To be reviewed"
-          })
+            system: mohSystem,
+            code: flagCode,
+            display: 'To be reviewed',
+          });
         }
-        entry.push({"resource":resource})
-        fhir.entry = fhir.entry.concat(entry)
-        var mappingDB = config.getConf("mapping:dbPrefix") + topOrgId
-        this.saveLocations (fhir,mappingDB,(err,res)=>{
-          if(err){
-            winston.error(err)
+        entry.push({ resource });
+        fhir.entry = fhir.entry.concat(entry);
+        const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+        this.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
           }
-          callback(err)
-        })
+          callback(err);
+        });
+      });
+    },
+    acceptFlag (datimId,topOrgId,callback) {
+      const database = config.getConf('mapping:dbPrefix') + topOrgId;
+      this.getLocationByID(database, datimId, false, (flagged) => {
+        delete flagged.resourceType
+        delete flagged.id
+        delete flagged.meta
+        delete flagged.total
+        delete flagged.link
+        const flagCode = config.getConf('mapping:flagCode');
+        //remove the flag tag
+        //winston.error(JSON.stringify(flagged.entry.fullurl))
+        for (var k in flagged.entry[0].resource.tag) {
+          var tag = flagged.entry[0].resource.tag[k]
+          if (tag.code === flagCode) {
+            flagged.entry[0].resource.tag.splice(k, 1)
+          }
+        }
+        flagged.type = 'document'
+
+        //deleting existing location
+        const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .segment(datimId)
+        .toString();
+        const options = {
+          url,
+        };
+        request.delete(options, (err, res, body) => {
+          if (err) {
+            winston.error(err);
+            return callback(err)
+          }
+          //saving new
+          this.saveLocations(flagged, database, (err, res) => {
+            if (err) {
+              winston.error(err);
+            }
+            return callback(err);
+          });
+        });
       })
     },
-    saveNoMatch(mohId,topOrgId,recoLevel,totalLevels,callback){
-      const database = topOrgId
-      var namespace = config.getConf("UUID:namespace")
-      var mohSystem = "http://geoalign.datim.org/MOH"
-      const noMatchCode = config.getConf("mapping:noMatchCode")
-      this.getLocationByID(database,mohId,false,(mcsd)=>{
-        winston.error(mcsd)
-        var fhir = {}
-        fhir.entry = []
-        fhir.type = "document"
-        var entry = []
-        var resource = {}
-        resource.resourceType = "Location"
-        resource.name = mcsd.entry[0].resource.name
-        resource.id = mohId
+    saveNoMatch (mohId, topOrgId, recoLevel, totalLevels, callback) {
+      const database = topOrgId;
+      const namespace = config.getConf('UUID:namespace');
+      const mohSystem = 'http://geoalign.datim.org/MOH';
+      const noMatchCode = config.getConf('mapping:noMatchCode');
+      this.getLocationByID(database, mohId, false, (mcsd) => {
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'document';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = mcsd.entry[0].resource.name;
+        resource.id = mohId;
 
-        if(mcsd.entry[0].resource.hasOwnProperty('partOf'))
-          resource.partOf = {"display": mcsd.entry[0].resource.partOf.display,"reference": mcsd.entry[0].resource.partOf.reference}
-        if(recoLevel == totalLevels){
-          var typeCode = 'bu'
-          var typeCode = 'building'
+        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+          resource.partOf = { display: mcsd.entry[0].resource.partOf.display, reference: mcsd.entry[0].resource.partOf.reference };
         }
-        else{
-          var typeCode = 'jdn'
-          var typeName = 'Jurisdiction'
+        if (recoLevel == totalLevels) {
+          var typeCode = 'bu';
+          var typeCode = 'building';
+        } else {
+          var typeCode = 'jdn';
+          var typeName = 'Jurisdiction';
         }
         resource.physicalType = {
-          "coding":[
-                      {
-                        "code": typeCode,
-                        "display": typeName,
-                        "system": "http://hl7.org/fhir/location-physical-type"
-                      }
-                    ]
-        }
-        resource.identifier = []
-        var mohURL = URI(config.getConf("mCSD:url")).segment(topOrgId).segment('fhir').segment(mohId).toString()
-        resource.identifier.push({"system": mohSystem ,"value":mohURL})
+          coding: [
+            {
+              code: typeCode,
+              display: typeName,
+              system: 'http://hl7.org/fhir/location-physical-type',
+            },
+          ],
+        };
+        resource.identifier = [];
+        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment(mohId)
+          .toString();
+        resource.identifier.push({ system: mohSystem, value: mohURL });
 
-        resource.tag = []
+        resource.tag = [];
         resource.tag.push({
-          "system": mohSystem,
-          "code": noMatchCode,
-          "display": "No Match"
-        })
-        entry.push({"resource":resource})
-        fhir.entry = fhir.entry.concat(entry)
-        var mappingDB = config.getConf("mapping:dbPrefix") + topOrgId
-        this.saveLocations (fhir,mappingDB,(err,res)=>{
-          if(err){
-            winston.error(err)
+          system: mohSystem,
+          code: noMatchCode,
+          display: 'No Match',
+        });
+        entry.push({ resource });
+        fhir.entry = fhir.entry.concat(entry);
+        const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+        this.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
           }
-          callback(err)
-        })
-      })
+          callback(err);
+        });
+      });
     },
-    breakMatch: function(id,database,callback){
-      var url = URI(config.getConf("mCSD:url")).segment(database).segment('fhir').segment('Location').segment(id).toString()
-      var options = {
-        url: url
-      }
-      let cachedData = cache.get('getLocationByID' + url)
-      if(cachedData){
-        return callback(cachedData)
+    breakMatch(id, database, callback) {
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .segment(id)
+        .toString();
+      const options = {
+        url,
+      };
+      request.delete(options, (err, res, body) => {
+        if (err) {
+          winston.error(err);
+        }
+        callback(err);
+      });
+    },
+    breakNoMatch(id, database, callback) {
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .segment(id)
+        .toString();
+      const options = {
+        url,
+      };
+      const cachedData = cache.get(`getLocationByID${url}`);
+      if (cachedData) {
+        return callback(cachedData);
       }
       request.delete(options, (err, res, body) => {
-        if(err){
-          winston.error(err)
+        if (err) {
+          winston.error(err);
         }
-        callback(err)
-      })
+        callback(err);
+      });
     },
-    CSVTomCSD: function(filePath,headerMapping,orgid,callback){
-      var namespace = config.getConf("UUID:namespace")
-      var levels = config.getConf("levels")
-      var orgid = headerMapping.orgid
-      var orgname = headerMapping.orgname
-      var countryUUID = uuid5(orgid,namespace+'000')
-      var fhir = {}
-      fhir.type = "document"
-      fhir.entry = []
-      var processed = []
+    CSVTomCSD(filePath, headerMapping, orgid, callback) {
+      const namespace = config.getConf('UUID:namespace');
+      const levels = config.getConf('levels');
+      var orgid = headerMapping.orgid;
+      const orgname = headerMapping.orgname;
+      const countryUUID = uuid5(orgid, `${namespace}000`);
+      const fhir = {};
+      fhir.type = 'document';
+      fhir.entry = [];
+      const processed = [];
       csv
-        .fromPath(filePath,{ignoreEmpty: true,headers : true})
-        .on("data",(data)=>{
-          var jurisdictions = []
+        .fromPath(filePath, { ignoreEmpty: true, headers: true })
+        .on('data', (data) => {
+          const jurisdictions = [];
 
-          const promises = []
-          levels.sort()
-          levels.reverse()
-          var facilityParent = null
-          var facilityParentUUID = null
-          async.eachSeries(levels,(level,nxtLevel)=>{
-            if(data[headerMapping[level]] != null && data[headerMapping[level]] != undefined && data[headerMapping[level]] != false) {
-              var name = data[headerMapping[level]]
-              var levelNumber = level.replace('level','')
-              if(levelNumber.toString().length < 2){
-                var namespaceMod = namespace + '00' + levelNumber
-              }
-              else{
-                var namespaceMod = namespace + '0' + levelNumber
-              }
-
-              var UUID = uuid5(name,namespaceMod)
-              var topLevels = Array.apply(null, {length: levelNumber}).map(Number.call, Number)
-              //removing zero as levels starts from 1
-              topLevels.splice(0,1)
-              topLevels.reverse()
-              var parentFound = false
-              var parentUUID = null
-              var parent = null
-              if(levelNumber == 1){
-                parent = orgname
-                parentUUID = countryUUID
+          const promises = [];
+          levels.sort();
+          levels.reverse();
+          let facilityParent = null;
+          let facilityParentUUID = null;
+          async.eachSeries(levels, (level, nxtLevel) => {
+            if (data[headerMapping[level]] != null && data[headerMapping[level]] != undefined && data[headerMapping[level]] != false) {
+              const name = data[headerMapping[level]];
+              const levelNumber = level.replace('level', '');
+              if (levelNumber.toString().length < 2) {
+                var namespaceMod = `${namespace}00${levelNumber}`;
+              } else {
+                var namespaceMod = `${namespace}0${levelNumber}`;
               }
 
-              if(!facilityParent){
-                facilityParent = name
-                facilityParentUUID = UUID
+              const UUID = uuid5(name, namespaceMod);
+              const topLevels = Array(...{ length: levelNumber }).map(Number.call, Number);
+              // removing zero as levels starts from 1
+              topLevels.splice(0, 1);
+              topLevels.reverse();
+              let parentFound = false;
+              let parentUUID = null;
+              let parent = null;
+              if (levelNumber == 1) {
+                parent = orgname;
+                parentUUID = countryUUID;
               }
-              async.eachSeries(topLevels,(topLevel,nxtTopLevel)=>{
-                var topLevelName = 'level' + topLevel
-                if(data[headerMapping[topLevelName]] != "" && parentFound == false){
-                  parent = data[headerMapping[topLevelName]]
-                  if(topLevel.toString().length < 2){
-                    var namespaceMod = namespace + '00' + topLevel
+
+              if (!facilityParent) {
+                facilityParent = name;
+                facilityParentUUID = UUID;
+              }
+              async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
+                const topLevelName = `level${topLevel}`;
+                if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
+                  parent = data[headerMapping[topLevelName]];
+                  if (topLevel.toString().length < 2) {
+                    var namespaceMod = `${namespace}00${topLevel}`;
+                  } else {
+                    var namespaceMod = `${namespace}0${topLevel}`;
                   }
-                  else{
-                    var namespaceMod = namespace + '0' + topLevel
-                  }
-                  parentUUID = uuid5(parent,namespaceMod)
-                  parentFound = true
+                  parentUUID = uuid5(parent, namespaceMod);
+                  parentFound = true;
                 }
-                nxtTopLevel()
-              },()=>{
-                if(!processed.includes(UUID)){
-                  jurisdictions.push({name:name,parent:parent,uuid:UUID,parentUUID:parentUUID})
-                  processed.push(UUID)
+                nxtTopLevel();
+              }, () => {
+                if (!processed.includes(UUID)) {
+                  jurisdictions.push({
+                    name, parent, uuid: UUID, parentUUID,
+                  });
+                  processed.push(UUID);
                 }
-                nxtLevel()
-              })
+                nxtLevel();
+              });
+            } else {
+              nxtLevel();
             }
-            else {
-              nxtLevel()
-            }
-          },()=>{
-            jurisdictions.push({name:orgname,parent:null,uuid:countryUUID,parentUUID:null})
-            this.saveJurisdiction(jurisdictions,orgid,()=>{
-              
-            })
-          })
+          }, () => {
+            jurisdictions.push({
+              name: orgname, parent: null, uuid: countryUUID, parentUUID: null,
+            });
+            this.saveJurisdiction(jurisdictions, orgid, () => {
 
-          var facilityName = data[headerMapping.facility]
-          var UUID = uuid5(data[headerMapping.code],namespace+'100')
-          var building = {
-            uuid:UUID,
-            id:data[headerMapping.code],
-            name:facilityName,
-            lat:data[headerMapping.lat],
-            long:data[headerMapping.long],
-            parent:facilityParent,
-            parentUUID:facilityParentUUID
-          }
-          this.saveBuilding(building,orgid,()=>{
-            
-          })          
+            });
+          });
+
+          const facilityName = data[headerMapping.facility];
+          const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
+          const building = {
+            uuid: UUID,
+            id: data[headerMapping.code],
+            name: facilityName,
+            lat: data[headerMapping.lat],
+            long: data[headerMapping.long],
+            parent: facilityParent,
+            parentUUID: facilityParentUUID,
+          };
+          this.saveBuilding(building, orgid, () => {
+
+          });
         })
-        .on("end",()=>{
-            return callback(fhir)
-        })
+        .on('end', () => callback(fhir));
     },
 
-    saveJurisdiction:function(jurisdictions,orgid,callback){
-      const promises = []
-      jurisdictions.forEach((jurisdiction)=>{
-        promises.push(new Promise((resolve,reject)=>{
-          var resource = {}
-          resource.resourceType = "Location"
-          resource.name = jurisdiction.name
-          resource.status = "active"
-          resource.mode = "instance"
-          resource.id = jurisdiction.uuid
-          resource.identifier = []
-          resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":jurisdiction.uuid})
-          if(jurisdiction.parentUUID)
-            resource.partOf = {"display":jurisdiction.parent,"reference":"Location/" + jurisdiction.parentUUID}
+    saveJurisdiction(jurisdictions, orgid, callback) {
+      const promises = [];
+      jurisdictions.forEach((jurisdiction) => {
+        promises.push(new Promise((resolve, reject) => {
+          const resource = {};
+          resource.resourceType = 'Location';
+          resource.name = jurisdiction.name;
+          resource.status = 'active';
+          resource.mode = 'instance';
+          resource.id = jurisdiction.uuid;
+          resource.identifier = [];
+          resource.identifier.push({ system: 'http://geoalign.datim.org/MOH', value: jurisdiction.uuid });
+          if (jurisdiction.parentUUID) resource.partOf = { display: jurisdiction.parent, reference: `Location/${jurisdiction.parentUUID}` };
           resource.physicalType = {
-            "coding":[
-                        {
-                          "code": "jdn",
-                          "display": "Jurisdiction",
-                          "system": "http://hl7.org/fhir/location-physical-type"
-                        }
-                      ]
-          }
-          var mcsd = {'type':'document',entry:[{"resource":resource}]}
-          this.saveLocations(mcsd,orgid,()=>{})
-          resolve()
-        }))
-      })
+            coding: [
+              {
+                code: 'jdn',
+                display: 'Jurisdiction',
+                system: 'http://hl7.org/fhir/location-physical-type',
+              },
+            ],
+          };
+          const mcsd = { type: 'document', entry: [{ resource }] };
+          this.saveLocations(mcsd, orgid, () => {});
+          resolve();
+        }));
+      });
 
-      Promise.all(promises).then(()=>{
-        return callback()
-      }).catch((reason)=>{
-        winston.error(reason)
-      })
+      Promise.all(promises).then(() => callback()).catch((reason) => {
+        winston.error(reason);
+      });
     },
 
-    saveBuilding:function(building,orgid,callback){
-      var resource = {}
-      resource.resourceType = "Location"
-      resource.status = "active"
-      resource.mode = "instance"
-      resource.name = building.name
-      resource.id = building.uuid
-      resource.identifier = []
-      resource.identifier.push({"system":"http://geoalign.datim.org/MOH","value":building.id})
-      resource.partOf = {"display":building.parent,"reference":"Location/" + building.parentUUID}
+    saveBuilding(building, orgid, callback) {
+      const resource = {};
+      resource.resourceType = 'Location';
+      resource.status = 'active';
+      resource.mode = 'instance';
+      resource.name = building.name;
+      resource.id = building.uuid;
+      resource.identifier = [];
+      resource.identifier.push({ system: 'http://geoalign.datim.org/MOH', value: building.id });
+      resource.partOf = { display: building.parent, reference: `Location/${building.parentUUID}` };
       resource.physicalType = {
-        "coding":[
-                    {
-                      "code": "bu",
-                      "display": "Building",
-                      "system": "http://hl7.org/fhir/location-physical-type"
-                    }
-                  ]
-      }
+        coding: [
+          {
+            code: 'bu',
+            display: 'Building',
+            system: 'http://hl7.org/fhir/location-physical-type',
+          },
+        ],
+      };
       resource.position = {
-        "longitude":building.long,
-        "latitude":building.lat
-      }
-      var mcsd = {'type':'document',entry:[{"resource":resource}]}
-      this.saveLocations(mcsd,orgid,()=>{})
-      return callback()
+        longitude: building.long,
+        latitude: building.lat,
+      };
+      const mcsd = { type: 'document', entry: [{ resource }] };
+      this.saveLocations(mcsd, orgid, () => {});
+      return callback();
     },
 
-    createTree: function(mcsd,source,database,topOrg,callback){
-      const datimPromises = []
-      let tree = []
-      async.eachSeries(mcsd.entry,(mcsdEntry,nxtMCSDEntry)=>{
-        var long = null
-        var lat = null
-        if(mcsdEntry.resource.hasOwnProperty('position')){
-          long = mcsdEntry.resource.position.longitude
-          lat = mcsdEntry.resource.position.latitude
+    createTree(mcsd, source, database, topOrg, callback) {
+      const datimPromises = [];
+      const tree = [];
+      async.eachSeries(mcsd.entry, (mcsdEntry, nxtMCSDEntry) => {
+        let long = null;
+        let lat = null;
+        if (mcsdEntry.resource.hasOwnProperty('position')) {
+          long = mcsdEntry.resource.position.longitude;
+          lat = mcsdEntry.resource.position.latitude;
         }
-        if(mcsdEntry.resource.id == topOrg){
-          return nxtMCSDEntry()
+        if (mcsdEntry.resource.id == topOrg) {
+          return nxtMCSDEntry();
         }
-        if(!mcsdEntry.resource.hasOwnProperty('partOf')){
-          var parent = {text:mcsdEntry.resource.name,id:mcsdEntry.resource.id,lat:lat,long:long,children:[]}
+        if (!mcsdEntry.resource.hasOwnProperty('partOf')) {
+          const parent = {
+            text: mcsdEntry.resource.name, id: mcsdEntry.resource.id, lat, long, children: [],
+          };
 
-          this.inTree(tree,parent,(exist)=>{
-            if(!exist){
-              tree.push(parent)
+          this.inTree(tree, parent, (exist) => {
+            if (!exist) {
+              tree.push(parent);
             }
-            return nxtMCSDEntry()
-          })
+            return nxtMCSDEntry();
+          });
+        } else {
+          const reference = mcsdEntry.resource.partOf.reference;
+          const currentItem = {
+            text: mcsdEntry.resource.name, id: mcsdEntry.resource.id, lat, long, children: [],
+          };
+          this.getLocationParentsFromData(reference, mcsd, 'all', (parents) => {
+            parents.reverse();
+            // push the current element on top of the list
+            parents.push(currentItem);
+            async.eachOfSeries(parents, (parent, key, nextParent) => {
+              this.inTree(tree, parent, (exist) => {
+                // if not saved and has no parent i.e key = 0
+                parent.children = [];
+                if (!exist && key == 0) {
+                  tree.push(parent);
+                  return nextParent();
+                } if (!exist) {
+                  const grandParent = parents[key - 1];
+                  this.addToTree(tree, parent, grandParent);
+                  return nextParent();
+                } return nextParent();
+              });
+            }, () => nxtMCSDEntry());
+          });
         }
-        else {
-          var reference = mcsdEntry.resource.partOf.reference
-          var currentItem = {text:mcsdEntry.resource.name,id:mcsdEntry.resource.id,lat:lat,long:long,children:[]}
-          this.getLocationParentsFromData(reference,mcsd,'all',(parents)=>{
-            parents.reverse()
-            //push the current element on top of the list
-            parents.push(currentItem)
-            async.eachOfSeries(parents,(parent,key,nextParent)=>{
-              this.inTree(tree,parent,(exist)=>{
-                //if not saved and has no parent i.e key = 0
-                parent.children = []
-                if(!exist && key == 0) {
-                  tree.push(parent)
-                  return nextParent()
-                }
-                else if(!exist) {
-                  var grandParent = parents[key-1]
-                  this.addToTree(tree,parent,grandParent)
-                  return nextParent()
-                }
-                else
-                  return nextParent()
-              })
-            },()=>{
-              return nxtMCSDEntry()
-            })
-          })
-        }
-      },function(){
-        return callback(tree)
-      })
+      }, () => callback(tree));
     },
-    addToTree:function(tree,item,parent){
-      tree.forEach((treeElements)=>{
-        if(treeElements.id == parent.id){
-          treeElements.children.push(item)
-          return
-        }
-        else
-          this.addToTree(treeElements.children,item,parent)
-      })
+    addToTree(tree, item, parent) {
+      tree.forEach((treeElements) => {
+        if (treeElements.id == parent.id) {
+          treeElements.children.push(item);
+        } else this.addToTree(treeElements.children, item, parent);
+      });
     },
-    inTree:function(tree,item,callback){
-      if(Object.keys(tree).length == 0){
-        return callback(false)
+    inTree(tree, item, callback) {
+      if (Object.keys(tree).length == 0) {
+        return callback(false);
       }
-      async.eachSeries(tree,(element,nxtEl)=>{
-        if(element.id == item.id){
-          return callback(true)
+      async.eachSeries(tree, (element, nxtEl) => {
+        if (element.id == item.id) {
+          return callback(true);
         }
-        else {
-          this.inTree(element.children,item,(found)=>{
-            if(found)
-              return callback(true)
-            else
-              return nxtEl()
-          })
-        }
-      },()=>{
-        return callback(false)
-      })
-    }
-  }
-}
+        this.inTree(element.children, item, (found) => {
+          if (found) return callback(true);
+          return nxtEl();
+        });
+      }, () => callback(false));
+    },
+  };
+};
