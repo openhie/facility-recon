@@ -467,7 +467,7 @@ module.exports = function(){
 				})*/
 			return callback(status)
 		},
-		getUnmatched:function(mcsdDatim,topOrgId,callback){
+		getUnmatched:function(mcsdDatimAll,mcsdDatim,topOrgId,callback){
 			var database = config.getConf("mapping:dbPrefix") + topOrgId
 			var unmatched = []
 			async.eachSeries(mcsdDatim.entry,(datimEntry,nxtEntry)=>{
@@ -475,13 +475,18 @@ module.exports = function(){
 					if(location.entry.length == 0){
 						var name = datimEntry.resource.name
 						var id = datimEntry.resource.id
-						var parents = 
-						unmatched.push({
-							id: id,
-							name: name,
-							parents: null
+						var entityParent = null
+						if(datimEntry.resource.hasOwnProperty('partOf')){
+							entityParent = datimEntry.resource.partOf.reference
+						}
+						mcsd.getLocationParentsFromData(entityParent,mcsdDatimAll,"names",(datimParents)=>{
+							unmatched.push({
+								id: id,
+								name: name,
+								parents: datimParents
+							})
+							return nxtEntry()
 						})
-						return nxtEntry()
 					}
 					else{
 						return nxtEntry()

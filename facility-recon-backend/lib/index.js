@@ -171,7 +171,7 @@ app.get('/getUnmatched/:orgid/:source/:recoLevel', (req, res) => {
   const datimDB = config.getConf('mCSD:database');
   mcsd.getLocationChildren(datimDB, orgid, (locations) => {
     mcsd.filterLocations(locations, orgid, 0, recoLevel, 0, (mcsdLevels, mcsdLevel, mcsdBuildings) => {
-      scores.getUnmatched(mcsdLevel, orgid, (unmatched) => {
+      scores.getUnmatched(locations,mcsdLevel, orgid, (unmatched) => {
         winston.info(`sending back DATIM unmatched Orgs for ${req.params.orgid}`);
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).json(unmatched);

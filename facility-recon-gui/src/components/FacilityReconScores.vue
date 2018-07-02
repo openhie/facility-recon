@@ -14,17 +14,16 @@
       </v-card>
     </v-dialog>
 		<v-dialog persistent v-model="dialog" width="830px">
-      <v-card>
-        <v-card-title>
+      <v-card width='830px'>
+        <v-card-title style='width: 830px'>
         	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  &nbsp;&nbsp;&nbsp; 
           <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
-           Latitude: <b>{{selectedMohLat}}</b> &nbsp;&nbsp;&nbsp;
+            Latitude: <b>{{selectedMohLat}}</b> &nbsp;&nbsp;&nbsp;
             Longitude: <b>{{selectedMohLong}}</b>
           </template>
           <p>
             Parents: <b>{{selectedMohParents}}</b>
           </p>
-        </p>
         </v-card-title>
         <v-card-text>
           <v-data-table
@@ -147,7 +146,7 @@
 	            class="elevation-1"
 	          >
 		          <template slot="items" slot-scope="props">
-			            <td>{{props.item.name}} <br>{{props.item.parents}}</td>
+			            <td>{{props.item.name}} <br>{{props.item.parents.join('->')}}</td>
 		          </template>
           	</v-data-table>
         	</template>
