@@ -88,7 +88,7 @@
     		</v-menu>
       </v-flex>
       <v-flex md2 v-if="nextLevel == 'yes'">
-        <v-btn color="success" @click='levelChanged(++$store.state.recoLevel)'>Proceed to Level {{$store.state.recoLevel+1}}</v-btn>
+        <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel+1}}</v-btn>
       </v-flex>
     </v-layout>
     <v-layout row wrap>
@@ -640,8 +640,7 @@ export default {
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
-        this.$store.state.flagged.length === 0
-        ) {
+        this.$store.state.flagged.length === 0) {
         return 'yes'
       }
       else {
