@@ -149,7 +149,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
           winston.info('Score results sent back');
         });
       } else {
-        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
+        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll,mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({ scoreResults, recoLevel });
           winston.info('Score results sent back');

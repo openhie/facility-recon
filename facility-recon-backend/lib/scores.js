@@ -9,7 +9,7 @@ const config = require('./config')
 const mcsd = require("./mcsd")()
 module.exports = function(){
 	return {
-		getJurisdictionScore:function(mcsdMOH,mcsdDATIM,mcsdMapped,mcsdDatimAll,mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,callback){
+		getJurisdictionScore:function(mcsdMOH,mcsdDATIM,mcsdMapped,mcsdDatimAll,mcsdMohAll,mohDB,datimDB,mohTopId,datimTopId,recoLevel,totalLevels,callback){
 			const scoreResults = []
 			const mapped = []
 			const maxSuggestions = config.getConf("matchResults:maxSuggestions")
@@ -22,7 +22,7 @@ module.exports = function(){
 				return callback()	
 			}
 
-			async.eachSeries(mcsdMOH.entry,(mohEntry,nxtMohEntry)=>{
+			async.each(mcsdMOH.entry,(mohEntry,mohCallback)=>{
 				var database = config.getConf("mapping:dbPrefix") + datimTopId
 				//check if this MOH Orgid is mapped
 				var mohId = mohEntry.resource.id
@@ -35,7 +35,8 @@ module.exports = function(){
 	      		if(mohEntry.resource.hasOwnProperty("partOf")){
 	      			entityParent = mohEntry.resource.partOf.reference
 	      		}
-	      		mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
+	      		mcsd.getLocationParentsFromData(entityParent,mcsdMohAll,"names",(mohParents)=>{
+	      		//mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
 	      			var thisRanking = {}
 							thisRanking.moh = {
 								name:mohEntry.resource.name,
@@ -54,7 +55,7 @@ module.exports = function(){
 							if(noMatch){
 								thisRanking.moh.tag = 'noMatch'
 								scoreResults.push(thisRanking)
-								return nxtMohEntry()
+								return mohCallback()
 							}
 							//if no macth then this is already marked as a match
 							else {
@@ -70,14 +71,15 @@ module.exports = function(){
 								if(match.resource.hasOwnProperty("partOf")){
 									entityParent = match.resource.partOf.reference
 								}
-								mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
+								mcsd.getLocationParentsFromData(entityParent,mcsdDatimAll,"names",(datimParents)=>{
+								//mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
 									thisRanking.exactMatch = {
 										name: match.resource.name,
 										parents: datimParents,
 										id: match.resource.id
 									}
 									scoreResults.push(thisRanking)
-									return nxtMohEntry()
+									return mohCallback()
 								})
 							}
 						})
@@ -90,7 +92,8 @@ module.exports = function(){
 						if(mohEntry.resource.hasOwnProperty("partOf")){
 							var entityParent = mohEntry.resource.partOf.reference
 							var mohParentReceived = new Promise((resolve,reject)=>{
-								mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"all",(parents)=>{
+								mcsd.getLocationParentsFromData(entityParent,mcsdMohAll,"all",(parents)=>{
+								//mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"all",(parents)=>{
 									mohParents = parents
 									async.eachSeries(parents,(parent,nxtParent)=>{
 										mohParentNames.push(
@@ -117,119 +120,116 @@ module.exports = function(){
 							thisRanking.potentialMatches = {}
 							thisRanking.exactMatch = {}
 							const datimPromises = []
-							mcsdDATIM.entry.forEach((datimEntry) => {
-								datimPromises.push(new Promise((datimResolve,datimReject)=>{
-									var database = config.getConf("mapping:dbPrefix") + datimTopId
-									var id = datimEntry.resource.id
-									//check if this is already mapped
-									this.matchStatus(mcsdMapped,id,(mapped)=>{
-										if(mapped){
-											return datimResolve()
-										}
-										var datimName = datimEntry.resource.name
-										if(datimEntry.resource.hasOwnProperty("partOf")){
-											var datimParents = []
-											var datimParentNames = []
-											var datimMappedParentNames = []
-											var entityParent = datimEntry.resource.partOf.reference
-											var datimParentReceived = new Promise((resolve,reject)=>{
-												mcsd.getLocationParentsFromData(entityParent,mcsdDatimAll,"all",(parents)=>{
-													datimParents = parents
-													//lets make sure that we use the mapped parent for comparing against MOH
-													async.eachSeries(datimParents,(parent,nxtParent)=>{
-														this.matchStatus(mcsdMapped,parent.id,(mapped)=>{
-															if(mapped) {
-																var mappedPar = mapped.resource.identifier.find((identifier)=>{
-																	if (identifier.system == 'http://geoalign.datim.org/MOH') {
-																		var mohParId = identifier.value.split('/').pop()
-																		var found = mohParents.find((parent)=>{
-																			if(parent.id === mohParId){
-																				datimMappedParentNames.push(parent.text)
-																				return parent.text
-																			}
-																		})
-																	}
-																	return found
-																})
-																datimParentNames.push(parent.text)
-																return nxtParent()
-															}
-															else {
-																datimMappedParentNames.push(parent.text)
-																datimParentNames.push(parent.text)
-																return nxtParent()
-															}
-														})
-													},()=>{
-														resolve()
+							async.each(mcsdDATIM.entry,(datimEntry,datimCallback) => {
+								var database = config.getConf("mapping:dbPrefix") + datimTopId
+								var id = datimEntry.resource.id
+								//check if this is already mapped
+								this.matchStatus(mcsdMapped,id,(mapped)=>{
+									if(mapped){
+										return datimCallback()
+									}
+									var datimName = datimEntry.resource.name
+									if(datimEntry.resource.hasOwnProperty("partOf")){
+										var datimParents = []
+										var datimParentNames = []
+										var datimMappedParentNames = []
+										var entityParent = datimEntry.resource.partOf.reference
+										var datimParentReceived = new Promise((resolve,reject)=>{
+											mcsd.getLocationParentsFromData(entityParent,mcsdDatimAll,"all",(parents)=>{
+												datimParents = parents
+												//lets make sure that we use the mapped parent for comparing against MOH
+												async.eachSeries(datimParents,(parent,nxtParent)=>{
+													this.matchStatus(mcsdMapped,parent.id,(mapped)=>{
+														if(mapped) {
+															var mappedPar = mapped.resource.identifier.find((identifier)=>{
+																if (identifier.system == 'http://geoalign.datim.org/MOH') {
+																	var mohParId = identifier.value.split('/').pop()
+																	var found = mohParents.find((parent)=>{
+																		if(parent.id === mohParId){
+																			datimMappedParentNames.push(parent.text)
+																			return parent.text
+																		}
+																	})
+																}
+																return found
+															})
+															datimParentNames.push(parent.text)
+															return nxtParent()
+														}
+														else {
+															datimMappedParentNames.push(parent.text)
+															datimParentNames.push(parent.text)
+															return nxtParent()
+														}
 													})
+												},()=>{
+													resolve()
 												})
 											})
+										})
+									}
+									else{
+										var datimParentReceived = Promise.resolve([])
+									}
+									datimParentReceived.then(()=>{
+										if (mohParentNames[0] != datimMappedParentNames[0]) {
+											return datimCallback()
 										}
-										else{
-											var datimParentReceived = Promise.resolve([])
+										lev = levenshtein.get(datimName,mohName)
+										//if names mathes exactly and the two has same parents then this is an exact match
+										//var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
+										var parentsEquals = false
+										if(mohParentNames.length >0 && datimMappedParentNames.length > 0){
+											parentsEquals = mohParentNames[0] == datimMappedParentNames[0]
 										}
-										datimParentReceived.then(()=>{
-											if (mohParentNames[0] != datimMappedParentNames[0]) {
-												return datimResolve()
-											}
-											lev = levenshtein.get(datimName,mohName)
-											//if names mathes exactly and the two has same parents then this is an exact match
-											//var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
-											var parentsEquals = false
-											if(mohParentNames.length >0 && datimMappedParentNames.length > 0){
-												parentsEquals = mohParentNames[0] == datimMappedParentNames[0]
-											}
-											if(lev == 0 && parentsEquals){
-												if(Object.keys(datimMappedParentNames).length == Object.keys(mohParents).length && datimMappedParentNames[0] == mohParentNames[0]){
-													thisRanking.exactMatch = {
-														name:datimName,
-														parents:datimParentNames,
-														id:datimEntry.resource.id
-													}
-													thisRanking.potentialMatches = {}
+										if(lev == 0 && parentsEquals){
+											if(Object.keys(datimMappedParentNames).length == Object.keys(mohParents).length && datimMappedParentNames[0] == mohParentNames[0]){
+												thisRanking.exactMatch = {
+													name:datimName,
+													parents:datimParentNames,
+													id:datimEntry.resource.id
 												}
-												mcsd.saveMatch(mohId,datimEntry.resource.id,datimTopId,recoLevel,totalLevels,'match',()=>{
-
-												})
-												//we will need to break here and start processing nxt MOH
-												return datimResolve()
+												thisRanking.potentialMatches = {}
 											}
-											if(Object.keys(thisRanking.exactMatch).length == 0){
-												if(thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions){
-													if(!thisRanking.potentialMatches.hasOwnProperty(lev)){
-														thisRanking.potentialMatches[lev] = []
-													}
+											mcsd.saveMatch(mohId,datimEntry.resource.id,datimTopId,recoLevel,totalLevels,'match',()=>{
+
+											})
+											//we will need to break here and start processing nxt MOH
+											return datimCallback()
+										}
+										if(Object.keys(thisRanking.exactMatch).length == 0){
+											if(thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions){
+												if(!thisRanking.potentialMatches.hasOwnProperty(lev)){
+													thisRanking.potentialMatches[lev] = []
+												}
+												thisRanking.potentialMatches[lev].push({
+													name:datimName,
+													parents:datimParentNames,
+													id:datimEntry.resource.id
+												})
+											}
+											else{
+												var existingLev = Object.keys(thisRanking.potentialMatches)
+												var max = _.max(existingLev)
+												if(lev<max){
+													delete thisRanking.potentialMatches[max]
+													thisRanking.potentialMatches[lev] = []
 													thisRanking.potentialMatches[lev].push({
 														name:datimName,
 														parents:datimParentNames,
 														id:datimEntry.resource.id
 													})
 												}
-												else{
-													var existingLev = Object.keys(thisRanking.potentialMatches)
-													var max = _.max(existingLev)
-													if(lev<max){
-														delete thisRanking.potentialMatches[max]
-														thisRanking.potentialMatches[lev] = []
-														thisRanking.potentialMatches[lev].push({
-															name:datimName,
-															parents:datimParentNames,
-															id:datimEntry.resource.id
-														})
-													}
-												}
 											}
-											return datimResolve()
-										}).catch((err)=>{
-											winston.error(err)
-										})
+										}
+										return datimCallback()
+									}).catch((err)=>{
+										winston.error(err)
 									})
-								}))
-							})
-							Promise.all(datimPromises).then(()=>{
+								})
+							},()=>{
 								scoreResults.push(thisRanking)
-								return nxtMohEntry()
+								return mohCallback()
 							})
 						}).catch((err)=>{
 							winston.error(err)
@@ -546,16 +546,12 @@ module.exports = function(){
 					return identifier.value == id
 				}))
 			})
-			/*else if(type == 'identifier'){
-				var status =	entry.resource.identifier.find((identifier)=>{
-					return identifier.value == id
-				})*/
 			return callback(status)
 		},
 		getUnmatched:function(mcsdDatimAll,mcsdDatim,topOrgId,callback){
 			var database = config.getConf("mapping:dbPrefix") + topOrgId
 			var unmatched = []
-			async.eachSeries(mcsdDatim.entry,(datimEntry,nxtEntry)=>{
+			async.each(mcsdDatim.entry,(datimEntry,datimCallback)=>{
 				mcsd.getLocationByID(database,datimEntry.resource.id,false,(location)=>{
 					if(location.entry.length == 0){
 						var name = datimEntry.resource.name
@@ -570,11 +566,11 @@ module.exports = function(){
 								name: name,
 								parents: datimParents
 							})
-							return nxtEntry()
+							return datimCallback()
 						})
 					}
 					else{
-						return nxtEntry()
+						return datimCallback()
 					}
 				})
 			},()=>{
