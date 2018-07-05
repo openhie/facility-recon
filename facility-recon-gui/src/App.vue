@@ -106,7 +106,7 @@ export default {
               datimId: scoreResult.exactMatch.id,
               datimParents: scoreResult.exactMatch.parents.join('->')
             })
-          } else if (Object.keys(scoreResult.potentialMatches).length > 0) {
+          } else {
             // let parents = scoreResult.moh.parents.join('->')
             let addTree = this.$store.state.mohParents
             for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {

@@ -19,8 +19,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
 
-https.globalAgent.maxSockets = 5;
-http.globalAgent.maxSockets = 5;
+//https.globalAgent.maxSockets = 5;
+//http.globalAgent.maxSockets = 5;
 // app.use(app.oauth.errorHandler());
 /* app.oauth = oauthserver({
   model: oAuthModel,
@@ -114,10 +114,11 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     const namespace = config.getConf('UUID:namespace');
     const mohTopId = uuid5(orgid, `${namespace}000`);
     const datimTopId = orgid;
-    let mcsdWhole = null;
+    let mcsdDatimAll = null;
+    let mcsdMohAll = null;
     const datimLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
-        mcsdWhole = mcsdDATIM;
+        mcsdDatimAll = mcsdDATIM;
         mcsd.filterLocations(mcsdDATIM, datimTopId, 0, recoLevel, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
           resolve(mcsdDatimLevel);
         });
@@ -126,6 +127,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
 
     const mohLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(mohDB, mohTopId, (mcsdMOH) => {
+        mcsdMohAll = mcsdMOH;
         mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
           resolve(mcsdMohLevel);
         });
@@ -141,13 +143,13 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
 
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
       if (recoLevel == totalLevels) {
-        scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdWhole, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
+        scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({ scoreResults, recoLevel });
           winston.info('Score results sent back');
         });
       } else {
-        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
+        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({ scoreResults, recoLevel });
           winston.info('Score results sent back');

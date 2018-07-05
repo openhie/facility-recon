@@ -292,7 +292,7 @@ export default {
       formData.append('level7', this.level7)
       formData.append('orgid', this.$store.state.orgUnit.OrgId)
       formData.append('orgname', this.$store.state.orgUnit.OrgName)
-      this.dialog = true
+      //this.dialog = true
       axios.post(backendServer + '/uploadCSV',
         formData,
         {

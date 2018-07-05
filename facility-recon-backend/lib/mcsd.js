@@ -25,12 +25,14 @@ module.exports = function () {
           const options = {
             url,
           };
+          //winston.error('send request ' + url)
           url = false;
           const cachedData = cache.get(`getLocationByID${url}`);
           if (cachedData && getCached) {
             return callback(cachedData);
           }
           request.get(options, (err, res, body) => {
+            //winston.error('responded')
             const cacheData = JSON.parse(body);
             const next = cacheData.link.find(link => link.relation == 'next');
             if (next) {
@@ -67,21 +69,6 @@ module.exports = function () {
           body1.entry = body1.entry.concat(body2.entry);
           callback(body1);
         });
-      });
-    },
-    /*
-      This function finds parents of an entity by fetching data from DB
-    */
-    getLocationParentsFromDBMod(database, entityParent, topOrg, details, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        .segment(entityParent)
-        .segment('$parents')
-        .toString();
-      const options = {
-        url,
-      };
-      request.get(options, (err, res, body) => {
-        callback(body);
       });
     },
 
@@ -617,7 +604,7 @@ module.exports = function () {
               }
 
               const UUID = uuid5(name, namespaceMod);
-              const topLevels = Array(...{ length: levelNumber }).map(Number.call, Number);
+              const topLevels = Array.apply(null,{ length: levelNumber }).map(Number.call, Number);
               // removing zero as levels starts from 1
               topLevels.splice(0, 1);
               topLevels.reverse();
@@ -635,6 +622,7 @@ module.exports = function () {
               }
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
+                winston.error(data[headerMapping[topLevelName]])
                 if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
                   parent = data[headerMapping[topLevelName]];
                   if (topLevel.toString().length < 2) {
@@ -749,7 +737,7 @@ module.exports = function () {
     createTree(mcsd, source, database, topOrg, callback) {
       const datimPromises = [];
       const tree = [];
-      async.eachSeries(mcsd.entry, (mcsdEntry, nxtMCSDEntry) => {
+      async.each(mcsd.entry, (mcsdEntry, callback1) => {
         let long = null;
         let lat = null;
         if (mcsdEntry.resource.hasOwnProperty('position')) {
@@ -757,7 +745,8 @@ module.exports = function () {
           lat = mcsdEntry.resource.position.latitude;
         }
         if (mcsdEntry.resource.id == topOrg) {
-          return nxtMCSDEntry();
+          //return nxtMCSDEntry();
+          return callback1()
         }
         if (!mcsdEntry.resource.hasOwnProperty('partOf')) {
           const parent = {
@@ -768,7 +757,8 @@ module.exports = function () {
             if (!exist) {
               tree.push(parent);
             }
-            return nxtMCSDEntry();
+            //return nxtMCSDEntry();
+            return callback1()
           });
         } else {
           const reference = mcsdEntry.resource.partOf.reference;
@@ -792,7 +782,9 @@ module.exports = function () {
                   return nextParent();
                 } return nextParent();
               });
-            }, () => nxtMCSDEntry());
+            }, () => {
+              return callback1()
+            })
           });
         }
       }, () => callback(tree));

@@ -291,13 +291,13 @@ export default {
       alert: false,
       mohParents: {},
       mohFilter: { text: '', level: '' },
-      selectedMohName: '',
-      selectedMohId: '',
-      selectedMohLat: '',
-      selectedMohLong: '',
-      selectedMohParents: '',
-      selectedDatimId: '',
-      selectedDatimName: '',
+      selectedMohName: null,
+      selectedMohId: null,
+      selectedMohLat: null,
+      selectedMohLong: null,
+      selectedMohParents: null,
+      selectedDatimId: null,
+      selectedDatimName: null,
       dialog: false,
       mohUnmatchedHeaders: [
         { text: 'Location', value: 'name' }
@@ -319,16 +319,6 @@ export default {
         { text: 'DATIM Location', value: 'datimName' },
         { text: 'DATIM ID', value: 'datimId' }
       ]
-      /*
-      potentialHeaders: [
-        { sortable: false },
-        { text: 'DATIM Location', value: 'name', sortable: false },
-        { text: 'ID', value: 'id', sortable: false },
-        { text: 'Lat', value: 'lat', sortable: false },
-        { text: 'Long', value: 'long', sortable: false },
-        { text: 'Score', value: 'score' }
-      ]
-      */
     }
   },
   methods: {
@@ -347,7 +337,6 @@ export default {
           this.selectedMohLat = scoreResult.moh.lat
           this.selectedMohLong = scoreResult.moh.long
           this.selectedMohId = scoreResult.moh.id
-          this.selectedMohParents = scoreResult.moh.parents.join('->')
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
               let potentials = scoreResult.potentialMatches[score][j]
@@ -377,11 +366,11 @@ export default {
       this.selectedDatimName = name
     },
     match (type) {
-      if (this.selectedDatimId === '') {
+      if (this.selectedDatimId === null) {
         this.alert = true
         this.alertTitle = 'Information'
         this.alertText = 'Select DATIM Location to match against MOH Location'
-        return alert('select datim org')
+        return
       }
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
@@ -490,7 +479,7 @@ export default {
           this.$store.state.datimUnMatched.push({
             name: this.$store.state.matchedContent[k].datimName,
             id: this.$store.state.matchedContent[k].datimId,
-            parents: this.$store.state.matchedContent[k].datimParents
+            parents: this.$store.state.matchedContent[k].datimParents.split('->')
           })
           this.$store.state.matchedContent.splice(k, 1)
         }
