@@ -22,7 +22,7 @@
             Longitude: <b>{{selectedMohLong}}</b>
           </template>
           <p>
-            Parents: <b>{{selectedMohParents}}</b>
+            Parents: <b>{{selectedMohParents.join('->')}}</b>
           </p>
         </v-card-title>
         <v-card-text>
@@ -86,6 +86,9 @@
 		      	</v-list-tile>
 		      </v-list>
     		</v-menu>
+      </v-flex>
+      <v-flex md2 v-if="nextLevel == 'yes'">
+        <v-btn color="success" @click='levelChanged(++$store.state.recoLevel)'>Proceed to Level {{$store.state.recoLevel+1}}</v-btn>
       </v-flex>
     </v-layout>
     <v-layout row wrap>
@@ -295,7 +298,7 @@ export default {
       selectedMohId: null,
       selectedMohLat: null,
       selectedMohLong: null,
-      selectedMohParents: null,
+      selectedMohParents: [],
       selectedDatimId: null,
       selectedDatimName: null,
       dialog: false,
@@ -334,6 +337,7 @@ export default {
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.moh.id === id) {
           this.selectedMohName = scoreResult.moh.name
+          this.selectedMohParents = scoreResult.moh.parents
           this.selectedMohLat = scoreResult.moh.lat
           this.selectedMohLong = scoreResult.moh.long
           this.selectedMohId = scoreResult.moh.id
@@ -353,7 +357,7 @@ export default {
                 lat: potentials.lat,
                 long: potentials.long,
                 geoDistance: potentials.geoDistance,
-                parents: potentials.parents.join('->')
+                parents: potentials.parents
               })
             }
           }
@@ -474,12 +478,12 @@ export default {
           this.$store.state.mohUnMatched.push({
             name: this.$store.state.matchedContent[k].mohName,
             id: this.$store.state.matchedContent[k].mohId,
-            parents: this.$store.state.matchedContent[k].mohParents.split('->')
+            parents: this.$store.state.matchedContent[k].mohParents
           })
           this.$store.state.datimUnMatched.push({
             name: this.$store.state.matchedContent[k].datimName,
             id: this.$store.state.matchedContent[k].datimId,
-            parents: this.$store.state.matchedContent[k].datimParents.split('->')
+            parents: this.$store.state.matchedContent[k].datimParents
           })
           this.$store.state.matchedContent.splice(k, 1)
         }
@@ -537,7 +541,7 @@ export default {
           this.$store.state.mohUnMatched.push({
             name: this.$store.state.noMatchContent[k].mohName,
             id: this.$store.state.noMatchContent[k].mohId,
-            parents: this.$store.state.noMatchContent[k].parents.split('->')
+            parents: this.$store.state.noMatchContent[k].parents
           })
           this.$store.state.noMatchContent.splice(k, 1)
         }
@@ -556,7 +560,7 @@ export default {
           this.$store.state.noMatchContent.push({
             mohName: this.selectedMohName,
             mohId: this.selectedMohId,
-            parents: this.$store.state.mohUnMatched[k].parents.join('->')
+            parents: this.$store.state.mohUnMatched[k].parents
           })
           this.$store.state.mohUnMatched.splice(k, 1)
         }
@@ -630,6 +634,19 @@ export default {
         return this.$store.state.mohUnMatched.filter((location) => location.parents[parentIdx] === this.mohFilter.text)
       }
       return this.$store.state.mohUnMatched
+    },
+    nextLevel () {
+      if (this.$store.state.recoLevel < this.$store.state.totalLevels &&
+        this.$store.state.mohUnMatched !== null &&
+        this.$store.state.mohUnMatched.length === 0 &&
+        this.$store.state.flagged !== null &&
+        this.$store.state.flagged.length === 0
+        ) {
+        return 'yes'
+      }
+      else {
+        return 'no'
+      }
     }
   },
   created () {

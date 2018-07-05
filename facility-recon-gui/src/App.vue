@@ -54,7 +54,6 @@ export default {
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.$store.state.totalLevels = levels.data.totalLevels
-        this.$store.state.recoLevel = levels.data.recoLevel
         this.getOrgHierarchy()
         this.getScores()
       })
@@ -85,13 +84,13 @@ export default {
             this.$store.state.flagged.push({
               mohName: scoreResult.moh.name,
               mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents.join('->'),
+              mohParents: scoreResult.moh.parents,
               datimName: scoreResult.exactMatch.name,
               datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents.join('->')
+              datimParents: scoreResult.exactMatch.parents
             })
           } else if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'noMatch') {
-            let parents = scoreResult.moh.parents.join('->')
+            let parents = scoreResult.moh.parents
             this.$store.state.noMatchContent.push({
               mohName: scoreResult.moh.name,
               mohId: scoreResult.moh.id,
@@ -101,10 +100,10 @@ export default {
             this.$store.state.matchedContent.push({
               mohName: scoreResult.moh.name,
               mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents.join('->'),
+              mohParents: scoreResult.moh.parents,
               datimName: scoreResult.exactMatch.name,
               datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents.join('->')
+              datimParents: scoreResult.exactMatch.parents
             })
           } else {
             // let parents = scoreResult.moh.parents.join('->')
