@@ -56,6 +56,7 @@ export default {
         this.$store.state.totalLevels = levels.data.totalLevels
         this.getOrgHierarchy()
         this.getScores()
+        this.getDatimUnmached()
       })
     },
     getScores () {
@@ -72,12 +73,12 @@ export default {
       for (var k = 1; k <= this.$store.state.totalLevels; k++) {
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k})
       }
-      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+      var clientid = this.$store.state.clientid
+      axios.get(backendServer + '/reconcile/' + clientid + '/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
         this.$store.state.flagged = []
-        this.getDatimUnmached()
         this.$store.state.scoreResults = scores.data.scoreResults
         for (let scoreResult of this.$store.state.scoreResults) {
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
@@ -136,6 +137,7 @@ export default {
     this.getTotalLevels()
     this.$root.$on('recalculateScores', () => {
       this.getScores()
+      this.getDatimUnmached()
     })
   },
   name: 'App'

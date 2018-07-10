@@ -12,6 +12,35 @@ const config = require('./config');
 
 module.exports = function () {
   return {
+    getLocations(database, callback) {
+      var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=37000'
+        .toString();
+      const locations = {};
+      locations.entry = [];
+      async.doWhilst(
+        (callback) => {
+          const options = {
+            url,
+          };
+          url = false;
+          request.get(options, (err, res, body) => {
+            //winston.error('responded')
+            body = JSON.parse(body);
+            const next = body.link.find(link => link.relation == 'next');
+            if (next) {
+              url = next.url;
+            }
+            locations.entry = locations.entry.concat(body.entry);
+            return callback(false, url);
+          });
+        },
+        () => url != false,
+        () => {
+          callback(locations);
+        },
+      );
+    },
+
     getLocationByID(database, id, getCached, callback) {
       if (id) var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
       else {
@@ -25,14 +54,12 @@ module.exports = function () {
           const options = {
             url,
           };
-          //winston.error('send request ' + url)
           url = false;
           const cachedData = cache.get(`getLocationByID${url}`);
           if (cachedData && getCached) {
             return callback(cachedData);
           }
           request.get(options, (err, res, body) => {
-            //winston.error('responded')
             const cacheData = JSON.parse(body);
             const next = cacheData.link.find(link => link.relation == 'next');
             if (next) {
@@ -54,7 +81,9 @@ module.exports = function () {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .segment(topOrgId)
         .segment('$hierarchy')
+        + '?_count=100'
         .toString();
+      var url_old = url
       const options = {
         url,
       };

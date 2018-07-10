@@ -5,6 +5,7 @@ const URI = require('urijs')
 const levenshtein = require('fast-levenshtein')
 const geodist = require('geodist')
 const _ = require('underscore')
+//const save = require('child_process').fork('save.js')
 const config = require('./config')
 const mcsd = require("./mcsd")()
 module.exports = function(){
@@ -460,6 +461,8 @@ module.exports = function(){
 												id:datimEntry.resource.id
 											}
 											thisRanking.potentialMatches = {}
+											//msg = {mohId,datimId:datimEntry.resource.id,topOrgId:datimTopId,recoLevel,totalLevels,type:'match'}
+											//save.send(msg)
 											mcsd.saveMatch(mohId,datimEntry.resource.id,datimTopId,recoLevel,totalLevels,'match',()=>{
 
 											})
@@ -482,6 +485,8 @@ module.exports = function(){
 													id:datimEntry.resource.id
 												}
 												thisRanking.potentialMatches = {}
+												//msg = {mohId,datimId:datimEntry.resource.id,topOrgId:datimTopId,recoLevel,totalLevels,type:'match'}
+											  //save.send(msg)
 												mcsd.saveMatch(mohId,datimEntry.resource.id,datimTopId,recoLevel,totalLevels,'match',()=>{
 
 												})
@@ -523,8 +528,6 @@ module.exports = function(){
 									})
 								})
 							},()=>{
-								count++
-								winston.error(count)
 								scoreResults.push(thisRanking)
 								return mohCallback()
 							})

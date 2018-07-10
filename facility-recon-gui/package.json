@@ -16,6 +16,7 @@
     "liquor-tree": "^0.2.27",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
+    "vue-socket.io": "^2.1.1-b",
     "vuelidate": "^0.7.4",
     "vuetify": "^1.0.0",
     "vuetify-upload-button": "^0.1.2",

@@ -1,6 +1,6 @@
 
 require('./init');
-
+const cluster = require('cluster');
 const express = require('express');
 const bodyParser = require('body-parser');
 // const oauthserver = require('node-oauth2-server')
@@ -12,9 +12,11 @@ const https = require('https');
 const http = require('http');
 const config = require('./config');
 const mcsd = require('./mcsd')();
-const scores = require('./scores')();
+const scores = require('./scores_fromDB')();
 
 const app = express();
+var server = require('http').createServer(app);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
@@ -43,7 +45,25 @@ app.post('/oauth/registerUser', (req, res) => {
   });
 });
 */
+if(cluster.isMaster) {
+    var numWorkers = require('os').cpus().length;
 
+    console.log('Master cluster setting up ' + numWorkers + ' workers...');
+
+    for(var i = 0; i < numWorkers; i++) {
+        cluster.fork();
+    }
+
+    cluster.on('online', function(worker) {
+        console.log('Worker ' + worker.process.pid + ' is online');
+    });
+
+    cluster.on('exit', function(worker, code, signal) {
+        console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
+        console.log('Starting a new worker');
+        cluster.fork();
+    });
+} else {
 app.get('/countLevels/:orgid', (req, res) => {
   if (!req.params.orgid) {
     winston.error({ error: 'Missing Orgid' });
@@ -82,24 +102,37 @@ app.get('/hierarchy/:source', (req, res) => {
       var database = orgid;
       const namespace = config.getConf('UUID:namespace');
       var id = uuid5(orgid, `${namespace}000`);
+      var locationReceived = new Promise((resolve,reject)=>{
+        mcsd.getLocations(database,(mcsdData)=>{
+          winston.info(`Done Fetching ${source} Locations`);
+          resolve(mcsdData)
+        })
+      })
     } else if (source == 'DATIM') {
       var id = orgid;
       var database = config.getConf('mCSD:database');
+      var locationReceived = new Promise((resolve,reject)=>{
+        mcsd.getLocationChildren(database, id, (mcsdData) => {
+          winston.info(`Done Fetching ${source} Locations`);
+          resolve(mcsdData)
+        })
+      })
     }
 
-    mcsd.getLocationChildren(database, id, (mcsdData) => {
-      winston.info(`Done Fetching ${source} Locations`);
+    locationReceived.then((mcsdData)=>{
       winston.info(`Creating ${source} Tree`);
       mcsd.createTree(mcsdData, source, database, orgid, (tree) => {
         winston.info(`Done Creating ${source} Tree`);
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).json(tree);
       });
-    });
+    }).catch((err)=>{
+      winston.error(err)
+    })
   }
 });
 
-app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
+app.get('/reconcile/:clientid/:orgid/:totalLevels/:recoLevel', (req, res) => {
   if (!req.params.orgid || !req.params.recoLevel) {
     winston.error({ error: 'Missing Orgid or reconciliation Level' });
     res.set('Access-Control-Allow-Origin', '*');
@@ -126,7 +159,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     });
 
     const mohLocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocationChildren(mohDB, mohTopId, (mcsdMOH) => {
+      mcsd.getLocations(mohDB, (mcsdMOH) => {
         mcsdMohAll = mcsdMOH;
         mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
           resolve(mcsdMohLevel);
@@ -140,7 +173,6 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
         resolve(mcsdMapped);
       });
     });
-
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
       if (recoLevel == totalLevels) {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
@@ -155,6 +187,8 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
           winston.info('Score results sent back');
         });
       }
+    }).catch((err)=>{
+      winston.error(err)
     });
   }
 });
@@ -430,5 +464,6 @@ app.post('/uploadCSV', (req, res) => {
   }
 });
 
-const server = app.listen(config.getConf('server:port'));
-winston.info(`Server is running and listening on port ${server.address().port}`);
+server.listen(config.getConf('server:port'));
+winston.info(`Server is running and listening on port ${config.getConf('server:port')}`);
+}
