@@ -12,7 +12,7 @@ const https = require('https');
 const http = require('http');
 const config = require('./config');
 const mcsd = require('./mcsd')();
-const scores = require('./scores_fromDB')();
+const scores = require('./scores')();
 
 const app = express();
 var server = require('http').createServer(app);

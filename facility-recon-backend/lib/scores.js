@@ -22,8 +22,8 @@ module.exports = function(){
 				winston.error("No MOH data found")
 				return callback()	
 			}
-
-			async.each(mcsdMOH.entry,(mohEntry,mohCallback)=>{
+			var count = 0
+			async.eachSeries(mcsdMOH.entry,(mohEntry,mohCallback)=>{
 				var database = config.getConf("mapping:dbPrefix") + datimTopId
 				//check if this MOH Orgid is mapped
 				var mohId = mohEntry.resource.id
@@ -56,6 +56,8 @@ module.exports = function(){
 							if(noMatch){
 								thisRanking.moh.tag = 'noMatch'
 								scoreResults.push(thisRanking)
+								count++
+								winston.error(count + '/' + mcsdMOH.entry.length)
 								return mohCallback()
 							}
 							//if no macth then this is already marked as a match
@@ -80,6 +82,8 @@ module.exports = function(){
 										id: match.resource.id
 									}
 									scoreResults.push(thisRanking)
+									count++
+									winston.error(count + '/' + mcsdMOH.entry.length)
 									return mohCallback()
 								})
 							}
@@ -230,6 +234,8 @@ module.exports = function(){
 								})
 							},()=>{
 								scoreResults.push(thisRanking)
+								count++
+								winston.error(count + '/' + mcsdMOH.entry.length)
 								return mohCallback()
 							})
 						}).catch((err)=>{
