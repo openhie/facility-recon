@@ -7,6 +7,12 @@ const uuid5 = require('uuid/v5');
 const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
+const mongoBackup = require('mongodb-backup')
+const mongoRestore = require('mongodb-restore')
+const mongoose = require('mongoose')
+const fsFinder = require('fs-finder')
+const fs = require('fs');
+const moment = require('moment')
 const cache = require('memory-cache');
 const config = require('./config');
 
@@ -410,7 +416,7 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
-        winston.info('Data saved successfully');
+        //winston.info('Data saved successfully');
         callback(err, body);
       });
     },
@@ -653,7 +659,6 @@ module.exports = function () {
               }
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
-                winston.error(data[headerMapping[topLevelName]])
                 if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
                   parent = data[headerMapping[topLevelName]];
                   if (topLevel.toString().length < 2) {
@@ -841,5 +846,129 @@ module.exports = function () {
         });
       }, () => callback(false));
     },
+    cleanArchives (db,callback) {
+      var maxArchives = config.getConf('dbArchives:maxArchives')
+      var filter = function(stat, path) {
+        if(path.includes(db)){
+          return true
+        }
+        else{
+          return false
+        }
+      }
+
+      var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
+        if(files.length > maxArchives) {
+          var totalDelete = files.length - maxArchives
+          filesDelete = []
+          async.eachSeries(files,(file,nxtFile)=>{
+            //if max archive files not reached then add to the delete list
+            if(filesDelete.length < totalDelete) {
+              filesDelete.push(file)
+              return nxtFile()
+            }
+            else {
+              var replaceDel = filesDelete.find((fDelete)=>{
+                fDelete = fDelete.replace(`${__dirname}/dbArhives/${db}_`,'').replace('.tar','')
+                fDelete = moment(fDelete)
+                searchFile = file.replace(`${__dirname}/dbArhives/${db}_`,'').replace('.tar','')
+                searchFile = moment(searchFile)
+                return fDelete > searchFile
+              })
+              if(replaceDel) {
+                var index = filesDelete.indexOf(replaceDel)
+                filesDelete.splice(index,1)
+                filesDelete.push(file)
+              }
+              return nxtFile()
+            }
+          },()=>{
+            filesDelete.forEach((fileDelete)=>{
+              fs.unlink(fileDelete,(err)=>{
+                if(err) {
+                  winston.error(err)
+                }
+              })
+            })
+            callback()
+          })
+        }
+      });
+    },
+
+    archiveDB (db,callback) {
+      winston.info('Archiving DB ' + db)
+      var mongoUser = config.getConf('mCSD:databaseUser')
+      var mongoPasswd = config.getConf('mCSD:databasePassword')
+      var mongoHost = config.getConf('mCSD:databaseHost')
+      var mongoPort = config.getConf('mCSD:databasePort')
+      var name = db + '_' + moment().format()
+      if(mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
+      }
+      else {
+       var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+      }
+      var me = this
+      mongoBackup ({
+        uri: uri,
+        root: `${__dirname}/dbArhives`,
+        tar: `${name}.tar`,
+        callback: function(err) {
+          if (err) {
+            winston.error(err);
+          } else {
+            winston.info(db + ' backed up successfully');
+          }
+          me.cleanArchives(db,()=>{})
+          callback(err)
+        }
+      })
+    },
+    restoreDB (archive,db,callback) {
+      var mongoUser = config.getConf('mCSD:databaseUser')
+      var mongoPasswd = config.getConf('mCSD:databasePassword')
+      var mongoHost = config.getConf('mCSD:databaseHost')
+      var mongoPort = config.getConf('mCSD:databasePort')
+      if(mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
+      }
+      else {
+       var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+      }
+      mongoRestore ({
+        uri: uri,
+        root: `${__dirname}/dbArhives`,
+        tar: `${archive}.tar`,
+        callback: function(err) {
+          if (err) {
+            winston.error(err);
+          } else {
+            winston.info(archive + ' restored successfully');
+          }
+          callback(err)
+        }
+      })
+    },
+    deleteDB (db,callback) {
+      //archive before deleting
+      this.archiveDB(db,(err)=>{
+        if(err) {
+          return callback(err)
+        }
+        mongoose.connect(`mongodb://localhost/${db}`);
+        mongoose.connection.on('open', function(){
+          mongoose.connection.db.dropDatabase( (err) => {
+            if(err) {
+              winston.error(err)
+            }
+            else {
+              winston.info('db Dropped')
+            }
+            callback(err)
+          });
+        })
+      })
+    }
   };
 };

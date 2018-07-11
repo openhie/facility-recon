@@ -408,27 +408,18 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       winston.info('Converting CSV to mCSD');
-      const convertedTomCSD = new Promise((resolve, reject) => {
-        mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
-          resolve(mcsdMOH);
-        });
-      });
-
-      convertedTomCSD.then((mcsdMOH) => {
-        winston.info('CSV Converted to mCSD');
-        winston.info('Saving MOH CSV into database');
-        mcsd.saveLocations(mcsdMOH, orgid, (err, body) => {
-          winston.info('MOH mCSD Saved');
-          res.set('Access-Control-Allow-Origin', '*');
-          if (err) {
-            res.status(400).send(err);
-            return;
-          }
-          res.status(200).end();
-        });
-      }).catch((err) => {
-        winston.error(err);
-      });
+      //drop existing DB first
+      mcsd.deleteDB(orgid,(err)=>{
+        if(!err){
+          mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            res.status(200).end();
+          });
+        }
+        else {
+          winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
+        }
+      })
     });
   });
 

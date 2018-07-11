@@ -12,14 +12,21 @@
   },
   "mCSD":{
     "url":"http://localhost:3447",
-    "database": "GeoAlign",
     "username": "",
-    "password": ""
+    "password": "",
+    "database": "GeoAlign",
+    "databaseUser": "",
+    "databasePassword": "",
+    "databaseHost": "localhost",
+    "databasePort": "27017"
   },
   "CSD":{
     "url":"http://localhost:8984/CSD",
     "username":"",
     "password":""
+  },
+  "dbArchives":{
+    "maxArchives":2
   },
   "UUID":{
     "namespace":"de2026e0-62ad-11e8-98ab-fb2f18c02"

@@ -12,6 +12,8 @@ const mcsd = require('./mcsd')();
 module.exports = function () {
   return {
     getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
+    	winston.error(mcsdDATIM.entry.length)
+    	winston.error(mcsdDatimAll.entry.length)
       const scoreResults = [];
       const mapped = [];
       const maxSuggestions = config.getConf('matchResults:maxSuggestions');
@@ -24,6 +26,7 @@ module.exports = function () {
         return callback();
       }
       let count = 0;
+      var ignore = []
       async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
@@ -124,9 +127,16 @@ module.exports = function () {
               async.each(mcsdDATIM.entry, (datimEntry, datimCallback) => {
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
+                var ignored = ignore.find((ignored)=>{
+                	return ignored == id
+                })
+                if(ignored) {
+                	return datimCallback()
+                }
                 // check if this is already mapped
                 this.matchStatus(mcsdMapped, id, (mapped) => {
                   if (mapped) {
+                  	ignore.push(datimEntry.resource.id)
                     return datimCallback();
                   }
                   const datimName = datimEntry.resource.name;
@@ -181,6 +191,7 @@ module.exports = function () {
                       parentsEquals = mohParentNames[0] == datimMappedParentNames[0];
                     }
                     if (lev == 0 && parentsEquals) {
+                    	ignore.push(datimEntry.resource.id)
                       if (Object.keys(datimMappedParentNames).length == Object.keys(mohParents).length && datimMappedParentNames[0] == mohParentNames[0]) {
                         thisRanking.exactMatch = {
                           name: datimName,

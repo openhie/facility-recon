@@ -1,14 +1,10 @@
-var resource = {}
-resource.identifier = []
-resource.identifier.push({"system":"gofr.org","value":"Wow"})
-partOf = {"helo":"ww"}
-resource.physicalType = {
-    "coding":[
-                {
-                  "code": "jdn",
-                  "display": "Jurisdiction",
-                  "system": "http://hl7.org/fhir/location-physical-type"
-                }
-              ]
-  }
-console.log(JSON.stringify(resource))
+var Finder = require('fs-finder');
+
+var filter = function(stat, path) {
+	if(path.includes(db))
+  return true
+};
+
+var files = Finder.from(__dirname + '/lib/dbArhives').filter(filter).findFiles((files)=>{
+	console.log(files)
+});
