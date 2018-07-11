@@ -277,13 +277,15 @@ module.exports = function () {
         return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
       }
       const entry = mcsd.entry.find(entry => entry.resource.id == topOrgId);
+      if(!entry) {
+        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+      }
       if (levelNumber == 1) {
         mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry);
       }
       if (totalLevels) {
         mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
       }
-
       const building = entry.resource.physicalType.coding.find(coding => coding.code == 'building');
 
       if (building) {

@@ -132,7 +132,7 @@ app.get('/hierarchy/:source', (req, res) => {
   }
 });
 
-app.get('/reconcile/:clientid/:orgid/:totalLevels/:recoLevel', (req, res) => {
+app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
   if (!req.params.orgid || !req.params.recoLevel) {
     winston.error({ error: 'Missing Orgid or reconciliation Level' });
     res.set('Access-Control-Allow-Origin', '*');

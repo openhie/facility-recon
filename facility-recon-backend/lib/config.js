@@ -1,4 +1,4 @@
- /**
+/**
  * Copyright (c) 2017-present, Jembi Health Systems NPC.
  * All rights reserved.
  *
@@ -6,45 +6,44 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-'use strict'
 
-const path = require('path')
-const stdio = require('stdio')
-const nconf = require('nconf')
+const path = require('path');
+const stdio = require('stdio');
+const nconf = require('nconf');
 
-nconf.env({ separator: '__' })
+nconf.env({ separator: '__' });
 
 const ops = stdio.getopt({
   conf: {
     key: 'c',
     args: 1,
-    description: 'The backend configuration to use. See config/default.json for an example.'
+    description: 'The backend configuration to use. See config/default.json for an example.',
   },
   createIndexes: {
-    description: 'Boolean to create mongo indexes on server startup'
-  }
-})
+    description: 'Boolean to create mongo indexes on server startup',
+  },
+});
 
 if (ops && ops.conf) {
-  nconf.file(ops.conf)
+  nconf.file(ops.conf);
 } else {
-  const environment = nconf.get('NODE_ENV') || 'development'
-  nconf.file('environment', path.resolve(`${global.appRoot}/config`, environment + '.json'))
-  nconf.file('default', path.resolve(`${global.appRoot}/config`, 'default.json'))
-  //nconf.file('custom', path.resolve(`${global.appRoot}/config`, 'default_multiple_instances.json'))
+  const environment = nconf.get('NODE_ENV') || 'development';
+  nconf.file('environment', path.resolve(`${global.appRoot}/config`, `${environment}.json`));
+  nconf.file('default', path.resolve(`${global.appRoot}/config`, 'default.json'));
+  // nconf.file('custom', path.resolve(`${global.appRoot}/config`, 'default_multiple_instances.json'))
 }
 
 if (ops && ops.createIndexes) {
-  nconf.set('createIndexes', true)
+  nconf.set('createIndexes', true);
 }
 
-function getConf (key) {
-  return nconf.get(key)
+function getConf(key) {
+  return nconf.get(key);
 }
 
-function setConf (key, value) {
-  nconf.set(key, value)
+function setConf(key, value) {
+  nconf.set(key, value);
 }
 
-exports.getConf = getConf
-exports.setConf = setConf
+exports.getConf = getConf;
+exports.setConf = setConf;

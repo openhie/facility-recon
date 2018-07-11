@@ -10,7 +10,7 @@ export const store = new Vuex.Store({
   state: {
     datimHierarchy: '',
     mohHierarchy: '',
-    orgUnit: { OrgId: 'PqlFzhuPcF1', OrgName: 'Malawi' },
+    orgUnit: { OrgId: 'lZsCb6y0KDX', OrgName: 'Malawi' },
     totalLevels: '',
     recoLevel: 2,
     matchedContent: null,

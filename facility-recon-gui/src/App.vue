@@ -73,8 +73,7 @@ export default {
       for (var k = 1; k <= this.$store.state.totalLevels; k++) {
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k})
       }
-      var clientid = this.$store.state.clientid
-      axios.get(backendServer + '/reconcile/' + clientid + '/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
@@ -121,6 +120,18 @@ export default {
               parents: scoreResult.moh.parents
             })
           }
+        }
+      })
+    },
+    getOrganisationUnit () {
+      var href = location.href.split('api').shift()
+      axios.get(href + 'api/me').then((userData) => {
+        var orgUnitsIDs = userData.data.organisationUnits
+        if (orgUnitsIDs.length > 0) {
+          this.$store.state.orgUnit.OrgId = orgUnitsIDs.shift().id
+          axios.get(href + 'api/organisationUnits/' + this.$store.state.orgUnit.OrgId).then((orgUnits) => {
+            this.$store.state.orgUnit.OrgName = orgUnits.data.displayName
+          })
         }
       })
     },
