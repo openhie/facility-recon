@@ -64,6 +64,7 @@ if(cluster.isMaster) {
         cluster.fork();
     });
 } else {
+
 app.get('/countLevels/:orgid', (req, res) => {
   if (!req.params.orgid) {
     winston.error({ error: 'Missing Orgid' });
@@ -83,6 +84,48 @@ app.get('/countLevels/:orgid', (req, res) => {
         res.status(200).json({ totalLevels, recoLevel });
       }
     });
+  }
+});
+
+app.get('/getArchives/:orgid', (req, res) => {
+  if (!req.params.orgid) {
+    winston.error({ error: 'Missing Orgid' });
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(401).json({ error: 'Missing Orgid' });
+  } else {
+    const orgid = req.params.orgid;
+    winston.info(`Getting archived DB for ${orgid}`);
+    mcsd.getArchives(orgid,(err,archives)=>{
+      res.set('Access-Control-Allow-Origin', '*');
+      if(err) {
+        winston.error({ error: 'Unexpected error has occured' });
+        res.status(400).json({ error: 'Unexpected error'});
+        return
+      }
+      res.status(200).json(archives)
+    })
+  }
+});
+
+app.post('/restoreArchive/:orgid', (req,res) => {
+  if (!req.params.orgid) {
+    winston.error({ error: 'Missing Orgid' });
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(401).json({ error: 'Missing Orgid' });
+  } else {
+    const orgid = req.params.orgid;
+    winston.info(`Restoring archive DB for ${orgid}`);
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      mcsd.restoreDB(fields.archive,orgid,(err) => {
+        res.set('Access-Control-Allow-Origin', '*');
+        if(err) {
+          winston.error(err)
+          res.status(401).json({ error: 'Unexpected error' });
+        }
+        res.status(200).send();
+      })
+    })
   }
 });
 
@@ -408,17 +451,30 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       winston.info('Converting CSV to mCSD');
-      //drop existing DB first
-      mcsd.deleteDB(orgid,(err)=>{
-        if(!err){
-          mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
+      //archive existing DB first
+      mcsd.archiveDB(orgid,(err)=>{
+        if(err) {
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(400).end();
+          winston.error('An error occured while Archiving existing DB,Upload of new dataset was stopped')
+          return
+        }
+        //ensure old archives are deleted
+        mcsd.cleanArchives(orgid,()=>{})
+        //delete existing db
+        mcsd.deleteDB(orgid,(err)=>{
+          if(!err){
+            mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
+              res.set('Access-Control-Allow-Origin', '*');
+              res.status(200).end();
+            });
+          }
+          else {
+            winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
             res.set('Access-Control-Allow-Origin', '*');
-            res.status(200).end();
-          });
-        }
-        else {
-          winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
-        }
+            res.status(400).end();
+          }
+        })
       })
     });
   });

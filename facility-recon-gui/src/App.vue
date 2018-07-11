@@ -10,6 +10,7 @@
         <v-btn to="upload" flat>Upload</v-btn>
         <v-btn to="view" flat>View</v-btn>
         <v-btn flat to="scores">Reconcile</v-btn>
+        <v-btn flat to="dbAdmin">Database Admin</v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>

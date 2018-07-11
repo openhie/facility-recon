@@ -895,7 +895,6 @@ module.exports = function () {
         }
       });
     },
-
     archiveDB (db,callback) {
       winston.info('Archiving DB ' + db)
       var mongoUser = config.getConf('mCSD:databaseUser')
@@ -914,13 +913,12 @@ module.exports = function () {
         uri: uri,
         root: `${__dirname}/dbArhives`,
         tar: `${name}.tar`,
-        callback: function(err) {
+        callback: (err) => {
           if (err) {
             winston.error(err);
           } else {
             winston.info(db + ' backed up successfully');
           }
-          me.cleanArchives(db,()=>{})
           callback(err)
         }
       })
@@ -936,37 +934,58 @@ module.exports = function () {
       else {
        var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
       }
-      mongoRestore ({
-        uri: uri,
-        root: `${__dirname}/dbArhives`,
-        tar: `${archive}.tar`,
-        callback: function(err) {
-          if (err) {
-            winston.error(err);
-          } else {
-            winston.info(archive + ' restored successfully');
-          }
-          callback(err)
-        }
+      var me = this
+      this.archiveDB(db,(err)=>{
+        this.deleteDB(db,(err)=>{
+          mongoRestore ({
+            uri: uri,
+            root: `${__dirname}/dbArhives`,
+            tar: `${db}_${archive}.tar`,
+            callback: (err) => {
+              if (err) {
+                winston.error(err);
+              } else {
+                winston.info(archive + ' restored successfully');
+              }
+              me.cleanArchives(db,()=>{})
+              callback(err)
+            }
+          })
+        })
       })
     },
     deleteDB (db,callback) {
-      //archive before deleting
-      this.archiveDB(db,(err)=>{
-        if(err) {
-          return callback(err)
+      mongoose.connect(`mongodb://localhost/${db}`);
+      mongoose.connection.on('open',() => {
+        mongoose.connection.db.dropDatabase( (err) => {
+          if(err) {
+            winston.error(err)
+          }
+          else {
+            winston.info('db Dropped')
+          }
+          callback(err)
+        });
+      })
+    },
+    getArchives (db,callback) {
+      var filter = function(stat, path) {
+        if(path.includes(db)){
+          return true
         }
-        mongoose.connect(`mongodb://localhost/${db}`);
-        mongoose.connection.on('open', function(){
-          mongoose.connection.db.dropDatabase( (err) => {
-            if(err) {
-              winston.error(err)
-            }
-            else {
-              winston.info('db Dropped')
-            }
-            callback(err)
-          });
+        else{
+          return false
+        }
+      }
+
+      var archives = []
+      var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
+        async.eachSeries(files,(file,nxtFile)=>{
+          file = file.split('/').pop().replace('.tar','').replace(`${db}_`,'')
+          archives.push(file)
+          return nxtFile()
+        },()=>{
+          return callback(false,archives)
         })
       })
     }
