@@ -197,12 +197,14 @@
         </v-stepper-items>
       </v-stepper>
     </v-slide-y-transition>
+    <app-FacilityReconDbAdmin v-show='$store.state.showArchives'></app-FacilityReconDbAdmin>
   </v-container>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
+import FacilityReconDbAdmin from './FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
 
 const config = require('../../config')
@@ -213,6 +215,7 @@ export default {
   data () {
     return {
       dialog: false,
+      showArchives: false,
       file: '',
       uploadedFileName: '',
       e1: 0,
@@ -252,6 +255,9 @@ export default {
     level2: {
       required: required
     }
+  },
+  components:{
+    appFacilityReconDbAdmin: FacilityReconDbAdmin
   },
   methods: {
     fileSelected (e) {

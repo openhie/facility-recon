@@ -20,6 +20,7 @@ export const store = new Vuex.Store({
     datimUnMatched: null,
     mohUnMatched: null,
     scoreResults: [],
-    levelArray: []
+    levelArray: [],
+    showArchives: true
   }
 })
