@@ -27,7 +27,6 @@ module.exports = function () {
       }
       let count = 0;
       var ignore = []
-      var mycount = 0
       var datimParentNames = {}
       var datimMappedParentNames = {}
       for ( entry of mcsdDATIM.entry ) {
@@ -61,7 +60,6 @@ module.exports = function () {
           });
         }
       }
-      console.log(datimParentNames.length)
       async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
@@ -241,9 +239,9 @@ module.exports = function () {
     },
 
     getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
-      const scoreResults = [];
-      const mapped = [];
-      const maxSuggestions = config.getConf('matchResults:maxSuggestions');
+      var scoreResults = [];
+      var mapped = [];
+      var maxSuggestions = config.getConf('matchResults:maxSuggestions');
       if (mcsdDATIM.total == 0) {
         winston.error('No DATIM data found for this orgunit');
         return callback();
@@ -252,10 +250,43 @@ module.exports = function () {
         winston.error('No MOH data found');
         return callback();
       }
-      const counter = 0;
-      const promises = [];
-      const count = 0;
-      const mohPromises = [];
+      var counter = 0;
+      var promises = [];
+      var count = 0;
+      var mohPromises = [];
+      var datimParentNames = {}
+      var datimMappedParentNames = {}
+      for ( entry of mcsdDATIM.entry ) {
+        if (entry.resource.hasOwnProperty('partOf')) {
+          datimParentNames[entry.resource.id] = [];
+          datimMappedParentNames[entry.resource.id] = [];
+          const entityParent = entry.resource.partOf.reference;
+          mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
+            // lets make sure that we use the mapped parent for comparing against MOH
+            for( parent of parents ) {
+              this.matchStatus(mcsdMapped, parent.id, (mapped) => {
+                if (mapped) {
+                  const mappedPar = mapped.resource.identifier.find((identifier) => {
+                    if (identifier.system == 'http://geoalign.datim.org/MOH') {
+                      const mohParId = identifier.value.split('/').pop();
+                      var found = mohParents.find((parent) => {
+                        if (parent.id === mohParId) {
+                          datimMappedParentNames[entry.resource.id].push(parent.text);
+                          return parent.text;
+                        }
+                      });
+                    }
+                    return found;
+                  });
+                  datimParentNames[entry.resource.id].push(parent.text);
+                }
+                datimMappedParentNames[entry.resource.id].push(parent.text);
+                datimParentNames[entry.resource.id].push(parent.text);
+              });
+            }
+          });
+        }
+      }
       async.each(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
@@ -324,9 +355,7 @@ module.exports = function () {
                 return mohCallback();
               });
             });
-	      	}
-	      	// if not mapped
-	      	else {
+     	  } else { // if not mapped
             const mohName = mohEntry.resource.name;
             let mohParents = [];
             const mohParentNames = [];
@@ -382,6 +411,7 @@ module.exports = function () {
                     datimLatitude = datimEntry.resource.position.latitude;
                     datimLongitude = datimEntry.resource.position.longitude;
                   }
+                    /*
                   let datimParents = [];
                   const datimParentNames = [];
                   const datimMappedParentNames = [];
@@ -417,10 +447,11 @@ module.exports = function () {
                   if (datimEntry.resource.hasOwnProperty('partOf')) {
                     entityParent = datimEntry.resource.partOf.reference;
                   }
+                  */
 
-                  mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
-                    modifyParents(parents, () => {
-                      if (mohParentNames[0] != datimMappedParentNames[0]) {
+                  //mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
+                    //modifyParents(parents, () => {
+                      if (mohParentNames[0] != datimMappedParentNames[datimEntry.resource.id][0]) {
                         return datimCallback();
                       }
                       // get distance between the coordinates
@@ -434,7 +465,7 @@ module.exports = function () {
                       if (matchingIdent) {
                         thisRanking.exactMatch = {
                           name: datimName,
-                          parents: datimParentNames,
+                          parents: datimParentNames[datimEntry.resource.id],
                           lat: datimLatitude,
                           long: datimLongitude,
                           geoDistance: dist,
@@ -451,13 +482,13 @@ module.exports = function () {
                       lev = levenshtein.get(datimName, mohName);
                       // if names mathes exactly and the two has same parents then this is an exact match
                       let parentsEquals = false;
-                      if (mohParentNames.length > 0 && datimMappedParentNames.length > 0) {
-                        parentsEquals = mohParentNames[0] == datimMappedParentNames[0];
+                      if (mohParentNames.length > 0 && datimMappedParentNames[datimEntry.resource.id].length > 0) {
+                        parentsEquals = mohParentNames[0] == datimMappedParentNames[datimEntry.resource.id][0];
                       }
                       if (lev == 0 && parentsEquals) {
                         thisRanking.exactMatch = {
                           name: datimName,
-                          parents: datimParentNames,
+                          parents: datimParentNames[datimEntry.resource.id],
                           lat: datimLatitude,
                           long: datimLongitude,
                           geoDistance: dist,
@@ -477,7 +508,7 @@ module.exports = function () {
                           }
                           thisRanking.potentialMatches[lev].push({
                             name: datimName,
-                            parents: datimParentNames,
+                            parents: datimParentNames[datimEntry.resource.id],
                             lat: datimLatitude,
                             long: datimLongitude,
                             geoDistance: dist,
@@ -491,7 +522,7 @@ module.exports = function () {
                             thisRanking.potentialMatches[lev] = [];
                             thisRanking.potentialMatches[lev].push({
                               name: datimName,
-                              parents: datimParentNames,
+                              parents: datimParentNames[datimEntry.resource.id],
                               lat: datimLatitude,
                               long: datimLongitude,
                               geoDistance: dist,
@@ -501,11 +532,13 @@ module.exports = function () {
                         }
                       }
                       return datimCallback();
-                    });
-                  });
+                    //});
+                  //});
                 });
               }, () => {
                 scoreResults.push(thisRanking);
+                count++;
+                winston.info(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               });
             }).catch((err) => {
