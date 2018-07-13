@@ -27,6 +27,41 @@ module.exports = function () {
       }
       let count = 0;
       var ignore = []
+      var mycount = 0
+      var datimParentNames = {}
+      var datimMappedParentNames = {}
+      for ( entry of mcsdDATIM.entry ) {
+        if (entry.resource.hasOwnProperty('partOf')) {
+          datimParentNames[entry.resource.id] = [];
+          datimMappedParentNames[entry.resource.id] = [];
+          const entityParent = entry.resource.partOf.reference;
+          mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
+            // lets make sure that we use the mapped parent for comparing against MOH
+            for( parent of parents ) {
+              this.matchStatus(mcsdMapped, parent.id, (mapped) => {
+                if (mapped) {
+                  const mappedPar = mapped.resource.identifier.find((identifier) => {
+                    if (identifier.system == 'http://geoalign.datim.org/MOH') {
+                      const mohParId = identifier.value.split('/').pop();
+                      var found = mohParents.find((parent) => {
+                        if (parent.id === mohParId) {
+                          datimMappedParentNames[entry.resource.id].push(parent.text);
+                          return parent.text;
+                        }
+                      });
+                    }
+                    return found;
+                  });
+                  datimParentNames[entry.resource.id].push(parent.text);
+                }
+                datimMappedParentNames[entry.resource.id].push(parent.text);
+                datimParentNames[entry.resource.id].push(parent.text);
+              });
+            }
+          });
+        }
+      }
+      console.log(datimParentNames.length)
       async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
@@ -88,9 +123,7 @@ module.exports = function () {
                 return mohCallback();
               });
             });
-	      	}
-	      	// if not mapped
-	      	else {
+          } else { // if not mapped
             const mohName = mohEntry.resource.name;
             let mohParents = [];
             const mohParentNames = [];
@@ -140,105 +173,63 @@ module.exports = function () {
                     return datimCallback();
                   }
                   const datimName = datimEntry.resource.name;
-                  if (datimEntry.resource.hasOwnProperty('partOf')) {
-                    let datimParents = [];
-                    var datimParentNames = [];
-                    var datimMappedParentNames = [];
-                    const entityParent = datimEntry.resource.partOf.reference;
-                    var datimParentReceived = new Promise((resolve, reject) => {
-                      mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
-                        datimParents = parents;
-                        // lets make sure that we use the mapped parent for comparing against MOH
-                        async.eachSeries(datimParents, (parent, nxtParent) => {
-                          this.matchStatus(mcsdMapped, parent.id, (mapped) => {
-                            if (mapped) {
-                              const mappedPar = mapped.resource.identifier.find((identifier) => {
-                                if (identifier.system == 'http://geoalign.datim.org/MOH') {
-                                  const mohParId = identifier.value.split('/').pop();
-                                  var found = mohParents.find((parent) => {
-                                    if (parent.id === mohParId) {
-                                      datimMappedParentNames.push(parent.text);
-                                      return parent.text;
-                                    }
-                                  });
-                                }
-                                return found;
-                              });
-                              datimParentNames.push(parent.text);
-                              return nxtParent();
-                            }
-                            datimMappedParentNames.push(parent.text);
-                            datimParentNames.push(parent.text);
-                            return nxtParent();
-                          });
-                        }, () => {
-                          resolve();
-                        });
-                      });
-                    });
-                  } else {
-                    var datimParentReceived = Promise.resolve([]);
+                  const datimId = datimEntry.resource.id
+                  if (mohParentNames[0] != datimMappedParentNames[datimId][0]) {
+                    return datimCallback();
                   }
-                  datimParentReceived.then(() => {
-                    if (mohParentNames[0] != datimMappedParentNames[0]) {
-                      return datimCallback();
+                  lev = levenshtein.get(datimName, mohName);
+                  // if names mathes exactly and the two has same parents then this is an exact match
+                  // var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
+                  let parentsEquals = false;
+                  if (mohParentNames.length > 0 && datimMappedParentNames[datimId].length > 0) {
+                    parentsEquals = mohParentNames[0] == datimMappedParentNames[datimId][0];
+                  }
+                  if (lev == 0 && parentsEquals) {
+                  	ignore.push(datimEntry.resource.id)
+                    if (Object.keys(datimMappedParentNames[datimId]).length == Object.keys(mohParents).length && datimMappedParentNames[datimId][0] == mohParentNames[0]) {
+                      thisRanking.exactMatch = {
+                        name: datimName,
+                        parents: datimParentNames[datimId],
+                        id: datimEntry.resource.id,
+                      };
+                      thisRanking.potentialMatches = {};
                     }
-                    lev = levenshtein.get(datimName, mohName);
-                    // if names mathes exactly and the two has same parents then this is an exact match
-                    // var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
-                    let parentsEquals = false;
-                    if (mohParentNames.length > 0 && datimMappedParentNames.length > 0) {
-                      parentsEquals = mohParentNames[0] == datimMappedParentNames[0];
-                    }
-                    if (lev == 0 && parentsEquals) {
-                    	ignore.push(datimEntry.resource.id)
-                      if (Object.keys(datimMappedParentNames).length == Object.keys(mohParents).length && datimMappedParentNames[0] == mohParentNames[0]) {
-                        thisRanking.exactMatch = {
-                          name: datimName,
-                          parents: datimParentNames,
-                          id: datimEntry.resource.id,
-                        };
-                        thisRanking.potentialMatches = {};
-                      }
-                      mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+                    mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
 
+                    });
+                    // we will need to break here and start processing nxt MOH
+                    return datimCallback();
+                  }
+                  if (Object.keys(thisRanking.exactMatch).length == 0) {
+                    if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
+                      if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
+                        thisRanking.potentialMatches[lev] = [];
+                      }
+                      thisRanking.potentialMatches[lev].push({
+                        name: datimName,
+                        parents: datimParentNames[datimId],
+                        id: datimEntry.resource.id,
                       });
-                      // we will need to break here and start processing nxt MOH
-                      return datimCallback();
-                    }
-                    if (Object.keys(thisRanking.exactMatch).length == 0) {
-                      if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
-                        if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
-                          thisRanking.potentialMatches[lev] = [];
-                        }
+                    } else {
+                      const existingLev = Object.keys(thisRanking.potentialMatches);
+                      const max = _.max(existingLev);
+                      if (lev < max) {
+                        delete thisRanking.potentialMatches[max];
+                        thisRanking.potentialMatches[lev] = [];
                         thisRanking.potentialMatches[lev].push({
                           name: datimName,
-                          parents: datimParentNames,
+                          parents: datimParentNames[datimId],
                           id: datimEntry.resource.id,
                         });
-                      } else {
-                        const existingLev = Object.keys(thisRanking.potentialMatches);
-                        const max = _.max(existingLev);
-                        if (lev < max) {
-                          delete thisRanking.potentialMatches[max];
-                          thisRanking.potentialMatches[lev] = [];
-                          thisRanking.potentialMatches[lev].push({
-                            name: datimName,
-                            parents: datimParentNames,
-                            id: datimEntry.resource.id,
-                          });
-                        }
                       }
                     }
-                    return datimCallback();
-                  }).catch((err) => {
-                    winston.error(err);
-                  });
+                  }
+                  return datimCallback();
                 });
               }, () => {
                 scoreResults.push(thisRanking);
                 count++;
-                winston.error(`${count}/${mcsdMOH.entry.length}`);
+                winston.info(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               });
             }).catch((err) => {
@@ -528,7 +519,7 @@ module.exports = function () {
       if (mcsdMapped.length === 0 || !mcsdMapped) {
         return callback();
       }
-      const status = mcsdMapped.entry.find(entry => entry.resource.id == id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value == id)));
+      const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
     getUnmatched(mcsdDatimAll, mcsdDatim, topOrgId, callback) {
