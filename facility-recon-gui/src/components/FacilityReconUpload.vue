@@ -337,7 +337,7 @@ export default {
         }
       ).then((data) => {
         this.uploadProgress = false
-        //this.dialog = true
+        this.dialog = true
         this.$root.$emit('recalculateScores')
         this.$root.$emit('reloadTree')
       }).catch((err) => {
@@ -346,6 +346,7 @@ export default {
     },
     closeDialog (component) {
       this.$router.push({name: component})
+      location.reload()
       this.dialog = false
     }
   },

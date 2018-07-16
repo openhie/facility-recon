@@ -25,13 +25,13 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">MoH Data Tree</h3>
               </v-card-title>
-              <template v-if="!mohTreeData">
+              <template v-if="!$store.state.mohHierarchy.data">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-text>
                   <p><liquor-tree
-                    :data="mohTreeData"
+                    :data="$store.state.mohHierarchy.data"
                     :options="{}" ref="mohTree"/></p>
                 </v-card-text>
               </template>
