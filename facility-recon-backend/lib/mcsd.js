@@ -30,7 +30,6 @@ module.exports = function () {
           };
           url = false;
           request.get(options, (err, res, body) => {
-            //winston.error('responded')
             body = JSON.parse(body);
             const next = body.link.find(link => link.relation == 'next');
             if (next) {
@@ -491,7 +490,6 @@ module.exports = function () {
         delete flagged.link
         const flagCode = config.getConf('mapping:flagCode');
         //remove the flag tag
-        //winston.error(JSON.stringify(flagged.entry.fullurl))
         for (var k in flagged.entry[0].resource.tag) {
           var tag = flagged.entry[0].resource.tag[k]
           if (tag.code === flagCode) {
@@ -578,19 +576,59 @@ module.exports = function () {
         });
       });
     },
-    breakMatch(id, database, callback) {
+    breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .segment(id)
         .toString();
       const options = {
         url,
       };
-      request.delete(options, (err, res, body) => {
-        if (err) {
-          winston.error(err);
+      this.getLocationByID(database,id,false,(location)=>{
+        request.delete(options, (err, res, body) => {
+          if (err) {
+            winston.error(err);
+          }
+          callback(err);
+        });
+        var identifier = location.entry[0].resource.identifier.find((identifier)=>{
+          return identifier.system == 'http://geoalign.datim.org/MOH'
+        })
+        if(identifier) {
+          let id = identifier.value.split('/').pop()
+          this.getLocationByID(topOrgId,id,false,(location)=>{
+            delete location.resourceType
+            delete location.id
+            delete location.meta
+            delete location.total
+            delete location.link
+            const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
+            //remove the flag tag
+            var found = false
+            async.eachSeries(location.entry[0].resource.tag,(tag,nxtTag)=>{
+              if (tag.code === matchBrokenCode) {
+                found = true
+              }
+              return nxtTag()
+            },()=>{
+              location.type = 'document'
+              if(!found) {
+                if(!location.entry[0].resource.hasOwnProperty('tag')) {
+                  location.entry[0].resource.tag = []
+                }
+                let mohSystem = 'http://geoalign.datim.org/MOH'
+                location.entry[0].resource.tag.push({
+                  system: mohSystem,
+                  code: matchBrokenCode,
+                  display: 'Match Broken',
+                });
+                this.saveLocations(location, topOrgId, (err, res) => {
+                  winston.error(res)
+                })
+              }
+            })
+          })
         }
-        callback(err);
-      });
+      })
     },
     breakNoMatch(id, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -849,7 +887,7 @@ module.exports = function () {
     cleanArchives (db,callback) {
       var maxArchives = config.getConf('dbArchives:maxArchives')
       var filter = function(stat, path) {
-        if(path.includes(db)){
+        if(path.includes(db) && !path.includes('MOHDATIM')){
           return true
         }
         else{
@@ -858,6 +896,7 @@ module.exports = function () {
       }
 
       var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
+        winston.error(files)
         if(files.length > maxArchives) {
           var totalDelete = files.length - maxArchives
           filesDelete = []
@@ -889,45 +928,70 @@ module.exports = function () {
                   winston.error(err)
                 }
               })
+              winston.error(fileDelete)
+              var dl = fileDelete.split(db)
+              fileDelete = dl[0] + 'MOHDATIM_' + db + dl[1]
+              fs.unlink(fileDelete,(err)=>{
+                if(err) {
+                  winston.error(err)
+                }
+              })
             })
             callback()
           })
         }
       });
     },
-    archiveDB (db,callback1) {
-      winston.info('Archiving DB ' + db)
-      var mongoUser = config.getConf('mCSD:databaseUser')
-      var mongoPasswd = config.getConf('mCSD:databasePassword')
-      var mongoHost = config.getConf('mCSD:databaseHost')
-      var mongoPort = config.getConf('mCSD:databasePort')
-      var name = db + '_' + moment().format()
-      if(mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
-      }
-      else {
-       var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
-      }
-      var me = this
-      mongoBackup ({
-        uri: uri,
-        root: `${__dirname}/dbArhives`,
-        tar: `${name}.tar`,
-        callback: (err) => {
-          if (err) {
-            winston.error(err);
-          } else {
-            winston.info(db + ' archived successfully');
-          }
-          callback1(err)
+    archiveDB (db,callback) {
+      let mongoUser = config.getConf('mCSD:databaseUser')
+      let mongoPasswd = config.getConf('mCSD:databasePassword')
+      let mongoHost = config.getConf('mCSD:databaseHost')
+      let mongoPort = config.getConf('mCSD:databasePort')
+      let name = db + '_' + moment().format()
+      let dbList = []
+      dbList.push({name,db})
+      dbList.push({name:`MOHDATIM_${name}`,db:`MOHDATIM${db}`})
+      var error = false
+      async.eachSeries(dbList,(list,nxtList)=>{
+        let db = list.db
+        let name = list.name
+        winston.info('Archiving DB ' + db)
+        if(mongoUser && mongoPasswd) {
+          var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
         }
+        else {
+         var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+        }
+        var me = this
+        var dir = `${__dirname}/dbArhives`
+        mongoBackup ({
+          uri: uri,
+          root: dir,
+          tar: `${name}.tar`,
+          callback: (err) => {
+            if (err) {
+              error = err
+              winston.error(err);
+            } else {
+              winston.info(db + ' archived successfully');
+            }
+            return nxtList()
+          }
+        })
+      },()=>{
+        callback(error)
       })
     },
-    restoreDB (archive,db,callback1) {
+    restoreDB (archive,db,callback) {
       var mongoUser = config.getConf('mCSD:databaseUser')
       var mongoPasswd = config.getConf('mCSD:databasePassword')
       var mongoHost = config.getConf('mCSD:databaseHost')
       var mongoPort = config.getConf('mCSD:databasePort')
+
+
+      let dbList = []
+      dbList.push({name,db})
+      dbList.push({name:`MOHDATIM_${name}`,db:`MOHDATIM${db}`})
       if(mongoUser && mongoPasswd) {
         var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
       }
@@ -954,25 +1018,34 @@ module.exports = function () {
                 }
                 me.cleanArchives(db,()=>{})
               })
-              callback1(err)
+              callback(err)
             }
           })
         })
       })
     },
     deleteDB (db,callback) {
-      mongoose.connect(`mongodb://localhost/${db}`);
-      mongoose.connection.once('open',() => {
-        mongoose.connection.db.dropDatabase( (err) => {
-          if(err) {
-            winston.error(err)
-            throw err
-          }
-          else {
-            winston.info('db Dropped')
-          }
-          callback(err)
-        });
+      let dbList = []
+      dbList.push(db)
+      dbList.push('MOHDATIM' + db)
+      let error = null
+      async.eachSeries(dbList,(db,nxtList)=>{
+        mongoose.connect(`mongodb://localhost/${db}`);
+        mongoose.connection.once('open',() => {
+          mongoose.connection.db.dropDatabase( (err) => {
+            if(err) {
+              winston.error(err)
+              error = err
+              throw err
+            }
+            else {
+              winston.info('db Dropped')
+            }
+            return nxtList()
+          });
+        })
+      },()=>{
+        callback(error)
       })
     },
     getArchives (db,callback) {

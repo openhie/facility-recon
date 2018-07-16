@@ -12,10 +12,9 @@ const mcsd = require('./mcsd')();
 module.exports = function () {
   return {
     getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
-    	winston.error(mcsdDATIM.entry.length)
-    	winston.error(mcsdDatimAll.entry.length)
       const scoreResults = [];
       const mapped = [];
+      const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       const maxSuggestions = config.getConf('matchResults:maxSuggestions');
       if (mcsdDATIM.total == 0) {
         winston.error('No DATIM data found for this orgunit');
@@ -33,7 +32,7 @@ module.exports = function () {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
           datimMappedParentNames[entry.resource.id] = [];
-          const entityParent = entry.resource.partOf.reference;
+          var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
             for( parent of parents ) {
@@ -42,19 +41,27 @@ module.exports = function () {
                   const mappedPar = mapped.resource.identifier.find((identifier) => {
                     if (identifier.system == 'http://geoalign.datim.org/MOH') {
                       const mohParId = identifier.value.split('/').pop();
-                      var found = mohParents.find((parent) => {
-                        if (parent.id === mohParId) {
-                          datimMappedParentNames[entry.resource.id].push(parent.text);
-                          return parent.text;
-                        }
-                      });
+                      var mohEntry = mcsdMohAll.entry.find((mohEntry)=>{
+                        return mohEntry.resource.id == mohParId
+                      })
+                      entityParent = mohParId
+                      mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (mohParents) => {
+                        var found = mohParents.find((parent) => {
+                          if (parent.id === mohParId) {
+                            datimMappedParentNames[entry.resource.id].push(parent.text);
+                            return parent.text;
+                          }
+                        });
+                        return found;
+                      })
                     }
-                    return found;
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
-                datimMappedParentNames[entry.resource.id].push(parent.text);
-                datimParentNames[entry.resource.id].push(parent.text);
+                else {
+                  datimMappedParentNames[entry.resource.id].push(parent.text);
+                  datimParentNames[entry.resource.id].push(parent.text);
+                }
               });
             }
           });
@@ -66,6 +73,15 @@ module.exports = function () {
         const mohId = mohEntry.resource.id;
         const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId)
           .toString();
+        var matchBroken = false
+        if(mohEntry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = mohEntry.resource.tag.find((tag)=>{
+          return tag.code == matchBrokenCode
+          })
+          if(matchBrokenTag) {
+            matchBroken = true
+          }
+        }
 	      this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
 	      	// if this MOH Org is already mapped
 	      	if (match) {
@@ -158,10 +174,10 @@ module.exports = function () {
               async.each(mcsdDATIM.entry, (datimEntry, datimCallback) => {
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
-                var ignored = ignore.find((ignored)=>{
-                	return ignored == id
+                var ignoreThis = ignore.find((toIgnore)=>{
+                	return toIgnore == id
                 })
-                if(ignored) {
+                if(ignoreThis) {
                 	return datimCallback()
                 }
                 // check if this is already mapped
@@ -182,7 +198,7 @@ module.exports = function () {
                   if (mohParentNames.length > 0 && datimMappedParentNames[datimId].length > 0) {
                     parentsEquals = mohParentNames[0] == datimMappedParentNames[datimId][0];
                   }
-                  if (lev == 0 && parentsEquals) {
+                  if (lev == 0 && parentsEquals && !matchBroken) {
                   	ignore.push(datimEntry.resource.id)
                     if (Object.keys(datimMappedParentNames[datimId]).length == Object.keys(mohParents).length && datimMappedParentNames[datimId][0] == mohParentNames[0]) {
                       thisRanking.exactMatch = {
@@ -196,6 +212,23 @@ module.exports = function () {
 
                     });
                     // we will need to break here and start processing nxt MOH
+                    return datimCallback();
+                  }
+                  if (lev == 0 && parentsEquals && matchBroken) {
+                    ignore.push(datimEntry.resource.id)
+                    if (Object.keys(datimMappedParentNames[datimId]).length == Object.keys(mohParents).length && datimMappedParentNames[datimId][0] == mohParentNames[0]) {
+                      thisRanking.potentialMatches = {'0': [{
+                        name: datimName,
+                        parents: datimParentNames[datimId],
+                        id: datimEntry.resource.id,
+                      }]};
+                    }
+                     if (mohName == 'Northern Zone'){
+                    winston.error(mohParentNames[0] + ' ' + datimMappedParentNames[datimId][0])
+                    winston.error(Object.keys(datimMappedParentNames[datimId]).length +'=='+ Object.keys(mohParents).length)
+                    winston.error(JSON.stringify(mohParents))
+                    winston.error(JSON.stringify(datimMappedParentNames[datimId]))
+                  }
                     return datimCallback();
                   }
                   if (Object.keys(thisRanking.exactMatch).length == 0) {
@@ -241,6 +274,7 @@ module.exports = function () {
     getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
       var scoreResults = [];
       var mapped = [];
+      const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       var maxSuggestions = config.getConf('matchResults:maxSuggestions');
       if (mcsdDATIM.total == 0) {
         winston.error('No DATIM data found for this orgunit');
@@ -260,7 +294,7 @@ module.exports = function () {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
           datimMappedParentNames[entry.resource.id] = [];
-          const entityParent = entry.resource.partOf.reference;
+          var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
             for( parent of parents ) {
@@ -269,19 +303,28 @@ module.exports = function () {
                   const mappedPar = mapped.resource.identifier.find((identifier) => {
                     if (identifier.system == 'http://geoalign.datim.org/MOH') {
                       const mohParId = identifier.value.split('/').pop();
-                      var found = mohParents.find((parent) => {
-                        if (parent.id === mohParId) {
-                          datimMappedParentNames[entry.resource.id].push(parent.text);
-                          return parent.text;
-                        }
-                      });
+
+                      var mohEntry = mcsdMohAll.entry.find((mohEntry)=>{
+                        return mohEntry.resource.id == mohParId
+                      })
+                      entityParent = mohParId
+                      mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (mohParents) => {
+                        var found = mohParents.find((parent) => {
+                          if (parent.id === mohParId) {
+                            datimMappedParentNames[entry.resource.id].push(parent.text);
+                            return parent.text;
+                          }
+                        });
+                        return found;
+                      })
                     }
-                    return found;
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
-                datimMappedParentNames[entry.resource.id].push(parent.text);
-                datimParentNames[entry.resource.id].push(parent.text);
+                else {
+                  datimMappedParentNames[entry.resource.id].push(parent.text);
+                  datimParentNames[entry.resource.id].push(parent.text);
+                }
               });
             }
           });
@@ -300,6 +343,16 @@ module.exports = function () {
         }
         const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId)
           .toString();
+
+        var matchBroken = false
+        if(mohEntry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = mohEntry.resource.tag.find((tag)=>{
+          return tag.code == matchBrokenCode
+          })
+          if(matchBrokenTag) {
+            matchBroken = true
+          }
+        }
 	      this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
 	      	// if this MOH Org is already mapped
 	      	const thisRanking = {};
@@ -335,6 +388,16 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 return mohCallback();
               }
+
+              //if this is flagged then process next MOH
+              const flagCode = config.getConf('mapping:flagCode');
+              if (match.resource.hasOwnProperty('tag')) {
+                const flag = match.resource.tag.find(tag => tag.code == flagCode);
+                if (flag) {
+                  thisRanking.moh.tag = 'flagged';
+                }
+              }
+
               if (match.resource.hasOwnProperty('partOf')) {
                 entityParent = match.resource.partOf.reference;
               }
@@ -462,7 +525,7 @@ module.exports = function () {
 
                       // check if IDS are the same and mark as exact match
                       const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
-                      if (matchingIdent) {
+                      if (matchingIdent && !matchBroken) {
                         thisRanking.exactMatch = {
                           name: datimName,
                           parents: datimParentNames[datimEntry.resource.id],
@@ -479,13 +542,25 @@ module.exports = function () {
                         });
                         return datimCallback();
                       }
+                      else if (matchingIdent && matchBroken) {
+                        thisRanking.potentialMatches = {'0': [{
+                          name: datimName,
+                          parents: datimParentNames[datimEntry.resource.id],
+                          lat: datimLatitude,
+                          long: datimLongitude,
+                          geoDistance: dist,
+                          id: datimEntry.resource.id,
+                        }]};
+                        return datimCallback();
+                      }
+
                       lev = levenshtein.get(datimName, mohName);
                       // if names mathes exactly and the two has same parents then this is an exact match
                       let parentsEquals = false;
                       if (mohParentNames.length > 0 && datimMappedParentNames[datimEntry.resource.id].length > 0) {
                         parentsEquals = mohParentNames[0] == datimMappedParentNames[datimEntry.resource.id][0];
                       }
-                      if (lev == 0 && parentsEquals) {
+                      if (lev == 0 && parentsEquals && !matchBroken) {
                         thisRanking.exactMatch = {
                           name: datimName,
                           parents: datimParentNames[datimEntry.resource.id],
@@ -495,11 +570,21 @@ module.exports = function () {
                           id: datimEntry.resource.id,
                         };
                         thisRanking.potentialMatches = {};
-                        // msg = {mohId,datimId:datimEntry.resource.id,topOrgId:datimTopId,recoLevel,totalLevels,type:'match'}
-											  // save.send(msg)
                         mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
 
                         });
+                        return datimCallback();
+                      }
+                      else if (lev == 0 && parentsEquals && matchBroken) {
+                        thisRanking.potentialMatches = {'0': [{
+                          name: datimName,
+                          parents: datimParentNames[datimEntry.resource.id],
+                          lat: datimLatitude,
+                          long: datimLongitude,
+                          geoDistance: dist,
+                          id: datimEntry.resource.id,
+                        }]};
+                        return datimCallback();
                       }
                       if (Object.keys(thisRanking.exactMatch).length == 0) {
                         if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {

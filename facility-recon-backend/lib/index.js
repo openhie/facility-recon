@@ -372,7 +372,7 @@ app.post('/breakMatch/:orgid', (req, res) => {
     winston.info(`Received break match request for ${fields.datimId}`);
     const datimId = fields.datimId;
     const database = config.getConf('mapping:dbPrefix') + req.params.orgid;
-    mcsd.breakMatch(datimId, database, (err) => {
+    mcsd.breakMatch(datimId, database, req.params.orgid, (err) => {
       winston.info(`break match done for ${fields.datimId}`);
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).send(err);
