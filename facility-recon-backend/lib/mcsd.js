@@ -1050,7 +1050,7 @@ module.exports = function () {
     },
     getArchives (db,callback) {
       var filter = function(stat, path) {
-        if(path.includes(db)){
+        if(path.includes(db) && !path.includes('MOHDATIM')){
           return true
         }
         else{

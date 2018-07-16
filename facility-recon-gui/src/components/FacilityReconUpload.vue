@@ -15,6 +15,40 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog persistent v-model="confirmUpload" max-width="500px">
+      <v-card>
+        <v-card-title>
+          Warning
+        </v-card-title>
+        <v-card-text>
+          You are about to upload a new dataset,this will erase any existing data
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
+          <v-btn color="primary" dark @click.native="submitCSV" >Proceed</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="uploadProgress"
+      hide-overlay
+      persistent
+      width="300"
+    >
+      <v-card
+        color="primary"
+        dark
+      >
+        <v-card-text>
+          Uploading
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-slide-y-transition mode="out-in">
       <v-stepper v-model="e1">
         <v-stepper-header>
@@ -76,10 +110,6 @@
                   <v-select :items="filteredItemLat"
                   v-model="lat"
                   label="Select"
-                  @blur="$v.lat.$touch()"
-                  @change="$v.lat.$touch()"
-                  :error-messages="latErrors"
-                  required
                   single-line
                   clearable></v-select>
                 </v-flex>
@@ -90,10 +120,6 @@
                   <v-select :items="filteredItemLong"
                   v-model="long"
                   label="Select"
-                  @blur="$v.long.$touch()"
-                  @change="$v.long.$touch()"
-                  :error-messages="longErrors"
-                  required
                   single-line
                   clearable></v-select>
                 </v-flex>
@@ -191,7 +217,7 @@
                 </template>
               </v-layout>
             </v-container>
-            <v-btn color="primary" @click.native="submitCSV" :disabled="$v.$invalid">Upload</v-btn>
+            <v-btn color="primary" @click.native="confirmUpload = true" :disabled="$v.$invalid">Upload</v-btn>
             <v-btn color="error" @click.native="e1 = 1">Go Back</v-btn>
           </v-stepper-content>
         </v-stepper-items>
@@ -215,6 +241,10 @@ export default {
   data () {
     return {
       dialog: false,
+      uploadProgress: false,
+      confirmUpload: false,
+      confirmTitle: '',
+      confirmMsg: '',
       showArchives: false,
       file: '',
       uploadedFileName: '',
@@ -241,12 +271,6 @@ export default {
       required: required
     },
     code: {
-      required: required
-    },
-    lat: {
-      required: required
-    },
-    long: {
       required: required
     },
     level1: {
@@ -282,6 +306,10 @@ export default {
       reader.readAsArrayBuffer(e.target.files[0])
     },
 
+    confirmSubmit () {
+      this.confirmUpload = true
+    },
+
     submitCSV () {
       let formData = new FormData()
       formData.append('file', this.file)
@@ -298,7 +326,8 @@ export default {
       formData.append('level7', this.level7)
       formData.append('orgid', this.$store.state.orgUnit.OrgId)
       formData.append('orgname', this.$store.state.orgUnit.OrgName)
-      //this.dialog = true
+      this.confirmUpload = false
+      this.uploadProgress = true
       axios.post(backendServer + '/uploadCSV',
         formData,
         {
@@ -307,7 +336,10 @@ export default {
           }
         }
       ).then((data) => {
-        this.$store.state.mohHierarchy = data
+        this.uploadProgress = false
+        //this.dialog = true
+        this.$root.$emit('recalculateScores')
+        this.$root.$emit('reloadTree')
       }).catch((err) => {
         console.log(err)
       })

@@ -56,7 +56,6 @@ export default {
         this.$store.state.totalLevels = levels.data.totalLevels
         this.getOrgHierarchy()
         this.getScores()
-        this.getDatimUnmached()
       })
     },
     getScores () {
@@ -74,6 +73,7 @@ export default {
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k})
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+        this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
@@ -147,8 +147,18 @@ export default {
   created () {
     this.getTotalLevels()
     this.$root.$on('recalculateScores', () => {
+      this.$store.state.mohUnMatched = null
+      this.$store.state.datimUnMatched = null
+      this.$store.state.matchedContent = null
+      this.$store.state.noMatchContent = null
+      this.$store.state.flagged = null
       this.getScores()
       this.getDatimUnmached()
+    })
+    this.$root.$on('reloadTree', () => {
+      this.$store.state.mohHierarchy = ''
+      this.$store.state.datimHierarchy = ''
+      this.getOrgHierarchy()
     })
     this.$root.$on('refreshApp',() => {
       this.getTotalLevels()
