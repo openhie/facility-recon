@@ -280,7 +280,7 @@ export default {
       required: required
     }
   },
-  components:{
+  components: {
     appFacilityReconDbAdmin: FacilityReconDbAdmin
   },
   methods: {

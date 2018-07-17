@@ -91,7 +91,7 @@ export default {
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/getArchives/' + orgUnit.OrgId).then((archives) => {
         this.archives = archives.data
-        if (this.archives.length == 0) {
+        if (this.archives.length === 0) {
           this.$store.state.showArchives = false
         }
         else{

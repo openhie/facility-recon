@@ -65,13 +65,7 @@
                     class="elevation-1"
                   >
                     <template slot="items" slot-scope="props">
-                      <td>{{props.item.level1}}</td>
-                      <td>{{props.item.level2}}</td>
-                      <td>{{props.item.level3}}</td>
-                      <td>{{props.item.level4}}</td>
-                      <td>{{props.item.facility}}</td>
-                      <td class="text-xs-right">{{props.item.longitude}}</td>
-                      <td class="text-xs-right">{{props.item.latitude}}</td>
+                      <td v-for='header in datimGridHeader'>{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -109,13 +103,7 @@
                     class="elevation-1"
                   >
                     <template slot="items" slot-scope="props">
-                      <td>{{props.item.level1}}</td>
-                      <td>{{props.item.level2}}</td>
-                      <td>{{props.item.level3}}</td>
-                      <td>{{props.item.level4}}</td>
-                      <td>{{props.item.facility}}</td>
-                      <td class="text-xs-right">{{props.item.longitude}}</td>
-                      <td class="text-xs-right">{{props.item.latitude}}</td>
+                      <td v-for='header in mohGridHeader'>{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -142,6 +130,8 @@ const addChildren = (treeData, results, filter, ...rest) => {
     } else {
       let row = {}
       for (let i = rest.length - 1, level = 1; i >= 0; i--, level++) {
+        if(level == 1)
+          continue;
         row['level' + level] = rest[i]
       }
       row.facility = node.text
@@ -158,15 +148,15 @@ export default {
   data () {
     return {
       headerText: {
-        level1: 'Level 1',
-        level2: 'Level 2',
-        level3: 'Level 3',
-        level4: 'Level 4',
-        level5: 'Level 5',
-        level6: 'Level 6',
-        level7: 'Level 7',
-        level8: 'Level 8',
-        level9: 'Level 9',
+        level2: 'Level 1',
+        level3: 'Level 2',
+        level4: 'Level 3',
+        level5: 'Level 4',
+        level6: 'Level 5',
+        level7: 'Level 6',
+        level8: 'Level 7',
+        level9: 'Level 8',
+        level10: 'Level 9',
         facility: 'Facility',
         latitude: 'Latitude',
         longitude: 'Longitude'

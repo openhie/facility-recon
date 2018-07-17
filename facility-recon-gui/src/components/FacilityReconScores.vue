@@ -71,24 +71,11 @@
 	      	>
 	      </v-select>
     	</v-flex>
-    	<v-flex xs1 sm2 md2>
-        <v-menu offset-y>
-		      <v-btn slot="activator" color="primary" dark><v-icon>more_vert</v-icon>Actions</v-btn>
-		      <v-list>
-		        <v-list-tile :key="1" @click="recalculateScores">
-		          <v-list-tile-title>Recalculate Scores</v-list-tile-title>
-		        </v-list-tile>
-		        <v-list-tile :key="2" @click="">
-		        	<v-list-tile-title>Action 2</v-list-tile-title>
-		      	</v-list-tile>
-		      	<v-list-tile :key="3" @click="">
-		        	<v-list-tile-title>Action 3</v-list-tile-title>
-		      	</v-list-tile>
-		      </v-list>
-    		</v-menu>
+    	<v-flex md3>
+		    <v-btn slot="activator" color="primary" dark @click="recalculateScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
       </v-flex>
-      <v-flex md2 v-if="nextLevel == 'yes'">
-        <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel+1}}</v-btn>
+      <v-flex md3 v-if="nextLevel == 'yes'">
+        <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
       </v-flex>
     </v-layout>
     <v-layout row wrap>
@@ -116,9 +103,9 @@
 	          >
 		          <template slot="items" slot-scope="props">
 			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}}</td>
-                        <td v-for="parent in props.item.parents">
-                          {{parent}}
-                        </td>
+                    <td v-for="parent in props.item.parents">
+                      {{parent}}
+                    </td>
 		          </template>
           	</v-data-table>
         	</template>
@@ -588,7 +575,7 @@ export default {
       let header = [ { text: 'Location', value: 'name' } ]
       if (this.$store.state.mohUnMatched.length > 0) {
         for (let i = this.$store.state.mohUnMatched[0].parents.length; i > 0; i--) {
-          header.push({ text: 'Level ' + i, value: 'level' + i })
+          header.push({ text: 'Level ' + i, value: 'level' + (i+1) })
         }
       }
       return header
