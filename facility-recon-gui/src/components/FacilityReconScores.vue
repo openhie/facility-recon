@@ -70,7 +70,6 @@
 	        @change="levelChanged"
 	      	>
 	      </v-select>
-          <v-btn color="primary" @click="addListener">Add Listener</v-btn>
     	</v-flex>
     	<v-flex md3>
 		    <v-btn slot="activator" color="primary" dark @click="recalculateScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
