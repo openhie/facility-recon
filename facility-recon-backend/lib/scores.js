@@ -5,7 +5,6 @@ const URI = require('urijs');
 const levenshtein = require('fast-levenshtein');
 const geodist = require('geodist');
 const _ = require('underscore');
-// const save = require('child_process').fork('save.js')
 const config = require('./config');
 const mcsd = require('./mcsd')();
 
@@ -28,39 +27,39 @@ module.exports = function () {
       var ignore = []
       var datimParentNames = {}
       var datimMappedParentNames = {}
+      var datimMappedParentIds = {}
       for ( entry of mcsdDATIM.entry ) {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
           datimMappedParentNames[entry.resource.id] = [];
+          datimMappedParentIds[entry.resource.id] = [];
           var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
             for( parent of parents ) {
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
-                  const mappedPar = mapped.resource.identifier.find((identifier) => {
+                  mapped.resource.identifier.find((identifier) => {
                     if (identifier.system == 'http://geoalign.datim.org/MOH') {
                       const mohParId = identifier.value.split('/').pop();
                       var mohEntry = mcsdMohAll.entry.find((mohEntry)=>{
                         return mohEntry.resource.id == mohParId
                       })
-                      entityParent = mohParId
-                      mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (mohParents) => {
-                        var found = mohParents.find((parent) => {
-                          if (parent.id === mohParId) {
-                            datimMappedParentNames[entry.resource.id].push(parent.text);
-                            return parent.text;
-                          }
-                        });
-                        return found;
-                      })
+                      datimMappedParentNames[entry.resource.id].push(mohEntry.resource.name);
+                      datimMappedParentIds[entry.resource.id].push(mohEntry.resource.id);
                     }
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
                 else {
-                  datimMappedParentNames[entry.resource.id].push(parent.text);
+                  if(parent.id == datimTopId) {
+                    datimMappedParentIds[entry.resource.id].push(mohTopId);
+                  }
+                  else {
+                    datimMappedParentIds[entry.resource.id].push(parent.id);
+                  }
                   datimParentNames[entry.resource.id].push(parent.text);
+                  datimMappedParentNames[entry.resource.id].push(parent.text);
                 }
               });
             }
@@ -124,23 +123,21 @@ module.exports = function () {
               if (match.resource.hasOwnProperty('partOf')) {
                 entityParent = match.resource.partOf.reference;
               }
-              mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
-                // mcsd.getLocationParentsFromDB('DATIM',datimDB,entityParent,datimTopId,"names",(datimParents)=>{
-                thisRanking.exactMatch = {
-                  name: match.resource.name,
-                  parents: datimParents,
-                  id: match.resource.id,
-                };
-                scoreResults.push(thisRanking);
-                count++;
-                winston.error(`${count}/${mcsdMOH.entry.length}`);
-                return mohCallback();
-              });
+              thisRanking.exactMatch = {
+                name: match.resource.name,
+                parents: datimParentNames[match.resource.id],
+                id: match.resource.id,
+              };
+              scoreResults.push(thisRanking);
+              count++;
+              winston.error(`${count}/${mcsdMOH.entry.length}`);
+              return mohCallback();
             });
           } else { // if not mapped
             const mohName = mohEntry.resource.name;
             let mohParents = [];
             const mohParentNames = [];
+            const mohParentIds = [];
             if (mohEntry.resource.hasOwnProperty('partOf')) {
               var entityParent = mohEntry.resource.partOf.reference;
               var mohParentReceived = new Promise((resolve, reject) => {
@@ -150,6 +147,9 @@ module.exports = function () {
                   async.eachSeries(parents, (parent, nxtParent) => {
                     mohParentNames.push(
                       parent.text,
+                    );
+                    mohParentIds.push(
+                      parent.id,
                     );
                     return nxtParent();
                   }, () => {
@@ -172,8 +172,12 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               const datimPromises = [];
               async.each(mcsdDATIM.entry, (datimEntry, datimCallback) => {
-                const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
+                //skip if this is in different parent
+                if (mohParentIds[0] != datimMappedParentIds[id][0]) {
+                  return datimCallback();
+                }
+                const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 var ignoreThis = ignore.find((toIgnore)=>{
                 	return toIgnore == id
                 })
@@ -188,26 +192,21 @@ module.exports = function () {
                   }
                   const datimName = datimEntry.resource.name;
                   const datimId = datimEntry.resource.id
-                  if (mohParentNames[0] != datimMappedParentNames[datimId][0]) {
-                    return datimCallback();
-                  }
                   lev = levenshtein.get(datimName, mohName);
                   // if names mathes exactly and the two has same parents then this is an exact match
                   // var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
                   let parentsEquals = false;
                   if (mohParentNames.length > 0 && datimMappedParentNames[datimId].length > 0) {
-                    parentsEquals = mohParentNames[0] == datimMappedParentNames[datimId][0];
+                    parentsEquals = mohParentIds[0] == datimMappedParentIds[datimId][0];
                   }
                   if (lev == 0 && parentsEquals && !matchBroken) {
-                  	ignore.push(datimEntry.resource.id)
-                    if (Object.keys(datimMappedParentNames[datimId]).length == Object.keys(mohParents).length && datimMappedParentNames[datimId][0] == mohParentNames[0]) {
-                      thisRanking.exactMatch = {
-                        name: datimName,
-                        parents: datimParentNames[datimId],
-                        id: datimEntry.resource.id,
-                      };
-                      thisRanking.potentialMatches = {};
-                    }
+                    ignore.push(datimEntry.resource.id)
+                    thisRanking.exactMatch = {
+                      name: datimName,
+                      parents: datimParentNames[datimId],
+                      id: datimEntry.resource.id,
+                    };
+                    thisRanking.potentialMatches = {};
                     mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
 
                     });
@@ -215,20 +214,11 @@ module.exports = function () {
                     return datimCallback();
                   }
                   if (lev == 0 && parentsEquals && matchBroken) {
-                    ignore.push(datimEntry.resource.id)
-                    if (Object.keys(datimMappedParentNames[datimId]).length == Object.keys(mohParents).length && datimMappedParentNames[datimId][0] == mohParentNames[0]) {
-                      thisRanking.potentialMatches = {'0': [{
-                        name: datimName,
-                        parents: datimParentNames[datimId],
-                        id: datimEntry.resource.id,
-                      }]};
-                    }
-                     if (mohName == 'Northern Zone'){
-                    winston.error(mohParentNames[0] + ' ' + datimMappedParentNames[datimId][0])
-                    winston.error(Object.keys(datimMappedParentNames[datimId]).length +'=='+ Object.keys(mohParents).length)
-                    winston.error(JSON.stringify(mohParents))
-                    winston.error(JSON.stringify(datimMappedParentNames[datimId]))
-                  }
+                    thisRanking.potentialMatches = {'0': [{
+                      name: datimName,
+                      parents: datimParentNames[datimId],
+                      id: datimEntry.resource.id,
+                    }]};
                     return datimCallback();
                   }
                   if (Object.keys(thisRanking.exactMatch).length == 0) {
@@ -285,15 +275,18 @@ module.exports = function () {
         return callback();
       }
       var counter = 0;
+      var ignore = []
       var promises = [];
       var count = 0;
       var mohPromises = [];
       var datimParentNames = {}
       var datimMappedParentNames = {}
+      var datimMappedParentIds = {}
       for ( entry of mcsdDATIM.entry ) {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
           datimMappedParentNames[entry.resource.id] = [];
+          datimMappedParentIds[entry.resource.id] = [];
           var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
@@ -307,22 +300,15 @@ module.exports = function () {
                       var mohEntry = mcsdMohAll.entry.find((mohEntry)=>{
                         return mohEntry.resource.id == mohParId
                       })
-                      entityParent = mohParId
-                      mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (mohParents) => {
-                        var found = mohParents.find((parent) => {
-                          if (parent.id === mohParId) {
-                            datimMappedParentNames[entry.resource.id].push(parent.text);
-                            return parent.text;
-                          }
-                        });
-                        return found;
-                      })
+                      datimMappedParentNames[entry.resource.id].push(mohEntry.resource.name);
+                      datimMappedParentIds[entry.resource.id].push(mohEntry.resource.id);
                     }
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
                 else {
                   datimMappedParentNames[entry.resource.id].push(parent.text);
+                  datimMappedParentIds[entry.resource.id].push(parent.id);
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
               });
@@ -402,26 +388,19 @@ module.exports = function () {
                 entityParent = match.resource.partOf.reference;
               }
 
-              mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
-                const ident = mohEntry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
-
-                let mohBuildingId = null;
-                if (ident) {
-                  mohBuildingId = ident.value;
-                }
-                thisRanking.exactMatch = {
-                  name: match.resource.name,
-                  parents: datimParents,
-                  id: match.resource.id,
-                };
-                scoreResults.push(thisRanking);
-                return mohCallback();
-              });
+              thisRanking.exactMatch = {
+                name: match.resource.name,
+                parents: datimParentNames[match.resource.id],
+                id: match.resource.id,
+              };
+              scoreResults.push(thisRanking);
+              return mohCallback();
             });
      	  } else { // if not mapped
             const mohName = mohEntry.resource.name;
             let mohParents = [];
             const mohParentNames = [];
+            const mohParentIds = [];
             if (mohEntry.resource.hasOwnProperty('partOf')) {
               var entityParent = mohEntry.resource.partOf.reference;
               var mohParentReceived = new Promise((resolve, reject) => {
@@ -431,6 +410,9 @@ module.exports = function () {
                     mohParentNames.push(
                       parent.text,
                     );
+                    mohParentIds.push(
+                      parent.id
+                    )
                     return nxtParent();
                   }, () => {
                     resolve();
@@ -462,7 +444,17 @@ module.exports = function () {
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
                 const datimIdentifiers = datimEntry.resource.identifier;
-                // check if this is already mapped
+                // check if this belongs to the same MOH parent
+                if (mohParentIds[0] != datimMappedParentIds[datimEntry.resource.id][0]) {
+                  return datimCallback();
+                }
+                //if this datim is already mapped then skip it
+                var ignoreThis = ignore.find((toIgnore)=>{
+                  return toIgnore == id
+                })
+                if(ignoreThis) {
+                  return datimCallback()
+                }
                 this.matchStatus(mcsdMapped, id, (mapped) => {
                   if (mapped) {
                     return datimCallback();
@@ -474,151 +466,105 @@ module.exports = function () {
                     datimLatitude = datimEntry.resource.position.latitude;
                     datimLongitude = datimEntry.resource.position.longitude;
                   }
-                    /*
-                  let datimParents = [];
-                  const datimParentNames = [];
-                  const datimMappedParentNames = [];
-                  let entityParent = null;
-                  const me = this;
-                  function modifyParents(parents, callback) {
-                    datimParents = parents;
-                    // lets make sure that we use the mapped parent for comparing against MOH
-                    async.eachSeries(parents, (parent, nxtParent) => {
-                      me.matchStatus(mcsdMapped, parent.id, (mapped) => {
-                        if (mapped) {
-                          const mappedPar = mapped.resource.identifier.find((identifier) => {
-                            if (identifier.system == 'http://geoalign.datim.org/MOH') {
-                              const mohParId = identifier.value.split('/').pop();
-                              var found = mohParents.find((parent) => {
-                                if (parent.id === mohParId) {
-                                  datimMappedParentNames.push(parent.text);
-                                  return parent.text;
-                                }
-                              });
-                            }
-                            return found;
-                          });
-                          datimParentNames.push(parent.text);
-                          return nxtParent();
-                        }
-                        datimMappedParentNames.push(parent.text);
-                        datimParentNames.push(parent.text);
-                        return nxtParent();
+                  if (datimLatitude && datimLongitude) {
+                    var dist = geodist({ datimLatitude, datimLongitude }, { mohLatitude, mohLongitude }, { exact: false, unit: 'miles' });
+                  }
+                  datimIdPromises = [];
+
+                  // check if IDS are the same and mark as exact match
+                  const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
+                  if (matchingIdent && !matchBroken) {
+                    ignore.push(datimEntry.resource.id)
+                    thisRanking.exactMatch = {
+                      name: datimName,
+                      parents: datimParentNames[datimEntry.resource.id],
+                      lat: datimLatitude,
+                      long: datimLongitude,
+                      geoDistance: dist,
+                      id: datimEntry.resource.id,
+                    };
+                    thisRanking.potentialMatches = {};
+                    mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+
+                    });
+                    return datimCallback();
+                  }
+                  else if (matchingIdent && matchBroken) {
+                    thisRanking.potentialMatches = {'0': [{
+                      name: datimName,
+                      parents: datimParentNames[datimEntry.resource.id],
+                      lat: datimLatitude,
+                      long: datimLongitude,
+                      geoDistance: dist,
+                      id: datimEntry.resource.id,
+                    }]};
+                    return datimCallback();
+                  }
+
+                  lev = levenshtein.get(datimName, mohName);
+                  // if names mathes exactly and the two has same parents then this is an exact match
+                  let parentsEquals = false;
+                  if (mohParentNames.length > 0 && datimMappedParentNames[datimEntry.resource.id].length > 0) {
+                    parentsEquals = mohParentIds[0] == datimMappedParentIds[datimEntry.resource.id][0];
+                  }
+                  if (lev == 0 && parentsEquals && !matchBroken) {
+                    ignore.push(datimEntry.resource.id)
+                    thisRanking.exactMatch = {
+                      name: datimName,
+                      parents: datimParentNames[datimEntry.resource.id],
+                      lat: datimLatitude,
+                      long: datimLongitude,
+                      geoDistance: dist,
+                      id: datimEntry.resource.id,
+                    };
+                    thisRanking.potentialMatches = {};
+                    mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+
+                    });
+                    return datimCallback();
+                  }
+                  else if (lev == 0 && parentsEquals && matchBroken) {
+                    thisRanking.potentialMatches = {'0': [{
+                      name: datimName,
+                      parents: datimParentNames[datimEntry.resource.id],
+                      lat: datimLatitude,
+                      long: datimLongitude,
+                      geoDistance: dist,
+                      id: datimEntry.resource.id,
+                    }]};
+                    return datimCallback();
+                  }
+                  if (Object.keys(thisRanking.exactMatch).length == 0) {
+                    if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
+                      if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
+                        thisRanking.potentialMatches[lev] = [];
+                      }
+                      thisRanking.potentialMatches[lev].push({
+                        name: datimName,
+                        parents: datimParentNames[datimEntry.resource.id],
+                        lat: datimLatitude,
+                        long: datimLongitude,
+                        geoDistance: dist,
+                        id: datimEntry.resource.id,
                       });
-                    }, () => callback());
-                  }
-                  if (datimEntry.resource.hasOwnProperty('partOf')) {
-                    entityParent = datimEntry.resource.partOf.reference;
-                  }
-                  */
-
-                  //mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
-                    //modifyParents(parents, () => {
-                      if (mohParentNames[0] != datimMappedParentNames[datimEntry.resource.id][0]) {
-                        return datimCallback();
-                      }
-                      // get distance between the coordinates
-                      if (datimLatitude && datimLongitude) {
-                        var dist = geodist({ datimLatitude, datimLongitude }, { mohLatitude, mohLongitude }, { exact: false, unit: 'miles' });
-                      }
-                      datimIdPromises = [];
-
-                      // check if IDS are the same and mark as exact match
-                      const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
-                      if (matchingIdent && !matchBroken) {
-                        thisRanking.exactMatch = {
+                    } else {
+                      const existingLev = Object.keys(thisRanking.potentialMatches);
+                      const max = _.max(existingLev);
+                      if (lev < max) {
+                        delete thisRanking.potentialMatches[max];
+                        thisRanking.potentialMatches[lev] = [];
+                        thisRanking.potentialMatches[lev].push({
                           name: datimName,
                           parents: datimParentNames[datimEntry.resource.id],
                           lat: datimLatitude,
                           long: datimLongitude,
                           geoDistance: dist,
                           id: datimEntry.resource.id,
-                        };
-                        thisRanking.potentialMatches = {};
-                        // msg = {mohId,datimId:datimEntry.resource.id,topOrgId:datimTopId,recoLevel,totalLevels,type:'match'}
-                        // save.send(msg)
-                        mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
-
                         });
-                        return datimCallback();
                       }
-                      else if (matchingIdent && matchBroken) {
-                        thisRanking.potentialMatches = {'0': [{
-                          name: datimName,
-                          parents: datimParentNames[datimEntry.resource.id],
-                          lat: datimLatitude,
-                          long: datimLongitude,
-                          geoDistance: dist,
-                          id: datimEntry.resource.id,
-                        }]};
-                        return datimCallback();
-                      }
-
-                      lev = levenshtein.get(datimName, mohName);
-                      // if names mathes exactly and the two has same parents then this is an exact match
-                      let parentsEquals = false;
-                      if (mohParentNames.length > 0 && datimMappedParentNames[datimEntry.resource.id].length > 0) {
-                        parentsEquals = mohParentNames[0] == datimMappedParentNames[datimEntry.resource.id][0];
-                      }
-                      if (lev == 0 && parentsEquals && !matchBroken) {
-                        thisRanking.exactMatch = {
-                          name: datimName,
-                          parents: datimParentNames[datimEntry.resource.id],
-                          lat: datimLatitude,
-                          long: datimLongitude,
-                          geoDistance: dist,
-                          id: datimEntry.resource.id,
-                        };
-                        thisRanking.potentialMatches = {};
-                        mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
-
-                        });
-                        return datimCallback();
-                      }
-                      else if (lev == 0 && parentsEquals && matchBroken) {
-                        thisRanking.potentialMatches = {'0': [{
-                          name: datimName,
-                          parents: datimParentNames[datimEntry.resource.id],
-                          lat: datimLatitude,
-                          long: datimLongitude,
-                          geoDistance: dist,
-                          id: datimEntry.resource.id,
-                        }]};
-                        return datimCallback();
-                      }
-                      if (Object.keys(thisRanking.exactMatch).length == 0) {
-                        if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
-                          if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
-                            thisRanking.potentialMatches[lev] = [];
-                          }
-                          thisRanking.potentialMatches[lev].push({
-                            name: datimName,
-                            parents: datimParentNames[datimEntry.resource.id],
-                            lat: datimLatitude,
-                            long: datimLongitude,
-                            geoDistance: dist,
-                            id: datimEntry.resource.id,
-                          });
-                        } else {
-                          const existingLev = Object.keys(thisRanking.potentialMatches);
-                          const max = _.max(existingLev);
-                          if (lev < max) {
-                            delete thisRanking.potentialMatches[max];
-                            thisRanking.potentialMatches[lev] = [];
-                            thisRanking.potentialMatches[lev].push({
-                              name: datimName,
-                              parents: datimParentNames[datimEntry.resource.id],
-                              lat: datimLatitude,
-                              long: datimLongitude,
-                              geoDistance: dist,
-                              id: datimEntry.resource.id,
-                            });
-                          }
-                        }
-                      }
-                      return datimCallback();
-                    //});
-                  //});
+                    }
+                  }
+                  return datimCallback();
                 });
               }, () => {
                 scoreResults.push(thisRanking);
