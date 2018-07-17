@@ -70,6 +70,7 @@
 	        @change="levelChanged"
 	      	>
 	      </v-select>
+          <v-btn color="primary" @click="addListener">Add Listener</v-btn>
     	</v-flex>
     	<v-flex md3>
 		    <v-btn slot="activator" color="primary" dark @click="recalculateScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
@@ -312,6 +313,24 @@ export default {
     }
   },
   methods: {
+    addListener () {
+      const setListener = () => {
+        if (this.$refs && this.$refs.mohTree) {
+          this.$refs.mohTree.$on('node:selected', (node) => {
+            this.mohFilter.text = node.data.text
+            let level = 1
+            while (node.parent) {
+              node = node.parent
+              level++
+            }
+            this.mohFilter.level = level
+          })
+        } else {
+          setTimeout(function () { setListener() }, 500)
+        }
+      }
+      setListener()
+    },
     levelChanged (level) {
       this.$store.state.recoLevel = level
       this.$root.$emit('recalculateScores')
@@ -600,6 +619,7 @@ export default {
       return results
     },
     mohTree () {
+      this.addListener()
       const createTree = (current, results) => {
         for (let name in current) {
           let add = { text: name }
@@ -636,22 +656,7 @@ export default {
     }
   },
   created () {
-    const setListener = () => {
-      if (this.$refs && this.$refs.mohTree) {
-        this.$refs.mohTree.$on('node:selected', (node) => {
-          this.mohFilter.text = node.data.text
-          let level = 1
-          while (node.parent) {
-            node = node.parent
-            level++
-          }
-          this.mohFilter.level = level
-        })
-      } else {
-        setTimeout(function () { setListener() }, 500)
-      }
-    }
-    setListener()
+    this.addListener()
   },
   components: {
     'liquor-tree': LiquorTree
