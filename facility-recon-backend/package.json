@@ -40,7 +40,7 @@
     "multer": "^1.3.0",
     "nconf": "^0.10.0",
     "node-oauth2-server": "^2.4.0",
-    "nodemon": "^1.18.2",
+    "nodemon": "^1.18.3",
     "path": "^0.12.7",
     "redis": "^2.8.0",
     "request": "^2.85.0",

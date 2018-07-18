@@ -72,7 +72,7 @@
 	      </v-select>
     	</v-flex>
     	<v-flex md3>
-		    <v-btn slot="activator" color="primary" dark @click="recalculateScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
+		    <v-btn slot="activator" color="primary" dark @click="getScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
       </v-flex>
       <v-flex md3 v-if="nextLevel == 'yes'">
         <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
@@ -261,12 +261,14 @@
 <script>
 import axios from 'axios'
 import LiquorTree from 'liquor-tree'
+import {scoresMixin} from '../mixins/scoresMixin'
 
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
 export default {
+  mixins: [scoresMixin],
   data () {
     return {
       recoLevel: 0,
@@ -342,10 +344,7 @@ export default {
     },
     levelChanged (level) {
       this.$store.state.recoLevel = level
-      this.$root.$emit('recalculateScores')
-    },
-    recalculateScores () {
-      this.$root.$emit('recalculateScores')
+      this.getScores()
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
