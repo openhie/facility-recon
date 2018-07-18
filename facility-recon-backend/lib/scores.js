@@ -161,6 +161,9 @@ module.exports = function () {
               var mohParentReceived = Promise.resolve([]);
             }
 
+            var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
+              return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+            })
             mohParentReceived.then(() => {
               const thisRanking = {};
               thisRanking.moh = {
@@ -171,12 +174,8 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
-              async.each(mcsdDATIM.entry, (datimEntry, datimCallback) => {
+              async.each(datimFiltered, (datimEntry, datimCallback) => {
                 const id = datimEntry.resource.id;
-                //skip if this is in different parent
-                if (mohParentIds[0] != datimMappedParentIds[id][0]) {
-                  return datimCallback();
-                }
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 var ignoreThis = ignore.find((toIgnore)=>{
                 	return toIgnore == id
@@ -423,6 +422,9 @@ module.exports = function () {
               var mohParentReceived = Promise.resolve([]);
             }
 
+            var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
+              return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+            })
             mohParentReceived.then(() => {
               const thisRanking = {};
               let mohBuildingId = null;
@@ -440,14 +442,10 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
-              async.each(mcsdDATIM.entry, (datimEntry, datimCallback) => {
+              async.each(datimFiltered, (datimEntry, datimCallback) => {
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
                 const datimIdentifiers = datimEntry.resource.identifier;
-                // check if this belongs to the same MOH parent
-                if (mohParentIds[0] != datimMappedParentIds[datimEntry.resource.id][0]) {
-                  return datimCallback();
-                }
                 //if this datim is already mapped then skip it
                 var ignoreThis = ignore.find((toIgnore)=>{
                   return toIgnore == id

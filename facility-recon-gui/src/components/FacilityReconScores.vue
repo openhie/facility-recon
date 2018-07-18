@@ -49,8 +49,8 @@
         </v-card-text>
         <v-card-actions style='float: center'>
           <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
-          <v-btn color="green" dark @click.native="noMatch" ><v-icon left>block</v-icon>No Match</v-btn>
-          <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>save</v-icon>Save</v-btn>
+          <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
+          <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save</v-btn>
           <v-btn color="orange darken-2" @click.native="back" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
         </v-card-actions>
       </v-card>
