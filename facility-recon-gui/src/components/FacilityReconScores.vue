@@ -103,7 +103,7 @@
 	          >
 		          <template slot="items" slot-scope="props">
 			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}}</td>
-                    <td v-for="parent in props.item.parents">
+                    <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1'>
                       {{parent}}
                     </td>
 		          </template>
@@ -136,7 +136,7 @@
 	            class="elevation-1"
 	          >
 		          <template slot="items" slot-scope="props">
-			            <td>{{props.item.name}} <br>{{props.item.parents.join('->')}}</td>
+			            <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | removeCountry | joinParents}}</td>
 		          </template>
           	</v-data-table>
         	</template>
@@ -309,6 +309,16 @@ export default {
         { text: 'DATIM Location', value: 'datimName' },
         { text: 'DATIM ID', value: 'datimId' }
       ]
+    }
+  },
+  filters: {
+    removeCountry (parents) {
+      var parentsCopy = parents.slice(0)
+      parentsCopy.splice(parentsCopy.length - 1, 1)
+      return parentsCopy
+    },
+    joinParents (parents) {
+      return parents.join('->')
     }
   },
   methods: {
@@ -593,9 +603,10 @@ export default {
       let header = [ { text: 'Location', value: 'name' } ]
       if (this.$store.state.mohUnMatched.length > 0) {
         for (let i = this.$store.state.mohUnMatched[0].parents.length; i > 0; i--) {
-          header.push({ text: 'Level ' + i, value: 'level' + (i+1) })
+          header.push({ text: 'Level ' + i, value: 'level' + (i + 1) })
         }
       }
+      header.splice(1, 1)
       return header
     },
     potentialHeaders () {
@@ -648,8 +659,7 @@ export default {
         this.$store.state.flagged !== null &&
         this.$store.state.flagged.length === 0) {
         return 'yes'
-      }
-      else {
+      } else {
         return 'no'
       }
     }

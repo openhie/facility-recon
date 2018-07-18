@@ -93,19 +93,17 @@ export default {
         this.archives = archives.data
         if (this.archives.length === 0) {
           this.$store.state.showArchives = false
-        }
-        else{
+        } else {
           this.$store.state.showArchives = true
         }
       })
     },
     restoreArchive () {
-      if (this.selectedArchive == '') {
+      if (this.selectedArchive === '') {
         this.alertTitle = 'Error'
         this.alertText = 'Select an archive to restored'
         this.dialog = true
-      }
-      else {
+      } else {
         this.restoreDialog = true
         var orgUnit = this.$store.state.orgUnit
         let formData = new FormData()

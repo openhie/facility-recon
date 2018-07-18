@@ -130,8 +130,9 @@ const addChildren = (treeData, results, filter, ...rest) => {
     } else {
       let row = {}
       for (let i = rest.length - 1, level = 1; i >= 0; i--, level++) {
-        if(level == 1)
-          continue;
+        if (level === 1) {
+          continue
+        }
         row['level' + level] = rest[i]
       }
       row.facility = node.text

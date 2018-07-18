@@ -71,7 +71,7 @@ export default {
       // generating levels
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalLevels; k++) {
-        this.$store.state.levelArray.push({text: 'Level ' + k, value: k+1})
+        this.$store.state.levelArray.push({text: 'Level ' + k, value: k + 1})
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
         this.getDatimUnmached()
@@ -81,11 +81,6 @@ export default {
         this.$store.state.flagged = []
         this.$store.state.scoreResults = scores.data.scoreResults
         for (let scoreResult of this.$store.state.scoreResults) {
-          //removing country
-          if(scoreResult.moh.hasOwnProperty('parents'))
-            scoreResult.moh.parents.splice(scoreResult.moh.parents.length-1,1)
-          if(scoreResult.exactMatch.hasOwnProperty('parents'))
-            scoreResult.exactMatch.parents.splice(scoreResult.exactMatch.parents.length-1,1)
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
             this.$store.state.flagged.push({
               mohName: scoreResult.moh.name,
@@ -112,7 +107,6 @@ export default {
               datimParents: scoreResult.exactMatch.parents
             })
           } else {
-            // let parents = scoreResult.moh.parents.join('->')
             let addTree = topTree
             for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {
               if (!addTree[scoreResult.moh.parents[i]]) {
@@ -146,13 +140,7 @@ export default {
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
       axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
-        this.$store.state.datimUnMatched = []
-        for(let data of unmatched.data) {
-          if(data.hasOwnProperty('parents')) {
-            data.parents.splice(data.parents.length-1,1)
-          }
-          this.$store.state.datimUnMatched.push(data)
-        }
+        this.$store.state.datimUnMatched = unmatched.data
       })
     }
   },
@@ -168,11 +156,11 @@ export default {
       this.getDatimUnmached()
     })
     this.$root.$on('reloadTree', () => {
-      /* this.$store.state.mohHierarchy = ''
+    /* this.$store.state.mohHierarchy = ''
       this.$store.state.datimHierarchy = ''
-      this.getOrgHierarchy()*/
+      this.getOrgHierarchy() */
     })
-    this.$root.$on ('refreshApp', () => {
+    this.$root.$on('refreshApp', () => {
       this.getTotalLevels()
     })
   },
