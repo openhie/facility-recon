@@ -67,6 +67,7 @@ export default {
       this.$store.state.datimUnMatched = null
       this.$store.state.mohUnMatched = null
       this.$store.state.flagged = null
+      let topTree = this.$store.state.mohParents.slice(0, this.$store.state.mohParents.length)
       // generating levels
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalLevels; k++) {
@@ -112,7 +113,7 @@ export default {
             })
           } else {
             // let parents = scoreResult.moh.parents.join('->')
-            let addTree = this.$store.state.mohParents
+            let addTree = topTree
             for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {
               if (!addTree[scoreResult.moh.parents[i]]) {
                 addTree[scoreResult.moh.parents[i]] = {}
@@ -126,6 +127,7 @@ export default {
             })
           }
         }
+        this.$store.state.mohParents = topTree
       })
     },
     getOrganisationUnit () {
