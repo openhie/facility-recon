@@ -155,7 +155,9 @@ module.exports = function () {
             }
 
             var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-              return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+              //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+              // in case there are different levels of parents (only DATIM can have more levels due to import)
+              return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
             })
             mohParentReceived.then(() => {
               const thisRanking = {};
@@ -429,7 +431,9 @@ module.exports = function () {
               var mohParentReceived = Promise.resolve([]);
             }
             var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-              return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+              //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+              // in case there are different levels of parents (only DATIM can have more levels due to import)
+              return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
             })
             mohParentReceived.then(() => {
               const thisRanking = {};
