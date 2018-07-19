@@ -7,9 +7,9 @@
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-toolbar-items>
         <v-btn to="/" flat>Home</v-btn>
-        <v-btn to="upload" flat>Upload</v-btn>
-        <v-btn to="view" flat>View</v-btn>
-        <v-btn flat to="scores">Reconcile</v-btn>
+        <v-btn to="upload" flat v-if='!$store.state.denyAccess'>Upload</v-btn>
+        <v-btn to="view" flat v-if='!$store.state.denyAccess'>View</v-btn>
+        <v-btn flat to="scores" v-if='!$store.state.denyAccess'>Reconcile</v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>
@@ -17,6 +17,26 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
+      <v-dialog
+      v-model="initializingApp"
+      hide-overlay
+      persistent
+      width="300"
+      >
+        <v-card
+          color="primary"
+          dark
+        >
+          <v-card-text>
+            Initializing App
+            <v-progress-linear
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-linear>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
@@ -36,6 +56,7 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      initializingApp: false,
       fixed: false,
       title: 'Facility Reconciliation'
     }
@@ -54,6 +75,7 @@ export default {
     getTotalLevels () {
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
+        this.initializingApp = false
         this.$store.state.totalLevels = levels.data.totalLevels
         this.getOrgHierarchy()
         this.getScores()
@@ -67,13 +89,25 @@ export default {
           this.$store.state.orgUnit.OrgId = orgUnitsIDs.shift().id
           axios.get(href + 'api/organisationUnits/' + this.$store.state.orgUnit.OrgId).then((orgUnits) => {
             this.$store.state.orgUnit.OrgName = orgUnits.data.displayName
+            if (this.$store.state.orgUnit.OrgName === 'Global') {
+              this.$store.state.denyAccess = true
+            } else {
+              this.$store.state.denyAccess = false
+              this.getTotalLevels()
+            }
           })
         }
       })
     }
   },
   created () {
-    this.getTotalLevels()
+    this.initializingApp = true
+    if (isProduction) {
+      this.getOrganisationUnit()
+    } else {
+      this.getTotalLevels()
+      this.$store.state.denyAccess = false
+    }
     this.$root.$on('reloadTree', () => {
     /* this.$store.state.mohHierarchy = ''
       this.$store.state.datimHierarchy = ''
@@ -81,6 +115,9 @@ export default {
     })
     this.$root.$on('refreshApp', () => {
       this.getTotalLevels()
+    })
+    this.$root.$on('recalculateScores', () => {
+      this.getScores()
     })
   },
   name: 'App'

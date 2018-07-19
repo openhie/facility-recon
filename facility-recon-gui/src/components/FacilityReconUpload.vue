@@ -49,7 +49,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-slide-y-transition mode="out-in">
+    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess'>
       <v-stepper v-model="e1">
         <v-stepper-header>
           <v-stepper-step step="1" :complete="e1 > 1">Upload MoH CSV</v-stepper-step>
@@ -223,7 +223,7 @@
         </v-stepper-items>
       </v-stepper>
     </v-slide-y-transition>
-    <app-FacilityReconDbAdmin v-show='$store.state.showArchives'></app-FacilityReconDbAdmin>
+    <app-FacilityReconDbAdmin v-show='$store.state.showArchives' v-if='!$store.state.denyAccess'></app-FacilityReconDbAdmin>
   </v-container>
 </template>
 

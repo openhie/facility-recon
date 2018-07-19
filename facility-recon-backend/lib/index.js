@@ -464,7 +464,9 @@ app.post('/uploadCSV', (req, res) => {
         //delete existing db
         mcsd.deleteDB(orgid,(err)=>{
           if(!err){
+            winston.info(`Uploading data for ${orgid} now`)
             mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
+              winston.info(`Data upload for ${orgid} is done`)
               res.set('Access-Control-Allow-Origin', '*');
               res.status(200).end();
             });

@@ -10,6 +10,7 @@ const csv = require('fast-csv');
 const mongoBackup = require('mongodb-backup')
 const mongoRestore = require('mongodb-restore')
 const mongoose = require('mongoose')
+const MongoClient = require('mongodb').MongoClient;
 const fsFinder = require('fs-finder')
 const fs = require('fs');
 const moment = require('moment')
@@ -988,38 +989,51 @@ module.exports = function () {
       var mongoHost = config.getConf('mCSD:databaseHost')
       var mongoPort = config.getConf('mCSD:databasePort')
 
-
-      let dbList = []
-      dbList.push({name,db})
-      dbList.push({name:`MOHDATIM_${name}`,db:`MOHDATIM${db}`})
-      if(mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
-      }
-      else {
-       var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
-      }
-      var me = this
+      winston.info('Archiving ' + db)
       this.archiveDB(db,(err)=>{
+        winston.info('Deleting ' + db)
         this.deleteDB(db,(err)=>{
-          mongoRestore ({
-            uri: uri,
-            root: `${__dirname}/dbArhives`,
-            tar: `${db}_${archive}.tar`,
-            callback: (err) => {
-              if (err) {
-                winston.error(err);
-              } else {
-                winston.info(archive + ' restored successfully');
-              }
-              var fileDelete = `${__dirname}/dbArhives/${db}_${archive}.tar`
-              fs.unlink(fileDelete,(err)=>{
-                if(err) {
-                  winston.error(err)
-                }
-                me.cleanArchives(db,()=>{})
-              })
-              callback(err)
+          winston.info('Restoring now ....')
+          let dbList = []
+          dbList.push({archive: `MOHDATIM_${db}_${archive}.tar`,db:`MOHDATIM${db}`})
+          dbList.push({archive:`${db}_${archive}.tar`,db})
+          var error = false
+          async.eachSeries(dbList,(list,nxtList)=>{
+            db = list.db
+            archive = list.archive
+            if(mongoUser && mongoPasswd) {
+              var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
             }
+            else {
+             var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+            }
+            var me = this
+            mongoRestore ({
+              uri: uri,
+              root: `${__dirname}/dbArhives`,
+              tar: archive,
+              callback: (err) => {
+                if (err) {
+                  error = err
+                  winston.error(err);
+                } else {
+                  winston.info(archive + ' restored successfully');
+                }
+                winston.info('Deleting Archive ' + archive)
+                var fileDelete = `${__dirname}/dbArhives/${archive}`
+                fs.unlink(fileDelete,(err)=>{
+                  if(err) {
+                    winston.error(err)
+                  }
+                  if(!db.includes('MOHDATIM')){
+                    me.cleanArchives(db,()=>{})
+                  }
+                  return nxtList()
+                })
+              }
+            })
+          },()=>{
+            callback(error)
           })
         })
       })
@@ -1039,7 +1053,7 @@ module.exports = function () {
               throw err
             }
             else {
-              winston.info('db Dropped')
+              winston.info(db + ' Dropped')
             }
             return nxtList()
           });

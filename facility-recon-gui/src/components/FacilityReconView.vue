@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <template>
+    <template v-if='!$store.state.denyAccess'>
       <v-slide-y-transition mode="out-in">
         <v-layout row wrap>
           <v-flex xs6>

@@ -35,7 +35,7 @@
     </v-dialog>
     <v-layout row wrap>
       <v-flex xs12 sm12 md12 child-flex>
-        <v-card color="white lighten-2" dark>
+        <v-card color="green lighten-4">
           <v-card-title primary-title style='color:black'>
             Archived Uploads
           </v-card-title>
@@ -43,9 +43,8 @@
             <v-data-table
               :headers="header"
               :items="archives"
-              
               hide-actions
-              color='red'
+              style='color:red'
               class="elevation-1"
               >
               <template slot="items" slot-scope="props">
@@ -118,13 +117,13 @@ export default {
           this.getArchives()
           this.selectedArchive = ''
         }).catch((err) => {
+          this.restoreDialog = false
           console.log(err)
         })
       }
     }
   },
   created () {
-    this.$store.state.showArchives = true
     this.getArchives()
   }
 }

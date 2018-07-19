@@ -7,7 +7,9 @@ export const store = new Vuex.Store({
   // Nigeria PqlFzhuPcF1
   // Malawi lZsCb6y0KDX
   // Tanzania mdXu6iCbn2G
+  // Global ybg3MO3hcf4
   state: {
+    denyAccess: true,
     datimHierarchy: '',
     mohHierarchy: '',
     orgUnit: { OrgId: 'lZsCb6y0KDX', OrgName: 'Malawi' },
@@ -21,6 +23,6 @@ export const store = new Vuex.Store({
     mohUnMatched: null,
     scoreResults: [],
     levelArray: [],
-    showArchives: true
+    showArchives: false
   }
 })

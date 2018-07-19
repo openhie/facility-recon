@@ -1,5 +1,5 @@
 <template>
-	<v-container grid-list-lg >
+	<v-container grid-list-lg v-if='!$store.state.denyAccess'>
     <v-dialog persistent v-model="alert" width="500px">
       <v-card>
         <v-card-title>
@@ -102,8 +102,8 @@
 	            class="elevation-1"
 	          >
 		          <template slot="items" slot-scope="props">
-			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer">{{props.item.name}}</td>
-                    <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1'>
+			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer" :key='props.item.id'>{{props.item.name}}</td>
+                    <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1' :key='props.item.id+index'>
                       {{parent}}
                     </td>
 		          </template>
