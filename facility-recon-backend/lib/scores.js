@@ -29,6 +29,8 @@ module.exports = function () {
       var ignore = []
       var datimParentNames = {}
       var datimMappedParentIds = {}
+      winston.info('Populating parents')
+      var totalRecords = mcsdDATIM.entry.length
       for ( entry of mcsdDATIM.entry ) {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
@@ -36,7 +38,7 @@ module.exports = function () {
           var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
-            for( parent of parents ) {
+            async.each(parents,(parent,parentCallback)=>{
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
                   mapped.resource.identifier.find((identifier) => {
@@ -56,11 +58,25 @@ module.exports = function () {
                   }
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
+                parentCallback()
               });
-            }
+            },()=>{
+              count++
+              let scoreRequestId = `scoreResults${datimTopId}`
+              let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
+              redisClient.set(scoreRequestId,scoreResData)
+              if(count === mcsdDATIM.entry.length) {
+                winston.info('Done populating parents')
+              }
+            })
           });
         }
       }
+      mcsdDatimAll = {}
+      winston.info('Calculating scores now')
+      count = 0
+      var totalRecords = mcsdMOH.entry.length
       async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
@@ -103,6 +119,10 @@ module.exports = function () {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++;
+                let scoreRequestId = `scoreResults${datimTopId}`
+                let percent = parseFloat((count*100/totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                redisClient.set(scoreRequestId,scoreResData)
                 winston.error(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               }
@@ -124,7 +144,11 @@ module.exports = function () {
                 id: match.resource.id,
               };
               scoreResults.push(thisRanking);
-              count++;
+              count++
+              let scoreRequestId = `scoreResults${datimTopId}`
+              let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+              redisClient.set(scoreRequestId,scoreResData)
               winston.error(`${count}/${mcsdMOH.entry.length}`);
               return mohCallback();
             });
@@ -245,7 +269,11 @@ module.exports = function () {
                 });
               }, () => {
                 scoreResults.push(thisRanking);
-                count++;
+                count++
+                let scoreRequestId = `scoreResults${datimTopId}`
+                let percent = parseFloat((count*100/totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                redisClient.set(scoreRequestId,scoreResData)
                 winston.info(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               });
@@ -254,7 +282,12 @@ module.exports = function () {
             });
           }
         });
-      }, () => callback(scoreResults));
+      }, () => {
+        let scoreRequestId = `scoreResults${datimTopId}`
+        scoreResData = JSON.stringify({status: 'Done', percent: 100})
+        redisClient.set(scoreRequestId,scoreResData)
+        callback(scoreResults)
+      });
     },
 
     getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
