@@ -73,7 +73,7 @@ module.exports = function () {
             if (next) {
               url = next.url;
             }
-            cache.put(`getLocationByID${url}`, cacheData, 120 * 1000);
+            cache.put(`getLocationByID${url}`, cacheData, 120 * 2000);
             locations.entry = locations.entry.concat(cacheData.entry);
             return callback(false, url);
           });
@@ -658,9 +658,8 @@ module.exports = function () {
       var orgid = headerMapping.orgid;
       const orgname = headerMapping.orgname;
       const countryUUID = uuid5(orgid, `${namespace}000`);
-      const fhir = {};
-      fhir.type = 'document';
-      fhir.entry = [];
+
+      const promises = [];
       const processed = [];
       var countRow = 0
 
@@ -673,7 +672,6 @@ module.exports = function () {
         }
         if(stdout) {
           totalRows = stdout.split(' ').shift()
-          winston.error(totalRows)
         }
 
       })
@@ -682,8 +680,7 @@ module.exports = function () {
         .fromPath(filePath, { ignoreEmpty: true, headers: true })
         .on('data', (data) => {
           const jurisdictions = [];
-
-          const promises = [];
+          promises.push(new Promise((resolve,reject)=>{
           levels.sort();
           levels.reverse();
           let facilityParent = null;
@@ -745,34 +742,40 @@ module.exports = function () {
               name: orgname, parent: null, uuid: countryUUID, parentUUID: null,
             });
             this.saveJurisdiction(jurisdictions, orgid, () => {
-
+              countRow++
+              var percent = parseFloat((countRow*100/totalRows).toFixed(2))
+              let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
+              redisClient.set(uploadRequestId,uploadReqPro)
+              resolve()
             });
-            countRow++
-            var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-            let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
-            redisClient.set(uploadRequestId,uploadReqPro)
+            const facilityName = data[headerMapping.facility];
+            const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
+            const building = {
+              uuid: UUID,
+              id: data[headerMapping.code],
+              name: facilityName,
+              lat: data[headerMapping.lat],
+              long: data[headerMapping.long],
+              parent: facilityParent,
+              parentUUID: facilityParentUUID,
+            };
+            this.saveBuilding(building, orgid, () => {
+              if(jurisdictions.length == 0) {
+                countRow++
+                var percent = parseFloat((countRow*100/totalRows).toFixed(2))
+                let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
+                redisClient.set(uploadRequestId,uploadReqPro)
+                resolve()
+              }
+            });
           });
-
-          const facilityName = data[headerMapping.facility];
-          const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
-          const building = {
-            uuid: UUID,
-            id: data[headerMapping.code],
-            name: facilityName,
-            lat: data[headerMapping.lat],
-            long: data[headerMapping.long],
-            parent: facilityParent,
-            parentUUID: facilityParentUUID,
-          };
-          this.saveBuilding(building, orgid, () => {
-
-          });
+          }))
         })
-        .on('end', () => {
-          let uploadReqPro = JSON.stringify({status:'Upload Running',percent: 100})
+        Promise.all(promises).then((err)=>{
+          let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
           redisClient.set(uploadRequestId,uploadReqPro)
-          callback(fhir)
-        });
+          callback()
+        })
     },
 
     saveJurisdiction(jurisdictions, orgid, callback) {
@@ -798,8 +801,9 @@ module.exports = function () {
             ],
           };
           const mcsd = { type: 'document', entry: [{ resource }] };
-          this.saveLocations(mcsd, orgid, () => {});
-          resolve();
+          this.saveLocations(mcsd, orgid, () => {
+            resolve();
+          });
         }));
       });
 
@@ -832,8 +836,9 @@ module.exports = function () {
         latitude: building.lat,
       };
       const mcsd = { type: 'document', entry: [{ resource }] };
-      this.saveLocations(mcsd, orgid, () => {});
-      return callback();
+      this.saveLocations(mcsd, orgid, () => {
+        return callback();
+      });
     },
 
     createTree(mcsd, source, database, topOrg, callback) {

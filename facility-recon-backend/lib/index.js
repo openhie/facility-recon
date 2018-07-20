@@ -462,7 +462,7 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       //archive existing DB first
-      let uploadReqPro = JSON.stringify({status:'Archiving Old DB If Available',percent: null})
+      let uploadReqPro = JSON.stringify({status:'Archiving Old DB',percent: null})
       redisClient.set(uploadRequestId,uploadReqPro)
       mcsd.archiveDB(orgid,(err)=>{
         if(err) {
@@ -472,7 +472,7 @@ app.post('/uploadCSV', (req, res) => {
           return
         }
         //ensure old archives are deleted
-        let uploadReqPro = JSON.stringify({status:'Deleting Old DB If Available',percent: null})
+        let uploadReqPro = JSON.stringify({status:'Deleting Old DB',percent: null})
         redisClient.set(uploadRequestId,uploadReqPro)
         mcsd.cleanArchives(orgid,()=>{})
         //delete existing db
@@ -481,10 +481,8 @@ app.post('/uploadCSV', (req, res) => {
             winston.info(`Uploading data for ${orgid} now`)
             let uploadReqPro = JSON.stringify({status:'Uploading of DB started',percent: null})
             redisClient.set(uploadRequestId,uploadReqPro)
-            mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
+            mcsd.CSVTomCSD(files[fileName].path, fields, orgid, () => {
               winston.info(`Data upload for ${orgid} is done`)
-              let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
-              redisClient.set(uploadRequestId,uploadReqPro)
               res.set('Access-Control-Allow-Origin', '*');
               res.status(200).end();
             });
