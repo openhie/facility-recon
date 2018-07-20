@@ -343,8 +343,8 @@ export default {
     checkUploadProgress () {
       axios.get(backendServer + '/uploadProgress/' + this.$store.state.orgUnit.OrgId).then((uploadProgress) => {
         this.uploadStatus = uploadProgress.data.status
-        if(uploadProgress.data.percent){
-          if(!this.percentDialog){
+        if (uploadProgress.data.percent) {
+          if (!this.percentDialog) {
             this.uploadPrepaProgr = false
             this.percentDialog = true
           }

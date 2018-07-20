@@ -460,6 +460,10 @@ app.post('/uploadCSV', (req, res) => {
         res.end();
         return;
       }
+      else {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(200).end();
+      }
       winston.info('CSV File Passed Validation');
       //archive existing DB first
       let uploadReqPro = JSON.stringify({status:'Archiving Old DB',percent: null})
@@ -483,8 +487,8 @@ app.post('/uploadCSV', (req, res) => {
             redisClient.set(uploadRequestId,uploadReqPro)
             mcsd.CSVTomCSD(files[fileName].path, fields, orgid, () => {
               winston.info(`Data upload for ${orgid} is done`)
-              res.set('Access-Control-Allow-Origin', '*');
-              res.status(200).end();
+              let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
+              redisClient.set(uploadRequestId,uploadReqPro)
             });
           }
           else {

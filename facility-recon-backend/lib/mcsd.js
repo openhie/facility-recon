@@ -770,11 +770,12 @@ module.exports = function () {
             });
           });
           }))
-        })
-        Promise.all(promises).then((err)=>{
-          let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
-          redisClient.set(uploadRequestId,uploadReqPro)
-          callback()
+        }).on('end',()=>{
+          Promise.all(promises).then(()=>{
+            let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
+            redisClient.set(uploadRequestId,uploadReqPro)
+            callback()
+          })
         })
     },
 
