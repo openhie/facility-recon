@@ -96,16 +96,8 @@ module.exports = function () {
         url,
       };
       request.get(options, (err, res, body1) => {
-        //const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${topOrgId.toString()}`;
-        //const options = {
-          //url,
-        //};
-        //request.get(options, (err, res, body2) => {
-          body1 = JSON.parse(body1);
-          //body2 = JSON.parse(body2);
-          //body1.entry = body1.entry.concat(body2.entry);
-          callback(body1);
-        //});
+        body1 = JSON.parse(body1);
+        callback(body1);
       });
     },
 
@@ -847,7 +839,7 @@ module.exports = function () {
       let lookup = [] 
       let addLater = {} 
 
-      for (entry of mcsd.entry) {
+      async.each(mcsd.entry, (entry, callback1) => {
         let lat = null 
         let long = null 
         const id = entry.resource.id
@@ -856,12 +848,11 @@ module.exports = function () {
           long = entry.resource.position.longitude
         }
         let item = { text: entry.resource.name, id, lat, long, children: [] }         
+        lookup[id] = item 
         if (id === topOrg || !entry.resource.hasOwnProperty('partOf')) {
           tree.push(item)
-          lookup[id] = item 
         } else {
           const parent = entry.resource.partOf.reference.substring(9)
-          lookup[id] = item 
           if (lookup[parent]) {
             lookup[parent].children.push(item)
           } else {
@@ -872,97 +863,20 @@ module.exports = function () {
             }
           }
         }
-      }    
-      if (Object.keys(addLater).length > 0) { 
-        for (id in addLater) {
-          if (lookup[id]) {
-            lookup[id].children.push(...addLater[id])
-          } else {
-            winston.error("Couldn't find "+id+" in tree.")
-          }
-        }
-      }    
-      callback(tree)
-
-        /*
-      const datimPromises = [];
-      const tree = [];
-      async.each(mcsd.entry, (mcsdEntry, callback1) => {
-        let long = null;
-        let lat = null;
-        if (mcsdEntry.resource.hasOwnProperty('position')) {
-          long = mcsdEntry.resource.position.longitude;
-          lat = mcsdEntry.resource.position.latitude;
-        }
-        if (mcsdEntry.resource.id == topOrg) {
-          //return nxtMCSDEntry();
-          return callback1()
-        }
-        if (!mcsdEntry.resource.hasOwnProperty('partOf')) {
-          const parent = {
-            text: mcsdEntry.resource.name, id: mcsdEntry.resource.id, lat, long, children: [],
-          };
-
-          this.inTree(tree, parent, (exist) => {
-            if (!exist) {
-              tree.push(parent);
+        callback1()
+      }, () => {
+        if (Object.keys(addLater).length > 0) { 
+          for (id in addLater) {
+            if (lookup[id]) {
+              lookup[id].children.push(...addLater[id])
+            } else {
+              winston.error("Couldn't find "+id+" in tree.")
             }
-            //return nxtMCSDEntry();
-            return callback1()
-          });
-        } else {
-          const reference = mcsdEntry.resource.partOf.reference;
-          const currentItem = {
-            text: mcsdEntry.resource.name, id: mcsdEntry.resource.id, lat, long, children: [],
-          };
-          this.getLocationParentsFromData(reference, mcsd, 'all', (parents) => {
-            parents.reverse();
-            // push the current element on top of the list
-            parents.push(currentItem);
-            async.eachOfSeries(parents, (parent, key, nextParent) => {
-              this.inTree(tree, parent, (exist) => {
-                // if not saved and has no parent i.e key = 0
-                parent.children = [];
-                if (!exist && key == 0) {
-                  tree.push(parent);
-                  return nextParent();
-                } if (!exist) {
-                  const grandParent = parents[key - 1];
-                  this.addToTree(tree, parent, grandParent);
-                  return nextParent();
-                } return nextParent();
-              });
-            }, () => {
-              return callback1()
-            })
-          });
-        }
-      }, () => callback(tree));
-      */
+          }
+        }    
+        callback(tree)
+      })
     },
-      /*
-    addToTree(tree, item, parent) {
-      tree.forEach((treeElements) => {
-        if (treeElements.id == parent.id) {
-          treeElements.children.push(item);
-        } else this.addToTree(treeElements.children, item, parent);
-      });
-    },
-    inTree(tree, item, callback) {
-      if (Object.keys(tree).length == 0) {
-        return callback(false);
-      }
-      async.eachSeries(tree, (element, nxtEl) => {
-        if (element.id == item.id) {
-          return callback(true);
-        }
-        this.inTree(element.children, item, (found) => {
-          if (found) return callback(true);
-          return nxtEl();
-        });
-      }, () => callback(false));
-    },
-    */
     cleanArchives (db,callback) {
       var maxArchives = config.getConf('dbArchives:maxArchives')
       var filter = function(stat, path) {
