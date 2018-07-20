@@ -3,8 +3,36 @@ const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export const scoresMixin = {
+  data() {
+    return {
+      scoreProgressTitle: 'Waiting for progress status',
+      scoreProgressPercent: null,
+      scoreDialog: false,
+      progressType: '',
+      scoreProgressTimer: false
+    }
+  },
   methods: {
+    checkScoreProgress () {
+      axios.get(backendServer + '/scoreProgress/' + this.$store.state.orgUnit.OrgId).then((scoreProgress) => {
+        this.scoreProgressTitle = scoreProgress.data.status
+        if (scoreProgress.data.percent) {
+          if (this.progressType !== 'percent') {
+            this.progressType = 'percent'
+          }
+          this.scoreProgressPercent = scoreProgress.data.percent
+        }
+        if (scoreProgress.data.status === 'Done') {
+          clearInterval(this.scoreProgressTimer)
+          this.scoreDialog = false
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
     getScores () {
+      this.scoreDialog = true
+      this.progressType = 'indeterminate'
       this.$store.state.mohUnMatched = null
       this.$store.state.datimUnMatched = null
       this.$store.state.matchedContent = null
@@ -69,6 +97,7 @@ export const scoresMixin = {
         }
         this.$store.state.mohParents = topTree
       })
+      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
     getDatimUnmached () {
       let orgid = this.$store.state.orgUnit.OrgId
@@ -77,5 +106,24 @@ export const scoresMixin = {
         this.$store.state.datimUnMatched = unmatched.data
       })
     }
+  },
+  created () {
+    this.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
+    this.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
+    this.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
+    this.progressType = this.$store.state.scoresProgressData.progressType
+    this.scoreProgressTimer = this.$store.state.scoresProgressData.scoreProgressTimer
+    if (this.scoreDialog) {
+      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
+    }
+    
+  },
+  destroyed () {
+    this.$store.state.scoresProgressData.scoreProgressTitle = this.scoreProgressTitle
+    this.$store.state.scoresProgressData.scoreProgressPercent = this.scoreProgressPercent
+    this.$store.state.scoresProgressData.scoreDialog = this.scoreDialog
+    this.$store.state.scoresProgressData.progressType = this.progressType
+    this.$store.state.scoresProgressData.scoreProgressTimer = this.scoreProgressTimer
+    clearInterval(this.scoreProgressTimer)
   }
 }

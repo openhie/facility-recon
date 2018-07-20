@@ -4,6 +4,39 @@
       <b>Wait for upload to finish</b>
     </template>
   	<v-container grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
+      <v-dialog
+        v-model="scoreDialog"
+        hide-overlay
+        persistent
+        width="350"
+      >
+        <v-card
+          color="white"
+          dark
+        >
+          <v-card-text>
+            <center>
+              <font style="color:blue">{{scoreProgressTitle}}</font><br>
+              <v-progress-circular
+                :rotate="-90"
+                :size="100"
+                :width="15"
+                :value="scoreProgressPercent"
+                color="primary"
+                v-if="progressType == 'percent'"
+              >
+                {{ scoreProgressPercent }}%
+              </v-progress-circular>
+              <v-progress-linear
+              indeterminate
+              color="red"
+              class="mb-0"
+              v-if="progressType == 'indeterminate'"
+            ></v-progress-linear>
+            </center>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <v-dialog persistent v-model="alert" width="500px">
         <v-card>
           <v-card-title>

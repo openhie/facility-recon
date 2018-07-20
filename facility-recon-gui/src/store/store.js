@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
     mohUnMatched: null,
     scoreResults: [],
     levelArray: [],
-    showArchives: false
+    showArchives: false,
+    scoresProgressData: {}
   }
 })

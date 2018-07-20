@@ -193,6 +193,8 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     const datimTopId = orgid;
     let mcsdDatimAll = null;
     let mcsdMohAll = null;
+    let scoreRequestId = `scoreResults${datimTopId}`
+    scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', percent: null})
     const datimLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
         mcsdDatimAll = mcsdDATIM;
@@ -217,6 +219,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
         resolve(mcsdMapped);
       });
     });
+    redisClient.set(scoreRequestId,scoreResData)
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
       if (recoLevel == totalLevels) {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
@@ -416,6 +419,15 @@ app.post('/breakNoMatch/:orgid', (req, res) => {
 app.get('/uploadProgress/:orgid', (req,res)=>{
   var orgid = req.params.orgid
   redisClient.get(`uploadProgress${orgid}`,(error,results)=>{
+    results = JSON.parse(results)
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(200).json(results)
+  })
+});
+
+app.get('/scoreProgress/:orgid', (req,res)=>{
+  var orgid = req.params.orgid
+  redisClient.get(`scoreResults${orgid}`,(error,results)=>{
     results = JSON.parse(results)
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)

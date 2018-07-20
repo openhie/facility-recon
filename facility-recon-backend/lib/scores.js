@@ -3,6 +3,8 @@ const async = require('async');
 const request = require('request');
 const URI = require('urijs');
 const levenshtein = require('fast-levenshtein');
+const redis = require('redis')
+const redisClient = redis.createClient()
 const geodist = require('geodist');
 const _ = require('underscore');
 const config = require('./config');
@@ -278,6 +280,7 @@ module.exports = function () {
       const datimLevelMappingStatus = {}
       var count = 0
       winston.info('Populating parents')
+      var totalRecords = mcsdDATIM.entry.length
       for ( entry of mcsdDATIM.entry ) {
         datimLevelMappingStatus[entry.resource.id] = []
         this.matchStatus(mcsdMapped, entry.resource.id, (mapped) => {
@@ -313,6 +316,10 @@ module.exports = function () {
               })
             },()=>{
               count++
+              let scoreRequestId = `scoreResults${datimTopId}`
+              let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
+              redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
               }
@@ -324,7 +331,8 @@ module.exports = function () {
       mcsdDatimAll = {}
       winston.info('Calculating scores now')
       count = 0
-      async.each(mcsdMOH.entry, (mohEntry, mohCallback) => {
+      var totalRecords = mcsdMOH.entry.length
+      async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
         const mohId = mohEntry.resource.id;
@@ -380,6 +388,11 @@ module.exports = function () {
               if (noMatch) {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
+                count++
+                let scoreRequestId = `scoreResults${datimTopId}`
+                let percent = parseFloat((count*100/totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                redisClient.set(scoreRequestId,scoreResData)
                 return mohCallback();
               }
 
@@ -402,6 +415,11 @@ module.exports = function () {
                 id: match.resource.id,
               };
               scoreResults.push(thisRanking);
+              count++
+              let scoreRequestId = `scoreResults${datimTopId}`
+              let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+              redisClient.set(scoreRequestId,scoreResData)
               return mohCallback();
             });
         } else { // if not mapped
@@ -578,6 +596,10 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 count++;
                 winston.info(`${count}/${mcsdMOH.entry.length}`);
+                let scoreRequestId = `scoreResults${datimTopId}`
+                let percent = parseFloat((count*100/totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                redisClient.set(scoreRequestId,scoreResData)
                 return mohCallback();
               });
             }).catch((err) => {
@@ -585,7 +607,12 @@ module.exports = function () {
             });
           }
         });
-      }, () => callback(scoreResults));
+      }, () => {
+        let scoreRequestId = `scoreResults${datimTopId}`
+        scoreResData = JSON.stringify({status: 'Done', percent: 100})
+        redisClient.set(scoreRequestId,scoreResData)
+        callback(scoreResults)
+      });
     },
     matchStatus(mcsdMapped, id, callback) {
       if (mcsdMapped.length === 0 || !mcsdMapped) {
