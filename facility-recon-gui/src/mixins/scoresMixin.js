@@ -3,7 +3,7 @@ const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export const scoresMixin = {
-  data() {
+  data () {
     return {
       scoreProgressTitle: 'Waiting for progress status',
       scoreProgressPercent: null,
@@ -116,7 +116,6 @@ export const scoresMixin = {
     if (this.scoreDialog) {
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     }
-    
   },
   destroyed () {
     this.$store.state.scoresProgressData.scoreProgressTitle = this.scoreProgressTitle
