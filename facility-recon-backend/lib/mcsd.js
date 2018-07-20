@@ -874,6 +874,19 @@ module.exports = function () {
             }
           }
         }    
+        const sortKids = (a,b) => {
+          return a.text.localeCompare(b.text)
+        }
+        const runSort = (arr) => {
+            arr.sort( sortKids )
+            for( item of arr ) {
+                if ( item.children.length > 0 ) {
+                    runSort( item.children )
+                }
+            }
+        }
+        runSort(tree)
+
         callback(tree)
       })
     },
