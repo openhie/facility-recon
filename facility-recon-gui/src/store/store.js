@@ -25,6 +25,7 @@ export const store = new Vuex.Store({
     scoreResults: [],
     levelArray: [],
     showArchives: false,
-    scoresProgressData: {}
+    scoresProgressData: {},
+    uploadProgressData: {}
   }
 })

@@ -495,6 +495,25 @@ export default {
       let uploadedHeaders = this.uploadedHeaders
       return uploadedHeaders.filter(o => o !== this.facility && o !== this.code && o !== this.lat && o !== this.long && o !== this.level1 && o !== this.level2 && o !== this.level3 && o !== this.level4 && o !== this.level5 && o !== this.level6)
     }
+  },
+  created () {
+    this.percentDialog = this.$store.state.uploadProgressData.percentDialog
+    this.uploadPrepaProgr = this.$store.state.uploadProgressData.uploadPrepaProgr
+    this.UploadProgressTimer = this.$store.state.uploadProgressData.UploadProgressTimer
+    this.uploadStatus = this.$store.state.uploadProgressData.uploadStatus
+    this.uploadPercent = this.$store.state.uploadProgressData.uploadPercent
+    if (this.percentDialog || this.uploadPrepaProgr) {
+      this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
+    }
+  },
+  destroyed () {
+    this.$store.state.uploadProgressData.dialog = this.dialog
+    this.$store.state.uploadProgressData.percentDialog = this.percentDialog
+    this.$store.state.uploadProgressData.uploadPrepaProgr = this.uploadPrepaProgr
+    this.$store.state.uploadProgressData.UploadProgressTimer = this.UploadProgressTimer
+    this.$store.state.uploadProgressData.uploadStatus = this.uploadStatus
+    this.$store.state.uploadProgressData.uploadPercent = this.uploadPercent
+    clearInterval(this.checkUploadProgress)
   }
 }
 </script>
