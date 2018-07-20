@@ -10,9 +10,11 @@ const csv = require('fast-csv');
 const mongoBackup = require('mongodb-backup')
 const mongoRestore = require('mongodb-restore')
 const mongoose = require('mongoose')
-const MongoClient = require('mongodb').MongoClient;
 const fsFinder = require('fs-finder')
 const fs = require('fs');
+const redis = require('redis')
+const redisClient = redis.createClient()
+const { exec } = require('child_process');
 const moment = require('moment')
 const cache = require('memory-cache');
 const config = require('./config');
@@ -650,6 +652,7 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, orgid, callback) {
+      var uploadRequestId = `uploadProgress${orgid}`
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -659,6 +662,22 @@ module.exports = function () {
       fhir.type = 'document';
       fhir.entry = [];
       const processed = [];
+      var countRow = 0
+
+      var totalRows = 0
+      exec('wc -l ' + filePath, (err, stdout, stderr) => {
+        if (err) {
+          // node couldn't execute the command
+          winston.error(err)
+          return;
+        }
+        if(stdout) {
+          totalRows = stdout.split(' ').shift()
+          winston.error(totalRows)
+        }
+
+      })
+
       csv
         .fromPath(filePath, { ignoreEmpty: true, headers: true })
         .on('data', (data) => {
@@ -728,6 +747,10 @@ module.exports = function () {
             this.saveJurisdiction(jurisdictions, orgid, () => {
 
             });
+            countRow++
+            var percent = parseFloat((countRow*100/totalRows).toFixed(2))
+            let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
+            redisClient.set(uploadRequestId,uploadReqPro)
           });
 
           const facilityName = data[headerMapping.facility];
@@ -745,7 +768,11 @@ module.exports = function () {
 
           });
         })
-        .on('end', () => callback(fhir));
+        .on('end', () => {
+          let uploadReqPro = JSON.stringify({status:'Upload Running',percent: 100})
+          redisClient.set(uploadRequestId,uploadReqPro)
+          callback(fhir)
+        });
     },
 
     saveJurisdiction(jurisdictions, orgid, callback) {
@@ -897,7 +924,6 @@ module.exports = function () {
       }
 
       var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
-        winston.error(files)
         if(files.length > maxArchives) {
           var totalDelete = files.length - maxArchives
           filesDelete = []
@@ -929,7 +955,6 @@ module.exports = function () {
                   winston.error(err)
                 }
               })
-              winston.error(fileDelete)
               var dl = fileDelete.split(db)
               fileDelete = dl[0] + 'MOHDATIM_' + db + dl[1]
               fs.unlink(fileDelete,(err)=>{

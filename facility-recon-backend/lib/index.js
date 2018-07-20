@@ -10,6 +10,8 @@ const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
 const http = require('http');
+const redis = require('redis')
+const redisClient = redis.createClient()
 const config = require('./config');
 const mcsd = require('./mcsd')();
 const scores = require('./scores')();
@@ -21,8 +23,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
 
-//https.globalAgent.maxSockets = 5;
-//http.globalAgent.maxSockets = 5;
+https.globalAgent.maxSockets = 32;
+http.globalAgent.maxSockets = 32;
+
 // app.use(app.oauth.errorHandler());
 /* app.oauth = oauthserver({
   model: oAuthModel,
@@ -47,7 +50,6 @@ app.post('/oauth/registerUser', (req, res) => {
 */
 if(cluster.isMaster) {
     var numWorkers = require('os').cpus().length;
-
     console.log('Master cluster setting up ' + numWorkers + ' workers...');
 
     for(var i = 0; i < numWorkers; i++) {
@@ -64,7 +66,6 @@ if(cluster.isMaster) {
         cluster.fork();
     });
 } else {
-
 app.get('/countLevels/:orgid', (req, res) => {
   if (!req.params.orgid) {
     winston.error({ error: 'Missing Orgid' });
@@ -412,6 +413,15 @@ app.post('/breakNoMatch/:orgid', (req, res) => {
   });
 });
 
+app.get('/uploadProgress/:orgid', (req,res)=>{
+  var orgid = req.params.orgid
+  redisClient.get(`uploadProgress${orgid}`,(error,results)=>{
+    results = JSON.parse(results)
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(200).json(results)
+  })
+});
+
 app.post('/uploadCSV', (req, res) => {
   const form = new formidable.IncomingForm();
   form.parse(req, (err, fields, files) => {
@@ -426,6 +436,7 @@ app.post('/uploadCSV', (req, res) => {
     const orgname = fields.orgname;
     const database = config.getConf('mCSD:database');
     const expectedLevels = config.getConf('levels');
+    var uploadRequestId = `uploadProgress${orgid}`
     if (!Array.isArray(expectedLevels)) {
       winston.error('Invalid config data for key Levels ');
       res.set('Access-Control-Allow-Origin', '*');
@@ -450,8 +461,9 @@ app.post('/uploadCSV', (req, res) => {
         return;
       }
       winston.info('CSV File Passed Validation');
-      winston.info('Converting CSV to mCSD');
       //archive existing DB first
+      let uploadReqPro = JSON.stringify({status:'Archiving Old DB If Available',percent: null})
+      redisClient.set(uploadRequestId,uploadReqPro)
       mcsd.archiveDB(orgid,(err)=>{
         if(err) {
           res.set('Access-Control-Allow-Origin', '*');
@@ -460,13 +472,19 @@ app.post('/uploadCSV', (req, res) => {
           return
         }
         //ensure old archives are deleted
+        let uploadReqPro = JSON.stringify({status:'Deleting Old DB If Available',percent: null})
+        redisClient.set(uploadRequestId,uploadReqPro)
         mcsd.cleanArchives(orgid,()=>{})
         //delete existing db
         mcsd.deleteDB(orgid,(err)=>{
           if(!err){
             winston.info(`Uploading data for ${orgid} now`)
+            let uploadReqPro = JSON.stringify({status:'Uploading of DB started',percent: null})
+            redisClient.set(uploadRequestId,uploadReqPro)
             mcsd.CSVTomCSD(files[fileName].path, fields, orgid, (mcsdMOH) => {
               winston.info(`Data upload for ${orgid} is done`)
+              let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
+              redisClient.set(uploadRequestId,uploadReqPro)
               res.set('Access-Control-Allow-Origin', '*');
               res.status(200).end();
             });

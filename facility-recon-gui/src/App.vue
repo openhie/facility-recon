@@ -91,6 +91,7 @@ export default {
             this.$store.state.orgUnit.OrgName = orgUnits.data.displayName
             if (this.$store.state.orgUnit.OrgName === 'Global') {
               this.$store.state.denyAccess = true
+              this.initializingApp = false
             } else {
               this.$store.state.denyAccess = false
               this.getTotalLevels()

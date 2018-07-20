@@ -29,8 +29,9 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    
     <v-dialog
-      v-model="uploadProgress"
+      v-model="uploadPrepaProgr"
       hide-overlay
       persistent
       width="300"
@@ -40,12 +41,38 @@
         dark
       >
         <v-card-text>
-          Uploading
+          {{uploadStatus}}
           <v-progress-linear
             indeterminate
             color="white"
             class="mb-0"
           ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="percentDialog"
+      hide-overlay
+      persistent
+      width="150"
+    >
+      <v-card
+        color="yellow lighten-5"
+        dark
+      >
+        <v-card-text>
+          <center>
+            <font style="color:blue">Upload Progress</font><br>
+            <v-progress-circular
+              :rotate="-90"
+              :size="100"
+              :width="15"
+              :value="uploadPercent"
+              color="primary"
+            >
+              {{ uploadPercent }}%
+            </v-progress-circular>
+          </center>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -241,7 +268,11 @@ export default {
   data () {
     return {
       dialog: false,
-      uploadProgress: false,
+      percentDialog: false,
+      uploadPrepaProgr: false,
+      UploadProgressTimer: '',
+      uploadStatus: 'Waiting progress status',
+      uploadPercent: null,
       confirmUpload: false,
       confirmTitle: '',
       confirmMsg: '',
@@ -309,7 +340,28 @@ export default {
     confirmSubmit () {
       this.confirmUpload = true
     },
-
+    checkUploadProgress () {
+      axios.get(backendServer + '/uploadProgress/' + this.$store.state.orgUnit.OrgId).then((uploadProgress) => {
+        this.uploadStatus = uploadProgress.data.status
+        if(uploadProgress.data.percent){
+          if(!this.percentDialog){
+            this.uploadPrepaProgr = false
+            this.percentDialog = true
+          }
+          this.uploadPercent = uploadProgress.data.percent
+        }
+        if (uploadProgress.data.status === 'Done') {
+          clearInterval(this.UploadProgressTimer)
+          this.$root.$emit('recalculateScores')
+          this.$root.$emit('reloadTree')
+          this.percentDialog = false
+          this.dialog = true
+          this.$store.state.uploadRunning = false
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
     submitCSV () {
       let formData = new FormData()
       formData.append('file', this.file)
@@ -327,7 +379,8 @@ export default {
       formData.append('orgid', this.$store.state.orgUnit.OrgId)
       formData.append('orgname', this.$store.state.orgUnit.OrgName)
       this.confirmUpload = false
-      this.uploadProgress = true
+      this.$store.state.uploadRunning = true
+      this.uploadPrepaProgr = true
       axios.post(backendServer + '/uploadCSV',
         formData,
         {
@@ -336,13 +389,10 @@ export default {
           }
         }
       ).then((data) => {
-        this.uploadProgress = false
-        this.dialog = true
-        this.$root.$emit('recalculateScores')
-        this.$root.$emit('reloadTree')
       }).catch((err) => {
         console.log(err)
       })
+      this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
     },
     closeDialog (component) {
       this.$router.push({name: component})

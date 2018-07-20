@@ -1,6 +1,9 @@
 <template>
   <v-container fluid>
-    <template v-if='!$store.state.denyAccess'>
+    <template v-if='$store.state.uploadRunning'>
+      <b>Wait for upload to finish</b>
+    </template>
+    <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-slide-y-transition mode="out-in">
         <v-layout row wrap>
           <v-flex xs6>
