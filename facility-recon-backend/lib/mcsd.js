@@ -96,16 +96,16 @@ module.exports = function () {
         url,
       };
       request.get(options, (err, res, body1) => {
-        const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${topOrgId.toString()}`;
-        const options = {
-          url,
-        };
-        request.get(options, (err, res, body2) => {
+        //const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${topOrgId.toString()}`;
+        //const options = {
+          //url,
+        //};
+        //request.get(options, (err, res, body2) => {
           body1 = JSON.parse(body1);
-          body2 = JSON.parse(body2);
-          body1.entry = body1.entry.concat(body2.entry);
+          //body2 = JSON.parse(body2);
+          //body1.entry = body1.entry.concat(body2.entry);
           callback(body1);
-        });
+        //});
       });
     },
 
@@ -843,6 +843,48 @@ module.exports = function () {
     },
 
     createTree(mcsd, source, database, topOrg, callback) {
+      let tree = [] 
+      let lookup = [] 
+      let addLater = {} 
+
+      for (entry of mcsd.entry) {
+        let lat = null 
+        let long = null 
+        const id = entry.resource.id
+        if (entry.resource.hasOwnProperty('position')) {
+          lat = entry.resource.position.latitude
+          long = entry.resource.position.longitude
+        }
+        let item = { text: entry.resource.name, id, lat, long, children: [] }         
+        if (id === topOrg || !entry.resource.hasOwnProperty('partOf')) {
+          tree.push(item)
+          lookup[id] = item 
+        } else {
+          const parent = entry.resource.partOf.reference.substring(9)
+          lookup[id] = item 
+          if (lookup[parent]) {
+            lookup[parent].children.push(item)
+          } else {
+            if (addLater[parent]) {
+              addLater[parent].push(item)
+            } else {
+              addLater[parent] = [ item ]
+            }
+          }
+        }
+      }    
+      if (Object.keys(addLater).length > 0) { 
+        for (id in addLater) {
+          if (lookup[id]) {
+            lookup[id].children.push(...addLater[id])
+          } else {
+            winston.error("Couldn't find "+id+" in tree.")
+          }
+        }
+      }    
+      callback(tree)
+
+        /*
       const datimPromises = [];
       const tree = [];
       async.each(mcsd.entry, (mcsdEntry, callback1) => {
@@ -896,7 +938,9 @@ module.exports = function () {
           });
         }
       }, () => callback(tree));
+      */
     },
+      /*
     addToTree(tree, item, parent) {
       tree.forEach((treeElements) => {
         if (treeElements.id == parent.id) {
@@ -918,6 +962,7 @@ module.exports = function () {
         });
       }, () => callback(false));
     },
+    */
     cleanArchives (db,callback) {
       var maxArchives = config.getConf('dbArchives:maxArchives')
       var filter = function(stat, path) {
