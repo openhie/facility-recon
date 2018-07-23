@@ -118,7 +118,10 @@ export default {
           this.selectedArchive = ''
         }).catch((err) => {
           this.restoreDialog = false
-          console.log(err)
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = err.response.data.error
+          console.log(err.response.data.error)
         })
       }
     }

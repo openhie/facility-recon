@@ -9,6 +9,9 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   state: {
+    dialogError: false,
+    errorTitle: '',
+    errorDescription: '',
     clientId: null,
     denyAccess: true,
     datimHierarchy: '',

@@ -11,6 +11,7 @@ const mongoBackup = require('mongodb-backup')
 const mongoRestore = require('mongodb-restore')
 const mongoose = require('mongoose')
 const fsFinder = require('fs-finder')
+const isJSON = require('is-json')
 const fs = require('fs');
 const redis = require('redis')
 const redisClient = redis.createClient()
@@ -33,6 +34,9 @@ module.exports = function () {
           };
           url = false;
           request.get(options, (err, res, body) => {
+            if (!isJSON(body)) {
+              return callback (false,false)
+            }
             body = JSON.parse(body);
             const next = body.link.find(link => link.relation == 'next');
             if (next) {
@@ -68,6 +72,9 @@ module.exports = function () {
             return callback(cachedData);
           }
           request.get(options, (err, res, body) => {
+            if (!isJSON(body)) {
+              return callback (false,false)
+            }
             const cacheData = JSON.parse(body);
             const next = cacheData.link.find(link => link.relation == 'next');
             if (next) {
@@ -89,15 +96,18 @@ module.exports = function () {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .segment(topOrgId)
         .segment('$hierarchy')
-        + '?_count=100'
         .toString();
-      var url_old = url
       const options = {
         url,
       };
-      request.get(options, (err, res, body1) => {
-        body1 = JSON.parse(body1);
-        callback(body1);
+      request.get(options, (err, res, body) => {
+        if (!isJSON(body)) {
+          var mcsd = {}
+          mcsd.entry = []
+          return callback (mcsd)
+        }
+        body = JSON.parse(body);
+        callback(body);
       });
     },
 
@@ -106,6 +116,9 @@ module.exports = function () {
       if (entityParent == null
         || entityParent == false
         || entityParent == undefined
+        || !topOrg
+        || !database
+        || !source
       ) {
         return callback(parents);
       }
@@ -159,6 +172,9 @@ module.exports = function () {
           } else return callback(parents);
         } else {
           request.get(options, (err, res, body) => {
+            if (!isJSON(body)) {
+              return callback(parents);
+            }
             body = JSON.parse(body);
             let long = null;
             let lat = null;
@@ -177,8 +193,11 @@ module.exports = function () {
               parents.push({
                 text: body.entry[0].resource.name, id: body.entry[0].resource.id, lat, long,
               });
-            } else if (details == 'id') parents.push(body.entry[0].resource.id);
-            else if (details == 'names') parents.push(body.entry[0].resource.name);
+            } else if (details == 'id') {
+              parents.push(body.entry[0].resource.id);
+            } else if (details == 'names') {
+              parents.push(body.entry[0].resource.name);
+            }
             else winston.error('parent details (either id,names or all) to be returned not specified');
 
             // stop after we reach the topOrg which is the country
@@ -219,6 +238,12 @@ module.exports = function () {
     */
     getLocationParentsFromData(entityParent, mcsd, details, callback) {
       const parents = [];
+      if (!mcsd.hasOwnProperty('entry') || !entityParent) {
+        return callback (parents)
+      }
+      if (mcsd.entry.length === 0) {
+        return callback (parents)
+      }
       function filter(entityParent, callback) {
         const splParent = entityParent.split('/');
         entityParent = splParent[(splParent.length - 1)];
@@ -236,7 +261,7 @@ module.exports = function () {
           var entityParent = null;
           if (entry.resource.hasOwnProperty('partOf')) entityParent = entry.resource.partOf.reference;
 
-          if (details == 'all') {
+          if (details == 'all' || !details) {
             parents.push({
               text: entry.resource.name, id: entry.resource.id, lat, long,
             });
@@ -250,8 +275,12 @@ module.exports = function () {
             && entry.resource.partOf.reference != undefined) {
             entityParent = entry.resource.partOf.reference;
             filter(entityParent, parents => callback(parents));
-          } else return callback(parents);
-        } else return callback(parents);
+          } else {
+            return callback(parents);
+          }
+        } else {
+          return callback(parents);
+        }
       }
 
       filter(entityParent, parents => callback(parents));
@@ -273,7 +302,7 @@ module.exports = function () {
       mcsdTotalLevels.entry = [];
       mcsdlevelNumber.entry = [];
       mcsdBuildings.entry = [];
-      if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0) {
+      if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0 || !topOrgId) {
         return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
       }
       const entry = mcsd.entry.find(entry => entry.resource.id == topOrgId);
@@ -368,6 +397,9 @@ module.exports = function () {
           url,
         };
         request.get(options, (err, res, body) => {
+          if (!isJSON(body)) {
+            return callback (0)
+          }
           body = JSON.parse(body);
           if (body.total == 0) return callback(totalLevels);
           let counter = 0;
@@ -579,11 +611,14 @@ module.exports = function () {
         url,
       };
       this.getLocationByID(database,id,false,(location)=>{
+        if (location.entry.length === 0) {
+          return callback(true,null)
+        }
         request.delete(options, (err, res, body) => {
           if (err) {
             winston.error(err);
           }
-          callback(err);
+          callback(err,null);
         });
         var identifier = location.entry[0].resource.identifier.find((identifier)=>{
           return identifier.system == 'http://geoalign.datim.org/MOH'
@@ -617,7 +652,7 @@ module.exports = function () {
                   display: 'Match Broken',
                 });
                 this.saveLocations(location, topOrgId, (err, res) => {
-                  winston.error(res)
+                  winston.error(err,res)
                 })
               }
             })
@@ -736,7 +771,7 @@ module.exports = function () {
             this.saveJurisdiction(jurisdictions, orgid, () => {
               countRow++
               var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-              let uploadReqPro = JSON.stringify({status:'3/3 Upload Running',percent: percent})
+              let uploadReqPro = JSON.stringify({status:'3/3 Upload Running', error: null, percent: percent})
               redisClient.set(uploadRequestId,uploadReqPro)
               resolve()
             });
@@ -755,7 +790,7 @@ module.exports = function () {
               if(jurisdictions.length == 0) {
                 countRow++
                 var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-                let uploadReqPro = JSON.stringify({status:'3/3 Upload Running',percent: percent})
+                let uploadReqPro = JSON.stringify({status:'3/3 Upload Running', error: null, percent: percent})
                 redisClient.set(uploadRequestId,uploadReqPro)
                 resolve()
               }
@@ -764,7 +799,7 @@ module.exports = function () {
           }))
         }).on('end',()=>{
           Promise.all(promises).then(()=>{
-            let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
+            let uploadReqPro = JSON.stringify({status:'Done', error: null, percent: 100})
             redisClient.set(uploadRequestId,uploadReqPro)
             callback()
           })
@@ -944,6 +979,9 @@ module.exports = function () {
             callback()
           })
         }
+        else {
+          callback()
+        }
       });
     },
     archiveDB (db,callback) {
@@ -996,6 +1034,9 @@ module.exports = function () {
       this.archiveDB(db,(err)=>{
         winston.info('Deleting ' + db)
         this.deleteDB(db,(err)=>{
+          if (err) {
+            return callback(err)
+          }
           winston.info('Restoring now ....')
           let dbList = []
           dbList.push({archive: `MOHDATIM_${db}_${archive}.tar`,db:`MOHDATIM${db}`})

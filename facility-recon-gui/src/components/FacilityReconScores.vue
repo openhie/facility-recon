@@ -872,8 +872,8 @@ export default {
       })
     },
     markRecoDone () {
-      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).catch ((err)=>{
-        console.log(err)
+      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).catch((err) => {
+        console.log(err.response.data.error)
       })
     },
     back () {
@@ -1001,7 +1001,7 @@ export default {
       }
     },
     mohPercentNoMatch () {
-      if (this.$store.state.scoreResults.length ===0) {
+      if (this.$store.state.scoreResults.length === 0) {
         return 0
       } else if (this.$store.state.noMatchContent) {
         return parseFloat((this.$store.state.noMatchContent.length * 100 / this.$store.state.scoreResults.length).toFixed(2))
@@ -1024,14 +1024,14 @@ export default {
       }
     },
     datimPercentUnmatched () {
-      if (this.$store.state.datimTotalRecords ===0) {
+      if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.datimTotalUnmatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))
       }
     },
     datimPercentFlagged () {
-      if (this.$store.state.datimTotalRecords ===0) {
+      if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else if (this.$store.state.flagged) {
         return parseFloat((this.$store.state.flagged.length * 100 / this.$store.state.datimTotalRecords).toFixed(2))
@@ -1043,7 +1043,7 @@ export default {
       return this.mohTotalMatched
     },
     datimPercentMatched () {
-      if (this.$store.state.datimTotalRecords ===0) {
+      if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.datimTotalMatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))

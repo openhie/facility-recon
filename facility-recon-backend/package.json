@@ -31,6 +31,7 @@
     "formidable": "^1.2.1",
     "fs-finder": "^1.8.1",
     "geodist": "^0.2.1",
+    "is-json": "^2.0.1",
     "memory-cache": "^0.2.0",
     "moment": "^2.22.2",
     "mongodb": "^3.1.1",

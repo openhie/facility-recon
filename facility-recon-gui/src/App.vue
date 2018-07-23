@@ -17,6 +17,19 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
+      <v-dialog persistent v-model="$store.state.dialogError" max-width="500px">
+        <v-card>
+          <v-card-title>
+            {{$store.state.errorTitle}}
+          </v-card-title>
+          <v-card-text>
+            {{$store.state.errorDescription}}
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" @click.native="$store.state.dialogError = false">Ok</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <v-dialog
       v-model="initializingApp"
       hide-overlay

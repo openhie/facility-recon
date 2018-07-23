@@ -347,8 +347,25 @@ export default {
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/uploadProgress/' + orgId + '/' + clientId).then((uploadProgress) => {
         if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false) {
-          clearInterval(this.scoreProgressTimer)
+          this.$store.state.uploadRunning = false
+          this.uploadPrepaProgr = false
+          this.percentDialog = false
+          clearInterval(this.UploadProgressTimer)
           return
+        } else if (uploadProgress.data.error !== null) {
+          this.$store.state.uploadRunning = false
+          this.uploadPrepaProgr = false
+          this.percentDialog = false
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = uploadProgress.data.error
+          clearInterval(this.UploadProgressTimer)
+          console.log(uploadProgress.data.error)
+        } else if (uploadProgress.data.status === null) {
+          this.$store.state.uploadRunning = false
+          this.uploadPrepaProgr = false
+          this.percentDialog = false
+          clearInterval(this.UploadProgressTimer)
         }
         this.uploadStatus = uploadProgress.data.status
         if (uploadProgress.data.percent) {
@@ -399,7 +416,14 @@ export default {
         }
       ).then((data) => {
       }).catch((err) => {
-        console.log(err)
+        this.$store.state.uploadRunning = false
+        this.uploadPrepaProgr = false
+        this.percentDialog = false
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
+        clearInterval(this.checkUploadProgress)
+        console.log(err.response.data.error)
       })
       this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
     },

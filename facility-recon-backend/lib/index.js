@@ -124,7 +124,7 @@ app.post('/restoreArchive/:orgid', (req,res) => {
         res.set('Access-Control-Allow-Origin', '*');
         if(err) {
           winston.error(err)
-          res.status(401).json({ error: 'Unexpected error' });
+          res.status(401).json({ error: 'Unexpected error occured while restoring the database,please retry' });
         }
         res.status(200).send();
       })
@@ -402,7 +402,7 @@ app.post('/breakMatch/:orgid', (req, res) => {
     winston.info(`Received break match request for ${fields.datimId}`);
     const datimId = fields.datimId;
     const database = config.getConf('mapping:dbPrefix') + req.params.orgid;
-    mcsd.breakMatch(datimId, database, req.params.orgid, (err) => {
+    mcsd.breakMatch(datimId, database, req.params.orgid, (err,results) => {
       winston.info(`break match done for ${fields.datimId}`);
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).send(err);
@@ -444,7 +444,40 @@ app.post('/breakNoMatch/:orgid', (req, res) => {
 
 app.get('/markRecoDone/:orgid',(req,res)=>{
   const orgid = req.params.orgid
-  
+  const database = config.getConf('mapping:dbPrefix') + orgid
+  const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+    + '?_count=1'
+    .toString();
+  var url_old = url
+  const options = {
+    url,
+  };
+  request.get(options, (err, res, body) => {
+    body = JSON.parse(body);
+    body.meta.tag = []
+    body.meta.tag.push({
+      system: 'mohSystem',
+      code: 'flagCode',
+      display: 'To be reviewed',
+    })
+    delete body.entry
+    const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').toString();
+    const options = {
+      url: url.toString(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      json: body,
+    };
+    request.post(options, (err, res, body) => {
+      if (err) {
+        winston.error(err);
+        return callback(err);
+      }
+      //winston.info('Data saved successfully');
+      winston.error(body)
+    });
+  });
 })
 
 app.get('/uploadProgress/:orgid/:clientId', (req,res)=>{
@@ -452,6 +485,12 @@ app.get('/uploadProgress/:orgid/:clientId', (req,res)=>{
   const clientId = req.params.clientId
   redisClient.get(`uploadProgress${orgid}${clientId}`,(error,results)=>{
     results = JSON.parse(results)
+    //reset progress
+    if (results && (results.error !== null || results.status === 'Done')) {
+      var uploadRequestId = `uploadProgress${orgid}${clientId}`
+      let uploadReqPro = JSON.stringify({status:null, error: null, percent: null})
+      redisClient.set(uploadRequestId,uploadReqPro)
+    }
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)
   })
@@ -462,6 +501,12 @@ app.get('/scoreProgress/:orgid/:clientId', (req,res)=>{
   const clientId = req.params.clientId
   redisClient.get(`scoreResults${orgid}${clientId}`,(error,results)=>{
     results = JSON.parse(results)
+    //reset progress
+    if (results && (results.error !== null || results.status === 'Done')) {
+      const scoreRequestId = `scoreResults${orgid}${clientId}`
+      let uploadReqPro = JSON.stringify({status:null, error: null, percent: null})
+      redisClient.set(scoreRequestId,uploadReqPro)
+    }
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)
   })
@@ -483,6 +528,8 @@ app.post('/uploadCSV', (req, res) => {
     const expectedLevels = config.getConf('levels');
     const clientId = fields.clientId
     var uploadRequestId = `uploadProgress${orgid}${clientId}`
+    let uploadReqPro = JSON.stringify({status:'Request received by server', error: null, percent: null})
+    redisClient.set(uploadRequestId,uploadReqPro)
     if (!Array.isArray(expectedLevels)) {
       winston.error('Invalid config data for key Levels ');
       res.set('Access-Control-Allow-Origin', '*');
@@ -502,7 +549,7 @@ app.post('/uploadCSV', (req, res) => {
       if (!valid) {
         winston.error({ MissingHeaders: missing });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({ MissingHeaders: missing });
+        res.status(401).json({ error: 'Some Headers are Missing' });
         res.end();
         return;
       }
@@ -512,35 +559,35 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       //archive existing DB first
-      let uploadReqPro = JSON.stringify({status:'1/3 Archiving Old DB',percent: null})
+      let uploadReqPro = JSON.stringify({status:'1/3 Archiving Old DB', error: null, percent: null})
       redisClient.set(uploadRequestId,uploadReqPro)
       mcsd.archiveDB(orgid,(err)=>{
         if(err) {
-          res.set('Access-Control-Allow-Origin', '*');
-          res.status(400).end();
+          let uploadReqPro = JSON.stringify({status:'1/3 Archiving Old DB',error: 'An error occured while archiving Database,retry', percent: null})
+          redisClient.set(uploadRequestId,uploadReqPro)
           winston.error('An error occured while Archiving existing DB,Upload of new dataset was stopped')
           return
         }
         //ensure old archives are deleted
-        let uploadReqPro = JSON.stringify({status:'2/3 Deleting Old DB',percent: null})
+        let uploadReqPro = JSON.stringify({status:'2/3 Deleting Old DB', error: null, percent: null})
         redisClient.set(uploadRequestId,uploadReqPro)
         mcsd.cleanArchives(orgid,()=>{})
         //delete existing db
         mcsd.deleteDB(orgid,(err)=>{
           if(!err){
             winston.info(`Uploading data for ${orgid} now`)
-            let uploadReqPro = JSON.stringify({status:'3/3 Uploading of DB started',percent: null})
+            let uploadReqPro = JSON.stringify({status:'3/3 Uploading of DB started', error: null, percent: null})
             redisClient.set(uploadRequestId,uploadReqPro)
             mcsd.CSVTomCSD(files[fileName].path, fields, orgid, clientId, () => {
               winston.info(`Data upload for ${orgid} is done`)
-              let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
+              let uploadReqPro = JSON.stringify({status:'Done', error: null, percent: 100})
               redisClient.set(uploadRequestId,uploadReqPro)
             });
           }
           else {
             winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
-            res.set('Access-Control-Allow-Origin', '*');
-            res.status(400).end();
+            let uploadReqPro = JSON.stringify({status:'1/3 Deleting Old DB',error: 'An error occured while dropping existing Database,retry', percent: null})
+            redisClient.set(uploadRequestId,uploadReqPro)
           }
         })
       })
