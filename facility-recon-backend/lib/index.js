@@ -210,7 +210,8 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
       totalAllMapped = body.total
     })
     let scoreRequestId = `scoreResults${datimTopId}${clientId}`
-    scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', percent: null})
+    scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', error: null, percent: null})
+    redisClient.set(scoreRequestId,scoreResData)
     const datimLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
         mcsdDatimAll = mcsdDATIM;
@@ -235,7 +236,6 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
         resolve(mcsdMapped);
       });
     });
-    redisClient.set(scoreRequestId,scoreResData)
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
       if (recoLevel == totalLevels) {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
@@ -500,9 +500,11 @@ app.get('/scoreProgress/:orgid/:clientId', (req,res)=>{
   const orgid = req.params.orgid
   const clientId = req.params.clientId
   redisClient.get(`scoreResults${orgid}${clientId}`,(error,results)=>{
+    winston.error(results)
     results = JSON.parse(results)
     //reset progress
     if (results && (results.error !== null || results.status === 'Done')) {
+      winston.error('stting to null')
       const scoreRequestId = `scoreResults${orgid}${clientId}`
       let uploadReqPro = JSON.stringify({status:null, error: null, percent: null})
       redisClient.set(scoreRequestId,uploadReqPro)

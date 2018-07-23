@@ -65,7 +65,7 @@ module.exports = function () {
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
-              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
+              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
@@ -121,7 +121,7 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 count++;
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
                 winston.error(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
@@ -146,7 +146,7 @@ module.exports = function () {
               scoreResults.push(thisRanking);
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+              scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               winston.error(`${count}/${mcsdMOH.entry.length}`);
               return mohCallback();
@@ -270,7 +270,7 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 count++
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
                 winston.info(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
@@ -281,7 +281,7 @@ module.exports = function () {
           }
         });
       }, () => {
-        scoreResData = JSON.stringify({status: 'Done', percent: 100})
+        scoreResData = JSON.stringify({status: 'Done', error: null, percent: 100})
         redisClient.set(scoreRequestId,scoreResData)
         callback(scoreResults)
       });
@@ -349,7 +349,7 @@ module.exports = function () {
               count++
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
+              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
@@ -421,7 +421,7 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 count++
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
                 return mohCallback();
               }
@@ -447,7 +447,7 @@ module.exports = function () {
               scoreResults.push(thisRanking);
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+              scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               return mohCallback();
             });
@@ -626,7 +626,7 @@ module.exports = function () {
                 count++;
                 winston.info(`${count}/${mcsdMOH.entry.length}`);
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
+                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
                 return mohCallback();
               });
@@ -636,7 +636,7 @@ module.exports = function () {
           }
         });
       }, () => {
-        scoreResData = JSON.stringify({status: 'Done', percent: 100})
+        scoreResData = JSON.stringify({status: 'Done', error: null, percent: 100})
         redisClient.set(scoreRequestId,scoreResData)
         callback(scoreResults)
       });
