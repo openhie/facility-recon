@@ -48,6 +48,7 @@
 <script>
 import axios from 'axios'
 import {scoresMixin} from './mixins/scoresMixin'
+import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
@@ -102,6 +103,7 @@ export default {
     }
   },
   created () {
+    this.$store.state.clientId = uuid.v4()
     this.initializingApp = true
     if (isProduction) {
       this.getOrganisationUnit()

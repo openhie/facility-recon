@@ -11,6 +11,8 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const redis = require('redis')
+const request = require('request');
+const URI = require('urijs');
 const redisClient = redis.createClient()
 const config = require('./config');
 const mcsd = require('./mcsd')();
@@ -176,7 +178,7 @@ app.get('/hierarchy/:source', (req, res) => {
   }
 });
 
-app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
+app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
   if (!req.params.orgid || !req.params.recoLevel) {
     winston.error({ error: 'Missing Orgid or reconciliation Level' });
     res.set('Access-Control-Allow-Origin', '*');
@@ -186,6 +188,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     const orgid = req.params.orgid;
     const recoLevel = req.params.recoLevel;
     const totalLevels = req.params.totalLevels;
+    const clientId = req.params.clientId;
     const datimDB = config.getConf('mCSD:database');
     const mohDB = orgid;
     const namespace = config.getConf('UUID:namespace');
@@ -193,7 +196,20 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     const datimTopId = orgid;
     let mcsdDatimAll = null;
     let mcsdMohAll = null;
-    let scoreRequestId = `scoreResults${datimTopId}`
+
+    //getting total Mapped
+    var database = config.getConf('mapping:dbPrefix') + orgid;
+    var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=1'
+        .toString();
+    const options = {
+      url,
+    };
+    var totalAllMapped = 0
+    request.get(options, (err, res, body) => {
+      body = JSON.parse(body);
+      totalAllMapped = body.total
+    })
+    let scoreRequestId = `scoreResults${datimTopId}${clientId}`
     scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', percent: null})
     const datimLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
@@ -222,15 +238,25 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel', (req, res) => {
     redisClient.set(scoreRequestId,scoreResData)
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
       if (recoLevel == totalLevels) {
-        scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
+        scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({ scoreResults, recoLevel });
+          res.status(200).json({ scoreResults, 
+                                  recoLevel, 
+                                  datimTotalRecords: locations[0].entry.length, 
+                                  totalAllMapped: totalAllMapped,
+                                  mohTotalAllRecords: mcsdMohAll.entry.length
+                                });
           winston.info('Score results sent back');
         });
       } else {
-        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll,mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, (scoreResults) => {
+        scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll,mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({ scoreResults, recoLevel });
+          res.status(200).json({ scoreResults, 
+                                  recoLevel, 
+                                  datimTotalRecords: locations[0].entry.length, 
+                                  totalAllMapped: totalAllMapped, 
+                                  mohTotalAllRecords: mcsdMohAll.entry.length
+                                });
           winston.info('Score results sent back');
         });
       }
@@ -416,18 +442,25 @@ app.post('/breakNoMatch/:orgid', (req, res) => {
   });
 });
 
-app.get('/uploadProgress/:orgid', (req,res)=>{
-  var orgid = req.params.orgid
-  redisClient.get(`uploadProgress${orgid}`,(error,results)=>{
+app.get('/markRecoDone/:orgid',(req,res)=>{
+  const orgid = req.params.orgid
+  
+})
+
+app.get('/uploadProgress/:orgid/:clientId', (req,res)=>{
+  const orgid = req.params.orgid
+  const clientId = req.params.clientId
+  redisClient.get(`uploadProgress${orgid}${clientId}`,(error,results)=>{
     results = JSON.parse(results)
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)
   })
 });
 
-app.get('/scoreProgress/:orgid', (req,res)=>{
-  var orgid = req.params.orgid
-  redisClient.get(`scoreResults${orgid}`,(error,results)=>{
+app.get('/scoreProgress/:orgid/:clientId', (req,res)=>{
+  const orgid = req.params.orgid
+  const clientId = req.params.clientId
+  redisClient.get(`scoreResults${orgid}${clientId}`,(error,results)=>{
     results = JSON.parse(results)
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)
@@ -448,7 +481,8 @@ app.post('/uploadCSV', (req, res) => {
     const orgname = fields.orgname;
     const database = config.getConf('mCSD:database');
     const expectedLevels = config.getConf('levels');
-    var uploadRequestId = `uploadProgress${orgid}`
+    const clientId = fields.clientId
+    var uploadRequestId = `uploadProgress${orgid}${clientId}`
     if (!Array.isArray(expectedLevels)) {
       winston.error('Invalid config data for key Levels ');
       res.set('Access-Control-Allow-Origin', '*');
@@ -478,7 +512,7 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       //archive existing DB first
-      let uploadReqPro = JSON.stringify({status:'Archiving Old DB',percent: null})
+      let uploadReqPro = JSON.stringify({status:'1/3 Archiving Old DB',percent: null})
       redisClient.set(uploadRequestId,uploadReqPro)
       mcsd.archiveDB(orgid,(err)=>{
         if(err) {
@@ -488,16 +522,16 @@ app.post('/uploadCSV', (req, res) => {
           return
         }
         //ensure old archives are deleted
-        let uploadReqPro = JSON.stringify({status:'Deleting Old DB',percent: null})
+        let uploadReqPro = JSON.stringify({status:'2/3 Deleting Old DB',percent: null})
         redisClient.set(uploadRequestId,uploadReqPro)
         mcsd.cleanArchives(orgid,()=>{})
         //delete existing db
         mcsd.deleteDB(orgid,(err)=>{
           if(!err){
             winston.info(`Uploading data for ${orgid} now`)
-            let uploadReqPro = JSON.stringify({status:'Uploading of DB started',percent: null})
+            let uploadReqPro = JSON.stringify({status:'3/3 Uploading of DB started',percent: null})
             redisClient.set(uploadRequestId,uploadReqPro)
-            mcsd.CSVTomCSD(files[fileName].path, fields, orgid, () => {
+            mcsd.CSVTomCSD(files[fileName].path, fields, orgid, clientId, () => {
               winston.info(`Data upload for ${orgid} is done`)
               let uploadReqPro = JSON.stringify({status:'Done',percent: 100})
               redisClient.set(uploadRequestId,uploadReqPro)

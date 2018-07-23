@@ -1,7 +1,14 @@
 <template>
   <v-container fluid>
-    <template v-if='$store.state.uploadRunning'>
-      <b>Wait for upload to finish</b>
+    <template v-if='$store.state.uploadRunning'><br><br><br>
+      <v-alert type="info" :value="true">
+        <b>Wait for upload to finish ...</b>
+        <v-progress-linear
+          indeterminate
+          color="white"
+          class="mb-0"
+        ></v-progress-linear>
+      </v-alert>
     </template>
     <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-slide-y-transition mode="out-in">

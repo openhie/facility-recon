@@ -9,11 +9,15 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   state: {
+    clientId: null,
     denyAccess: true,
     datimHierarchy: '',
     mohHierarchy: '',
     uploadRunning: false,
-    orgUnit: { OrgId: 'PqlFzhuPcF1', OrgName: 'Nigeria' },
+    orgUnit: { OrgId: 'PqlFzhuPcF1', OrgName: 'Malawi' },
+    mohTotalAllRecords: 0,
+    totalAllMapped: 0,
+    datimTotalRecords: 0,
     totalLevels: '',
     recoLevel: 2,
     matchedContent: null,

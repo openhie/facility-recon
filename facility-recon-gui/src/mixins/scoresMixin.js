@@ -14,7 +14,13 @@ export const scoresMixin = {
   },
   methods: {
     checkScoreProgress () {
-      axios.get(backendServer + '/scoreProgress/' + this.$store.state.orgUnit.OrgId).then((scoreProgress) => {
+      const orgId = this.$store.state.orgUnit.OrgId
+      const clientId = this.$store.state.clientId
+      axios.get(backendServer + '/scoreProgress/' + orgId + '/' + clientId).then((scoreProgress) => {
+        if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false) {
+          clearInterval(this.scoreProgressTimer)
+          return
+        }
         this.scoreProgressTitle = scoreProgress.data.status
         if (scoreProgress.data.percent) {
           if (this.progressType !== 'percent') {
@@ -25,6 +31,7 @@ export const scoresMixin = {
         if (scoreProgress.data.status === 'Done') {
           clearInterval(this.scoreProgressTimer)
           this.scoreDialog = false
+          this.scoreProgressTitle = 'Waiting for progress status'
         }
       }).catch((err) => {
         console.log(err)
@@ -38,22 +45,30 @@ export const scoresMixin = {
       this.$store.state.matchedContent = null
       this.$store.state.noMatchContent = null
       this.$store.state.flagged = null
+      this.$store.state.mohTotalAllRecords = 0
+      this.$store.state.totalAllMapped = 0
+      this.$store.state.datimTotalRecords = 0
+      this.$store.state.scoreResults = []
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
       let totalLevels = this.$store.state.totalLevels
+      const clientId = this.$store.state.clientId
       let topTree = this.$store.state.mohParents.slice(0, this.$store.state.mohParents.length)
       // generating levels
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalLevels; k++) {
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k + 1})
       }
-      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel).then((scores) => {
+      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
         this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
         this.$store.state.flagged = []
         this.$store.state.scoreResults = scores.data.scoreResults
+        this.$store.state.datimTotalRecords = scores.data.datimTotalRecords
+        this.$store.state.totalAllMapped = scores.data.totalAllMapped
+        this.$store.state.mohTotalAllRecords = scores.data.mohTotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
             this.$store.state.flagged.push({

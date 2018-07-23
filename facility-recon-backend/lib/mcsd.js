@@ -643,8 +643,8 @@ module.exports = function () {
         callback(err);
       });
     },
-    CSVTomCSD(filePath, headerMapping, orgid, callback) {
-      var uploadRequestId = `uploadProgress${orgid}`
+    CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
+      const uploadRequestId = `uploadProgress${orgid}${clientId}`
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -736,7 +736,7 @@ module.exports = function () {
             this.saveJurisdiction(jurisdictions, orgid, () => {
               countRow++
               var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-              let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
+              let uploadReqPro = JSON.stringify({status:'3/3 Upload Running',percent: percent})
               redisClient.set(uploadRequestId,uploadReqPro)
               resolve()
             });
@@ -755,7 +755,7 @@ module.exports = function () {
               if(jurisdictions.length == 0) {
                 countRow++
                 var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-                let uploadReqPro = JSON.stringify({status:'Upload Running',percent: percent})
+                let uploadReqPro = JSON.stringify({status:'3/3 Upload Running',percent: percent})
                 redisClient.set(uploadRequestId,uploadReqPro)
                 resolve()
               }

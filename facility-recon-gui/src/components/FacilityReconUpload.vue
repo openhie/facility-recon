@@ -54,15 +54,15 @@
       v-model="percentDialog"
       hide-overlay
       persistent
-      width="150"
+      width="190"
     >
       <v-card
-        color="yellow lighten-5"
+        color="white"
         dark
       >
         <v-card-text>
           <center>
-            <font style="color:blue">Upload Progress</font><br>
+            <font style="color:blue">{{uploadStatus}}</font><br>
             <v-progress-circular
               :rotate="-90"
               :size="100"
@@ -70,7 +70,9 @@
               :value="uploadPercent"
               color="primary"
             >
-              {{ uploadPercent }}%
+              <v-avatar color="indigo" size="50px">
+                <span class="white--text"><b>{{ uploadPercent }}%</b></span>
+              </v-avatar>
             </v-progress-circular>
           </center>
         </v-card-text>
@@ -341,7 +343,13 @@ export default {
       this.confirmUpload = true
     },
     checkUploadProgress () {
-      axios.get(backendServer + '/uploadProgress/' + this.$store.state.orgUnit.OrgId).then((uploadProgress) => {
+      const orgId = this.$store.state.orgUnit.OrgId
+      const clientId = this.$store.state.clientId
+      axios.get(backendServer + '/uploadProgress/' + orgId + '/' + clientId).then((uploadProgress) => {
+        if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false) {
+          clearInterval(this.scoreProgressTimer)
+          return
+        }
         this.uploadStatus = uploadProgress.data.status
         if (uploadProgress.data.percent) {
           if (!this.percentDialog) {
@@ -378,6 +386,7 @@ export default {
       formData.append('level7', this.level7)
       formData.append('orgid', this.$store.state.orgUnit.OrgId)
       formData.append('orgname', this.$store.state.orgUnit.OrgName)
+      formData.append('clientId', this.$store.state.clientId)
       this.confirmUpload = false
       this.$store.state.uploadRunning = true
       this.uploadPrepaProgr = true
@@ -396,7 +405,7 @@ export default {
     },
     closeDialog (component) {
       this.$router.push({name: component})
-      location.reload()
+      // location.reload()
       this.dialog = false
     }
   },

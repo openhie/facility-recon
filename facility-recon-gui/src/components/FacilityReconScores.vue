@@ -1,9 +1,16 @@
 <template>
-  <v-container>
-    <template v-if='$store.state.uploadRunning'>
-      <b>Wait for upload to finish</b>
+  <v-container fluid>
+    <template v-if='$store.state.uploadRunning'><br><br><br>
+      <v-alert type="info" :value="true">
+        <b>Wait for upload to finish ...</b>
+        <v-progress-linear
+          indeterminate
+          color="white"
+          class="mb-0"
+        ></v-progress-linear>
+      </v-alert>
     </template>
-  	<v-container grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
+  	<v-container fluid grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-dialog
         v-model="scoreDialog"
         hide-overlay
@@ -25,7 +32,9 @@
                 color="primary"
                 v-if="progressType == 'percent'"
               >
-                {{ scoreProgressPercent }}%
+              <v-avatar color="indigo" size="50px">
+                <span class="white--text"><b>{{ scoreProgressPercent }}%</b></span>
+              </v-avatar>
               </v-progress-circular>
               <v-progress-linear
               indeterminate
@@ -108,15 +117,132 @@
   	      	>
   	      </v-select>
       	</v-flex>
-      	<v-flex md3>
+      	<v-flex xs1 sm2 md2>
   		    <v-btn slot="activator" color="primary" dark @click="getScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
         </v-flex>
-        <v-flex md3 v-if="nextLevel == 'yes'">
+        <v-flex xs1 sm2 md2 v-if="nextLevel == 'yes'">
           <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
+        </v-flex>
+        <v-flex xs1 sm2 md2 v-if="">
+          <v-btn color="success" round @click='markRecoDone' v-if='$store.state.mohTotalAllRecords - $store.state.totalAllMapped == 0'><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
         </v-flex>
       </v-layout>
       <v-layout row wrap>
-        <v-flex xs12 sm6 md6 child-flex>
+        <v-flex xs2 right>
+          <div style="border-style: solid;border-color:green">
+          <b>MOH Reconciliation Status</b>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex xs1>
+                <v-icon light >thumb_up</v-icon><b>Matched</b>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center><b>{{mohTotalMatched}}/{{mohTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1>
+                <center>
+                <v-progress-circular
+                  :rotate="-90"
+                  :size="65"
+                  :width="8"
+                  :value="mohPercentMatched"
+                  color="yellow"
+                >
+                  <font color="white"><b>{{ mohPercentMatched }}%</b></font>
+                </v-progress-circular>
+              </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light >lock_open</v-icon><b>Un Matched</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{mohTotalUnMatched}}/{{mohTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="mohPercentUnMatched"
+                    color="yellow"
+                  >
+                   <font color="white"><b>{{mohPercentUnMatched}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <br>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light >thumb_down</v-icon><b>No Match</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{mohTotalNoMatch}}/{{mohTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="mohPercentNoMatch"
+                    color="yellow"
+                  >
+                    <font color="white"><b>{{mohPercentNoMatch}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light >notification_important</v-icon><b>Flagged</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{totalFlagged}}/{{mohTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="mohPercentFlagged"
+                    color="yellow"
+                  >
+                   <font color="white"><b>{{mohPercentFlagged}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+        </div>
+        </v-flex>
+        <v-flex xs4 child-flex>
           <v-card color="green lighten-2" dark>
           	<v-card-title primary-title>
           	  MOH Unmatched
@@ -151,7 +277,7 @@
           	</template>
           </v-card>
         </v-flex>
-        <v-flex xs12 sm6 md6>
+        <v-flex xs4>
           <v-card color="blue lighten-2" dark>
           	<v-card-title primary-title>
           	  DATIM Unmatched
@@ -181,6 +307,122 @@
           		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
           	</template>
           </v-card>
+        </v-flex>
+
+
+        <v-flex xs2 right>
+          <div style='border-style: solid;border-color: green'>
+          <b>DATIM Reconciliation Status</b>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light>thumb_up</v-icon><b>Matched</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{datimTotalMatched}}/{{datimTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="datimPercentMatched"
+                    color="yellow"
+                  >
+                    <font color="white"><b>{{datimPercentMatched}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex xs1>
+                <v-icon light >lock_open</v-icon><b>Un Matched</b>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center><b>{{datimTotalUnmatched}}/{{datimTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1>
+                <center>
+                <v-progress-circular
+                  :rotate="-90"
+                  :size="65"
+                  :width="8"
+                  :value="datimPercentUnmatched"
+                  color="yellow"
+                >
+                  <font color="white"><b>{{ datimPercentUnmatched }}%</b></font>
+                </v-progress-circular>
+              </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <br>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light >notification_important</v-icon><b>Flagged</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{totalFlagged}}/{{datimTotalRecords}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="datimPercentFlagged"
+                    color="yellow"
+                  >
+                   <font color="white"><b>{{datimPercentFlagged}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          <v-chip
+            color="green"
+            text-color='white'
+            style='height:138px;width:128px'
+          >
+            <v-layout column>
+              <v-flex align-center>
+                <v-icon light >notification_important</v-icon><b>Not in MOH</b>
+              </v-flex>
+              <v-flex xs1>
+                <center><b>{{datimNotInMoh}}</b></center>
+              </v-flex>
+              <v-flex xs1 align-center>
+                <center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="datimPercentNotInMoh"
+                    color="yellow"
+                  >
+                   <font color="white"><b>{{datimPercentNotInMoh}} %</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+            </v-layout>
+          </v-chip>
+          </div>
         </v-flex>
       </v-layout>
       <v-layout column wrap>
@@ -218,7 +460,7 @@
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.datimName}}</td>
                   <td>{{props.item.datimId}}</td>
-                  <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>cached</v-icon>Break Match</v-btn></td>
+                  <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>undo</v-icon>Break Match</v-btn></td>
                 </template>
     	        </v-data-table>
             </template>
@@ -629,6 +871,11 @@ export default {
         console.log(err)
       })
     },
+    markRecoDone () {
+      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).catch ((err)=>{
+        console.log(err)
+      })
+    },
     back () {
       this.dialog = false
       this.selectedDatimId = null
@@ -698,6 +945,121 @@ export default {
       } else {
         return 'no'
       }
+    },
+    mohTotalRecords () {
+      if (this.$store.state.scoreResults) {
+        return this.$store.state.scoreResults.length
+      } else {
+        return 0
+      }
+    },
+    mohTotalMatched () {
+      if (this.$store.state.matchedContent) {
+        return this.$store.state.matchedContent.length
+      } else {
+        return 0
+      }
+    },
+    mohPercentMatched () {
+      if (this.mohTotalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.mohTotalMatched * 100 / this.mohTotalRecords).toFixed(2))
+      }
+    },
+    mohTotalUnMatched () {
+      return this.mohTotalRecords - this.mohTotalMatched
+    },
+    mohPercentUnMatched () {
+      if (this.mohTotalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.mohTotalUnMatched * 100 / this.mohTotalRecords).toFixed(2))
+      }
+    },
+    totalFlagged () {
+      if (this.$store.state.flagged) {
+        return this.$store.state.flagged.length
+      } else {
+        return 0
+      }
+    },
+    mohPercentFlagged () {
+      if (this.$store.state.scoreResults.length === 0) {
+        return 0
+      } else if (this.$store.state.flagged) {
+        return parseFloat((this.$store.state.flagged.length * 100 / this.$store.state.scoreResults.length).toFixed(2))
+      } else {
+        return 0
+      }
+    },
+    mohTotalNoMatch () {
+      if (this.$store.state.noMatchContent) {
+        return this.$store.state.noMatchContent.length
+      } else {
+        return 0
+      }
+    },
+    mohPercentNoMatch () {
+      if (this.$store.state.scoreResults.length ===0) {
+        return 0
+      } else if (this.$store.state.noMatchContent) {
+        return parseFloat((this.$store.state.noMatchContent.length * 100 / this.$store.state.scoreResults.length).toFixed(2))
+      } else {
+        return 0
+      }
+    },
+    datimTotalRecords () {
+      if (this.$store.state.datimTotalRecords) {
+        return this.$store.state.datimTotalRecords
+      } else {
+        return 0
+      }
+    },
+    datimTotalUnmatched () {
+      if (this.datimTotalRecords > 0 && this.$store.state.matchedContent) {
+        return parseInt(this.datimTotalRecords) - parseInt(this.$store.state.matchedContent.length)
+      } else {
+        return 0
+      }
+    },
+    datimPercentUnmatched () {
+      if (this.$store.state.datimTotalRecords ===0) {
+        return 0
+      } else {
+        return parseFloat((this.datimTotalUnmatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+      }
+    },
+    datimPercentFlagged () {
+      if (this.$store.state.datimTotalRecords ===0) {
+        return 0
+      } else if (this.$store.state.flagged) {
+        return parseFloat((this.$store.state.flagged.length * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+      } else {
+        return 0
+      }
+    },
+    datimTotalMatched () {
+      return this.mohTotalMatched
+    },
+    datimPercentMatched () {
+      if (this.$store.state.datimTotalRecords ===0) {
+        return 0
+      } else {
+        return parseFloat((this.datimTotalMatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+      }
+    },
+    datimNotInMoh () {
+      var missing = this.datimTotalRecords - this.mohTotalRecords
+      if (missing < 0) {
+        return 0
+      } else {
+        return missing
+      }
+    },
+    datimPercentNotInMoh () {
+      var percent = parseFloat((this.datimNotInMoh).toFixed(2))
+      return parseFloat(percent)
     }
   },
   created () {

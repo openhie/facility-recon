@@ -12,7 +12,8 @@ const mcsd = require('./mcsd')();
 
 module.exports = function () {
   return {
-    getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
+    getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
+      const scoreRequestId = `scoreResults${datimTopId}${clientId}`
       const scoreResults = [];
       const mapped = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
@@ -62,7 +63,6 @@ module.exports = function () {
               });
             },()=>{
               count++
-              let scoreRequestId = `scoreResults${datimTopId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
@@ -119,7 +119,6 @@ module.exports = function () {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++;
-                let scoreRequestId = `scoreResults${datimTopId}`
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
@@ -145,7 +144,6 @@ module.exports = function () {
               };
               scoreResults.push(thisRanking);
               count++
-              let scoreRequestId = `scoreResults${datimTopId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
@@ -270,7 +268,6 @@ module.exports = function () {
               }, () => {
                 scoreResults.push(thisRanking);
                 count++
-                let scoreRequestId = `scoreResults${datimTopId}`
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
@@ -283,14 +280,14 @@ module.exports = function () {
           }
         });
       }, () => {
-        let scoreRequestId = `scoreResults${datimTopId}`
         scoreResData = JSON.stringify({status: 'Done', percent: 100})
         redisClient.set(scoreRequestId,scoreResData)
         callback(scoreResults)
       });
     },
 
-    getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, callback) {
+    getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
+      const scoreRequestId = `scoreResults${datimTopId}${clientId}`
       var scoreResults = [];
       var mapped = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
@@ -349,7 +346,6 @@ module.exports = function () {
               })
             },()=>{
               count++
-              let scoreRequestId = `scoreResults${datimTopId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
@@ -422,7 +418,6 @@ module.exports = function () {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++
-                let scoreRequestId = `scoreResults${datimTopId}`
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
@@ -449,7 +444,6 @@ module.exports = function () {
               };
               scoreResults.push(thisRanking);
               count++
-              let scoreRequestId = `scoreResults${datimTopId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
@@ -629,7 +623,6 @@ module.exports = function () {
                 scoreResults.push(thisRanking);
                 count++;
                 winston.info(`${count}/${mcsdMOH.entry.length}`);
-                let scoreRequestId = `scoreResults${datimTopId}`
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Calculating Scores', percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
@@ -641,7 +634,6 @@ module.exports = function () {
           }
         });
       }, () => {
-        let scoreRequestId = `scoreResults${datimTopId}`
         scoreResData = JSON.stringify({status: 'Done', percent: 100})
         redisClient.set(scoreRequestId,scoreResData)
         callback(scoreResults)
