@@ -38,7 +38,7 @@
   "logger": {
     "level": "info"
   },
-  "levels":[
+  "levels": [
     "level1",
     "level2",
     "level3",
@@ -54,7 +54,21 @@
     "noMatchCode": "cc1f0726-7ab4-11e8-adc0-fa7ae01bbebc",
     "matchBrokenCode": "475e7eb2-88fc-11e8-9a94-a6cf71072f73"
   },
-  "matchResults":{
+  "matchResults": {
     "maxSuggestions":5
+  },
+  "dictionary": {
+    "HC": "Health Center",
+    "HOSP": "Hospital",
+    "H/C": "Health Center",
+    "St": "Saint",
+    "ST.": "Saint",
+    "Health Centre": "Health Center",
+    "HP": "Health Post",
+    "HP.": "Health Post",
+    "DISP": "Dispensary",
+    "DISP.": "Dispensary",
+    "Cl": "Clinic",
+    "CL.": "Clinic"
   }
 }
