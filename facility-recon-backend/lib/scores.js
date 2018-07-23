@@ -179,11 +179,6 @@ module.exports = function () {
               var mohParentReceived = Promise.resolve([]);
             }
 
-            var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-              //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
-              // in case there are different levels of parents (only DATIM can have more levels due to import)
-              return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
-            })
             mohParentReceived.then(() => {
               const thisRanking = {};
               thisRanking.moh = {
@@ -194,6 +189,11 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
+              var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
+                //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+                // in case there are different levels of parents (only DATIM can have more levels due to import)
+                return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
+              })
               async.each(datimFiltered, (datimEntry, datimCallback) => {
                 const id = datimEntry.resource.id;
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
@@ -211,14 +211,9 @@ module.exports = function () {
                   }
                   const datimName = datimEntry.resource.name;
                   const datimId = datimEntry.resource.id
+
                   lev = levenshtein.get(datimName.toLowerCase(), mohName.toLowerCase());
-                  // if names mathes exactly and the two has same parents then this is an exact match
-                  // var parentsEquals = mohParents.length == datimParents.length &&  datimParents.every((v,i)=>mohParents.includes(v))
-                  let parentsEquals = false;
-                  if (mohParentIds.length > 0 && datimMappedParentIds[datimId].length > 0) {
-                    parentsEquals = mohParentIds[0] == datimMappedParentIds[datimId][0];
-                  }
-                  if (lev == 0 && parentsEquals && !matchBroken) {
+                  if (lev == 0 && !matchBroken) {
                     ignore.push(datimEntry.resource.id)
                     thisRanking.exactMatch = {
                       name: datimName,
@@ -232,7 +227,7 @@ module.exports = function () {
                     // we will need to break here and start processing nxt MOH
                     return datimCallback();
                   }
-                  if (lev == 0 && parentsEquals && matchBroken) {
+                  if (lev == 0 && matchBroken) {
                     thisRanking.potentialMatches = {'0': [{
                       name: datimName,
                       parents: datimParentNames[datimId],
@@ -477,11 +472,6 @@ module.exports = function () {
             } else {
               var mohParentReceived = Promise.resolve([]);
             }
-            var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-              //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
-              // in case there are different levels of parents (only DATIM can have more levels due to import)
-              return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
-            })
             mohParentReceived.then(() => {
               const thisRanking = {};
               let mohBuildingId = null;
@@ -499,6 +489,11 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
+              var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
+                //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+                // in case there are different levels of parents (only DATIM can have more levels due to import)
+                return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
+              })
               async.each(datimFiltered, (datimEntry, datimCallback) => {
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
@@ -557,13 +552,30 @@ module.exports = function () {
                   return datimCallback();
                 }
 
-                lev = levenshtein.get(datimName.toLowerCase(), mohName.toLowerCase());
-                // if names mathes exactly and the two has same parents then this is an exact match
-                let parentsEquals = false;
-                if (mohParentIds.length > 0 && datimMappedParentIds[datimEntry.resource.id].length > 0) {
-                  parentsEquals = mohParentIds[0] == datimMappedParentIds[datimEntry.resource.id][0];
+                if (!matchBroken) {
+                  const dictionary = config.getConfg("dictionary")
+                  for (let abbr in dictionary) {
+                    const replaced = mohName.replace(abbr, dictionary[abbr])
+                    if (replaced.toLowerCase() === datimName.toLowerCase()) {
+                      ignore.push(datimEntry.resource.id)
+                      thisRanking.exactMatch = {
+                        name: datimName,
+                        parents: datimParentNames[datimEntry.resource.id],
+                        lat: datimLatitude,
+                        long: datimLongitude,
+                        geoDistance: dist,
+                        id: datimEntry.resource.id,
+                      };
+                      thisRanking.potentialMatches = {};
+                      mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+                      });
+                      return datimCallback();
+                    }
+                  }
                 }
-                if (lev == 0 && parentsEquals && !matchBroken) {
+
+                lev = levenshtein.get(datimName.toLowerCase(), mohName.toLowerCase());
+                if (lev == 0 && !matchBroken) {
                   ignore.push(datimEntry.resource.id)
                   thisRanking.exactMatch = {
                     name: datimName,
@@ -579,7 +591,7 @@ module.exports = function () {
                   });
                   return datimCallback();
                 }
-                else if (lev == 0 && parentsEquals && matchBroken) {
+                else if (lev == 0 && matchBroken) {
                   thisRanking.potentialMatches = {'0': [{
                     name: datimName,
                     parents: datimParentNames[datimEntry.resource.id],
