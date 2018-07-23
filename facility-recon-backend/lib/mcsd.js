@@ -936,7 +936,7 @@ module.exports = function () {
         }
       }
 
-      var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
+      var files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files)=>{
         if(files.length > maxArchives) {
           var totalDelete = files.length - maxArchives
           filesDelete = []
@@ -948,9 +948,9 @@ module.exports = function () {
             }
             else {
               var replaceDel = filesDelete.find((fDelete)=>{
-                fDelete = fDelete.replace(`${__dirname}/dbArhives/${db}_`,'').replace('.tar','')
+                fDelete = fDelete.replace(`${__dirname}/dbArchives/${db}_`,'').replace('.tar','')
                 fDelete = moment(fDelete)
-                searchFile = file.replace(`${__dirname}/dbArhives/${db}_`,'').replace('.tar','')
+                searchFile = file.replace(`${__dirname}/dbArchives/${db}_`,'').replace('.tar','')
                 searchFile = moment(searchFile)
                 return fDelete > searchFile
               })
@@ -1005,7 +1005,7 @@ module.exports = function () {
          var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
         }
         var me = this
-        var dir = `${__dirname}/dbArhives`
+        var dir = `${__dirname}/dbArchives`
         mongoBackup ({
           uri: uri,
           root: dir,
@@ -1054,7 +1054,7 @@ module.exports = function () {
             var me = this
             mongoRestore ({
               uri: uri,
-              root: `${__dirname}/dbArhives`,
+              root: `${__dirname}/dbArchives`,
               tar: archive,
               callback: (err) => {
                 if (err) {
@@ -1064,7 +1064,7 @@ module.exports = function () {
                   winston.info(archive + ' restored successfully');
                 }
                 winston.info('Deleting Archive ' + archive)
-                var fileDelete = `${__dirname}/dbArhives/${archive}`
+                var fileDelete = `${__dirname}/dbArchives/${archive}`
                 fs.unlink(fileDelete,(err)=>{
                   if(err) {
                     winston.error(err)
@@ -1117,7 +1117,7 @@ module.exports = function () {
       }
 
       var archives = []
-      var files = fsFinder.from(`${__dirname}/dbArhives`).filter(filter).findFiles((files)=>{
+      var files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files)=>{
         async.eachSeries(files,(file,nxtFile)=>{
           file = file.split('/').pop().replace('.tar','').replace(`${db}_`,'')
           archives.push(file)
