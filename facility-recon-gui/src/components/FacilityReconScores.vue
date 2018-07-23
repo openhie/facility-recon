@@ -130,7 +130,7 @@
       </v-layout>
       <v-layout row wrap>
         <v-flex xs2 right>
-          <div style="border-style: solid;border-color:green">
+          <div style="border-style: solid;border-color:green; text-align: center;">
           <b>MOH Reconciliation Status</b>
           <v-chip
             color="green"
@@ -313,7 +313,7 @@
 
 
         <v-flex xs2 right>
-          <div style='border-style: solid;border-color: green'>
+          <div style='border-style: solid;border-color: green; text-align: center;'>
           <b>DATIM Reconciliation Status</b>
           <v-chip
             color="green"
