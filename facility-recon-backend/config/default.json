@@ -52,7 +52,8 @@
     "dbPrefix": "MOHDATIM",
     "flagCode": "dfcc3da2-7ab4-11e8-adc0-fa7ae01bbebc",
     "noMatchCode": "cc1f0726-7ab4-11e8-adc0-fa7ae01bbebc",
-    "matchBrokenCode": "475e7eb2-88fc-11e8-9a94-a6cf71072f73"
+    "matchBrokenCode": "475e7eb2-88fc-11e8-9a94-a6cf71072f73",
+    "recoStatusCode": "e179be2f-0dad-4abb-886e-da86f21add6f"
   },
   "matchResults":{
     "maxSuggestions":5

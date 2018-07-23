@@ -87,12 +87,23 @@ export default {
       })
     },
     getTotalLevels () {
+      this.getRecoStatus()
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.initializingApp = false
         this.$store.state.totalLevels = levels.data.totalLevels
         this.getOrgHierarchy()
         this.getScores()
+      })
+    },
+    getRecoStatus () {
+      var orgUnit = this.$store.state.orgUnit
+      axios.get(backendServer + '/recoStatus/' + orgUnit.OrgId).then((status) => {
+        if (status.data.status) {
+          this.$store.state.recoStatus.status = status.data.status
+        }
+      }).catch((err) => {
+        console.log(err.response.data.error)
       })
     },
     getOrganisationUnit () {

@@ -65,7 +65,7 @@ module.exports = function () {
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
-              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', error: null, percent: percent})
+              scoreResData = JSON.stringify({status: '2/3 - Scanning DATIM Location Parents', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
@@ -349,7 +349,7 @@ module.exports = function () {
               count++
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', error: null, percent: percent})
+              scoreResData = JSON.stringify({status: '2/3 - Scanning DATIM Location Parents', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')

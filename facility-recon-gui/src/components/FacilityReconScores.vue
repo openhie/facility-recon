@@ -124,7 +124,8 @@
           <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
         </v-flex>
         <v-flex xs1 sm2 md2 v-if="">
-          <v-btn color="success" round @click='markRecoDone' v-if='$store.state.mohTotalAllRecords - $store.state.totalAllMapped == 0'><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
+          <v-btn color="success" round @click='markRecoDone' v-if="this.$store.state.recoStatus.status !== 'done'"><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
+          <v-btn color="success" round @click='markRecoUnDone' v-else><v-icon>lock_open</v-icon>Mark Reconciliation UnDone</v-btn>
         </v-flex>
       </v-layout>
       <v-layout row wrap>
@@ -265,10 +266,11 @@
   	            class="elevation-1"
   	          >
   		          <template slot="items" slot-scope="props">
-  			            <td @click="getPotentialMatch(props.item.id)" style="cursor: pointer" :key='props.item.id'>{{props.item.name}}</td>
-                      <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1' :key='props.item.id+index'>
-                        {{parent}}
-                      </td>
+                  <td v-if="$store.state.recoStatus.status === 'done'" :key='props.item.id'>{{props.item.name}}</td>
+                  <td v-else @click="getPotentialMatch(props.item.id)" style="cursor: pointer" :key='props.item.id'>{{props.item.name}}</td>
+                  <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1' :key='props.item.id+index'>
+                    {{parent}}
+                  </td>
   		          </template>
             	</v-data-table>
           	</template>
@@ -460,7 +462,19 @@
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.datimName}}</td>
                   <td>{{props.item.datimId}}</td>
-                  <td><v-btn color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'><v-icon>undo</v-icon>Break Match</v-btn></td>
+                  <td>
+                    <v-btn v-if="$store.state.recoStatus.status == 'done'"
+                    disabled 
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='breakMatch(props.item.datimId)'
+                    ><v-icon>undo</v-icon>Break Match</v-btn>
+                    <v-btn v-else
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='breakMatch(props.item.datimId)'
+                    ><v-icon>undo</v-icon>Break Match</v-btn>
+                  </td>
                 </template>
     	        </v-data-table>
             </template>
@@ -487,7 +501,23 @@
                   <td>{{props.item.mohName}}</td>
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.parents}}</td>
-                  <td><v-btn color="error" style='text-transform: none' small @click='breakNoMatch(props.item.mohId)'><v-icon>cached</v-icon>Break No Match</v-btn></td>
+                  <td>
+                    <v-btn
+                     v-if="$store.state.recoStatus.status == 'done'"
+                     disabled
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='breakNoMatch(props.item.mohId)'
+                    ><v-icon>cached</v-icon>Break No Match
+                    </v-btn>
+                    <v-btn
+                     v-else
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='breakNoMatch(props.item.mohId)'
+                    ><v-icon>cached</v-icon>Break No Match
+                    </v-btn>
+                  </td>
                 </template>
     	        </v-data-table>
             </template>
@@ -516,12 +546,42 @@
                   <td>{{props.item.datimName}}</td>
                   <td>{{props.item.datimId}}</td>
                   <td>
-                  	<v-btn color="primary" style='text-transform: none' small @click='acceptFlag(props.item.datimId)'>
+                  	<v-btn
+                    v-if="$store.state.recoStatus.status == 'done'"
+                    disabled
+                    color="primary"
+                    style='text-transform: none' 
+                    small 
+                    @click='acceptFlag(props.item.datimId)'
+                    >
                   		<v-icon>thumb_up</v-icon>Confirm Match
                   	</v-btn>
-                  	<v-btn color="error" style='text-transform: none' small @click='unFlag(props.item.datimId)'>
+                    <v-btn
+                    v-else
+                    color="primary" 
+                    style='text-transform: none' 
+                    small 
+                    @click='acceptFlag(props.item.datimId)'
+                    >
+                      <v-icon>thumb_up</v-icon>Confirm Match
+                    </v-btn>
+                  	<v-btn 
+                    v-if="$store.state.recoStatus.status == 'done'"
+                    disabled
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='unFlag(props.item.datimId)'
+                    >
                   		<v-icon>cached</v-icon>Release
                   	</v-btn>
+                    <v-btn 
+                    v-else
+                    color="error" 
+                    style='text-transform: none' 
+                    small @click='unFlag(props.item.datimId)'
+                    >
+                      <v-icon>cached</v-icon>Release
+                    </v-btn>
                   </td>
                 </template>
     	        </v-data-table>
@@ -872,7 +932,20 @@ export default {
       })
     },
     markRecoDone () {
-      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).catch((err) => {
+      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+        if (status.data.status) {
+          this.$store.state.recoStatus.status = status.data.status
+        }
+      }).catch((err) => {
+        console.log(err.response.data.error)
+      })
+    },
+    markRecoUnDone () {
+      axios.get(backendServer + '/markRecoUnDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+        if (status.data.status) {
+          this.$store.state.recoStatus.status = status.data.status
+        }
+      }).catch((err) => {
         console.log(err.response.data.error)
       })
     },
