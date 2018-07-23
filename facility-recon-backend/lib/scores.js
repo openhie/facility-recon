@@ -553,7 +553,7 @@ module.exports = function () {
                 }
 
                 if (!matchBroken) {
-                  const dictionary = config.getConfg("dictionary")
+                  const dictionary = config.getConf("dictionary")
                   for (let abbr in dictionary) {
                     const replaced = mohName.replace(abbr, dictionary[abbr])
                     if (replaced.toLowerCase() === datimName.toLowerCase()) {
