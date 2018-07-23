@@ -64,6 +64,7 @@ module.exports = function () {
             },()=>{
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              const scoreRequestId = `scoreResults${datimTopId}${clientId}`
               scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
               if(count === mcsdDATIM.entry.length) {
@@ -346,6 +347,7 @@ module.exports = function () {
               })
             },()=>{
               count++
+              const scoreRequestId = `scoreResults${datimTopId}${clientId}`
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '2/3 - Loading DATIM Location Parents', percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
