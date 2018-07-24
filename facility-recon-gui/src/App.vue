@@ -94,7 +94,7 @@ export default {
         this.initializingApp = false
         this.$store.state.totalLevels = levels.data.totalLevels
         this.getOrgHierarchy()
-        this.getScores()
+        this.$root.$emit('getScores')
       })
     },
     getRecoStatus () {
