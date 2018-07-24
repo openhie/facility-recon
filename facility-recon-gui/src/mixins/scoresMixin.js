@@ -47,6 +47,8 @@ export const scoresMixin = {
       this.$store.state.flagged = null
       this.$store.state.mohTotalAllRecords = 0
       this.$store.state.totalAllMapped = 0
+      this.$store.state.totalAllFlagged = 0
+      this.$store.state.totalAllNoMatch = 0
       this.$store.state.datimTotalRecords = 0
       this.$store.state.scoreResults = []
       let orgid = this.$store.state.orgUnit.OrgId
@@ -67,7 +69,10 @@ export const scoresMixin = {
         this.$store.state.flagged = []
         this.$store.state.scoreResults = scores.data.scoreResults
         this.$store.state.datimTotalRecords = scores.data.datimTotalRecords
+        this.$store.state.datimTotalAllRecords = scores.data.datimTotalAllRecords
         this.$store.state.totalAllMapped = scores.data.totalAllMapped
+        this.$store.state.totalAllFlagged = scores.data.totalAllFlagged
+        this.$store.state.totalAllNoMatch = scores.data.totalAllNoMatch
         this.$store.state.mohTotalAllRecords = scores.data.mohTotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {

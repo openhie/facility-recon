@@ -13,6 +13,7 @@ const http = require('http');
 const redis = require('redis')
 const request = require('request');
 const URI = require('urijs');
+const isJSON = require('is-json')
 const mongoose = require('mongoose')
 const redisClient = redis.createClient()
 const config = require('./config');
@@ -180,6 +181,52 @@ app.get('/hierarchy/:source', (req, res) => {
   }
 });
 
+app.get('/mappingStatus/:orgid/:level/:clientId', (req,res)=>{
+  winston.info('Getting mapping status');
+  const orgid = req.params.orgid;
+  const mohDB = orgid;
+  const datimTopId = orgid;
+  const datimDB = config.getConf('mCSD:database');
+  const recoLevel = req.params.level;
+  const namespace = config.getConf('UUID:namespace');
+  const mohTopId = uuid5(orgid, `${namespace}000`);
+  const clientId = req.params.clientId;
+
+  let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+  statusResData = JSON.stringify({status: '1/2 - Loading DATIM and MOH Data', error: null, percent: null})
+  redisClient.set(statusRequestId,statusResData)
+
+  const datimLocationReceived = new Promise((resolve, reject) => {
+    mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
+      mcsdDatimAll = mcsdDATIM;
+      mcsd.filterLocations(mcsdDATIM, datimTopId, 0, recoLevel, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+        resolve(mcsdDatimLevel);
+      });
+    });
+  });
+  const mohLocationReceived = new Promise((resolve, reject) => {
+    mcsd.getLocations(mohDB, (mcsdMOH) => {
+      mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
+        resolve(mcsdMohLevel);
+      });
+    });
+  });
+  const mappingDB = config.getConf('mapping:dbPrefix') + orgid;
+  const mappingLocationReceived = new Promise((resolve, reject) => {
+    mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
+      resolve(mcsdMapped);
+    });
+  });
+  Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
+    var datimLocations = locations[0]
+    var mohLocations = locations[1]
+    var mappedLocations = locations[2]
+    scores.getMappingStatus(mohLocations,datimLocations,mappedLocations,datimTopId,clientId,(mappingStatus)=>{
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(mappingStatus)
+    })
+  })
+})
 app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
   if (!req.params.orgid || !req.params.recoLevel) {
     winston.error({ error: 'Missing Orgid or reconciliation Level' });
@@ -201,15 +248,39 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
 
     //getting total Mapped
     var database = config.getConf('mapping:dbPrefix') + orgid;
-    var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=1'
+    var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .toString();
     const options = {
       url,
     };
     var totalAllMapped = 0
-    request.get(options, (err, res, body) => {
-      body = JSON.parse(body);
-      totalAllMapped = body.total
+    var totalAllNoMatch = 0
+    var totalAllFlagged = 0
+    const noMatchCode = config.getConf('mapping:noMatchCode');
+    const flagCode = config.getConf('mapping:flagCode');
+    mcsd.getLocations(database, (body) => {
+      if (!body.hasOwnProperty('entry') || body.length === 0) {
+        totalAllNoMatch = 0
+        totalAllMapped = 0
+        return
+      }
+      for (entry of body.entry) {
+        if (entry.resource.hasOwnProperty('tag')) {
+          var nomatch = entry.resource.tag.find((tag)=>{
+            return tag.code === noMatchCode
+          })
+          var flagged = entry.resource.tag.find((tag)=>{
+            return tag.code === flagCode
+          })
+          if (nomatch) {
+            totalAllNoMatch++
+          }
+          if (flagged) {
+            totalAllFlagged++
+          }
+        }
+      }
+      totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
     })
     let scoreRequestId = `scoreResults${datimTopId}${clientId}`
     scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', error: null, percent: null})
@@ -244,8 +315,11 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({ scoreResults, 
                                   recoLevel, 
-                                  datimTotalRecords: locations[0].entry.length, 
+                                  datimTotalRecords: locations[0].entry.length,
+                                  datimTotalAllRecords: mcsdDatimAll.entry.length,
                                   totalAllMapped: totalAllMapped,
+                                  totalAllFlagged: totalAllFlagged,
+                                  totalAllNoMatch: totalAllNoMatch,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
           winston.info('Score results sent back');
@@ -255,8 +329,11 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({ scoreResults, 
                                   recoLevel, 
-                                  datimTotalRecords: locations[0].entry.length, 
-                                  totalAllMapped: totalAllMapped, 
+                                  datimTotalRecords: locations[0].entry.length,
+                                  datimTotalAllRecords: mcsdDatimAll.entry.length,
+                                  totalAllMapped: totalAllMapped,
+                                  totalAllFlagged: totalAllFlagged,
+                                  totalAllNoMatch: totalAllNoMatch,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
           winston.info('Score results sent back');
@@ -602,6 +679,22 @@ app.get('/uploadProgress/:orgid/:clientId', (req,res)=>{
       var uploadRequestId = `uploadProgress${orgid}${clientId}`
       let uploadReqPro = JSON.stringify({status:null, error: null, percent: null})
       redisClient.set(uploadRequestId,uploadReqPro)
+    }
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(200).json(results)
+  })
+});
+
+app.get('/mappingStatusProgress/:orgid/:clientId', (req,res)=>{
+  const orgid = req.params.orgid
+  const clientId = req.params.clientId
+  redisClient.get(`mappingStatus${orgid}${clientId}`,(error,results)=>{
+    results = JSON.parse(results)
+    //reset progress
+    if (results && (results.error !== null || results.status === 'Done')) {
+      var statusRequestId = `mappingStatus${orgid}${clientId}`
+      let statusResData = JSON.stringify({status:null, error: null, percent: null})
+      redisClient.set(statusRequestId,statusResData)
     }
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).json(results)

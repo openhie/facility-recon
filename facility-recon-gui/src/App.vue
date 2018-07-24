@@ -10,6 +10,7 @@
         <v-btn to="upload" flat v-if='!$store.state.denyAccess'>Upload</v-btn>
         <v-btn to="view" flat v-if='!$store.state.denyAccess'>View</v-btn>
         <v-btn flat to="scores" v-if='!$store.state.denyAccess'>Reconcile</v-btn>
+        <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>Reconciliation Status</v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>
