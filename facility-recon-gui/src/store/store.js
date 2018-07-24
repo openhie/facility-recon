@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
     totalAllMapped: 0,
     totalAllFlagged: 0,
     totalAllNoMatch: 0,
+    mohTotalAllNotMapped: 0,
     datimTotalRecords: 0,
     totalLevels: '',
     recoLevel: 2,

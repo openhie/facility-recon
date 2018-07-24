@@ -74,6 +74,7 @@ export const scoresMixin = {
         this.$store.state.totalAllMapped = scores.data.totalAllMapped
         this.$store.state.totalAllFlagged = scores.data.totalAllFlagged
         this.$store.state.totalAllNoMatch = scores.data.totalAllNoMatch
+        this.$store.state.mohTotalAllNotMapped = scores.data.mohTotalAllNotMapped
         this.$store.state.mohTotalAllRecords = scores.data.mohTotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
