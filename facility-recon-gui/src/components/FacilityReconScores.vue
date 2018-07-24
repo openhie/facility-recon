@@ -61,16 +61,17 @@
       </v-dialog>
       <v-dialog persistent v-model="dialog" width="830px">
         <v-card width='830px'>
-          <v-card-title style='width: 830px'>
-          	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  &nbsp;&nbsp;&nbsp; 
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+          	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  <v-spacer></v-spacer>
+            
             <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
-              Latitude: <b>{{selectedMohLat}}</b> &nbsp;&nbsp;&nbsp;
-              Longitude: <b>{{selectedMohLong}}</b>
+              Latitude: <b>{{selectedMohLat}}</b> <v-spacer></v-spacer>
+              Longitude: <b>{{selectedMohLong}}</b> <v-spacer></v-spacer>
             </template>
-            <p>
-              Parents: <b>{{selectedMohParents.join('->')}}</b>
-            </p>
-            <p>
+            Parents: <b>{{selectedMohParents.join('->')}}</b> <v-spacer></v-spacer>
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
               <v-text-field
                 v-model="searchPotential"
                   append-icon="search"
@@ -78,8 +79,7 @@
                 single-line
                 hide-details>
               </v-text-field>
-            </p>
-          </v-card-title>
+          </v-toolbar>
           <v-card-text>
             <v-data-table
   	            :headers="potentialHeaders"
@@ -107,7 +107,7 @@
             <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
             <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save</v-btn>
             <v-btn color="orange darken-2" @click.native="back" style="color: white"><v-icon dark left >arrow_back</v-icon>Back</v-btn>
-            <v-btn-toggle v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all">More Suggestions...</v-btn></v-btn-toggle>
+            <v-btn-toggle v-if='$store.state.datimUnMatched.length > potentialMatches' v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all"><template v-if="showAllPotential === 'all'">Show Less Suggestions</template><template v-else>Show More Suggestions</template></v-btn></v-btn-toggle>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -976,10 +976,7 @@ export default {
       return results
     },
     allPotentialMatches () {
-      if (this.showAllPotential === 'all') {
-        if (this.potentialMatches.length === this.$store.state.datimUnMatched.length) {
-          return this.potentialMatches
-        }
+      if (this.$store.state.datimUnMatched.length > this.potentialMatches.length && this.showAllPotential === 'all') {
         let results = []
         for (let addIt of this.$store.state.datimUnMatched) {
           let matched = this.potentialMatches.find((matched) => {
