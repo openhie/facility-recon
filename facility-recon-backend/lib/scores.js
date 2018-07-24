@@ -688,6 +688,86 @@ module.exports = function () {
         callback(unmatched);
       });
     },
+    getMappingStatus (mohLocations,datimLocations,mappedLocations,datimTopId,clientId,callback) {
+      const noMatchCode = config.getConf('mapping:noMatchCode');
+      const flagCode = config.getConf('mapping:flagCode');
+      var mappingStatus = {}
+      mappingStatus.mapped = []
+      mappingStatus.notMapped = []
+      mappingStatus.flagged = []
+      mappingStatus.noMatch = []
+      let count = 0
+      async.each(mohLocations.entry,(entry,mohCallback)=>{
+        const ident = entry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
+        let mohUploadedId = null;
+        if (ident) {
+          mohUploadedId = ident.value;
+        }
+        const mohId = entry.resource.id;
+        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId).toString()
+        this.matchStatus(mappedLocations, mohIdentifier, (mapped) => {
+          if (mapped) {
+            var datimEntry = datimLocations.entry.find((datimEntry)=>{
+              return datimEntry.resource.id === mapped.resource.id
+            })
+            let nomatch,flagged
+            if (mapped.resource.hasOwnProperty('tag')) {
+              nomatch = mapped.resource.tag.find((tag)=>{
+                return tag.code === noMatchCode
+              })
+            }
+            if (mapped.resource.hasOwnProperty('tag')) {
+              flagged = mapped.resource.tag.find((tag)=>{
+                return tag.code === flagCode
+              })
+            }
+            if (flagged) {
+              mappingStatus.flagged.push({
+                mohName: entry.resource.name,
+                mohId: mohUploadedId,
+                datimName: datimEntry.resource.name,
+                datimId: datimEntry.resource.id
+              })
+            } else if (nomatch) {
+              mappingStatus.noMatch.push({
+                mohName: entry.resource.name,
+                mohId: mohUploadedId
+              })
+            } else {
+              mappingStatus.mapped.push({
+                mohName: entry.resource.name,
+                mohId: mohUploadedId,
+                datimName: datimEntry.resource.name,
+                datimId: datimEntry.resource.id
+              })
+            }
+            count++
+            let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+            let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
+            statusResData = JSON.stringify({status: '2/2 - Loading DATIM and MOH Data', error: null, percent: percent})
+            redisClient.set(statusRequestId,statusResData)
+            mohCallback()
+          }
+          else {
+            mappingStatus.notMapped.push({
+              mohName: entry.resource.name,
+              mohId: mohUploadedId
+            })
+            count++
+            let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+            let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
+            statusResData = JSON.stringify({status: '2/2 - Loading DATIM and MOH Data', error: null, percent: percent})
+            redisClient.set(statusRequestId,statusResData)
+            mohCallback()
+          }
+        })
+      },()=>{
+        let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+        statusResData = JSON.stringify({status: 'Done', error: null, percent: 100})
+        redisClient.set(statusRequestId,statusResData)
+        return callback(mappingStatus)
+      })
+    }
 
   };
 };

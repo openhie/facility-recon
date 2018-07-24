@@ -130,12 +130,8 @@
       	<v-flex xs1 sm2 md2>
   		    <v-btn slot="activator" color="primary" dark @click="getScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
         </v-flex>
-        <v-flex xs1 sm2 md2 v-if="nextLevel == 'yes'">
+        <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
           <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
-        </v-flex>
-        <v-flex xs1 sm2 md2 v-if="">
-          <v-btn color="success" round @click='markRecoDone' v-if="this.$store.state.recoStatus.status !== 'done'"><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
-          <v-btn color="success" round @click='markRecoUnDone' v-else><v-icon>lock_open</v-icon>Mark Reconciliation UnDone</v-btn>
         </v-flex>
       </v-layout>
       <v-layout row wrap>
@@ -942,24 +938,6 @@ export default {
       }).then(() => {
       }).catch((err) => {
         console.log(err)
-      })
-    },
-    markRecoDone () {
-      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
-        if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
-        }
-      }).catch((err) => {
-        console.log(err.response.data.error)
-      })
-    },
-    markRecoUnDone () {
-      axios.get(backendServer + '/markRecoUnDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
-        if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
-        }
-      }).catch((err) => {
-        console.log(err.response.data.error)
       })
     },
     back () {
