@@ -40,11 +40,11 @@ export const scoresMixin = {
     getScores () {
       this.scoreDialog = true
       this.progressType = 'indeterminate'
-      this.$store.state.mohUnMatched = null
-      this.$store.state.datimUnMatched = null
-      this.$store.state.matchedContent = null
-      this.$store.state.noMatchContent = null
-      this.$store.state.flagged = null
+      this.$store.state.mohUnMatched = []
+      this.$store.state.datimUnMatched = []
+      this.$store.state.matchedContent = []
+      this.$store.state.noMatchContent = []
+      this.$store.state.flagged = []
       this.$store.state.mohTotalAllRecords = 0
       this.$store.state.totalAllMapped = 0
       this.$store.state.totalAllFlagged = 0
