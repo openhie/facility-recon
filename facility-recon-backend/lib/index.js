@@ -310,6 +310,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
       });
     });
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
+      var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped - totalAllNoMatch - totalAllFlagged
       if (recoLevel == totalLevels) {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
@@ -320,6 +321,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   totalAllMapped: totalAllMapped,
                                   totalAllFlagged: totalAllFlagged,
                                   totalAllNoMatch: totalAllNoMatch,
+                                  mohTotalAllNotMapped: mohTotalAllNotMapped,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
           winston.info('Score results sent back');
@@ -334,6 +336,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   totalAllMapped: totalAllMapped,
                                   totalAllFlagged: totalAllFlagged,
                                   totalAllNoMatch: totalAllNoMatch,
+                                  mohTotalAllNotMapped: mohTotalAllNotMapped,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
           winston.info('Score results sent back');

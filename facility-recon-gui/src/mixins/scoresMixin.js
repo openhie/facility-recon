@@ -6,8 +6,8 @@ export const scoresMixin = {
   data () {
     return {
       scoreProgressTitle: 'Waiting for progress status',
-      scoreProgressPercent: null,
       scoreDialog: false,
+      scoreProgressPercent: null,
       progressType: '',
       scoreProgressTimer: false
     }
@@ -39,6 +39,7 @@ export const scoresMixin = {
     },
     getScores () {
       this.scoreDialog = true
+      this.scoreProgressTitle = 'Waiting for progress status'
       this.progressType = 'indeterminate'
       this.$store.state.mohUnMatched = []
       this.$store.state.datimUnMatched = []
@@ -73,6 +74,7 @@ export const scoresMixin = {
         this.$store.state.totalAllMapped = scores.data.totalAllMapped
         this.$store.state.totalAllFlagged = scores.data.totalAllFlagged
         this.$store.state.totalAllNoMatch = scores.data.totalAllNoMatch
+        this.$store.state.mohTotalAllNotMapped = scores.data.mohTotalAllNotMapped
         this.$store.state.mohTotalAllRecords = scores.data.mohTotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
           if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
@@ -130,7 +132,11 @@ export const scoresMixin = {
   created () {
     this.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
     this.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
-    this.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
+    if (this.$store.state.scoresProgressData.scoreDialog) {
+      this.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
+    } else {
+      this.scoreDialog = false
+    }
     this.progressType = this.$store.state.scoresProgressData.progressType
     this.scoreProgressTimer = this.$store.state.scoresProgressData.scoreProgressTimer
     if (this.scoreDialog) {

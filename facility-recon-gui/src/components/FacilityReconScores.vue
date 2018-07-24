@@ -757,6 +757,7 @@ export default {
       for (let k in this.$store.state.mohUnMatched) {
         if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
           if (type === 'match') {
+            ++this.$store.state.totalAllMapped
             this.$store.state.matchedContent.push({
               mohName: this.selectedMohName,
               mohId: this.selectedMohId,
@@ -766,6 +767,7 @@ export default {
               datimParents: datimParents
             })
           } else if (type === 'flag') {
+            ++this.$store.state.totalAllFlagged
             this.$store.state.flagged.push({
               mohName: this.selectedMohName,
               mohId: this.selectedMohId,
@@ -804,6 +806,8 @@ export default {
             datimParents: this.$store.state.flagged[k].datimParents
           })
           this.$store.state.flagged.splice(k, 1)
+          ++this.$store.state.totalAllMapped
+          --this.$store.state.totalAllFlagged
         }
       }
       let formData = new FormData()
@@ -848,6 +852,7 @@ export default {
             parents: this.$store.state.matchedContent[k].datimParents
           })
           this.$store.state.matchedContent.splice(k, 1)
+          --this.$store.state.totalAllMapped
         }
       }
     },
@@ -879,6 +884,7 @@ export default {
             parents: this.$store.state.flagged[k].datimParents
           })
           this.$store.state.flagged.splice(k, 1)
+          --this.$store.state.totalAllFlagged
         }
       }
     },
@@ -906,6 +912,7 @@ export default {
             parents: this.$store.state.noMatchContent[k].parents
           })
           this.$store.state.noMatchContent.splice(k, 1)
+          --this.$store.state.totalAllNoMatch
         }
       }
     },
@@ -1145,6 +1152,11 @@ export default {
   },
   created () {
     this.addListener()
+  },
+  mounted () {
+    this.$root.$on('getScores', () => {
+      this.getScores()
+    })
   },
   components: {
     'liquor-tree': LiquorTree
