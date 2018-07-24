@@ -298,7 +298,7 @@
                 hide-details
               ></v-text-field>
           	</v-card-title>
-          	<template v-if='$store.state.datimUnMatched != null'>
+          	<template v-if='$store.state.datimUnMatched.length > 0'>
   	          <v-data-table
   	            :headers="mohUnmatchedHeaders"
   	            :items="$store.state.datimUnMatched"
