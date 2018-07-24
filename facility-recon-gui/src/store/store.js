@@ -18,7 +18,7 @@ export const store = new Vuex.Store({
     datimHierarchy: '',
     mohHierarchy: '',
     uploadRunning: false,
-    orgUnit: { OrgId: 'lZsCb6y0KDX', OrgName: 'Malawi' },
+    orgUnit: { OrgId: 'PqlFzhuPcF1', OrgName: 'Nigeria' },
     mohTotalAllRecords: 0,
     datimTotalAllRecords: 0,
     totalAllMapped: 0,
