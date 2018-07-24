@@ -59,7 +59,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-  		<v-dialog persistent v-model="dialog" width="830px">
+      <v-dialog persistent v-model="dialog" width="830px">
         <v-card width='830px'>
           <v-card-title style='width: 830px'>
           	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  &nbsp;&nbsp;&nbsp; 
@@ -70,12 +70,21 @@
             <p>
               Parents: <b>{{selectedMohParents.join('->')}}</b>
             </p>
+            <p>
+              <v-text-field
+                v-model="searchPotential"
+                  append-icon="search"
+                label="Search"
+                single-line
+                hide-details>
+              </v-text-field>
+            </p>
           </v-card-title>
           <v-card-text>
             <v-data-table
   	            :headers="potentialHeaders"
-  	            :items="potentialMatches"
-  	            hide-actions
+                :items="allPotentialMatches"
+                :search="searchPotential"
   	            class="elevation-1"
   	          >
   	          <template slot="items" slot-scope="props">
@@ -97,7 +106,8 @@
             <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
             <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
             <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save</v-btn>
-            <v-btn color="orange darken-2" @click.native="back" style='color: white'><v-icon dark left >arrow_back</v-icon>Back</v-btn>
+            <v-btn color="orange darken-2" @click.native="back" style="color: white"><v-icon dark left >arrow_back</v-icon>Back</v-btn>
+            <v-btn-toggle v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all">More Suggestions...</v-btn></v-btn-toggle>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -613,10 +623,12 @@ export default {
       recoLevel: 0,
       searchUnmatchedDatim: '',
       searchUnmatchedMoh: '',
+      searchPotential: '',
       searchMatched: '',
       searchNotMatched: '',
       searchFlagged: '',
       potentialMatches: [],
+      showAllPotential: null,
       alertText: '',
       alertTitle: '',
       alert: false,
@@ -687,6 +699,7 @@ export default {
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
+      this.showAllPotential = null
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.moh.id === id) {
           this.selectedMohName = scoreResult.moh.name
@@ -983,6 +996,26 @@ export default {
         { text: 'Score', value: 'score' }
       )
       return results
+    },
+    allPotentialMatches () {
+      if (this.showAllPotential === 'all') {
+        if (this.potentialMatches.length === this.$store.state.datimUnMatched.length) {
+          return this.potentialMatches
+        }
+        let results = []
+        for (let addIt of this.$store.state.datimUnMatched) {
+          let matched = this.potentialMatches.find((matched) => {
+            return matched.id === addIt.id
+          })
+          if (!matched) {
+            addIt.score = 'N/A'
+            results.push(addIt)
+          }
+        }
+        return this.potentialMatches.concat(results)
+      } else {
+        return this.potentialMatches
+      }
     },
     mohTree () {
       this.addListener()
