@@ -108,7 +108,7 @@
             <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
             <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save</v-btn>
             <v-btn color="orange darken-2" @click.native="back" style="color: white"><v-icon dark left >arrow_back</v-icon>Back</v-btn>
-            <v-btn-toggle v-if='$store.state.datimUnMatched.length > potentialMatches' v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all"><template v-if="showAllPotential === 'all'">Show Scored Suggestions</template><template v-else>Show All Suggestions</template></v-btn></v-btn-toggle>
+            <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all"><template v-if="showAllPotential === 'all'">Show Scored Suggestions</template><template v-else>Show All Suggestions</template></v-btn></v-btn-toggle>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -263,7 +263,7 @@
                 hide-details
               ></v-text-field>
           	</v-card-title>
-          	<template v-if='$store.state.mohUnMatched != null'>
+            <template v-if='$store.state.mohUnMatched !== null'>
                 <liquor-tree :data="mohTree" ref="mohTree" :key="mohTreeUpdate" />
   	          <v-data-table
   	            :headers="mohGridHeaders"
@@ -299,7 +299,7 @@
                 hide-details
               ></v-text-field>
           	</v-card-title>
-          	<template v-if='$store.state.datimUnMatched.length > 0'>
+            <template v-if='$store.state.datimUnMatched !== null'>
   	          <v-data-table
   	            :headers="mohUnmatchedHeaders"
   	            :items="$store.state.datimUnMatched"
@@ -984,8 +984,11 @@ export default {
       )
       return results
     },
+    potentialAvailable () {
+      return (this.$store.state.datimUnMatched !== null && this.$store.state.datimUnMatched.length > this.potentialMatches.length)
+    },
     allPotentialMatches () {
-      if (this.$store.state.datimUnMatched.length > this.potentialMatches.length && this.showAllPotential === 'all') {
+      if (this.$store.state.datimUnMatched !== null && this.$store.state.datimUnMatched.length > this.potentialMatches.length && this.showAllPotential === 'all') {
         let results = []
         for (let addIt of this.$store.state.datimUnMatched) {
           let matched = this.potentialMatches.find((matched) => {
