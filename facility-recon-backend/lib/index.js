@@ -271,7 +271,7 @@ app.get('/totalMapped/:orgid', (req,res)=>{
     },()=>{
       totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json({totalAllMapped})
+      res.status(200).json({totalAllMapped,totalAllNoMatch,totalAllFlagged})
     })
   })
 })
