@@ -663,30 +663,42 @@ module.exports = function () {
     getUnmatched(mcsdDatimAll, mcsdDatim, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
       const unmatched = [];
-      async.each(mcsdDatim.entry, (datimEntry, datimCallback) => {
-        mcsd.getLocationByID(database, datimEntry.resource.id, false, (location) => {
-          if (location.entry.length == 0) {
+      mcsd.getLocations(database, (locations) => {
+        let parentCache = {}
+        async.each(mcsdDatim.entry, (datimEntry, datimCallback) => {
+          if (locations.entry.find( entry => entry.resource.id === datimEntry.resource.id ) === undefined) {
             const name = datimEntry.resource.name;
             const id = datimEntry.resource.id;
             let entityParent = null;
             if (datimEntry.resource.hasOwnProperty('partOf')) {
               entityParent = datimEntry.resource.partOf.reference;
             }
-            mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
+            if ( !parentCache[entityParent] ) {
+              parentCache[entityParent] = []
+              mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
+                parentCache[entityParent] = datimParents
+                unmatched.push({
+                  id,
+                  name,
+                  parents: parentCache[entityParent]
+                });
+                return datimCallback();
+              });
+            } else {
               unmatched.push({
                 id,
                 name,
-                parents: datimParents,
+                parents: parentCache[entityParent]
               });
               return datimCallback();
-            });
+            }
           } else {
             return datimCallback();
           }
+        }, () => {
+          callback(unmatched);
         });
-      }, () => {
-        callback(unmatched);
-      });
+      })
     },
     getMappingStatus (mohLocations,datimLocations,mappedLocations,datimTopId,clientId,callback) {
       const noMatchCode = config.getConf('mapping:noMatchCode');
