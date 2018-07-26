@@ -54,7 +54,7 @@
       v-model="percentDialog"
       hide-overlay
       persistent
-      width="190"
+      width="270"
     >
       <v-card
         color="white"

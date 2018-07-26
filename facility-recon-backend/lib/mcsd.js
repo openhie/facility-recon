@@ -652,7 +652,6 @@ module.exports = function () {
                   display: 'Match Broken',
                 });
                 this.saveLocations(location, topOrgId, (err, res) => {
-                  winston.error(err,res)
                 })
               }
             })

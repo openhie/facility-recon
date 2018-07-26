@@ -63,6 +63,9 @@ export const scoresMixin = {
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k + 1})
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
+        axios.get(backendServer + '/totalMapped/' + orgid).then((resp) => {
+          this.$store.state.totalAllMapped = resp.data.totalAllMapped
+        })
         this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []

@@ -137,9 +137,9 @@ export default {
       this.$store.state.denyAccess = false
     }
     this.$root.$on('reloadTree', () => {
-    /* this.$store.state.mohHierarchy = ''
+      this.$store.state.mohHierarchy = ''
       this.$store.state.datimHierarchy = ''
-      this.getOrgHierarchy() */
+      this.getOrgHierarchy()
     })
     this.$root.$on('refreshApp', () => {
       this.getTotalLevels()
