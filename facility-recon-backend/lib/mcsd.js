@@ -771,7 +771,7 @@ module.exports = function () {
             this.saveJurisdiction(jurisdictions, orgid, () => {
               countRow++
               var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-              let uploadReqPro = JSON.stringify({status:'3/3 Upload Running', error: null, percent: percent})
+              let uploadReqPro = JSON.stringify({status:'4/4 Upload Running', error: null, percent: percent})
               redisClient.set(uploadRequestId,uploadReqPro)
               resolve()
             });
@@ -790,7 +790,7 @@ module.exports = function () {
               if(jurisdictions.length == 0) {
                 countRow++
                 var percent = parseFloat((countRow*100/totalRows).toFixed(2))
-                let uploadReqPro = JSON.stringify({status:'3/3 Upload Running', error: null, percent: percent})
+                let uploadReqPro = JSON.stringify({status:'4/4 Upload Running', error: null, percent: percent})
                 redisClient.set(uploadRequestId,uploadReqPro)
                 resolve()
               }

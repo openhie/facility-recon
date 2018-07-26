@@ -273,7 +273,7 @@ export default {
       percentDialog: false,
       uploadPrepaProgr: false,
       UploadProgressTimer: '',
-      uploadStatus: 'Waiting progress status',
+      uploadStatus: '1/4 Uploading CSV to the server',
       uploadPercent: null,
       confirmUpload: false,
       confirmTitle: '',
@@ -415,6 +415,7 @@ export default {
           }
         }
       ).then((data) => {
+        this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
       }).catch((err) => {
         this.$store.state.uploadRunning = false
         this.uploadPrepaProgr = false
@@ -425,7 +426,6 @@ export default {
         clearInterval(this.checkUploadProgress)
         console.log(err.response.data.error)
       })
-      this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
     },
     closeDialog (component) {
       this.$router.push({name: component})
@@ -530,11 +530,21 @@ export default {
     }
   },
   created () {
-    this.percentDialog = this.$store.state.uploadProgressData.percentDialog
-    this.uploadPrepaProgr = this.$store.state.uploadProgressData.uploadPrepaProgr
-    this.UploadProgressTimer = this.$store.state.uploadProgressData.UploadProgressTimer
-    this.uploadStatus = this.$store.state.uploadProgressData.uploadStatus
-    this.uploadPercent = this.$store.state.uploadProgressData.uploadPercent
+    if (this.$store.state.uploadProgressData.percentDialog) {
+      this.percentDialog = this.$store.state.uploadProgressData.percentDialog
+    }
+    if (this.$store.state.uploadProgressData.uploadPrepaProgr) {
+      this.uploadPrepaProgr = this.$store.state.uploadProgressData.uploadPrepaProgr
+    }
+    if (this.$store.state.uploadProgressData.UploadProgressTimer) {
+      this.UploadProgressTimer = this.$store.state.uploadProgressData.UploadProgressTimer
+    }
+    if (this.$store.state.uploadProgressData.uploadStatus) {
+      this.uploadStatus = this.$store.state.uploadProgressData.uploadStatus
+    }
+    if (this.$store.state.uploadProgressData.uploadPercent) {
+      this.uploadPercent = this.$store.state.uploadProgressData.uploadPercent
+    }
     if (this.percentDialog || this.uploadPrepaProgr) {
       this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
     }

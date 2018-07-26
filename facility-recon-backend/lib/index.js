@@ -767,7 +767,7 @@ app.post('/uploadCSV', (req, res) => {
       }
       winston.info('CSV File Passed Validation');
       //archive existing DB first
-      let uploadReqPro = JSON.stringify({status:'1/3 Archiving Old DB', error: null, percent: null})
+      let uploadReqPro = JSON.stringify({status:'2/4 Archiving Old DB', error: null, percent: null})
       redisClient.set(uploadRequestId,uploadReqPro)
       mcsd.archiveDB(orgid,(err)=>{
         if(err) {
@@ -777,14 +777,14 @@ app.post('/uploadCSV', (req, res) => {
           return
         }
         //ensure old archives are deleted
-        let uploadReqPro = JSON.stringify({status:'2/3 Deleting Old DB', error: null, percent: null})
+        let uploadReqPro = JSON.stringify({status:'3/4 Deleting Old DB', error: null, percent: null})
         redisClient.set(uploadRequestId,uploadReqPro)
         mcsd.cleanArchives(orgid,()=>{})
         //delete existing db
         mcsd.deleteDB(orgid,(err)=>{
           if(!err){
             winston.info(`Uploading data for ${orgid} now`)
-            let uploadReqPro = JSON.stringify({status:'3/3 Uploading of DB started', error: null, percent: null})
+            let uploadReqPro = JSON.stringify({status:'4/4 Uploading of DB started', error: null, percent: null})
             redisClient.set(uploadRequestId,uploadReqPro)
             mcsd.CSVTomCSD(files[fileName].path, fields, orgid, clientId, () => {
               winston.info(`Data upload for ${orgid} is done`)
@@ -794,7 +794,7 @@ app.post('/uploadCSV', (req, res) => {
           }
           else {
             winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
-            let uploadReqPro = JSON.stringify({status:'1/3 Deleting Old DB',error: 'An error occured while dropping existing Database,retry', percent: null})
+            let uploadReqPro = JSON.stringify({status:'3/4 Deleting Old DB',error: 'An error occured while dropping existing Database,retry', percent: null})
             redisClient.set(uploadRequestId,uploadReqPro)
           }
         })
