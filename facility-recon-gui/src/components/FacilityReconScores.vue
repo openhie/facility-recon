@@ -63,13 +63,7 @@
         <v-card width='830px'>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
-          	MOH Name: &nbsp;<b>{{ selectedMohName }} </b>  <v-spacer></v-spacer>
-            
-            <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
-              Latitude: <b>{{selectedMohLat}}</b> <v-spacer></v-spacer>
-              Longitude: <b>{{selectedMohLong}}</b> <v-spacer></v-spacer>
-            </template>
-            Parents: <b>{{selectedMohParents.join('->')}}</b> <v-spacer></v-spacer>
+              {{ selectedMohName }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
               <v-text-field
@@ -80,6 +74,13 @@
                 hide-details>
               </v-text-field>
           </v-toolbar>
+          <v-card-title>
+            Parents: <b>{{selectedMohParents.join('->')}}</b> <v-spacer></v-spacer>
+            <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
+              Latitude: <b>{{selectedMohLat}}</b> <v-spacer></v-spacer>
+              Longitude: <b>{{selectedMohLong}}</b> <v-spacer></v-spacer>
+            </template>
+          </v-card-title>
           <v-card-text>
             <v-data-table
   	            :headers="potentialHeaders"
