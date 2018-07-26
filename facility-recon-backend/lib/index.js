@@ -229,53 +229,6 @@ app.get('/mappingStatus/:orgid/:level/:clientId', (req,res)=>{
   })
 })
 
-app.get('/totalMapped/:orgid', (req,res)=>{
-  //getting total Mapped
-  const orgid = req.params.orgid;
-  var database = config.getConf('mapping:dbPrefix') + orgid;
-  var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-      .toString();
-  const options = {
-    url,
-  };
-  var totalAllMapped = 0
-  var totalAllNoMatch = 0
-  var totalAllFlagged = 0
-  const noMatchCode = config.getConf('mapping:noMatchCode');
-  const flagCode = config.getConf('mapping:flagCode');
-  mcsd.getLocations(database, (body) => {
-    if (!body.hasOwnProperty('entry') || body.length === 0) {
-      totalAllNoMatch = 0
-      totalAllMapped = 0
-      return
-    }
-    async.each(body.entry,(entry,nxtEntry)=>{
-      if (entry.resource.hasOwnProperty('tag')) {
-        var nomatch = entry.resource.tag.find((tag)=>{
-          return tag.code === noMatchCode
-        })
-        var flagged = entry.resource.tag.find((tag)=>{
-          return tag.code === flagCode
-        })
-        if (nomatch) {
-          totalAllNoMatch++
-        }
-        if (flagged) {
-          totalAllFlagged++
-        }
-        return nxtEntry ()
-      }
-      else {
-        return nxtEntry()
-      }
-    },()=>{
-      totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json({totalAllMapped,totalAllNoMatch,totalAllFlagged})
-    })
-  })
-})
-
 app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
   if (!req.params.orgid || !req.params.recoLevel) {
     winston.error({ error: 'Missing Orgid or reconciliation Level' });
@@ -295,42 +248,6 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
     let mcsdDatimAll = null;
     let mcsdMohAll = null;
 
-    //getting total Mapped
-    var database = config.getConf('mapping:dbPrefix') + orgid;
-    var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        .toString();
-    const options = {
-      url,
-    };
-    var totalAllMapped = 0
-    var totalAllNoMatch = 0
-    var totalAllFlagged = 0
-    const noMatchCode = config.getConf('mapping:noMatchCode');
-    const flagCode = config.getConf('mapping:flagCode');
-    mcsd.getLocations(database, (body) => {
-      if (!body.hasOwnProperty('entry') || body.length === 0) {
-        totalAllNoMatch = 0
-        totalAllMapped = 0
-        return
-      }
-      for (entry of body.entry) {
-        if (entry.resource.hasOwnProperty('tag')) {
-          var nomatch = entry.resource.tag.find((tag)=>{
-            return tag.code === noMatchCode
-          })
-          var flagged = entry.resource.tag.find((tag)=>{
-            return tag.code === flagCode
-          })
-          if (nomatch) {
-            totalAllNoMatch++
-          }
-          if (flagged) {
-            totalAllFlagged++
-          }
-        }
-      }
-      totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
-    })
     let scoreRequestId = `scoreResults${datimTopId}${clientId}`
     scoreResData = JSON.stringify({status: '1/3 - Loading DATIM and MOH Data', error: null, percent: null})
     redisClient.set(scoreRequestId,scoreResData)
@@ -359,11 +276,12 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
       });
     });
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
-      var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped - totalAllNoMatch - totalAllFlagged
       if (recoLevel == totalLevels) {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({ scoreResults, 
+          recoStatus (orgid,(totalAllMapped,totalAllNoMatch,totalAllFlagged)=>{
+            var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped
+            res.status(200).json({ scoreResults, 
                                   recoLevel, 
                                   datimTotalRecords: locations[0].entry.length,
                                   datimTotalAllRecords: mcsdDatimAll.entry.length,
@@ -373,12 +291,15 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   mohTotalAllNotMapped: mohTotalAllNotMapped,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
-          winston.info('Score results sent back');
+            winston.info('Score results sent back');
+          })
         });
       } else {
         scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll,mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({ scoreResults, 
+          recoStatus (orgid,(totalAllMapped,totalAllNoMatch,totalAllFlagged)=>{
+            var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped
+            res.status(200).json({ scoreResults, 
                                   recoLevel, 
                                   datimTotalRecords: locations[0].entry.length,
                                   datimTotalAllRecords: mcsdDatimAll.entry.length,
@@ -388,12 +309,61 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   mohTotalAllNotMapped: mohTotalAllNotMapped,
                                   mohTotalAllRecords: mcsdMohAll.entry.length
                                 });
-          winston.info('Score results sent back');
+            winston.info('Score results sent back');
+          })
         });
       }
     }).catch((err)=>{
       winston.error(err)
     });
+  }
+
+  function recoStatus (orgid,callback) {
+    //getting total Mapped
+    var database = config.getConf('mapping:dbPrefix') + orgid;
+    var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        .toString();
+    const options = {
+      url,
+    };
+    var totalAllMapped = 0
+    var totalAllNoMatch = 0
+    var totalAllFlagged = 0
+    var mohTotalAllNotMapped = 0
+    const noMatchCode = config.getConf('mapping:noMatchCode');
+    const flagCode = config.getConf('mapping:flagCode');
+    mcsd.getLocations(database, (body) => {
+      if (!body.hasOwnProperty('entry') || body.length === 0) {
+        totalAllNoMatch = 0
+        totalAllMapped = 0
+        return callback (totalAllMapped,mohTotalAllNotMapped,totalAllNoMatch,totalAllFlagged)
+      }
+      async.each(body.entry,(entry,nxtEntry)=>{
+        if (entry.resource.hasOwnProperty('tag')) {
+          var nomatch = entry.resource.tag.find((tag)=>{
+            return tag.code === noMatchCode
+          })
+          var flagged = entry.resource.tag.find((tag)=>{
+            return tag.code === flagCode
+          })
+          if (nomatch) {
+            totalAllNoMatch++
+          }
+          if (flagged) {
+            totalAllFlagged++
+          }
+          return nxtEntry ()
+        }
+        else {
+          return nxtEntry()
+        }
+      },()=>{
+        totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
+        return callback (totalAllMapped,totalAllNoMatch,totalAllFlagged)
+        //res.set('Access-Control-Allow-Origin', '*');
+        //res.status(200).json({totalAllMapped,totalAllNoMatch,totalAllFlagged})
+      })
+    })
   }
 });
 
