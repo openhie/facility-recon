@@ -332,6 +332,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
     var mohTotalAllNotMapped = 0
     const noMatchCode = config.getConf('mapping:noMatchCode');
     const flagCode = config.getConf('mapping:flagCode');
+    setTimeout(()=>{
     mcsd.getLocations(database, (body) => {
       if (!body.hasOwnProperty('entry') || body.length === 0) {
         totalAllNoMatch = 0
@@ -364,7 +365,9 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
         //res.status(200).json({totalAllMapped,totalAllNoMatch,totalAllFlagged})
       })
     })
+  },1000)
   }
+
 });
 
 app.get('/getUnmatched/:orgid/:source/:recoLevel', (req, res) => {
