@@ -148,7 +148,8 @@ const addChildren = (treeData, results, filter, ...rest) => {
       row.facility = node.text
       row.latitude = node.lat
       row.longitude = node.long
-      if (filter.level === '' ? true : row[filter.level] && row[filter.level] === filter.text) {
+      // Do nothing for level1 since that's the whole country
+      if (filter.level === '' || filter.level === 'level1' ? true : row[filter.level] && row[filter.level] === filter.text) {
         results.push(row)
       }
     }
