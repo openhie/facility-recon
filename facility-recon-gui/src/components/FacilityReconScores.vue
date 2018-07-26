@@ -1157,11 +1157,6 @@ export default {
   created () {
     this.addListener()
   },
-  mounted () {
-    this.$root.$on('getScores', () => {
-      this.getScores()
-    })
-  },
   components: {
     'liquor-tree': LiquorTree
   }
