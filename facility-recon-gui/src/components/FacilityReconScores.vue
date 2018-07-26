@@ -264,7 +264,7 @@
               ></v-text-field>
           	</v-card-title>
           	<template v-if='$store.state.mohUnMatched != null'>
-                <liquor-tree :data="mohTree" ref="mohTree" />
+                <liquor-tree :data="mohTree" ref="mohTree" :key="mohTreeUpdate" />
   	          <v-data-table
   	            :headers="mohGridHeaders"
   	            :items="mohGrid"
@@ -631,6 +631,7 @@ export default {
       alert: false,
       mohParents: {},
       mohFilter: { text: '', level: '' },
+      mohTreeUpdate: 0,
       selectedMohName: null,
       selectedMohId: null,
       selectedMohLat: null,
@@ -1015,6 +1016,8 @@ export default {
       }
       let results = []
       createTree(this.$store.state.mohParents, results)
+      // This is needed because the tree doesn't show up on the initial page load without it
+      this.mohTreeUpdate++
       return results
     },
     mohGrid () {
