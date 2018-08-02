@@ -462,9 +462,9 @@ module.exports = function () {
         resource.name = mcsd.entry[0].resource.name;
         resource.id = datimId;
         resource.identifier = [];
-        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment(datimId)
+        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').segment(datimId)
           .toString();
-        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment(mohId)
+        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
           .toString();
         resource.identifier.push({ system: datimSystem, value: datimURL });
         resource.identifier.push({ system: mohSystem, value: mohURL });
