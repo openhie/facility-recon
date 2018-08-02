@@ -29,6 +29,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog persistent v-model="errorDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          {{errorTitle}}
+        </v-card-title>
+        <v-card-text>
+          {{errorContent}}
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" @click.native="errorDialog = false">Ok</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
     <v-dialog
       v-model="uploadPrepaProgr"
@@ -269,6 +282,9 @@ const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
   data () {
     return {
+      errorDialog: false,
+      errorTitle: '',
+      errorContent: '',
       dialog: false,
       percentDialog: false,
       uploadPrepaProgr: false,
@@ -319,6 +335,12 @@ export default {
   methods: {
     fileSelected (e) {
       this.uploadedFileName = e.target.files[0]['name']
+      if (e.target.files[0]['type'] !== 'text/csv') {
+        this.errorDialog = true
+        this.errorTitle = 'Error'
+        this.errorContent = 'Wrong file type uploaded,Only CSV format is supported'
+        this.uploadedFileName = ''
+      }
       this.file = e.target.files[0]
       let reader = new FileReader()
       reader.addEventListener('load', function () {
