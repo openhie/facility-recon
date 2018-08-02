@@ -97,8 +97,8 @@
                   
               </v-card-text>
             </v-card>
-            <v-btn color="primary" @click.native="e1 = 2">Continue</v-btn>
-            <v-btn flat>Cancel</v-btn>
+            <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
+            <v-btn color="primary" @click.native="e1 = 2" v-else disabled>Continue</v-btn>
           </v-stepper-content>
           <v-stepper-content step="2">
 

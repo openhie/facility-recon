@@ -73,6 +73,9 @@
                 single-line
                 hide-details>
               </v-text-field>
+              <v-btn icon dark @click.native="back">
+                <v-icon>close</v-icon>
+              </v-btn>
           </v-toolbar>
           <v-card-title>
             Parents: <b>{{selectedMohParents.join('->')}}</b> <v-spacer></v-spacer>
