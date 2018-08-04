@@ -9,8 +9,8 @@ This tool enables matching of facility lists including nested lists and with a p
 * User management through DHIS2.
 
 ## Quickstart
-### Hearth Installation
-* Make sure mongo is installed and running before proceeding with below instructions
+### Hearth (mCSD Server) Installation
+* Make sure mongo 3.6 or above is installed and running before proceeding with below instructions
 
 ```sh
 git clone https://github.com/intrahealth/hearth.git
