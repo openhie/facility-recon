@@ -9,29 +9,42 @@ This tool enables matching of facility lists including nested lists and with a p
 * User management through DHIS2.
 
 ## Quickstart
-### Download GOFR
-```sh
-
-```
-### GOFR Frontend Installation
-```sh
-cd facility-recon-gui
-npm install
-npm run dev
-```
-### GOFR Backen
-```sh
-cd facility-recon-backend
-npm install
-node lib/index.js
-```
 ### Hearth Installation
+* Make sure mongo is installed and running before proceeding with below instructions
+
 ```sh
 git clone https://github.com/intrahealth/hearth.git
 cd hearth
 npm install
 npm run dev:start
 ```
+* open the config file located under config/default.json and disable authentication by setting authentication type to disabled
+i.e "authentication": { "type": "disabled"}
+
+### Download GOFR
+```sh
+git clone https://github.com/openhie/facility-recon.git
+```
+### GOFR Backend Installation
+```sh
+cd facility-recon-backend
+npm install
+node lib/index.js
+```
+### GOFR Frontend Installation
+```sh
+cd facility-recon-gui
+npm install
+npm run build
+```
+### DHIS2 App Installation
+* Copy the frontend build contents from facility-recon-gui/dist into dhis2App/ and then zip the content of of dhis2App
+```sh
+cp -r facility-reco/facility-recon-gui/dist/* facility-reco/dhis2App/
+cd facility-reco/dhis2App
+zip GOFR.zip ./*
+```
+Login to DHIS2 and install the zipped file (GOFR.zip)
 
 ## Contributing and Community
 * Please do not hesitate to open a GitHub issue! 
