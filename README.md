@@ -42,7 +42,7 @@ npm install
 npm run build
 ```
 ### DHIS2 App Installation
-* Copy the frontend build contents from facility-recon-gui/dist into dhis2App/ and then zip the content of of dhis2App
+* Copy the frontend build contents from facility-recon/facility-recon-gui/dist into facility-recon/dhis2App/ and then zip the content of of dhis2App
 ```sh
 cp -r facility-recon/facility-recon-gui/dist/* facility-reco/dhis2App/
 cd facility-recon/dhis2App
