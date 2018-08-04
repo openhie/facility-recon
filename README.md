@@ -9,19 +9,28 @@ This tool enables matching of facility lists including nested lists and with a p
 * User management through DHIS2.
 
 ## Quickstart
-### Frontend
+### Download GOFR
+```sh
+
+```
+### GOFR Frontend Installation
 ```sh
 cd facility-recon-gui
 npm install
 npm run dev
 ```
-### Backen
+### GOFR Backen
 ```sh
 cd facility-recon-backend
 npm install
 node lib/index.js
 ```
----
+### Hearth Installation
+```sh
+git clone https://github.com/intrahealth/hearth.git
+cd hearth
+npm install
+npm run dev:start
 ```
 
 ## Contributing and Community
