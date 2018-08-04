@@ -450,7 +450,7 @@ app.post('/acceptFlag/:orgid', (req, res) => {
     }
     if (recoLevel == totalLevels) {
       const namespace = config.getConf('UUID:namespace');
-      mohId = uuid5(mohId, `${namespace}100`);
+      mohId = uuid5(orgid, `${namespace}100`);
     }
     mcsd.acceptFlag(datimId, orgid, (err) => {
       winston.info('Done marking flag as a match');

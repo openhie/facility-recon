@@ -441,15 +441,15 @@
         <v-tabs icons-and-text centered grow dark color="cyan">
           <v-tabs-slider color="red"></v-tabs-slider>
           <v-tab key="match">
-            MATCHED
+            MATCHED ({{mohTotalMatched}})
             <v-icon color="white" right>thumb_up</v-icon>
           </v-tab>
           <v-tab key="nomatch">
-            NO MATCH
+            NO MATCH ({{mohTotalNoMatch}})
             <v-icon color="white" right>thumb_down</v-icon>
           </v-tab>
           <v-tab key="flagged">
-            FLAGGED
+            FLAGGED ({{totalFlagged}})
             <v-icon color="white" right>notification_important</v-icon>
           </v-tab>
           <v-tab-item key="match">
@@ -1156,7 +1156,7 @@ export default {
       }
     },
     datimPercentNotInMoh () {
-      var percent = parseFloat((this.datimNotInMoh).toFixed(2))
+      var percent = parseFloat((this.datimNotInMoh*100/this.datimTotalRecords).toFixed(2))
       return parseFloat(percent)
     }
   },
