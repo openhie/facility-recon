@@ -1156,7 +1156,7 @@ export default {
       }
     },
     datimPercentNotInMoh () {
-      var percent = parseFloat((this.datimNotInMoh*100/this.datimTotalRecords).toFixed(2))
+      var percent = parseFloat((this.datimNotInMoh * 100 / this.datimTotalRecords).toFixed(2))
       return parseFloat(percent)
     }
   },
