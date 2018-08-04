@@ -9,7 +9,15 @@ This tool enables matching of facility lists including nested lists and with a p
 * User management through DHIS2.
 
 ## Quickstart
+### Frontend
+cd facility-recon-gui
+npm install
+npm run dev
 
+###Backen
+cd facility-recon-backend
+npm install
+node lib/index.js
 ```
 ---
 ```
