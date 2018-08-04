@@ -109,7 +109,7 @@
           <v-card-actions style='float: center'>
             <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
             <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
-            <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save</v-btn>
+            <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save Match</v-btn>
             <v-btn color="orange darken-2" @click.native="back" style="color: white"><v-icon dark left >arrow_back</v-icon>Back</v-btn>
             <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all"><template v-if="showAllPotential === 'all'">Show Scored Suggestions</template><template v-else>Show All Suggestions</template></v-btn></v-btn-toggle>
           </v-card-actions>
@@ -510,7 +510,7 @@
                 <template slot="items" slot-scope="props">
                   <td>{{props.item.mohName}}</td>
                   <td>{{props.item.mohId}}</td>
-                  <td>{{props.item.parents}}</td>
+                  <td>{{props.item.parents.join('->')}}</td>
                   <td>
                     <v-btn
                      v-if="$store.state.recoStatus.status == 'done'"

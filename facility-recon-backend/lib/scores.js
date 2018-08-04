@@ -82,7 +82,7 @@ module.exports = function () {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
         const mohId = mohEntry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId)
+        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId)
           .toString();
         var matchBroken = false
         if(mohEntry.resource.hasOwnProperty('tag')) {
@@ -96,6 +96,7 @@ module.exports = function () {
         this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
           // if this MOH Org is already mapped
           if (match) {
+            winston.error('matched')
             const noMatchCode = config.getConf('mapping:noMatchCode');
             var entityParent = null;
             if (mohEntry.resource.hasOwnProperty('partOf')) {
@@ -369,7 +370,7 @@ module.exports = function () {
           mohLatitude = mohEntry.resource.position.latitude;
           mohLongitude = mohEntry.resource.position.longitude;
         }
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId)
+        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId)
           .toString();
 
         var matchBroken = false
@@ -716,7 +717,7 @@ module.exports = function () {
           mohUploadedId = ident.value;
         }
         const mohId = entry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment(mohId).toString()
+        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId).toString()
         this.matchStatus(mappedLocations, mohIdentifier, (mapped) => {
           if (mapped) {
             var datimEntry = datimLocations.entry.find((datimEntry)=>{
