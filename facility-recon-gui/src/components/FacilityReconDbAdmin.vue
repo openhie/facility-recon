@@ -69,7 +69,7 @@
 import axios from 'axios'
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = isProduction ? config.build.backend : config.dev.backend
 export default {
   data () {
     return {
@@ -88,14 +88,16 @@ export default {
   methods: {
     getArchives () {
       var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/getArchives/' + orgUnit.OrgId).then((archives) => {
-        this.archives = archives.data
-        if (this.archives.length === 0) {
-          this.$store.state.showArchives = false
-        } else {
-          this.$store.state.showArchives = true
-        }
-      })
+      axios
+        .get(backendServer + '/getArchives/' + orgUnit.OrgId)
+        .then(archives => {
+          this.archives = archives.data
+          if (this.archives.length === 0) {
+            this.$store.state.showArchives = false
+          } else {
+            this.$store.state.showArchives = true
+          }
+        })
     },
     restoreArchive () {
       if (this.selectedArchive === '') {
@@ -107,22 +109,25 @@ export default {
         var orgUnit = this.$store.state.orgUnit
         let formData = new FormData()
         formData.append('archive', this.selectedArchive)
-        axios.post(backendServer + '/restoreArchive/' + orgUnit.OrgId, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }).then(() => {
-          this.restoreDialog = false
-          this.$root.$emit('refreshApp')
-          this.getArchives()
-          this.selectedArchive = ''
-        }).catch((err) => {
-          this.restoreDialog = false
-          this.$store.state.dialogError = true
-          this.$store.state.errorTitle = 'Error'
-          this.$store.state.errorDescription = err.response.data.error
-          console.log(err.response.data.error)
-        })
+        axios
+          .post(backendServer + '/restoreArchive/' + orgUnit.OrgId, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+          .then(() => {
+            this.restoreDialog = false
+            this.$root.$emit('refreshApp')
+            this.getArchives()
+            this.selectedArchive = ''
+          })
+          .catch(err => {
+            this.restoreDialog = false
+            this.$store.state.dialogError = true
+            this.$store.state.errorTitle = 'Error'
+            this.$store.state.errorDescription = err.response.data.error
+            console.log(err.response.data.error)
+          })
       }
     }
   },
@@ -132,5 +137,4 @@ export default {
 }
 </script>
 <style>
-
 </style>

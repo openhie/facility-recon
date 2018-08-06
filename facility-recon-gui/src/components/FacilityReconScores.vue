@@ -148,24 +148,24 @@
             style='height:138px;width:128px'
           >
             <v-layout column>
-              <v-flex xs1>
+              <v-flex>
                 <v-icon light >thumb_up</v-icon><b>Matched</b>
               </v-flex>
-              <v-flex xs1 align-center>
-                <center><b>{{mohTotalMatched}}/{{mohTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1>
+              <v-flex>
                 <center>
-                <v-progress-circular
-                  :rotate="-90"
-                  :size="65"
-                  :width="8"
-                  :value="mohPercentMatched"
-                  color="yellow"
-                >
-                  <font color="white"><b>{{ mohPercentMatched }}%</b></font>
-                </v-progress-circular>
-              </center>
+                  <v-progress-circular
+                    :rotate="-90"
+                    :size="65"
+                    :width="8"
+                    :value="mohPercentMatched"
+                    color="yellow"
+                  >
+                    <font color="white"><b>{{ mohPercentMatched }}%</b></font>
+                  </v-progress-circular>
+                </center>
+              </v-flex>
+              <v-flex align-center>
+                <center><b>{{mohTotalMatched}}/{{mohTotalRecords}}</b></center>
               </v-flex>
             </v-layout>
           </v-chip>
@@ -597,11 +597,10 @@
     	        </v-data-table>
             </template>
             <template v-else>
-              <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+              <v-progress-linear :size="70" indeterminate color="amber"/>
             </template>
   		    </v-tab-item>
         </v-tabs>
-        </v-flex>
       </v-layout>
     </v-container>
   </v-container>
@@ -610,11 +609,11 @@
 <script>
 import axios from 'axios'
 import LiquorTree from 'liquor-tree'
-import {scoresMixin} from '../mixins/scoresMixin'
+import { scoresMixin } from '../mixins/scoresMixin'
 
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = isProduction ? config.build.backend : config.dev.backend
 
 export default {
   mixins: [scoresMixin],
@@ -643,9 +642,7 @@ export default {
       selectedDatimId: null,
       selectedDatimName: null,
       dialog: false,
-      mohUnmatchedHeaders: [
-        { text: 'Location', value: 'name' }
-      ],
+      mohUnmatchedHeaders: [{ text: 'Location', value: 'name' }],
       matchedHeaders: [
         { text: 'MOH Location', value: 'mohName' },
         { text: 'MOH ID', value: 'mohId' },
@@ -679,7 +676,7 @@ export default {
     addListener () {
       const setListener = () => {
         if (this.$refs && this.$refs.mohTree) {
-          this.$refs.mohTree.$on('node:selected', (node) => {
+          this.$refs.mohTree.$on('node:selected', node => {
             this.mohFilter.text = node.data.text
             let level = 1
             while (node.parent) {
@@ -689,7 +686,9 @@ export default {
             this.mohFilter.level = level
           })
         } else {
-          setTimeout(function () { setListener() }, 500)
+          setTimeout(function () {
+            setListener()
+          }, 500)
         }
       }
       setListener()
@@ -711,7 +710,7 @@ export default {
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
               let potentials = scoreResult.potentialMatches[score][j]
-              var matched = this.$store.state.matchedContent.find((matched) => {
+              var matched = this.$store.state.matchedContent.find(matched => {
                 return matched.datimId === potentials.id
               })
               if (matched) {
@@ -789,14 +788,16 @@ export default {
       this.selectedMohName = null
       this.selectedDatimId = null
       this.dialog = false
-      axios.post(backendServer + '/match/' + type + '/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(() => {
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/match/' + type + '/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {})
+        .catch(err => {
+          console.log(err)
+        })
     },
     acceptFlag (datimId) {
       // Add from a list of MOH Matched and remove from list of Flagged
@@ -820,29 +821,34 @@ export default {
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalLevels)
       var orgid = this.$store.state.orgUnit.OrgId
-      axios.post(backendServer + '/acceptFlag/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(() => {
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/acceptFlag/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {})
+        .catch(err => {
+          console.log(err)
+        })
     },
     breakMatch (datimId) {
       this.alert = true
       this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.alertText =
+        'Scores for this Location may no be available unless you recalculate scores'
       let orgid = this.$store.state.orgUnit.OrgId
       let formData = new FormData()
       formData.append('datimId', datimId)
-      axios.post(backendServer + '/breakMatch/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/breakMatch/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
 
       for (let k in this.$store.state.matchedContent) {
         if (this.$store.state.matchedContent[k].datimId === datimId) {
@@ -864,17 +870,20 @@ export default {
     unFlag (datimId) {
       this.alert = true
       this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.alertText =
+        'Scores for this Location may no be available unless you recalculate scores'
       let orgid = this.$store.state.orgUnit.OrgId
       let formData = new FormData()
       formData.append('datimId', datimId)
-      axios.post(backendServer + '/breakMatch/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/breakMatch/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
 
       for (let k in this.$store.state.flagged) {
         if (this.$store.state.flagged[k].datimId === datimId) {
@@ -896,19 +905,22 @@ export default {
     breakNoMatch (mohId) {
       this.alert = true
       this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.alertText =
+        'Scores for this Location may no be available unless you recalculate scores'
       let orgid = this.$store.state.orgUnit.OrgId
       let formData = new FormData()
       formData.append('mohId', mohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalLevels)
-      axios.post(backendServer + '/breakNoMatch/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/breakNoMatch/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
       for (var k in this.$store.state.noMatchContent) {
         if (this.$store.state.noMatchContent[k].mohId === mohId) {
           this.$store.state.mohUnMatched.push({
@@ -943,14 +955,16 @@ export default {
       this.selectedMohId = null
       this.selectedMohName = null
       this.selectedDatimId = null
-      axios.post(backendServer + '/noMatch/' + orgid, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(() => {
-      }).catch((err) => {
-        console.log(err)
-      })
+      axios
+        .post(backendServer + '/noMatch/' + orgid, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {})
+        .catch(err => {
+          console.log(err)
+        })
     },
     back () {
       this.dialog = false
@@ -959,9 +973,13 @@ export default {
   },
   computed: {
     mohGridHeaders () {
-      let header = [ { text: 'Location', value: 'name' } ]
+      let header = [{ text: 'Location', value: 'name' }]
       if (this.$store.state.mohUnMatched.length > 0) {
-        for (let i = this.$store.state.mohUnMatched[0].parents.length; i > 0; i--) {
+        for (
+          let i = this.$store.state.mohUnMatched[0].parents.length;
+          i > 0;
+          i--
+        ) {
           header.push({ text: 'Level ' + i, value: 'level' + (i + 1) })
         }
       }
@@ -982,19 +1000,25 @@ export default {
           { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
         )
       }
-      results.push(
-        { text: 'Score', value: 'score' }
-      )
+      results.push({ text: 'Score', value: 'score' })
       return results
     },
     potentialAvailable () {
-      return (this.$store.state.datimUnMatched !== null && this.$store.state.datimUnMatched.length > this.potentialMatches.length)
+      return (
+        this.$store.state.datimUnMatched !== null &&
+        this.$store.state.datimUnMatched.length > this.potentialMatches.length
+      )
     },
     allPotentialMatches () {
-      if (this.$store.state.datimUnMatched !== null && this.$store.state.datimUnMatched.length > this.potentialMatches.length && this.showAllPotential === 'all') {
+      if (
+        this.$store.state.datimUnMatched !== null &&
+        this.$store.state.datimUnMatched.length >
+          this.potentialMatches.length &&
+        this.showAllPotential === 'all'
+      ) {
         let results = []
         for (let addIt of this.$store.state.datimUnMatched) {
-          let matched = this.potentialMatches.find((matched) => {
+          let matched = this.potentialMatches.find(matched => {
             return matched.id === addIt.id
           })
           if (!matched) {
@@ -1027,18 +1051,27 @@ export default {
       return results
     },
     mohGrid () {
-      if (this.$store.state.mohUnMatched.length > 0 && this.mohFilter.level !== '') {
-        let parentIdx = this.$store.state.mohUnMatched[0].parents.length - this.mohFilter.level
-        return this.$store.state.mohUnMatched.filter((location) => location.parents[parentIdx] === this.mohFilter.text)
+      if (
+        this.$store.state.mohUnMatched.length > 0 &&
+        this.mohFilter.level !== ''
+      ) {
+        let parentIdx =
+          this.$store.state.mohUnMatched[0].parents.length -
+          this.mohFilter.level
+        return this.$store.state.mohUnMatched.filter(
+          location => location.parents[parentIdx] === this.mohFilter.text
+        )
       }
       return this.$store.state.mohUnMatched
     },
     nextLevel () {
-      if (this.$store.state.recoLevel < this.$store.state.totalLevels &&
+      if (
+        this.$store.state.recoLevel < this.$store.state.totalLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
-        this.$store.state.flagged.length === 0) {
+        this.$store.state.flagged.length === 0
+      ) {
         return 'yes'
       } else {
         return 'no'
@@ -1062,7 +1095,9 @@ export default {
       if (this.mohTotalRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.mohTotalMatched * 100 / this.mohTotalRecords).toFixed(2))
+        return parseFloat(
+          (this.mohTotalMatched * 100 / this.mohTotalRecords).toFixed(2)
+        )
       }
     },
     mohTotalUnMatched () {
@@ -1072,7 +1107,9 @@ export default {
       if (this.mohTotalRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.mohTotalUnMatched * 100 / this.mohTotalRecords).toFixed(2))
+        return parseFloat(
+          (this.mohTotalUnMatched * 100 / this.mohTotalRecords).toFixed(2)
+        )
       }
     },
     totalFlagged () {
@@ -1086,7 +1123,13 @@ export default {
       if (this.$store.state.scoreResults.length === 0) {
         return 0
       } else if (this.$store.state.flagged) {
-        return parseFloat((this.$store.state.flagged.length * 100 / this.$store.state.scoreResults.length).toFixed(2))
+        return parseFloat(
+          (
+            this.$store.state.flagged.length *
+            100 /
+            this.$store.state.scoreResults.length
+          ).toFixed(2)
+        )
       } else {
         return 0
       }
@@ -1102,7 +1145,13 @@ export default {
       if (this.$store.state.scoreResults.length === 0) {
         return 0
       } else if (this.$store.state.noMatchContent) {
-        return parseFloat((this.$store.state.noMatchContent.length * 100 / this.$store.state.scoreResults.length).toFixed(2))
+        return parseFloat(
+          (
+            this.$store.state.noMatchContent.length *
+            100 /
+            this.$store.state.scoreResults.length
+          ).toFixed(2)
+        )
       } else {
         return 0
       }
@@ -1116,7 +1165,10 @@ export default {
     },
     datimTotalUnmatched () {
       if (this.datimTotalRecords > 0 && this.$store.state.matchedContent) {
-        return parseInt(this.datimTotalRecords) - parseInt(this.$store.state.matchedContent.length)
+        return (
+          parseInt(this.datimTotalRecords) -
+          parseInt(this.$store.state.matchedContent.length)
+        )
       } else {
         return 0
       }
@@ -1125,14 +1177,26 @@ export default {
       if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.datimTotalUnmatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+        return parseFloat(
+          (
+            this.datimTotalUnmatched *
+            100 /
+            this.$store.state.datimTotalRecords
+          ).toFixed(2)
+        )
       }
     },
     datimPercentFlagged () {
       if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else if (this.$store.state.flagged) {
-        return parseFloat((this.$store.state.flagged.length * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+        return parseFloat(
+          (
+            this.$store.state.flagged.length *
+            100 /
+            this.$store.state.datimTotalRecords
+          ).toFixed(2)
+        )
       } else {
         return 0
       }
@@ -1144,7 +1208,13 @@ export default {
       if (this.$store.state.datimTotalRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.datimTotalMatched * 100 / this.$store.state.datimTotalRecords).toFixed(2))
+        return parseFloat(
+          (
+            this.datimTotalMatched *
+            100 /
+            this.$store.state.datimTotalRecords
+          ).toFixed(2)
+        )
       }
     },
     datimNotInMoh () {
@@ -1156,7 +1226,9 @@ export default {
       }
     },
     datimPercentNotInMoh () {
-      var percent = parseFloat((this.datimNotInMoh * 100 / this.datimTotalRecords).toFixed(2))
+      var percent = parseFloat(
+        (this.datimNotInMoh * 100 / this.datimTotalRecords).toFixed(2)
+      )
       return parseFloat(percent)
     }
   },
@@ -1170,5 +1242,4 @@ export default {
 </script>
 
 <style>
-
 </style>

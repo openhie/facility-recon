@@ -10,8 +10,8 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="error" @click.native="closeDialog('FacilityReconHome')">Close</v-btn>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')" >View Data</v-btn>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')" >View Scores</v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')">View Data</v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')">View Scores</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -25,7 +25,7 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
-          <v-btn color="primary" dark @click.native="submitCSV" >Proceed</v-btn>
+          <v-btn color="primary" dark @click.native="submitCSV">Proceed</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -42,49 +42,25 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    
-    <v-dialog
-      v-model="uploadPrepaProgr"
-      hide-overlay
-      persistent
-      width="300"
-    >
-      <v-card
-        color="primary"
-        dark
-      >
+
+    <v-dialog v-model="uploadPrepaProgr" hide-overlay persistent width="300">
+      <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
-          <v-progress-linear
-            indeterminate
-            color="white"
-            class="mb-0"
-          ></v-progress-linear>
+          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="percentDialog"
-      hide-overlay
-      persistent
-      width="270"
-    >
-      <v-card
-        color="white"
-        dark
-      >
+    <v-dialog v-model="percentDialog" hide-overlay persistent width="270">
+      <v-card color="white" dark>
         <v-card-text>
           <center>
             <font style="color:blue">{{uploadStatus}}</font><br>
-            <v-progress-circular
-              :rotate="-90"
-              :size="100"
-              :width="15"
-              :value="uploadPercent"
-              color="primary"
-            >
+            <v-progress-circular :rotate="-90" :size="100" :width="15" :value="uploadPercent" color="primary">
               <v-avatar color="indigo" size="50px">
-                <span class="white--text"><b>{{ uploadPercent }}%</b></span>
+                <span class="white--text">
+                  <b>{{ uploadPercent }}%</b>
+                </span>
               </v-avatar>
             </v-progress-circular>
           </center>
@@ -103,11 +79,10 @@
             <v-card class="mb-5" height="200px">
               <v-card-title>Upload MoH CSV</v-card-title>
               <v-card-text>
-                <div class="btn btn-primary jbtn-file">Upload CSV<input
-                  type="file" @change="fileSelected">
+                <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
-                  
+
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
@@ -121,64 +96,32 @@
                   <v-subheader>Facility*</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemFacility"
-                  v-model="facility"
-                  @blur="$v.facility.$touch()"
-                  @change="$v.facility.$touch()"
-                  :error-messages="facilityErrors"
-                  label="Select"
-                  required
-                  single-line
-                  clearable></v-select>
+                  <v-select :items="filteredItemFacility" v-model="facility" @blur="$v.facility.$touch()" @change="$v.facility.$touch()" :error-messages="facilityErrors" label="Select" required single-line clearable></v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Code</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemCode"
-                  v-model="code"
-                  @blur="$v.code.$touch()"
-                  @change="$v.code.$touch()"
-                  :error-messages="codeErrors"
-                  label="Select"
-                  required
-                  single-line
-                  clearable></v-select>
+                  <v-select :items="filteredItemCode" v-model="code" @blur="$v.code.$touch()" @change="$v.code.$touch()" :error-messages="codeErrors" label="Select" required single-line clearable></v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Latitude</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemLat"
-                  v-model="lat"
-                  label="Select"
-                  single-line
-                  clearable></v-select>
+                  <v-select :items="filteredItemLat" v-model="lat" label="Select" single-line clearable></v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Longitude</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemLong"
-                  v-model="long"
-                  label="Select"
-                  single-line
-                  clearable></v-select>
+                  <v-select :items="filteredItemLong" v-model="long" label="Select" single-line clearable></v-select>
                 </v-flex>
                 <template v-if='$store.state.totalLevels-1 > 1'>
                   <v-flex xs6>
                     <v-subheader>Level 1</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel1"
-                    v-model="level1"
-                    @blur="$v.level1.$touch()"
-                    @change="$v.level1.$touch()"
-                    :error-messages="level1Errors"
-                    required
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel1" v-model="level1" @blur="$v.level1.$touch()" @change="$v.level1.$touch()" :error-messages="level1Errors" required label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 2'>
@@ -186,15 +129,7 @@
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel2"
-                    v-model="level2"
-                    @blur="$v.level2.$touch()"
-                    @change="$v.level2.$touch()"
-                    :error-messages="level2Errors"
-                    label="Select"
-                    required
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel2" v-model="level2" @blur="$v.level2.$touch()" @change="$v.level2.$touch()" :error-messages="level2Errors" label="Select" required single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 3'>
@@ -202,11 +137,7 @@
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel3"
-                    v-model="level3"
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel3" v-model="level3" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 4'>
@@ -214,11 +145,7 @@
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel4"
-                    v-model="level4"
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel4" v-model="level4" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 5'>
@@ -226,11 +153,7 @@
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel5"
-                    v-model="level5"
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel5" v-model="level5" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 6'>
@@ -238,11 +161,7 @@
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel6"
-                    v-model="level6"
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel6" v-model="level6" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 7'>
@@ -250,11 +169,7 @@
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel7"
-                    v-model="level7"
-                    label="Select"
-                    single-line
-                    clearable></v-select>
+                    <v-select :items="filteredItemLevel7" v-model="level7" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
               </v-layout>
@@ -450,7 +365,7 @@ export default {
       })
     },
     closeDialog (component) {
-      this.$router.push({name: component})
+      this.$router.push({ name: component })
       // location.reload()
       this.dialog = false
     }
@@ -584,29 +499,29 @@ export default {
 </script>
 
 <style scoped>
-  .jbtn-file {
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .jbtn-file input[type=file] {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 100%;
-    min-height: 100%;
-    text-align: right;
-    filter: alpha(opacity=0);
-    opacity: 0;
-    outline: none;
-    cursor: inherit;
-    display: block;
-  }
-  .input.invalid input {
-    border: 1px solid red;
-    background-color: #ffc9aa
-  }
-  .input.invalid label {
-    color: red
-  }
+.jbtn-file {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.jbtn-file input[type="file"] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  outline: none;
+  cursor: inherit;
+  display: block;
+}
+.input.invalid input {
+  border: 1px solid red;
+  background-color: #ffc9aa;
+}
+.input.invalid label {
+  color: red;
+}
 </style>
