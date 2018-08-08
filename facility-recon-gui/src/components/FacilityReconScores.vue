@@ -3,45 +3,23 @@
     <template v-if='$store.state.uploadRunning'><br><br><br>
       <v-alert type="info" :value="true">
         <b>Wait for upload to finish ...</b>
-        <v-progress-linear
-          indeterminate
-          color="white"
-          class="mb-0"
-        ></v-progress-linear>
+        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
       </v-alert>
     </template>
-  	<v-container fluid grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
-      <v-dialog
-        v-model="scoreDialog"
-        hide-overlay
-        persistent
-        width="350"
-      >
-        <v-card
-          color="white"
-          dark
-        >
+    <v-container fluid grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
+      <v-dialog v-model="scoreDialog" hide-overlay persistent width="350">
+        <v-card color="white" dark>
           <v-card-text>
             <center>
               <font style="color:blue">{{scoreProgressTitle}}</font><br>
-              <v-progress-circular
-                :rotate="-90"
-                :size="100"
-                :width="15"
-                :value="scoreProgressPercent"
-                color="primary"
-                v-if="progressType == 'percent'"
-              >
-              <v-avatar color="indigo" size="50px">
-                <span class="white--text"><b>{{ scoreProgressPercent }}%</b></span>
-              </v-avatar>
+              <v-progress-circular :rotate="-90" :size="100" :width="15" :value="scoreProgressPercent" color="primary" v-if="progressType == 'percent'">
+                <v-avatar color="indigo" size="50px">
+                  <span class="white--text">
+                    <b>{{ scoreProgressPercent }}%</b>
+                  </span>
+                </v-avatar>
               </v-progress-circular>
-              <v-progress-linear
-              indeterminate
-              color="red"
-              class="mb-0"
-              v-if="progressType == 'indeterminate'"
-            ></v-progress-linear>
+              <v-progress-linear indeterminate color="red" class="mb-0" v-if="progressType == 'indeterminate'"></v-progress-linear>
             </center>
           </v-card-text>
         </v-card>
@@ -66,374 +44,308 @@
               {{ selectedMohName }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
-              <v-text-field
-                v-model="searchPotential"
-                  append-icon="search"
-                label="Search"
-                single-line
-                hide-details>
-              </v-text-field>
-              <v-btn icon dark @click.native="back">
-                <v-icon>close</v-icon>
-              </v-btn>
+            <v-text-field v-model="searchPotential" append-icon="search" label="Search" single-line hide-details>
+            </v-text-field>
+            <v-btn icon dark @click.native="back">
+              <v-icon>close</v-icon>
+            </v-btn>
           </v-toolbar>
           <v-card-title>
-            Parents: <b>{{selectedMohParents.join('->')}}</b> <v-spacer></v-spacer>
+            Parents:
+            <b>{{selectedMohParents.join('->')}}</b>
+            <v-spacer></v-spacer>
             <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
-              Latitude: <b>{{selectedMohLat}}</b> <v-spacer></v-spacer>
-              Longitude: <b>{{selectedMohLong}}</b> <v-spacer></v-spacer>
+              Latitude:
+              <b>{{selectedMohLat}}</b>
+              <v-spacer></v-spacer>
+              Longitude:
+              <b>{{selectedMohLong}}</b>
+              <v-spacer></v-spacer>
             </template>
           </v-card-title>
           <v-card-text>
-            <v-data-table
-  	            :headers="potentialHeaders"
-                :items="allPotentialMatches"
-                :search="searchPotential"
-  	            class="elevation-1"
-  	          >
-  	          <template slot="items" slot-scope="props">
-  	          	<tr @click='changeMappingSelection(props.item.id,props.item.name)'>
-  		          	<v-radio-group v-model='selectedDatimId' style="height: 5px">
-  		          		<td><v-radio :value="props.item.id" color="red"></v-radio></td>
-  		          	</v-radio-group>
-  		            <td>{{props.item.name}}</td>
-  		            <td>{{props.item.id}}</td>
-  		            <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
+            <v-data-table :headers="potentialHeaders" :items="allPotentialMatches" :search="searchPotential" class="elevation-1">
+              <template slot="items" slot-scope="props">
+                <tr @click='changeMappingSelection(props.item.id,props.item.name)'>
+                  <v-radio-group v-model='selectedDatimId' style="height: 5px">
+                    <td>
+                      <v-radio :value="props.item.id" color="red"></v-radio>
+                    </td>
+                  </v-radio-group>
+                  <td>{{props.item.name}}</td>
+                  <td>{{props.item.id}}</td>
+                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
-  		            <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
-  		            <td>{{props.item.score}}</td>
-  	          	</tr>
-  	          </template>
+                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
+                  <td>{{props.item.score}}</td>
+                </tr>
+              </template>
             </v-data-table>
           </v-card-text>
           <v-card-actions style='float: center'>
-            <v-btn color="error" @click.native="match('flag')"><v-icon dark left>notification_important</v-icon>Flag</v-btn>
-            <v-btn color="green" dark @click.native="noMatch" ><v-icon left>thumb_down</v-icon>No Match</v-btn>
-            <v-btn color="primary" dark @click.native="match('match')" ><v-icon left>thumb_up</v-icon>Save Match</v-btn>
-            <v-btn color="orange darken-2" @click.native="back" style="color: white"><v-icon dark left >arrow_back</v-icon>Back</v-btn>
-            <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential"><v-btn color="teal darken-2" style="color: white;" value="all"><template v-if="showAllPotential === 'all'">Show Scored Suggestions</template><template v-else>Show All Suggestions</template></v-btn></v-btn-toggle>
+            <v-btn color="error" @click.native="match('flag')">
+              <v-icon dark left>notification_important</v-icon>Flag</v-btn>
+            <v-btn color="green" dark @click.native="noMatch">
+              <v-icon left>thumb_down</v-icon>No Match</v-btn>
+            <v-btn color="primary" dark @click.native="match('match')">
+              <v-icon left>thumb_up</v-icon>Save Match</v-btn>
+            <v-btn color="orange darken-2" @click.native="back" style="color: white">
+              <v-icon dark left>arrow_back</v-icon>Back</v-btn>
+            <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential">
+              <v-btn color="teal darken-2" style="color: white;" value="all">
+                <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
+                <template v-else>Show All Suggestions</template>
+              </v-btn>
+            </v-btn-toggle>
           </v-card-actions>
         </v-card>
       </v-dialog>
       <v-layout row wrap>
-      	<v-spacer></v-spacer>
-      	<v-flex xs1 sm2 md2 right>
-  	      <v-select
-  	        :items="$store.state.levelArray"
-  	        v-model="$store.state.recoLevel"
-  	        :item-value = '$store.state.levelArray.value'
-  	        :item-name = '$store.state.levelArray.text'
-  	        label="Level"
-  	        class="input-group--focused"
-  	        height = '1'
-  	        single-line
-  	        @change="levelChanged"
-  	      	>
-  	      </v-select>
-      	</v-flex>
-      	<v-flex xs1 sm2 md2>
-  		    <v-btn slot="activator" color="primary" dark @click="getScores" round><v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
+        <v-spacer></v-spacer>
+        <v-flex xs1 sm2 md2 right>
+          <v-select :items="$store.state.levelArray" v-model="$store.state.recoLevel" :item-value='$store.state.levelArray.value' :item-name='$store.state.levelArray.text' label="Level" class="input-group--focused" height='1' single-line @change="levelChanged">
+          </v-select>
+        </v-flex>
+        <v-flex xs1 sm2 md2>
+          <v-btn slot="activator" color="primary" dark @click="getScores" round>
+            <v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
         </v-flex>
         <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
-          <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'><v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
+          <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'>
+            <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
         </v-flex>
       </v-layout>
       <v-layout row wrap>
         <v-flex xs2 right>
           <div style="border-style: solid;border-color:green; text-align: center;">
-          <b>MOH Reconciliation Status</b>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex>
-                <v-icon light >thumb_up</v-icon><b>Matched</b>
-              </v-flex>
-              <v-flex>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="mohPercentMatched"
-                    color="yellow"
-                  >
-                    <font color="white"><b>{{ mohPercentMatched }}%</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-              <v-flex align-center>
-                <center><b>{{mohTotalMatched}}/{{mohTotalRecords}}</b></center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light >lock_open</v-icon><b>Un Matched</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{mohTotalUnMatched}}/{{mohTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="mohPercentUnMatched"
-                    color="yellow"
-                  >
-                   <font color="white"><b>{{mohPercentUnMatched}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <br>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light >thumb_down</v-icon><b>No Match</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{mohTotalNoMatch}}/{{mohTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="mohPercentNoMatch"
-                    color="yellow"
-                  >
-                    <font color="white"><b>{{mohPercentNoMatch}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light >notification_important</v-icon><b>Flagged</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{totalFlagged}}/{{mohTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="mohPercentFlagged"
-                    color="yellow"
-                  >
-                   <font color="white"><b>{{mohPercentFlagged}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-        </div>
+            <b>MOH Reconciliation Status</b>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex>
+                  <v-icon light>thumb_up</v-icon>
+                  <b>Matched</b>
+                </v-flex>
+                <v-flex>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentMatched" color="yellow">
+                      <font color="white">
+                        <b>{{ mohPercentMatched }}%</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+                <v-flex align-center>
+                  <center>
+                    <b>{{mohTotalMatched}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>lock_open</v-icon>
+                  <b>Un Matched</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{mohTotalUnMatched}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentUnMatched" color="yellow">
+                      <font color="white">
+                        <b>{{mohPercentUnMatched}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <br>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>thumb_down</v-icon>
+                  <b>No Match</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{mohTotalNoMatch}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatch" color="yellow">
+                      <font color="white">
+                        <b>{{mohPercentNoMatch}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>notification_important</v-icon>
+                  <b>Flagged</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{totalFlagged}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
+                      <font color="white">
+                        <b>{{mohPercentFlagged}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+          </div>
         </v-flex>
         <v-flex xs4 child-flex>
           <v-card color="green lighten-2" dark>
-          	<v-card-title primary-title>
-          	  MOH Unmatched
-          	  <v-spacer></v-spacer>
-          	  <v-text-field
-                v-model="searchUnmatchedMoh"
-                append-icon="search"
-                label="Search"
-                single-line
-                hide-details
-              ></v-text-field>
-          	</v-card-title>
+            <v-card-title primary-title>
+              MOH Unmatched
+              <v-spacer></v-spacer>
+              <v-text-field v-model="searchUnmatchedMoh" append-icon="search" label="Search" single-line hide-details></v-text-field>
+            </v-card-title>
             <template v-if='$store.state.mohUnMatched !== null'>
-                <liquor-tree :data="mohTree" ref="mohTree" :key="mohTreeUpdate" />
-  	          <v-data-table
-  	            :headers="mohGridHeaders"
-  	            :items="mohGrid"
-  	            :search="searchUnmatchedMoh"
-  	            light
-  	            class="elevation-1"
-  	          >
-  		          <template slot="items" slot-scope="props">
+              <liquor-tree :data="mohTree" ref="mohTree" :key="mohTreeUpdate" />
+              <v-data-table :headers="mohGridHeaders" :items="mohGrid" :search="searchUnmatchedMoh" light class="elevation-1">
+                <template slot="items" slot-scope="props">
                   <td v-if="$store.state.recoStatus.status === 'done'" :key='props.item.id'>{{props.item.name}}</td>
                   <td v-else @click="getPotentialMatch(props.item.id)" style="cursor: pointer" :key='props.item.id'>{{props.item.name}}</td>
                   <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1' :key='props.item.id+index'>
                     {{parent}}
                   </td>
-  		          </template>
-            	</v-data-table>
-          	</template>
-          	<template v-else>
-          		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
-          	</template>
+                </template>
+              </v-data-table>
+            </template>
+            <template v-else>
+              <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+            </template>
           </v-card>
         </v-flex>
         <v-flex xs4>
           <v-card color="blue lighten-2" dark>
-          	<v-card-title primary-title>
-          	  DATIM Unmatched
-          	  <v-spacer></v-spacer>
-          	  <v-text-field
-                v-model="searchUnmatchedDatim"
-                append-icon="search"
-                label="Search"
-                single-line
-                hide-details
-              ></v-text-field>
-          	</v-card-title>
+            <v-card-title primary-title>
+              DATIM Unmatched
+              <v-spacer></v-spacer>
+              <v-text-field v-model="searchUnmatchedDatim" append-icon="search" label="Search" single-line hide-details></v-text-field>
+            </v-card-title>
             <template v-if='$store.state.datimUnMatched !== null'>
-  	          <v-data-table
-  	            :headers="mohUnmatchedHeaders"
-  	            :items="$store.state.datimUnMatched"
-  	            :search="searchUnmatchedDatim"
-  	            light
-  	            class="elevation-1"
-  	          >
-  		          <template slot="items" slot-scope="props">
-  			            <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | removeCountry | joinParents}}</td>
-  		          </template>
-            	</v-data-table>
-          	</template>
+              <v-data-table :headers="mohUnmatchedHeaders" :items="$store.state.datimUnMatched" :search="searchUnmatchedDatim" light class="elevation-1">
+                <template slot="items" slot-scope="props">
+                  <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | removeCountry | joinParents}}</td>
+                </template>
+              </v-data-table>
+            </template>
             <template v-else>
-          		<v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
-          	</template>
+              <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+            </template>
           </v-card>
         </v-flex>
 
-
         <v-flex xs2 right>
           <div style='border-style: solid;border-color: green; text-align: center;'>
-          <b>DATIM Reconciliation Status</b>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light>thumb_up</v-icon><b>Matched</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{datimTotalMatched}}/{{datimTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="datimPercentMatched"
-                    color="yellow"
-                  >
-                    <font color="white"><b>{{datimPercentMatched}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex xs1>
-                <v-icon light >lock_open</v-icon><b>Un Matched</b>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center><b>{{datimTotalUnmatched}}/{{datimTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1>
-                <center>
-                <v-progress-circular
-                  :rotate="-90"
-                  :size="65"
-                  :width="8"
-                  :value="datimPercentUnmatched"
-                  color="yellow"
-                >
-                  <font color="white"><b>{{ datimPercentUnmatched }}%</b></font>
-                </v-progress-circular>
-              </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <br>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light >notification_important</v-icon><b>Flagged</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{totalFlagged}}/{{datimTotalRecords}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="datimPercentFlagged"
-                    color="yellow"
-                  >
-                   <font color="white"><b>{{datimPercentFlagged}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
-          <v-chip
-            color="green"
-            text-color='white'
-            style='height:138px;width:128px'
-          >
-            <v-layout column>
-              <v-flex align-center>
-                <v-icon light >notification_important</v-icon><b>Not in MOH</b>
-              </v-flex>
-              <v-flex xs1>
-                <center><b>{{datimNotInMoh}}</b></center>
-              </v-flex>
-              <v-flex xs1 align-center>
-                <center>
-                  <v-progress-circular
-                    :rotate="-90"
-                    :size="65"
-                    :width="8"
-                    :value="datimPercentNotInMoh"
-                    color="yellow"
-                  >
-                   <font color="white"><b>{{datimPercentNotInMoh}} %</b></font>
-                  </v-progress-circular>
-                </center>
-              </v-flex>
-            </v-layout>
-          </v-chip>
+            <b>DATIM Reconciliation Status</b>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>thumb_up</v-icon>
+                  <b>Matched</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{datimTotalMatched}}/{{datimTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentMatched" color="yellow">
+                      <font color="white">
+                        <b>{{datimPercentMatched}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex xs1>
+                  <v-icon light>lock_open</v-icon>
+                  <b>Un Matched</b>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <b>{{datimTotalUnmatched}}/{{datimTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentUnmatched" color="yellow">
+                      <font color="white">
+                        <b>{{ datimPercentUnmatched }}%</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <br>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>notification_important</v-icon>
+                  <b>Flagged</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{totalFlagged}}/{{datimTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentFlagged" color="yellow">
+                      <font color="white">
+                        <b>{{datimPercentFlagged}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>notification_important</v-icon>
+                  <b>Not in MOH</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{datimNotInMoh}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentNotInMoh" color="yellow">
+                      <font color="white">
+                        <b>{{datimPercentNotInMoh}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
           </div>
         </v-flex>
       </v-layout>
@@ -454,152 +366,79 @@
           </v-tab>
           <v-tab-item key="match">
             <template v-if='$store.state.matchedContent != null'>
-          	  <v-text-field
-                v-model="searchMatched"
-                append-icon="search"
-                label="Search"
-                single-line
-                hide-details
-              ></v-text-field>
-    	      	<v-data-table
-    	              :headers="matchedHeaders"
-    	              :items="$store.state.matchedContent"
-    	              :search="searchMatched"
-    	              class="elevation-1"
-    	            >
+              <v-text-field v-model="searchMatched" append-icon="search" label="Search" single-line hide-details></v-text-field>
+              <v-data-table :headers="matchedHeaders" :items="$store.state.matchedContent" :search="searchMatched" class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{props.item.mohName}}</td>
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.datimName}}</td>
                   <td>{{props.item.datimId}}</td>
                   <td>
-                    <v-btn v-if="$store.state.recoStatus.status == 'done'"
-                    disabled 
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='breakMatch(props.item.datimId)'
-                    ><v-icon>undo</v-icon>Break Match</v-btn>
-                    <v-btn v-else
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='breakMatch(props.item.datimId)'
-                    ><v-icon>undo</v-icon>Break Match</v-btn>
+                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'>
+                      <v-icon>undo</v-icon>Break Match</v-btn>
+                    <v-btn v-else color="error" style='text-transform: none' small @click='breakMatch(props.item.datimId)'>
+                      <v-icon>undo</v-icon>Break Match</v-btn>
                   </td>
                 </template>
-    	        </v-data-table>
+              </v-data-table>
             </template>
             <template v-else>
               <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
             </template>
-  		    </v-tab-item>        
-  		    <v-tab-item key="nomatch">
+          </v-tab-item>
+          <v-tab-item key="nomatch">
             <template v-if='$store.state.noMatchContent != null'>
-    		    	<v-text-field
-                v-model="searchNotMatched"
-                append-icon="search"
-                label="Search"
-                single-line
-                hide-details
-              ></v-text-field>
-    	      	<v-data-table
-    	              :headers="noMatchHeaders"
-    	              :items="$store.state.noMatchContent"
-    	              :search="searchNotMatched"
-    	              class="elevation-1"
-    	            >
+              <v-text-field v-model="searchNotMatched" append-icon="search" label="Search" single-line hide-details></v-text-field>
+              <v-data-table :headers="noMatchHeaders" :items="$store.state.noMatchContent" :search="searchNotMatched" class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{props.item.mohName}}</td>
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.parents.join('->')}}</td>
                   <td>
-                    <v-btn
-                     v-if="$store.state.recoStatus.status == 'done'"
-                     disabled
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='breakNoMatch(props.item.mohId)'
-                    ><v-icon>cached</v-icon>Break No Match
+                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.mohId)'>
+                      <v-icon>cached</v-icon>Break No Match
                     </v-btn>
-                    <v-btn
-                     v-else
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='breakNoMatch(props.item.mohId)'
-                    ><v-icon>cached</v-icon>Break No Match
+                    <v-btn v-else color="error" style='text-transform: none' small @click='breakNoMatch(props.item.mohId)'>
+                      <v-icon>cached</v-icon>Break No Match
                     </v-btn>
                   </td>
                 </template>
-    	        </v-data-table>
+              </v-data-table>
             </template>
             <template v-else>
               <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
             </template>
-  		    </v-tab-item>
-  		    <v-tab-item key="flagged">
+          </v-tab-item>
+          <v-tab-item key="flagged">
             <template v-if='$store.state.flagged != null'>
-    		    	<v-text-field
-                v-model="searchFlagged"
-                append-icon="search"
-                label="Search"
-                single-line
-                hide-details
-              ></v-text-field>
-    	      	<v-data-table
-    	              :headers="flaggedHeaders"
-    	              :items="$store.state.flagged"
-    	              :search="searchFlagged"
-    	              class="elevation-1"
-    	            >
+              <v-text-field v-model="searchFlagged" append-icon="search" label="Search" single-line hide-details></v-text-field>
+              <v-data-table :headers="flaggedHeaders" :items="$store.state.flagged" :search="searchFlagged" class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{props.item.mohName}}</td>
                   <td>{{props.item.mohId}}</td>
                   <td>{{props.item.datimName}}</td>
                   <td>{{props.item.datimId}}</td>
                   <td>
-                  	<v-btn
-                    v-if="$store.state.recoStatus.status == 'done'"
-                    disabled
-                    color="primary"
-                    style='text-transform: none' 
-                    small 
-                    @click='acceptFlag(props.item.datimId)'
-                    >
-                  		<v-icon>thumb_up</v-icon>Confirm Match
-                  	</v-btn>
-                    <v-btn
-                    v-else
-                    color="primary" 
-                    style='text-transform: none' 
-                    small 
-                    @click='acceptFlag(props.item.datimId)'
-                    >
+                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="primary" style='text-transform: none' small @click='acceptFlag(props.item.datimId)'>
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
-                  	<v-btn 
-                    v-if="$store.state.recoStatus.status == 'done'"
-                    disabled
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='unFlag(props.item.datimId)'
-                    >
-                  		<v-icon>cached</v-icon>Release
-                  	</v-btn>
-                    <v-btn 
-                    v-else
-                    color="error" 
-                    style='text-transform: none' 
-                    small @click='unFlag(props.item.datimId)'
-                    >
+                    <v-btn v-else color="primary" style='text-transform: none' small @click='acceptFlag(props.item.datimId)'>
+                      <v-icon>thumb_up</v-icon>Confirm Match
+                    </v-btn>
+                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='unFlag(props.item.datimId)'>
+                      <v-icon>cached</v-icon>Release
+                    </v-btn>
+                    <v-btn v-else color="error" style='text-transform: none' small @click='unFlag(props.item.datimId)'>
                       <v-icon>cached</v-icon>Release
                     </v-btn>
                   </td>
                 </template>
-    	        </v-data-table>
+              </v-data-table>
             </template>
             <template v-else>
-              <v-progress-linear :size="70" indeterminate color="amber"/>
+              <v-progress-linear :size="70" indeterminate color="amber" />
             </template>
-  		    </v-tab-item>
+          </v-tab-item>
         </v-tabs>
       </v-layout>
     </v-container>
@@ -794,7 +633,7 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => {})
+        .then(() => { })
         .catch(err => {
           console.log(err)
         })
@@ -827,7 +666,7 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => {})
+        .then(() => { })
         .catch(err => {
           console.log(err)
         })
@@ -961,7 +800,7 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => {})
+        .then(() => { })
         .catch(err => {
           console.log(err)
         })
@@ -1013,7 +852,7 @@ export default {
       if (
         this.$store.state.datimUnMatched !== null &&
         this.$store.state.datimUnMatched.length >
-          this.potentialMatches.length &&
+        this.potentialMatches.length &&
         this.showAllPotential === 'all'
       ) {
         let results = []
