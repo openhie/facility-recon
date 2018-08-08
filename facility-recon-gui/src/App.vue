@@ -1,16 +1,23 @@
 <template>
   <v-app>
-    <v-toolbar
-      color="primary" dark
-      app
-    >
+    <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-toolbar-items>
-        <v-btn to="/" flat>Home</v-btn>
-        <v-btn to="upload" flat v-if='!$store.state.denyAccess'>Upload</v-btn>
-        <v-btn to="view" flat v-if='!$store.state.denyAccess'>View</v-btn>
-        <v-btn flat to="scores" v-if='!$store.state.denyAccess'>Reconcile</v-btn>
-        <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>Reconciliation Status</v-btn>
+        <v-btn to="/" flat>
+          <v-icon>home</v-icon>Home
+        </v-btn>
+        <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
+          <v-icon>cloud_upload</v-icon>Upload
+        </v-btn>
+        <v-btn to="view" flat v-if='!$store.state.denyAccess'>
+          <v-icon>list</v-icon>View
+        </v-btn>
+        <v-btn flat to="scores" v-if='!$store.state.denyAccess'>
+          <v-icon>find_in_page</v-icon> Reconcile
+        </v-btn>
+        <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
+          <v-icon>bar_chart</v-icon> Reconciliation Status
+        </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>
@@ -31,37 +38,25 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog
-      v-model="initializingApp"
-      hide-overlay
-      persistent
-      width="300"
-      >
-        <v-card
-          color="primary"
-          dark
-        >
+      <v-dialog v-model="initializingApp" hide-overlay persistent width="300">
+        <v-card color="primary" dark>
           <v-card-text>
             Initializing App
-            <v-progress-linear
-              indeterminate
-              color="white"
-              class="mb-0"
-            ></v-progress-linear>
+            <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
           </v-card-text>
         </v-card>
       </v-dialog>
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-      
+
     </v-footer>
   </v-app>
 </template>
 
 <script>
 import axios from 'axios'
-import {scoresMixin} from './mixins/scoresMixin'
+import { scoresMixin } from './mixins/scoresMixin'
 import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'

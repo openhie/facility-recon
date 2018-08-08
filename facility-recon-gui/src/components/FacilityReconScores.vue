@@ -44,8 +44,7 @@
               {{ selectedMohName }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-text-field v-model="searchPotential" append-icon="search" label="Search" single-line hide-details>
-            </v-text-field>
+            <v-text-field v-model="searchPotential" append-icon="search" label="Search" single-line hide-details color="yellow" />
             <v-btn icon dark @click.native="back">
               <v-icon>close</v-icon>
             </v-btn>
@@ -64,7 +63,27 @@
             </template>
           </v-card-title>
           <v-card-text>
-            <v-data-table :headers="potentialHeaders" :items="allPotentialMatches" :search="searchPotential" class="elevation-1">
+            <v-data-table :headers="potentialHeaders" :items="allPotentialMatches" :search="searchPotential" :pagination.sync="pagination" class="elevation-1">
+              <template slot="headers" slot-scope="props">
+                <tr>
+                  <template v-for='header in potentialHeaders'>
+                    <th :key='header.text' align='left' v-if="header.text == 'Score'" class="column sortable active" @click="changeSort(header.value)">
+                      <v-icon small v-if="sort_arrow == 'up'">arrow_upward</v-icon>
+                      <v-icon small v-else>arrow_downward</v-icon>
+                      {{header.text}}
+                      <v-tooltip top>
+                        <v-btn slot="activator" icon>
+                          <v-icon>help</v-icon>
+                        </v-btn>
+                        <span>The lower the score, the better the match</span>
+                      </v-tooltip>
+                    </th>
+                    <th :key='header.text' align='left' v-else>
+                      {{header.text}}
+                    </th>
+                  </template>
+                </tr>
+              </template>
               <template slot="items" slot-scope="props">
                 <tr @click='changeMappingSelection(props.item.id,props.item.name)'>
                   <v-radio-group v-model='selectedDatimId' style="height: 5px">
@@ -458,6 +477,8 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      sort_arrow: 'up',
+      pagination: { sortBy: 'score' },
       recoLevel: 0,
       searchUnmatchedDatim: '',
       searchUnmatchedMoh: '',
@@ -512,6 +533,20 @@ export default {
     }
   },
   methods: {
+    changeSort (column) {
+      if (this.pagination.sortBy === column) {
+        this.pagination.descending = !this.pagination.descending
+      } else {
+        this.pagination.sortBy = column
+        this.pagination.descending = false
+      }
+      if (this.pagination.descending) {
+        this.sort_arrow = 'down'
+      }
+      else {
+        this.sort_arrow = 'up'
+      }
+    },
     addListener () {
       const setListener = () => {
         if (this.$refs && this.$refs.mohTree) {
@@ -773,6 +808,12 @@ export default {
       }
     },
     noMatch () {
+      if (this.selectedDatimId !== null) {
+        this.alert = true
+        this.alertTitle = 'Information'
+        this.alertText = 'Dont select any location if you want to mark as no match'
+        return
+      }
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('recoLevel', this.$store.state.recoLevel)

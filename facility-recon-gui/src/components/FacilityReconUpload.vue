@@ -3,15 +3,24 @@
     <v-dialog persistent v-model="dialog" max-width="500px">
       <v-card>
         <v-card-title>
-          Alert
+          <v-icon left>info</v-icon> Info
         </v-card-title>
         <v-card-text>
-          Data submitted and scores are being calculated
+          Data uploaded successfully
         </v-card-text>
         <v-card-actions>
-          <v-btn color="error" @click.native="closeDialog('FacilityReconHome')">Close</v-btn>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')">View Data</v-btn>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')">View Scores</v-btn>
+          <v-btn color="success" @click.native="closeDialog('FacilityReconHome')">
+            <v-icon left>home</v-icon>
+            Home
+          </v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')">
+            <v-icon left>list</v-icon>
+            View Data
+          </v-btn>
+          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')">
+            <v-icon left>find_in_page</v-icon>
+            Reconcile
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -21,7 +30,7 @@
           Warning
         </v-card-title>
         <v-card-text>
-          You are about to upload a new dataset,this will erase any existing data
+          You are about to upload a new dataset, this will erase any existing data
         </v-card-text>
         <v-card-actions>
           <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
