@@ -542,8 +542,7 @@ export default {
       }
       if (this.pagination.descending) {
         this.sort_arrow = 'down'
-      }
-      else {
+      } else {
         this.sort_arrow = 'up'
       }
     },

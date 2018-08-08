@@ -109,7 +109,7 @@ const addChildren = (treeData, results, filter, ...rest) => {
       addChildren(node.children, results, filter, node.text, ...rest)
     } else {
       let row = {}
-      for (let i = rest.length - 1, level = 1; i >= 0; i-- , level++) {
+      for (let i = rest.length - 1, level = 1; i >= 0; i = i - 1, level++) {
         if (level === 1) {
           continue
         }
