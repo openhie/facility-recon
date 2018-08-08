@@ -25,6 +25,8 @@ if ( nconf.get("help") ) {
 const dhis2URL = url.parse( nconf.get('dhis2:url') )
 const auth = 'Basic ' + Buffer.from( nconf.get('dhis2:user') + ':' + nconf.get('dhis2:pass') ).toString('base64')
 
+var thisRunTime = new Date().toISOString()
+
 if ( nconf.get("reset-time") ) {
 
     process.stdout.write("Attempting to reset time on " + nconf.get("dhis2:url") + "\n")
@@ -118,7 +120,7 @@ async function processMetaData() {
         })
         res.on('end', () => {
             let metadata = JSON.parse(body);
-            processOrgUnit( metadata, 0, metadata.organisationUnits.length  )
+            processOrgUnit( metadata, 0, metadata.organisationUnits.length, hasKey )
         })
         res.on('error', (e) => {
             console.log('ERROR: ' +e.message)
@@ -126,7 +128,7 @@ async function processMetaData() {
     }).end()
 }
 
-function processOrgUnit( metadata, i, max ) {
+function processOrgUnit( metadata, i, max, hasKey ) {
     org = metadata.organisationUnits[i]
     console.log("Processing ("+i+"/"+max+") "+org.id)
     let fhir = {
@@ -245,7 +247,9 @@ function processOrgUnit( metadata, i, max ) {
         // Had to do it this way to free up the event loop
         // so the request can go out before the entire
         // data set is processed.
-        setTimeout( () => { processOrgUnit( metadata, i, max ) }, 0 )
+        setTimeout( () => { processOrgUnit( metadata, i, max, hasKey ) }, 0 )
+    } else {
+        setLastUpdate( hasKey, thisRunTime )
     }
 
 }
