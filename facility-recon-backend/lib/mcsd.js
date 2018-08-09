@@ -7,8 +7,6 @@ const uuid5 = require('uuid/v5');
 const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
-const mongoBackup = require('mongodb-backup')
-const mongoRestore = require('mongodb-restore')
 const mongoose = require('mongoose')
 const fsFinder = require('fs-finder')
 const isJSON = require('is-json')
@@ -19,6 +17,9 @@ const { exec } = require('child_process');
 const moment = require('moment')
 const cache = require('memory-cache');
 const config = require('./config');
+const tar = require('tar')
+const tmp = require('tmp')
+const fs = require('fs-extra')
 
 module.exports = function () {
   return {
@@ -1005,6 +1006,14 @@ module.exports = function () {
         }
         var me = this
         var dir = `${__dirname}/dbArchives`
+
+        let tmpDir = tpm.dirSync()
+        exec.execSync('mongodump --uri='+uri+' -o '+tmpDir.name, { cwd: tmpDir.name } )
+        tar.c( { file: dir+'/'+name+'.tar', cwd: tmpDir.name, sync: true }, [ db ] )
+        fs.removeSync(tmpDir.name)
+        nxtList()
+
+        /*
         mongoBackup ({
           uri: uri,
           root: dir,
@@ -1019,6 +1028,9 @@ module.exports = function () {
             return nxtList()
           }
         })
+        */
+
+
       },()=>{
         callback(error)
       })
@@ -1051,6 +1063,14 @@ module.exports = function () {
              var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
             }
             var me = this
+
+            let tmpDir = tmp.dirSync()
+            tar.x( { file: __dirname+'/dbArchives/'+archive, cwd: tmpDir.name, sync: true } )
+            exec.execSync("mongorestore --uri='"+uri+"' --drop --dir="+tmpDir.name, { cwd: tmpDir.name } )
+            fs.removeSync(tmpDir.name)
+            nxtList()
+
+            /*
             mongoRestore ({
               uri: uri,
               root: `${__dirname}/dbArchives`,
@@ -1075,6 +1095,7 @@ module.exports = function () {
                 })
               }
             })
+            */
           },()=>{
             callback(error)
           })
