@@ -129,10 +129,6 @@
           <v-btn slot="activator" color="primary" dark @click="getScores" round>
             <v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
         </v-flex>
-        <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
-          <v-btn color="success" round @click='levelChanged(++$store.state.recoLevel)'>
-            <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
-        </v-flex>
       </v-layout>
       <v-layout row wrap>
         <v-flex xs2 right>
@@ -459,6 +455,12 @@
             </template>
           </v-tab-item>
         </v-tabs>
+      </v-layout>
+      <v-layout>
+        <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
+          <v-btn color="primary" round @click='levelChanged(++$store.state.recoLevel)'>
+            <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
+        </v-flex>
       </v-layout>
     </v-container>
   </v-container>

@@ -1,27 +1,28 @@
 require('./init');
-const request = require('request')
-const URI = require('urijs')
-const uuid5 = require('uuid/v5')
-const winston = require('winston')
-const async = require('async')
-const csv = require('fast-csv')
-const mongoose = require('mongoose')
-const fsFinder = require('fs-finder')
-const isJSON = require('is-json')
-const fs = require('fs-extra')
-const redis = require('redis')
-const redisClient = redis.createClient()
-const exec = require('child_process')
-const moment = require('moment')
-const cache = require('memory-cache')
-const config = require('./config')
-const tar = require('tar')
-const tmp = require('tmp')
+const request = require('request');
+const URI = require('urijs');
+const uuid5 = require('uuid/v5');
+const winston = require('winston');
+const async = require('async');
+const csv = require('fast-csv');
+const mongoose = require('mongoose');
+const fsFinder = require('fs-finder');
+const isJSON = require('is-json');
+const fs = require('fs-extra');
+const redis = require('redis');
+
+const redisClient = redis.createClient();
+const exec = require('child_process');
+const moment = require('moment');
+const cache = require('memory-cache');
+const tar = require('tar');
+const tmp = require('tmp');
+const config = require('./config');
 
 module.exports = function () {
   return {
     getLocations(database, callback) {
-      var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=37000'
+      let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=37000'
         .toString();
       const locations = {};
       locations.entry = [];
@@ -33,7 +34,7 @@ module.exports = function () {
           url = false;
           request.get(options, (err, res, body) => {
             if (!isJSON(body)) {
-              return callback(false, false)
+              return callback(false, false);
             }
             body = JSON.parse(body);
             const next = body.link.find(link => link.relation == 'next');
@@ -71,7 +72,7 @@ module.exports = function () {
           }
           request.get(options, (err, res, body) => {
             if (!isJSON(body)) {
-              return callback(false, false)
+              return callback(false, false);
             }
             const cacheData = JSON.parse(body);
             const next = cacheData.link.find(link => link.relation == 'next');
@@ -100,9 +101,9 @@ module.exports = function () {
       };
       request.get(options, (err, res, body) => {
         if (!isJSON(body)) {
-          var mcsd = {}
-          mcsd.entry = []
-          return callback(mcsd)
+          const mcsd = {};
+          mcsd.entry = [];
+          return callback(mcsd);
         }
         body = JSON.parse(body);
         callback(body);
@@ -111,12 +112,12 @@ module.exports = function () {
 
     getLocationParentsFromDB(source, database, entityParent, topOrg, details, callback) {
       const parents = [];
-      if (entityParent == null ||
-        entityParent == false ||
-        entityParent == undefined ||
-        !topOrg ||
-        !database ||
-        !source
+      if (entityParent == null
+        || entityParent == false
+        || entityParent == undefined
+        || !topOrg
+        || !database
+        || !source
       ) {
         return callback(parents);
       }
@@ -232,10 +233,10 @@ module.exports = function () {
             // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
             else if (topOrg && sourceEntityID.endsWith(topOrg)) {
               return callback(parents);
-            } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
-              body.entry[0].resource.partOf.reference != false &&
-              body.entry[0].resource.partOf.reference != null &&
-              body.entry[0].resource.partOf.reference != undefined) {
+            } else if (body.entry[0].resource.hasOwnProperty('partOf')
+              && body.entry[0].resource.partOf.reference != false
+              && body.entry[0].resource.partOf.reference != null
+              && body.entry[0].resource.partOf.reference != undefined) {
               var entityParent = body.entry[0].resource.partOf.reference;
               getPar(entityParent, (parents) => {
                 callback(parents);
@@ -253,10 +254,10 @@ module.exports = function () {
     getLocationParentsFromData(entityParent, mcsd, details, callback) {
       const parents = [];
       if (!mcsd.hasOwnProperty('entry') || !entityParent) {
-        return callback(parents)
+        return callback(parents);
       }
       if (mcsd.entry.length === 0) {
-        return callback(parents)
+        return callback(parents);
       }
 
       function filter(entityParent, callback) {
@@ -287,10 +288,10 @@ module.exports = function () {
           else if (details == 'names') parents.push(entry.resource.name);
           else winston.error('parent details (either id,names or all) to be returned not specified');
 
-          if (entry.resource.hasOwnProperty('partOf') &&
-            entry.resource.partOf.reference != false &&
-            entry.resource.partOf.reference != null &&
-            entry.resource.partOf.reference != undefined) {
+          if (entry.resource.hasOwnProperty('partOf')
+            && entry.resource.partOf.reference != false
+            && entry.resource.partOf.reference != null
+            && entry.resource.partOf.reference != undefined) {
             entityParent = entry.resource.partOf.reference;
             filter(entityParent, parents => callback(parents));
           } else {
@@ -417,7 +418,7 @@ module.exports = function () {
         };
         request.get(options, (err, res, body) => {
           if (!isJSON(body)) {
-            return callback(0)
+            return callback(0);
           }
           body = JSON.parse(body);
           if (body.total == 0) return callback(totalLevels);
@@ -428,10 +429,10 @@ module.exports = function () {
             }
             totalLevels++;
             counter++;
-            if (entry.resource.hasOwnProperty('id') &&
-              entry.resource.id != false &&
-              entry.resource.id != null &&
-              entry.resource.id != undefined) {
+            if (entry.resource.hasOwnProperty('id')
+              && entry.resource.id != false
+              && entry.resource.id != null
+              && entry.resource.id != undefined) {
               const reference = entry.resource.id;
 
               if (source == 'MOH') {
@@ -460,7 +461,7 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
-        //winston.info('Data saved successfully');
+        // winston.info('Data saved successfully');
         callback(err, body);
       });
     },
@@ -480,23 +481,25 @@ module.exports = function () {
         resource.name = mcsd.entry[0].resource.name;
         resource.id = datimId;
         resource.identifier = [];
-        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').segment(datimId)
+        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+          .segment(datimId)
           .toString();
-        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
+        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
+          .segment(mohId)
           .toString();
         resource.identifier.push({
           system: datimSystem,
-          value: datimURL
+          value: datimURL,
         });
         resource.identifier.push({
           system: mohSystem,
-          value: mohURL
+          value: mohURL,
         });
 
         if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
           resource.partOf = {
             display: mcsd.entry[0].resource.partOf.display,
-            reference: mcsd.entry[0].resource.partOf.reference
+            reference: mcsd.entry[0].resource.partOf.reference,
           };
         }
         if (recoLevel == totalLevels) {
@@ -511,7 +514,7 @@ module.exports = function () {
             code: typeCode,
             display: typeName,
             system: 'http://hl7.org/fhir/location-physical-type',
-          }, ],
+          }],
         };
         if (type == 'flag') {
           resource.tag = [];
@@ -522,7 +525,7 @@ module.exports = function () {
           });
         }
         entry.push({
-          resource
+          resource,
         });
         fhir.entry = fhir.entry.concat(entry);
         const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -537,22 +540,22 @@ module.exports = function () {
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
       this.getLocationByID(database, datimId, false, (flagged) => {
-        delete flagged.resourceType
-        delete flagged.id
-        delete flagged.meta
-        delete flagged.total
-        delete flagged.link
+        delete flagged.resourceType;
+        delete flagged.id;
+        delete flagged.meta;
+        delete flagged.total;
+        delete flagged.link;
         const flagCode = config.getConf('mapping:flagCode');
-        //remove the flag tag
-        for (var k in flagged.entry[0].resource.tag) {
-          var tag = flagged.entry[0].resource.tag[k]
+        // remove the flag tag
+        for (const k in flagged.entry[0].resource.tag) {
+          const tag = flagged.entry[0].resource.tag[k];
           if (tag.code === flagCode) {
-            flagged.entry[0].resource.tag.splice(k, 1)
+            flagged.entry[0].resource.tag.splice(k, 1);
           }
         }
-        flagged.type = 'document'
+        flagged.type = 'document';
 
-        //deleting existing location
+        // deleting existing location
         const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
           .segment(datimId)
           .toString();
@@ -562,9 +565,9 @@ module.exports = function () {
         request.delete(options, (err, res, body) => {
           if (err) {
             winston.error(err);
-            return callback(err)
+            return callback(err);
           }
-          //saving new
+          // saving new
           this.saveLocations(flagged, database, (err, res) => {
             if (err) {
               winston.error(err);
@@ -572,7 +575,7 @@ module.exports = function () {
             return callback(err);
           });
         });
-      })
+      });
     },
     saveNoMatch(mohId, topOrgId, recoLevel, totalLevels, callback) {
       const database = topOrgId;
@@ -592,7 +595,7 @@ module.exports = function () {
         if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
           resource.partOf = {
             display: mcsd.entry[0].resource.partOf.display,
-            reference: mcsd.entry[0].resource.partOf.reference
+            reference: mcsd.entry[0].resource.partOf.reference,
           };
         }
         if (recoLevel == totalLevels) {
@@ -607,14 +610,14 @@ module.exports = function () {
             code: typeCode,
             display: typeName,
             system: 'http://hl7.org/fhir/location-physical-type',
-          }, ],
+          }],
         };
         resource.identifier = [];
         const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment(mohId)
           .toString();
         resource.identifier.push({
           system: mohSystem,
-          value: mohURL
+          value: mohURL,
         });
 
         resource.tag = [];
@@ -624,7 +627,7 @@ module.exports = function () {
           display: 'No Match',
         });
         entry.push({
-          resource
+          resource,
         });
         fhir.entry = fhir.entry.concat(entry);
         const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -645,7 +648,7 @@ module.exports = function () {
       };
       this.getLocationByID(database, id, false, (location) => {
         if (location.entry.length === 0) {
-          return callback(true, null)
+          return callback(true, null);
         }
         request.delete(options, (err, res, body) => {
           if (err) {
@@ -653,43 +656,41 @@ module.exports = function () {
           }
           callback(err, null);
         });
-        var identifier = location.entry[0].resource.identifier.find((identifier) => {
-          return identifier.system == 'http://geoalign.datim.org/MOH'
-        })
+        const identifier = location.entry[0].resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
         if (identifier) {
-          let id = identifier.value.split('/').pop()
+          const id = identifier.value.split('/').pop();
           this.getLocationByID(topOrgId, id, false, (location) => {
-            delete location.resourceType
-            delete location.id
-            delete location.meta
-            delete location.total
-            delete location.link
+            delete location.resourceType;
+            delete location.id;
+            delete location.meta;
+            delete location.total;
+            delete location.link;
             const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
-            //remove the flag tag
-            var found = false
+            // remove the flag tag
+            let found = false;
             async.eachSeries(location.entry[0].resource.tag, (tag, nxtTag) => {
               if (tag.code === matchBrokenCode) {
-                found = true
+                found = true;
               }
-              return nxtTag()
+              return nxtTag();
             }, () => {
-              location.type = 'document'
+              location.type = 'document';
               if (!found) {
                 if (!location.entry[0].resource.hasOwnProperty('tag')) {
-                  location.entry[0].resource.tag = []
+                  location.entry[0].resource.tag = [];
                 }
-                let mohSystem = 'http://geoalign.datim.org/MOH'
+                const mohSystem = 'http://geoalign.datim.org/MOH';
                 location.entry[0].resource.tag.push({
                   system: mohSystem,
                   code: matchBrokenCode,
                   display: 'Match Broken',
                 });
-                this.saveLocations(location, topOrgId, (err, res) => {})
+                this.saveLocations(location, topOrgId, (err, res) => {});
               }
-            })
-          })
+            });
+          });
         }
-      })
+      });
     },
     breakNoMatch(id, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -710,7 +711,7 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
-      const uploadRequestId = `uploadProgress${orgid}${clientId}`
+      const uploadRequestId = `uploadProgress${orgid}${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -719,25 +720,24 @@ module.exports = function () {
 
       const promises = [];
       const processed = [];
-      var countRow = 0
+      let countRow = 0;
 
-      var totalRows = 0
-      exec.exec('wc -l ' + filePath, (err, stdout, stderr) => {
+      let totalRows = 0;
+      exec.exec(`wc -l ${ filePath}`, (err, stdout, stderr) => {
         if (err) {
           // node couldn't execute the command
-          winston.error(err)
+          winston.error(err);
           return;
         }
         if (stdout) {
-          totalRows = stdout.split(' ').shift()
+          totalRows = stdout.split(' ').shift();
         }
-
-      })
+      });
 
       csv
         .fromPath(filePath, {
           ignoreEmpty: true,
-          headers: true
+          headers: true,
         })
         .on('data', (data) => {
           const jurisdictions = [];
@@ -757,8 +757,8 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array.apply(null, {
-                  length: levelNumber
+                const topLevels = Array(...{
+                  length: levelNumber,
                 }).map(Number.call, Number);
                 // removing zero as levels starts from 1
                 topLevels.splice(0, 1);
@@ -811,15 +811,15 @@ module.exports = function () {
                 parentUUID: null,
               });
               this.saveJurisdiction(jurisdictions, orgid, () => {
-                countRow++
-                var percent = parseFloat((countRow * 100 / totalRows).toFixed(2))
-                let uploadReqPro = JSON.stringify({
+                countRow++;
+                const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+                const uploadReqPro = JSON.stringify({
                   status: '4/4 Writing Uploaded data into server',
                   error: null,
-                  percent: percent
-                })
-                redisClient.set(uploadRequestId, uploadReqPro)
-                resolve()
+                  percent,
+                });
+                redisClient.set(uploadRequestId, uploadReqPro);
+                resolve();
               });
               const facilityName = data[headerMapping.facility];
               const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
@@ -834,30 +834,30 @@ module.exports = function () {
               };
               this.saveBuilding(building, orgid, () => {
                 if (jurisdictions.length == 0) {
-                  countRow++
-                  var percent = parseFloat((countRow * 100 / totalRows).toFixed(2))
-                  let uploadReqPro = JSON.stringify({
+                  countRow++;
+                  const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+                  const uploadReqPro = JSON.stringify({
                     status: '4/4 Writing Uploaded data into server',
                     error: null,
-                    percent: percent
-                  })
-                  redisClient.set(uploadRequestId, uploadReqPro)
-                  resolve()
+                    percent,
+                  });
+                  redisClient.set(uploadRequestId, uploadReqPro);
+                  resolve();
                 }
               });
             });
-          }))
+          }));
         }).on('end', () => {
           Promise.all(promises).then(() => {
-            let uploadReqPro = JSON.stringify({
+            const uploadReqPro = JSON.stringify({
               status: 'Done',
               error: null,
-              percent: 100
-            })
-            redisClient.set(uploadRequestId, uploadReqPro)
-            callback()
-          })
-        })
+              percent: 100,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+            callback();
+          });
+        });
     },
 
     saveJurisdiction(jurisdictions, orgid, callback) {
@@ -873,24 +873,26 @@ module.exports = function () {
           resource.identifier = [];
           resource.identifier.push({
             system: 'http://geoalign.datim.org/MOH',
-            value: jurisdiction.uuid
+            value: jurisdiction.uuid,
           });
-          if (jurisdiction.parentUUID) resource.partOf = {
+          if (jurisdiction.parentUUID) {
+ resource.partOf = {
             display: jurisdiction.parent,
-            reference: `Location/${jurisdiction.parentUUID}`
-          };
+            reference: `Location/${jurisdiction.parentUUID}`,
+          }; 
+}
           resource.physicalType = {
             coding: [{
               code: 'jdn',
               display: 'Jurisdiction',
               system: 'http://hl7.org/fhir/location-physical-type',
-            }, ],
+            }],
           };
           const mcsd = {
             type: 'document',
             entry: [{
-              resource
-            }]
+              resource,
+            }],
           };
           this.saveLocations(mcsd, orgid, () => {
             resolve();
@@ -913,18 +915,18 @@ module.exports = function () {
       resource.identifier = [];
       resource.identifier.push({
         system: 'http://geoalign.datim.org/MOH',
-        value: building.id
+        value: building.id,
       });
       resource.partOf = {
         display: building.parent,
-        reference: `Location/${building.parentUUID}`
+        reference: `Location/${building.parentUUID}`,
       };
       resource.physicalType = {
         coding: [{
           code: 'bu',
           display: 'Building',
           system: 'http://hl7.org/fhir/location-physical-type',
-        }, ],
+        }],
       };
       resource.position = {
         longitude: building.long,
@@ -933,171 +935,163 @@ module.exports = function () {
       const mcsd = {
         type: 'document',
         entry: [{
-          resource
-        }]
+          resource,
+        }],
       };
-      this.saveLocations(mcsd, orgid, () => {
-        return callback();
-      });
+      this.saveLocations(mcsd, orgid, () => callback());
     },
 
     createTree(mcsd, source, database, topOrg, callback) {
-      let tree = []
-      let lookup = []
-      let addLater = {}
+      const tree = [];
+      const lookup = [];
+      const addLater = {};
 
       async.each(mcsd.entry, (entry, callback1) => {
-        let lat = null
-        let long = null
-        const id = entry.resource.id
+        let lat = null;
+        let long = null;
+        const id = entry.resource.id;
         if (entry.resource.hasOwnProperty('position')) {
-          lat = entry.resource.position.latitude
-          long = entry.resource.position.longitude
+          lat = entry.resource.position.latitude;
+          long = entry.resource.position.longitude;
         }
-        let item = {
+        const item = {
           text: entry.resource.name,
           id,
           lat,
           long,
-          children: []
-        }
-        lookup[id] = item
+          children: [],
+        };
+        lookup[id] = item;
         if (id === topOrg || !entry.resource.hasOwnProperty('partOf')) {
-          tree.push(item)
+          tree.push(item);
         } else {
-          const parent = entry.resource.partOf.reference.substring(9)
+          const parent = entry.resource.partOf.reference.substring(9);
           if (lookup[parent]) {
-            lookup[parent].children.push(item)
+            lookup[parent].children.push(item);
+          } else if (addLater[parent]) {
+            addLater[parent].push(item);
           } else {
-            if (addLater[parent]) {
-              addLater[parent].push(item)
-            } else {
-              addLater[parent] = [item]
-            }
+            addLater[parent] = [item];
           }
         }
-        callback1()
+        callback1();
       }, () => {
         if (Object.keys(addLater).length > 0) {
           for (id in addLater) {
             if (lookup[id]) {
-              lookup[id].children.push(...addLater[id])
+              lookup[id].children.push(...addLater[id]);
             } else {
-              winston.error("Couldn't find " + id + " in tree.")
+              winston.error(`Couldn't find ${id } in tree.`);
             }
           }
         }
-        const sortKids = (a, b) => {
-          return a.text.localeCompare(b.text)
-        }
+        const sortKids = (a, b) => a.text.localeCompare(b.text);
         const runSort = (arr) => {
-          arr.sort(sortKids)
+          arr.sort(sortKids);
           for (item of arr) {
             if (item.children.length > 0) {
-              runSort(item.children)
+              runSort(item.children);
             }
           }
-        }
-        runSort(tree)
+        };
+        runSort(tree);
 
-        callback(tree)
-      })
+        callback(tree);
+      });
     },
     cleanArchives(db, callback) {
-      var maxArchives = config.getConf('dbArchives:maxArchives')
-      var filter = function (stat, path) {
+      const maxArchives = config.getConf('dbArchives:maxArchives');
+      const filter = function (stat, path) {
         if (path.includes(db) && !path.includes('MOHDATIM')) {
-          return true
-        } else {
-          return false
+          return true;
         }
-      }
+        return false;
+      };
 
-      var files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files) => {
+      const files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files) => {
         if (files.length > maxArchives) {
-          var totalDelete = files.length - maxArchives
-          filesDelete = []
+          const totalDelete = files.length - maxArchives;
+          filesDelete = [];
           async.eachSeries(files, (file, nxtFile) => {
-            //if max archive files not reached then add to the delete list
+            // if max archive files not reached then add to the delete list
             if (filesDelete.length < totalDelete) {
-              filesDelete.push(file)
-              return nxtFile()
-            } else {
-              var replaceDel = filesDelete.find((fDelete) => {
-                fDelete = fDelete.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '')
-                fDelete = moment(fDelete)
-                searchFile = file.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '')
-                searchFile = moment(searchFile)
-                return fDelete > searchFile
-              })
-              if (replaceDel) {
-                var index = filesDelete.indexOf(replaceDel)
-                filesDelete.splice(index, 1)
-                filesDelete.push(file)
-              }
-              return nxtFile()
+              filesDelete.push(file);
+              return nxtFile();
             }
+            let replaceDel = filesDelete.find((fDelete) => {
+              fDelete = fDelete.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
+              fDelete = moment(fDelete);
+              searchFile = file.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
+              searchFile = moment(searchFile);
+              return fDelete > searchFile;
+            });
+            if (replaceDel) {
+              let index = filesDelete.indexOf(replaceDel);
+              filesDelete.splice(index, 1);
+              filesDelete.push(file);
+            }
+            return nxtFile();
           }, () => {
             filesDelete.forEach((fileDelete) => {
               fs.unlink(fileDelete, (err) => {
                 if (err) {
-                  winston.error(err)
+                  winston.error(err);
                 }
-              })
-              var dl = fileDelete.split(db)
-              fileDelete = dl[0] + 'MOHDATIM_' + db + dl[1]
+              });
+              const dl = fileDelete.split(db);
+              fileDelete = `${dl[0]}MOHDATIM_${db}${dl[1]}`;
               fs.unlink(fileDelete, (err) => {
                 if (err) {
-                  winston.error(err)
+                  winston.error(err);
                 }
-              })
-            })
-            callback()
-          })
+              });
+            });
+            callback();
+          });
         } else {
-          callback()
+          callback();
         }
       });
     },
     archiveDB(db, callback) {
-      let mongoUser = config.getConf('mCSD:databaseUser')
-      let mongoPasswd = config.getConf('mCSD:databasePassword')
-      let mongoHost = config.getConf('mCSD:databaseHost')
-      let mongoPort = config.getConf('mCSD:databasePort')
-      let name = db + '_' + moment().format()
-      let dbList = []
+      const mongoUser = config.getConf('mCSD:databaseUser');
+      const mongoPasswd = config.getConf('mCSD:databasePassword');
+      const mongoHost = config.getConf('mCSD:databaseHost');
+      const mongoPort = config.getConf('mCSD:databasePort');
+      const name = `${db }_${ moment().format()}`;
+      const dbList = [];
       dbList.push({
         name,
-        db
-      })
+        db,
+      });
       dbList.push({
         name: `MOHDATIM_${name}`,
-        db: `MOHDATIM${db}`
-      })
-      var error = false
+        db: `MOHDATIM${db}`,
+      });
+      const error = false;
       async.eachSeries(dbList, (list, nxtList) => {
-        let db = list.db
-        let name = list.name
-        winston.info('Archiving DB ' + db)
+        const db = list.db;
+        const name = list.name;
+        winston.info(`Archiving DB ${ db}`);
         if (mongoUser && mongoPasswd) {
-          var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
+          var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
         } else {
-          var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+          var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
         }
-        var me = this
-        var dir = `${__dirname}/dbArchives`
+        const me = this;
+        const dir = `${__dirname}/dbArchives`;
 
-        let tmpDir = tmp.dirSync()
-        exec.execSync('mongodump --uri=' + uri + ' -o ' + tmpDir.name, {
-          cwd: tmpDir.name
-        })
-        tar.c({
-          file: dir + '/' + name + '.tar',
+        const tmpDir = tmp.dirSync();
+        exec.execSync(`mongodump --uri=${ uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
-          sync: true
-        }, [db])
-        fs.removeSync(tmpDir.name)
-        nxtList()
+        });
+        tar.c({
+          file: `${dir }/${name}.tar`,
+          cwd: tmpDir.name,
+          sync: true,
+        }, [db]);
+        fs.removeSync(tmpDir.name);
+        nxtList();
 
         /*
         mongoBackup ({
@@ -1115,57 +1109,55 @@ module.exports = function () {
           }
         })
         */
-
-
       }, () => {
-        callback(error)
-      })
+        callback(error);
+      });
     },
     restoreDB(archive, db, callback) {
-      var mongoUser = config.getConf('mCSD:databaseUser')
-      var mongoPasswd = config.getConf('mCSD:databasePassword')
-      var mongoHost = config.getConf('mCSD:databaseHost')
-      var mongoPort = config.getConf('mCSD:databasePort')
+      const mongoUser = config.getConf('mCSD:databaseUser');
+      const mongoPasswd = config.getConf('mCSD:databasePassword');
+      const mongoHost = config.getConf('mCSD:databaseHost');
+      const mongoPort = config.getConf('mCSD:databasePort');
 
-      winston.info('Archiving ' + db)
+      winston.info(`Archiving ${db}`);
       this.archiveDB(db, (err) => {
-        winston.info('Deleting ' + db)
+        winston.info(`Deleting ${db}`);
         this.deleteDB(db, (err) => {
           if (err) {
-            return callback(err)
+            return callback(err);
           }
-          winston.info('Restoring now ....')
-          let dbList = []
+          winston.info('Restoring now ....');
+          const dbList = [];
           dbList.push({
             archive: `MOHDATIM_${db}_${archive}.tar`,
-            db: `MOHDATIM${db}`
-          })
+            db: `MOHDATIM${db}`,
+          });
           dbList.push({
             archive: `${db}_${archive}.tar`,
-            db
-          })
-          var error = false
+            db,
+          });
+          const error = false;
           async.eachSeries(dbList, (list, nxtList) => {
-            db = list.db
-            archive = list.archive
+            db = list.db;
+            archive = list.archive;
             if (mongoUser && mongoPasswd) {
-              var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`
+              var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
             } else {
-              var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`
+              var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
             }
-            var me = this
+            const me = this;
 
-            let tmpDir = tmp.dirSync()
+            const tmpDir = tmp.dirSync();
             tar.x({
-              file: __dirname + '/dbArchives/' + archive,
+              file: `${__dirname}/dbArchives/${archive}`,
               cwd: tmpDir.name,
-              sync: true
-            })
-            exec.execSync("mongorestore --uri='" + uri + "' --drop --dir=" + tmpDir.name, {
-              cwd: tmpDir.name
-            })
-            fs.removeSync(tmpDir.name)
-            nxtList()
+              sync: true,
+            });
+            exec.execSync(`mongorestore --uri='${uri}' --drop --dir=${tmpDir.name}`, {
+              cwd: tmpDir.name,
+            });
+            fs.removeSync(tmpDir.name);
+            nxtList();
 
             /*
             mongoRestore ({
@@ -1194,53 +1186,50 @@ module.exports = function () {
             })
             */
           }, () => {
-            callback(error)
-          })
-        })
-      })
+            callback(error);
+          });
+        });
+      });
     },
     deleteDB(db, callback) {
-      let dbList = []
-      dbList.push(db)
-      dbList.push('MOHDATIM' + db)
-      let error = null
+      const dbList = [];
+      dbList.push(db);
+      dbList.push(`MOHDATIM${db}`);
+      let error = null;
       async.eachSeries(dbList, (db, nxtList) => {
         mongoose.connect(`mongodb://localhost/${db}`);
         mongoose.connection.once('open', () => {
           mongoose.connection.db.dropDatabase((err) => {
             if (err) {
-              winston.error(err)
-              error = err
-              throw err
+              winston.error(err);
+              error = err;
+              throw err;
             } else {
-              winston.info(db + ' Dropped')
+              winston.info(`${db } Dropped`);
             }
-            return nxtList()
+            return nxtList();
           });
-        })
+        });
       }, () => {
-        callback(error)
-      })
+        callback(error);
+      });
     },
     getArchives(db, callback) {
-      var filter = function (stat, path) {
+      const filter = function (stat, path) {
         if (path.includes(db) && !path.includes('MOHDATIM')) {
-          return true
-        } else {
-          return false
+          return true;
         }
-      }
+        return false;
+      };
 
-      var archives = []
-      var files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files) => {
+      const archives = [];
+      const files = fsFinder.from(`${__dirname}/dbArchives`).filter(filter).findFiles((files) => {
         async.eachSeries(files, (file, nxtFile) => {
-          file = file.split('/').pop().replace('.tar', '').replace(`${db}_`, '')
-          archives.push(file)
-          return nxtFile()
-        }, () => {
-          return callback(false, archives)
-        })
-      })
-    }
+          file = file.split('/').pop().replace('.tar', '').replace(`${db}_`, '');
+          archives.push(file);
+          return nxtFile();
+        }, () => callback(false, archives));
+      });
+    },
   };
 };

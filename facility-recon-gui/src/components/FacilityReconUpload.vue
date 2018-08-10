@@ -9,17 +9,9 @@
           Data uploaded successfully
         </v-card-text>
         <v-card-actions>
-          <v-btn color="success" @click.native="closeDialog('FacilityReconHome')">
-            <v-icon left>home</v-icon>
-            Home
-          </v-btn>
           <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')">
             <v-icon left>list</v-icon>
             View Data
-          </v-btn>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconScores')">
-            <v-icon left>find_in_page</v-icon>
-            Reconcile
           </v-btn>
         </v-card-actions>
       </v-card>

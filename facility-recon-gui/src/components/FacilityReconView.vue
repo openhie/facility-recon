@@ -93,9 +93,17 @@
               </template>
             </v-card>
           </v-flex>
-
         </v-layout>
       </v-slide-y-transition>
+      <br>
+      <v-layout row wrap>
+        <v-flex xs1 xl10>
+          <v-btn color="primary" dark>
+            <v-icon>find_in_page</v-icon>
+            Reconcile
+          </v-btn>
+        </v-flex>
+      </v-layout>
     </template>
   </v-container>
 </template>
