@@ -9,7 +9,9 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   state: {
-    recoStatus: {'status': 'on-progress'},
+    recoStatus: {
+      'status': 'on-progress'
+    },
     dialogError: false,
     errorTitle: '',
     errorDescription: '',
@@ -18,7 +20,10 @@ export const store = new Vuex.Store({
     datimHierarchy: '',
     mohHierarchy: '',
     uploadRunning: false,
-    orgUnit: { OrgId: 'lZsCb6y0KDX', OrgName: 'Malawi' },
+    orgUnit: {
+      OrgId: 'lZsCb6y0KDX',
+      OrgName: 'Malawi'
+    },
     mohTotalAllRecords: 0,
     datimTotalAllRecords: 0,
     totalAllMapped: 0,
@@ -36,7 +41,6 @@ export const store = new Vuex.Store({
     mohUnMatched: [],
     scoreResults: [],
     levelArray: [],
-    showArchives: false,
     scoresProgressData: {},
     uploadProgressData: {}
   }

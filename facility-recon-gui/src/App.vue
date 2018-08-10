@@ -9,6 +9,9 @@
         <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
           <v-icon>cloud_upload</v-icon>Upload
         </v-btn>
+        <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
+          <v-icon>archive</v-icon> Archived Uploads
+        </v-btn>
         <v-btn to="view" flat v-if='!$store.state.denyAccess'>
           <v-icon>list</v-icon>View
         </v-btn>

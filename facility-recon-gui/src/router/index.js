@@ -5,12 +5,12 @@ import FacilityReconUpload from '@/components/FacilityReconUpload'
 import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
 import FacilityRecoStatus from '@/components/FacilityRecoStatus'
+import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
 
 Vue.use(Router)
 
 export default new Router({
-  routes: [
-    {
+  routes: [{
       path: '/',
       name: 'FacilityReconHome',
       component: FacilityReconHome
@@ -35,6 +35,11 @@ export default new Router({
       path: '/recoStatus',
       name: 'FacilityRecoStatus',
       component: FacilityRecoStatus
+    },
+    {
+      path: '/dbAdmin',
+      name: 'FacilityReconDbAdmin',
+      component: FacilityReconDbAdmin
     }
   ]
 })

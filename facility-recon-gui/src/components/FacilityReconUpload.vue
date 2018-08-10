@@ -189,7 +189,6 @@
         </v-stepper-items>
       </v-stepper>
     </v-slide-y-transition>
-    <app-FacilityReconDbAdmin v-show='$store.state.showArchives' v-if='!$store.state.denyAccess'></app-FacilityReconDbAdmin>
   </v-container>
 </template>
 
@@ -218,7 +217,6 @@ export default {
       confirmUpload: false,
       confirmTitle: '',
       confirmMsg: '',
-      showArchives: false,
       file: '',
       uploadedFileName: '',
       e1: 0,
