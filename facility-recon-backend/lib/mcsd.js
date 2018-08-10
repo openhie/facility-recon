@@ -11,9 +11,7 @@ const isJSON = require('is-json')
 const fs = require('fs-extra')
 const redis = require('redis')
 const redisClient = redis.createClient()
-const {
-  exec
-} = require('child_process')
+const exec = require('child_process')
 const moment = require('moment')
 const cache = require('memory-cache')
 const config = require('./config')
@@ -724,7 +722,7 @@ module.exports = function () {
       var countRow = 0
 
       var totalRows = 0
-      exec('wc -l ' + filePath, (err, stdout, stderr) => {
+      exec.exec('wc -l ' + filePath, (err, stdout, stderr) => {
         if (err) {
           // node couldn't execute the command
           winston.error(err)
