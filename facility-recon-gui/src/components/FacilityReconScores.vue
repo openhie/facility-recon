@@ -461,6 +461,10 @@
           <v-btn color="primary" round @click='levelChanged(++$store.state.recoLevel)'>
             <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
         </v-flex>
+        <v-flex xs1 sm4 md2 v-if="lastLevelDone == 'yes'">
+          <v-btn color="primary" round @click='$router.push({name:"FacilityRecoStatus"})'>
+            <v-icon>bar_chart</v-icon>Reconciliation Status</v-btn>
+        </v-flex>
       </v-layout>
     </v-container>
   </v-container>
@@ -948,6 +952,19 @@ export default {
     nextLevel () {
       if (
         this.$store.state.recoLevel < this.$store.state.totalLevels &&
+        this.$store.state.mohUnMatched !== null &&
+        this.$store.state.mohUnMatched.length === 0 &&
+        this.$store.state.flagged !== null &&
+        this.$store.state.flagged.length === 0
+      ) {
+        return 'yes'
+      } else {
+        return 'no'
+      }
+    },
+    lastLevelDone () {
+      if (
+        this.$store.state.recoLevel === this.$store.state.totalLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&

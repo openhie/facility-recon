@@ -365,7 +365,6 @@ export default {
     },
     closeDialog (component) {
       this.$router.push({ name: component })
-      // location.reload()
       this.dialog = false
     }
   },

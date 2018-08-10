@@ -3,8 +3,8 @@
     <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-toolbar-items>
-        <v-btn to="/" flat>
-          <v-icon>home</v-icon>Home
+        <v-btn flat :href="dhisLink" v-if='dhisLink'>
+          <img src="./assets/dhis2.png"/>
         </v-btn>
         <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
           <v-icon>cloud_upload</v-icon>Upload
@@ -72,6 +72,15 @@ export default {
       initializingApp: false,
       fixed: false,
       title: 'Facility Reconciliation'
+    }
+  },
+  computed: {
+    dhisLink () {
+      if (isProduction) {
+        return window.location.protocol + '//' + window.location.hostname
+      } else {
+        return false
+      }
     }
   },
   methods: {
