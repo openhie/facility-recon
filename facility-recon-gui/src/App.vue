@@ -94,6 +94,19 @@ export default {
         this.$store.state.mohHierarchy = hierarchy
       })
     },
+    renderInitialPage () {
+      var OrgId = this.$store.state.orgUnit.OrgId
+      axios.get(backendServer + '/uploadAvailable/' + OrgId).then((results) => {
+        if (results.data.dataUploaded) {
+          this.$router.push({name: 'FacilityReconScores'})
+        } else {
+          this.$router.push({name: 'FacilityReconUpload'})
+        }
+      }).catch((err) => {
+        console.log(err)
+        this.$router.push({name: 'FacilityReconScores'})
+      })
+    },
     getTotalLevels () {
       this.getRecoStatus()
       var orgUnit = this.$store.state.orgUnit
@@ -126,6 +139,7 @@ export default {
               this.$store.state.denyAccess = true
               this.initializingApp = false
             } else {
+              this.renderInitialPage()
               this.$store.state.denyAccess = false
               this.getTotalLevels()
             }
@@ -140,6 +154,7 @@ export default {
     if (isProduction) {
       this.getOrganisationUnit()
     } else {
+      this.renderInitialPage()
       this.getTotalLevels()
       this.$store.state.denyAccess = false
     }

@@ -757,8 +757,8 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array(...{
-                  length: levelNumber,
+                const topLevels = Array.apply(null, {
+                  length: levelNumber
                 }).map(Number.call, Number);
                 // removing zero as levels starts from 1
                 topLevels.splice(0, 1);

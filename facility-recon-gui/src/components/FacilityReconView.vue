@@ -98,7 +98,7 @@
       <br>
       <v-layout row wrap>
         <v-flex xs1 xl10>
-          <v-btn color="primary" dark>
+          <v-btn color="primary" dark @click='$router.push({name:"FacilityReconScores"})'>
             <v-icon>find_in_page</v-icon>
             Reconcile
           </v-btn>
@@ -176,10 +176,19 @@ export default {
     },
     datimGridHeader () {
       let header = []
+      let gridWithAllHeaders = []
       if (this.datimGridData && this.datimGridData.length > 0) {
-        for (const key in this.datimGridData[0]) {
-          header.push({ text: this.headerText[key], value: key })
+        for (var grid in this.datimGridData) {
+          if (gridWithAllHeaders.length > 0 && this.datimGridData[grid].length > gridWithAllHeaders[0].length) {
+            gridWithAllHeaders = this.datimGridData[grid]
+          } else {
+            gridWithAllHeaders = this.datimGridData[grid]
+          }
         }
+      }
+
+      for (const key in gridWithAllHeaders) {
+        header.push({ text: this.headerText[key], value: key })
       }
       return header
     },

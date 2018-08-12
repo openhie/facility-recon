@@ -123,7 +123,6 @@ module.exports = function () {
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
-                winston.error(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               }
               // if no macth then this is already marked as a match
@@ -148,7 +147,6 @@ module.exports = function () {
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
               scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
-              winston.error(`${count}/${mcsdMOH.entry.length}`);
               return mohCallback();
             });
           } else { // if not mapped
@@ -636,7 +634,6 @@ module.exports = function () {
               }, () => {
                 scoreResults.push(thisRanking);
                 count++;
-                winston.info(`${count}/${mcsdMOH.entry.length}`);
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)

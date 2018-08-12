@@ -94,6 +94,35 @@ app.get('/countLevels/:orgid', (req, res) => {
   }
 });
 
+app.get('/uploadAvailable/:orgid', (req, res) => {
+  if (!req.params.orgid) {
+    winston.error({
+      error: 'Missing Orgid'
+    });
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(401).json({
+      error: 'Missing Orgid'
+    });
+  } else {
+    const orgid = req.params.orgid;
+    winston.info(`Checking if data uploaded ${orgid}`);
+    mcsd.getLocations (orgid, (mohData)=>{
+      if (mohData.hasOwnProperty('entry') && mohData.entry.length > 0) {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(200).json({
+          dataUploaded: true
+        });
+      }
+      else {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(200).json({
+          dataUploaded: false
+        });
+      }
+    })
+  }
+});
+
 app.get('/getArchives/:orgid', (req, res) => {
   if (!req.params.orgid) {
     winston.error({ error: 'Missing Orgid' });
