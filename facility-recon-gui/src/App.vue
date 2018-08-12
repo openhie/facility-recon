@@ -97,6 +97,7 @@ export default {
     renderInitialPage () {
       var OrgId = this.$store.state.orgUnit.OrgId
       axios.get(backendServer + '/uploadAvailable/' + OrgId).then((results) => {
+        this.getTotalLevels()
         if (results.data.dataUploaded) {
           this.$router.push({name: 'FacilityReconScores'})
         } else {
@@ -141,7 +142,6 @@ export default {
             } else {
               this.renderInitialPage()
               this.$store.state.denyAccess = false
-              this.getTotalLevels()
             }
           })
         }
