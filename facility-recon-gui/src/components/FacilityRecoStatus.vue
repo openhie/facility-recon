@@ -301,11 +301,11 @@
 						<v-icon color="white" right>thumb_up</v-icon>
 					</v-tab>
 					<v-tab key="notMapped">
-						Not Mapped ({{totalNotMapped}})
+						MOH Not Mapped ({{totalNotMapped}})
 						<v-icon color="white" right>thumb_down</v-icon>
 					</v-tab>
 					<v-tab key="nomatch">
-						NO MATCH ({{totalNoMatch}})
+						MOH NO MATCH ({{totalNoMatch}})
 						<v-icon color="white" right>thumb_down</v-icon>
 					</v-tab>
 					<v-tab key="flagged">

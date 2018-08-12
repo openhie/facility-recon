@@ -280,7 +280,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
         scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
           recoStatus (orgid,(totalAllMapped,totalAllNoMatch,totalAllFlagged)=>{
-            var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped
+            var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
             res.status(200).json({ scoreResults, 
                                   recoLevel, 
                                   datimTotalRecords: locations[0].entry.length,
@@ -289,7 +289,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   totalAllFlagged: totalAllFlagged,
                                   totalAllNoMatch: totalAllNoMatch,
                                   mohTotalAllNotMapped: mohTotalAllNotMapped,
-                                  mohTotalAllRecords: mcsdMohAll.entry.length
+                                  mohTotalAllRecords: mcsdMohAll.entry.length-1
                                 });
             winston.info('Score results sent back');
           })
@@ -298,7 +298,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
         scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll,mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
           res.set('Access-Control-Allow-Origin', '*');
           recoStatus (orgid,(totalAllMapped,totalAllNoMatch,totalAllFlagged)=>{
-            var mohTotalAllNotMapped = mcsdMohAll.entry.length - totalAllMapped
+            var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
             res.status(200).json({ scoreResults, 
                                   recoLevel, 
                                   datimTotalRecords: locations[0].entry.length,
@@ -307,7 +307,7 @@ app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
                                   totalAllFlagged: totalAllFlagged,
                                   totalAllNoMatch: totalAllNoMatch,
                                   mohTotalAllNotMapped: mohTotalAllNotMapped,
-                                  mohTotalAllRecords: mcsdMohAll.entry.length
+                                  mohTotalAllRecords: mcsdMohAll.entry.length-1
                                 });
             winston.info('Score results sent back');
           })

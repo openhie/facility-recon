@@ -96,7 +96,6 @@ module.exports = function () {
         this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
           // if this MOH Org is already mapped
           if (match) {
-            winston.error('matched')
             const noMatchCode = config.getConf('mapping:noMatchCode');
             var entityParent = null;
             if (mohEntry.resource.hasOwnProperty('partOf')) {

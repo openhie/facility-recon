@@ -613,7 +613,7 @@ module.exports = function () {
           }],
         };
         resource.identifier = [];
-        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment(mohId)
+        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
           .toString();
         resource.identifier.push({
           system: mohSystem,

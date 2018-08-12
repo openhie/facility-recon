@@ -833,6 +833,7 @@ export default {
             mohId: this.selectedMohId,
             parents: this.$store.state.mohUnMatched[k].parents
           })
+          ++this.$store.state.totalAllNoMatch
           this.$store.state.mohUnMatched.splice(k, 1)
         }
       }
