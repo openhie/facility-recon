@@ -1,5 +1,13 @@
 <template>
   <v-container fluid>
+    <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
+      <v-card color="primary" dark>
+        <v-card-text>
+          {{progressTitle}}
+          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <template v-if='$store.state.uploadRunning'><br><br><br>
       <v-alert type="info" :value="true">
         <b>Wait for upload to finish ...</b>
@@ -483,6 +491,8 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      dynamicProgress: false,
+      progressTitle: '',
       sort_arrow: 'up',
       pagination: { sortBy: 'score' },
       recoLevel: 0,
@@ -621,61 +631,72 @@ export default {
         this.alertText = 'Select DATIM Location to match against MOH Location'
         return
       }
+      this.progressTitle = 'Saving match'
+      this.dynamicProgress = true
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('datimId', this.selectedDatimId)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalLevels)
       var orgid = this.$store.state.orgUnit.OrgId
-      // remove from DATIM Unmatched
-      let datimParents = null
-      for (let k in this.$store.state.datimUnMatched) {
-        if (this.$store.state.datimUnMatched[k].id === this.selectedDatimId) {
-          datimParents = this.$store.state.datimUnMatched[k].parents
-          this.$store.state.datimUnMatched.splice(k, 1)
-        }
-      }
-
-      // Add from a list of MOH Matched and remove from list of MOH unMatched
-      for (let k in this.$store.state.mohUnMatched) {
-        if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
-          if (type === 'match') {
-            ++this.$store.state.totalAllMapped
-            this.$store.state.matchedContent.push({
-              mohName: this.selectedMohName,
-              mohId: this.selectedMohId,
-              mohParents: this.$store.state.mohUnMatched[k].parents,
-              datimName: this.selectedDatimName,
-              datimId: this.selectedDatimId,
-              datimParents: datimParents
-            })
-          } else if (type === 'flag') {
-            ++this.$store.state.totalAllFlagged
-            this.$store.state.flagged.push({
-              mohName: this.selectedMohName,
-              mohId: this.selectedMohId,
-              mohParents: this.$store.state.mohUnMatched[k].parents,
-              datimName: this.selectedDatimName,
-              datimId: this.selectedDatimId,
-              datimParents: datimParents
-            })
-          }
-          this.$store.state.mohUnMatched.splice(k, 1)
-        }
-      }
-      this.selectedMohId = null
-      this.selectedMohName = null
-      this.selectedDatimId = null
-      this.dialog = false
       axios
         .post(backendServer + '/match/' + type + '/' + orgid, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => { })
+        .then(() => {
+          this.dynamicProgress = false
+          // remove from DATIM Unmatched
+          let datimParents = null
+          for (let k in this.$store.state.datimUnMatched) {
+            if (this.$store.state.datimUnMatched[k].id === this.selectedDatimId) {
+              datimParents = this.$store.state.datimUnMatched[k].parents
+              this.$store.state.datimUnMatched.splice(k, 1)
+            }
+          }
+
+          // Add from a list of MOH Matched and remove from list of MOH unMatched
+          for (let k in this.$store.state.mohUnMatched) {
+            if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
+              if (type === 'match') {
+                ++this.$store.state.totalAllMapped
+                this.$store.state.matchedContent.push({
+                  mohName: this.selectedMohName,
+                  mohId: this.selectedMohId,
+                  mohParents: this.$store.state.mohUnMatched[k].parents,
+                  datimName: this.selectedDatimName,
+                  datimId: this.selectedDatimId,
+                  datimParents: datimParents
+                })
+              } else if (type === 'flag') {
+                ++this.$store.state.totalAllFlagged
+                this.$store.state.flagged.push({
+                  mohName: this.selectedMohName,
+                  mohId: this.selectedMohId,
+                  mohParents: this.$store.state.mohUnMatched[k].parents,
+                  datimName: this.selectedDatimName,
+                  datimId: this.selectedDatimId,
+                  datimParents: datimParents
+                })
+              }
+              this.$store.state.mohUnMatched.splice(k, 1)
+            }
+          }
+          this.selectedMohId = null
+          this.selectedMohName = null
+          this.selectedDatimId = null
+          this.dialog = false
+        })
         .catch(err => {
-          console.log(err)
+          this.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.selectedMohId = null
+          this.selectedMohName = null
+          this.selectedDatimId = null
+          this.dialog = false
         })
     },
     acceptFlag (datimId) {

@@ -53,7 +53,9 @@ module.exports = function () {
     },
 
     getLocationByID(database, id, getCached, callback) {
-      if (id) var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
+      if (id) {
+        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
+      }
       else {
         var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
           .toString();
@@ -81,6 +83,39 @@ module.exports = function () {
             }
             cache.put(`getLocationByID${url}`, cacheData, 120 * 2000);
             locations.entry = locations.entry.concat(cacheData.entry);
+            return callback(false, url);
+          });
+        },
+        () => url != false,
+        () => {
+          callback(locations);
+        },
+      );
+    },
+    getLocationByIdentifier(database, identifier, callback) {
+      const locations = {};
+      locations.entry = [];
+      if (identifier) {
+        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?identifier=${identifier}`.toString()
+      } else {
+        return callback(locations)
+      }
+      async.doWhilst(
+        (callback) => {
+          const options = {
+            url,
+          };
+          url = false;
+          request.get(options, (err, res, body) => {
+            if (!isJSON(body)) {
+              return callback(false, false);
+            }
+            body = JSON.parse(body);
+            const next = body.link.find(link => link.relation == 'next');
+            if (next) {
+              url = next.url;
+            }
+            locations.entry = locations.entry.concat(body.entry);
             return callback(false, url);
           });
         },
@@ -471,71 +506,123 @@ module.exports = function () {
       const namespace = config.getConf('UUID:namespace');
       const mohSystem = 'http://geoalign.datim.org/MOH';
       const datimSystem = 'http://geoalign.datim.org/DATIM';
-      this.getLocationByID(database, datimId, false, (mcsd) => {
-        const fhir = {};
-        fhir.entry = [];
-        fhir.type = 'document';
-        const entry = [];
-        const resource = {};
-        resource.resourceType = 'Location';
-        resource.name = mcsd.entry[0].resource.name;
-        resource.id = datimId;
-        resource.identifier = [];
-        const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-          .segment(datimId)
-          .toString();
-        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
-          .segment(mohId)
-          .toString();
-        resource.identifier.push({
-          system: datimSystem,
-          value: datimURL,
-        });
-        resource.identifier.push({
-          system: mohSystem,
-          value: mohURL,
-        });
+      // check if its already mapped and inore
+      const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+      
+      var me = this
+      async.parallel(
+        {
+          datimMapped: function(callback) {
+            const datimIdentifier = URI(config.getConf('mCSD:url')).
+                                    segment(database).
+                                    segment('fhir').
+                                    segment('Location').
+                                    segment(datimId).
+                                    toString();
+            me.getLocationByIdentifier(mappingDB, datimIdentifier, (mapped) => {
+              if (mapped.entry.length > 0) {
+                winston.error("Attempting to map already mapped location")
+                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
+              }
+              else {
+                return callback(null,null)
+              }
+            })
+          },
+          mohMapped: function(callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url')).
+                                  segment(topOrgId).
+                                  segment('fhir').
+                                  segment('Location').
+                                  segment(mohId).
+                                  toString();
+            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
+              if (mapped.entry.length > 0) {
+                winston.error("Attempting to map already mapped location")
+                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
+              }
+              else {
+                return callback(null, null)
+              }
+            })
+          }
+        },
+        function (err,res) {
+          if(res.mohMapped !== null) {
+            winston.error('moh')
+            return callback(res.mohMapped)
+          } else if (res.datimMapped !== null) {
+            winston.error('datim')
+            return callback(res.datimMapped)
+          }
 
-        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-          resource.partOf = {
-            display: mcsd.entry[0].resource.partOf.display,
-            reference: mcsd.entry[0].resource.partOf.reference,
-          };
-        }
-        if (recoLevel == totalLevels) {
-          var typeCode = 'bu';
-          var typeCode = 'building';
-        } else {
-          var typeCode = 'jdn';
-          var typeName = 'Jurisdiction';
-        }
-        resource.physicalType = {
-          coding: [{
-            code: typeCode,
-            display: typeName,
-            system: 'http://hl7.org/fhir/location-physical-type',
-          }],
-        };
-        if (type == 'flag') {
-          resource.tag = [];
-          resource.tag.push({
-            system: mohSystem,
-            code: flagCode,
-            display: 'To be reviewed',
+          me.getLocationByID(database, datimId, false, (mcsd) => {
+            const fhir = {};
+            fhir.entry = [];
+            fhir.type = 'document';
+            const entry = [];
+            const resource = {};
+            resource.resourceType = 'Location';
+            resource.name = mcsd.entry[0].resource.name;
+            resource.id = datimId;
+            resource.identifier = [];
+            const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+              .segment(datimId)
+              .toString();
+            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
+              .segment(mohId)
+              .toString();
+            resource.identifier.push({
+              system: datimSystem,
+              value: datimURL,
+            });
+            resource.identifier.push({
+              system: mohSystem,
+              value: mohURL,
+            });
+
+            if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+              resource.partOf = {
+                display: mcsd.entry[0].resource.partOf.display,
+                reference: mcsd.entry[0].resource.partOf.reference,
+              };
+            }
+            if (recoLevel == totalLevels) {
+              var typeCode = 'bu';
+              var typeCode = 'building';
+            } else {
+              var typeCode = 'jdn';
+              var typeName = 'Jurisdiction';
+            }
+            resource.physicalType = {
+              coding: [{
+                code: typeCode,
+                display: typeName,
+                system: 'http://hl7.org/fhir/location-physical-type',
+              }],
+            };
+            if (type == 'flag') {
+              resource.tag = [];
+              resource.tag.push({
+                system: mohSystem,
+                code: flagCode,
+                display: 'To be reviewed',
+              });
+            }
+            entry.push({
+              resource,
+            });
+            fhir.entry = fhir.entry.concat(entry);
+            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+            me.saveLocations(fhir, mappingDB, (err, res) => {
+              if (err) {
+                winston.error(err);
+              }
+              callback(err);
+            });
           });
         }
-        entry.push({
-          resource,
-        });
-        fhir.entry = fhir.entry.concat(entry);
-        const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
-        this.saveLocations(fhir, mappingDB, (err, res) => {
-          if (err) {
-            winston.error(err);
-          }
-          callback(err);
-        });
-      });
+      )
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
