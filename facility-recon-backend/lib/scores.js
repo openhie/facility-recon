@@ -134,8 +134,11 @@ module.exports = function () {
                   thisRanking.moh.tag = 'flagged';
                 }
               }
+              var matchInDatim = mcsdDATIM.entry.find((entry)=>{
+                return entry.resource.id == match.resource.id
+              })
               thisRanking.exactMatch = {
-                name: match.resource.name,
+                name: matchInDatim.resource.name,
                 parents: datimParentNames[match.resource.id],
                 id: match.resource.id,
               };
@@ -185,8 +188,6 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               const datimPromises = [];
               var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-                //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
-                // in case there are different levels of parents (only DATIM can have more levels due to import)
                 return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
               })
               async.each(datimFiltered, (datimEntry, datimCallback) => {
@@ -425,12 +426,12 @@ module.exports = function () {
                 }
               }
 
-              if (match.resource.hasOwnProperty('partOf')) {
-                entityParent = match.resource.partOf.reference;
-              }
+              var matchInDatim = mcsdDATIM.entry.find((entry) => {
+                return entry.resource.id == match.resource.id
+              })
 
               thisRanking.exactMatch = {
-                name: match.resource.name,
+                name: matchInDatim.resource.name,
                 parents: datimParentNames[match.resource.id],
                 id: match.resource.id,
               };

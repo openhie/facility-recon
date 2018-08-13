@@ -854,7 +854,7 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => { 
+        .then(() => {
           this.dynamicProgress = false
           // remove from MOH Unmatched
           for (let k in this.$store.state.mohUnMatched) {
