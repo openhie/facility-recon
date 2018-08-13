@@ -148,6 +148,11 @@
                   <v-icon light>thumb_up</v-icon>
                   <b>Matched</b>
                 </v-flex>
+                <v-flex align-center>
+                  <center>
+                    <b>{{mohTotalMatched}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
                 <v-flex>
                   <center>
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentMatched" color="yellow">
@@ -155,11 +160,6 @@
                         <b>{{ mohPercentMatched }}%</b>
                       </font>
                     </v-progress-circular>
-                  </center>
-                </v-flex>
-                <v-flex align-center>
-                  <center>
-                    <b>{{mohTotalMatched}}/{{mohTotalRecords}}</b>
                   </center>
                 </v-flex>
               </v-layout>
@@ -1157,6 +1157,9 @@ export default {
       }
     },
     datimPercentNotInMoh () {
+      if (this.datimNotInMoh === 0) {
+        return 0
+      }
       var percent = parseFloat(
         (this.datimNotInMoh * 100 / this.datimTotalRecords).toFixed(2)
       )

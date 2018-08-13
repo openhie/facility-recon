@@ -60,6 +60,9 @@ export const scoresMixin = {
       // generating levels
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalLevels; k++) {
+        if (k + 1 > this.$store.state.recoLevel) {
+          continue
+        }
         this.$store.state.levelArray.push({text: 'Level ' + k, value: k + 1})
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
