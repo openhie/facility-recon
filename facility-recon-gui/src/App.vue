@@ -155,7 +155,6 @@ export default {
       this.getOrganisationUnit()
     } else {
       this.renderInitialPage()
-      this.getTotalLevels()
       this.$store.state.denyAccess = false
     }
     this.$root.$on('reloadTree', () => {
