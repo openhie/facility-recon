@@ -134,9 +134,6 @@ module.exports = function () {
                   thisRanking.moh.tag = 'flagged';
                 }
               }
-              if (match.resource.hasOwnProperty('partOf')) {
-                entityParent = match.resource.partOf.reference;
-              }
               thisRanking.exactMatch = {
                 name: match.resource.name,
                 parents: datimParentNames[match.resource.id],

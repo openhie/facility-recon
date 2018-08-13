@@ -549,10 +549,8 @@ module.exports = function () {
         },
         function (err,res) {
           if(res.mohMapped !== null) {
-            winston.error('moh')
             return callback(res.mohMapped)
           } else if (res.datimMapped !== null) {
-            winston.error('datim')
             return callback(res.datimMapped)
           }
 
@@ -666,65 +664,92 @@ module.exports = function () {
     },
     saveNoMatch(mohId, topOrgId, recoLevel, totalLevels, callback) {
       const database = topOrgId;
-      const namespace = config.getConf('UUID:namespace');
       const mohSystem = 'http://geoalign.datim.org/MOH';
       const noMatchCode = config.getConf('mapping:noMatchCode');
-      this.getLocationByID(database, mohId, false, (mcsd) => {
-        const fhir = {};
-        fhir.entry = [];
-        fhir.type = 'document';
-        const entry = [];
-        const resource = {};
-        resource.resourceType = 'Location';
-        resource.name = mcsd.entry[0].resource.name;
-        resource.id = mohId;
 
-        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-          resource.partOf = {
-            display: mcsd.entry[0].resource.partOf.display,
-            reference: mcsd.entry[0].resource.partOf.reference,
-          };
-        }
-        if (recoLevel == totalLevels) {
-          var typeCode = 'bu';
-          var typeCode = 'building';
-        } else {
-          var typeCode = 'jdn';
-          var typeName = 'Jurisdiction';
-        }
-        resource.physicalType = {
-          coding: [{
-            code: typeCode,
-            display: typeName,
-            system: 'http://hl7.org/fhir/location-physical-type',
-          }],
-        };
-        resource.identifier = [];
-        const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
-          .toString();
-        resource.identifier.push({
-          system: mohSystem,
-          value: mohURL,
-        });
-
-        resource.tag = [];
-        resource.tag.push({
-          system: mohSystem,
-          code: noMatchCode,
-          display: 'No Match',
-        });
-        entry.push({
-          resource,
-        });
-        fhir.entry = fhir.entry.concat(entry);
-        const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
-        this.saveLocations(fhir, mappingDB, (err, res) => {
-          if (err) {
-            winston.error(err);
+      var me = this
+      async.parallel(
+        {
+          mohMapped: function (callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url')).
+                                  segment(topOrgId).
+                                  segment('fhir').
+                                  segment('Location').
+                                  segment(mohId).
+                                  toString();
+            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
+              if (mapped.entry.length > 0) {
+                winston.error("Attempting to mark an already mapped location as no match")
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
+                return callback(null, null)
+              }
+            })
           }
-          callback(err);
-        });
-      });
+        },
+        function (err, res) {
+          if (res.mohMapped !== null) {
+            return callback(res.mohMapped)
+          }
+          me.getLocationByID(database, mohId, false, (mcsd) => {
+            const fhir = {};
+            fhir.entry = [];
+            fhir.type = 'document';
+            const entry = [];
+            const resource = {};
+            resource.resourceType = 'Location';
+            resource.name = mcsd.entry[0].resource.name;
+            resource.id = mohId;
+
+            if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+              resource.partOf = {
+                display: mcsd.entry[0].resource.partOf.display,
+                reference: mcsd.entry[0].resource.partOf.reference,
+              };
+            }
+            if (recoLevel == totalLevels) {
+              var typeCode = 'bu';
+              var typeCode = 'building';
+            } else {
+              var typeCode = 'jdn';
+              var typeName = 'Jurisdiction';
+            }
+            resource.physicalType = {
+              coding: [{
+                code: typeCode,
+                display: typeName,
+                system: 'http://hl7.org/fhir/location-physical-type',
+              }],
+            };
+            resource.identifier = [];
+            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
+              .toString();
+            resource.identifier.push({
+              system: mohSystem,
+              value: mohURL,
+            });
+
+            resource.tag = [];
+            resource.tag.push({
+              system: mohSystem,
+              code: noMatchCode,
+              display: 'No Match',
+            });
+            entry.push({
+              resource,
+            });
+            fhir.entry = fhir.entry.concat(entry);
+            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+            me.saveLocations(fhir, mappingDB, (err, res) => {
+              if (err) {
+                winston.error(err);
+              }
+              callback(err);
+            });
+          });
+        }
+      )
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')

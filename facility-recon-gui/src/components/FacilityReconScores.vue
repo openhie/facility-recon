@@ -840,37 +840,48 @@ export default {
         this.alertText = 'Dont select any location if you want to mark as no match'
         return
       }
+      this.progressTitle = 'Saving as no match'
+      this.dynamicProgress = true
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalLevels)
       let orgid = this.$store.state.orgUnit.OrgId
 
-      // remove from MOH Unmatched
-      for (let k in this.$store.state.mohUnMatched) {
-        if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
-          this.$store.state.noMatchContent.push({
-            mohName: this.selectedMohName,
-            mohId: this.selectedMohId,
-            parents: this.$store.state.mohUnMatched[k].parents
-          })
-          ++this.$store.state.totalAllNoMatch
-          this.$store.state.mohUnMatched.splice(k, 1)
-        }
-      }
-      this.dialog = false
-      this.selectedMohId = null
-      this.selectedMohName = null
-      this.selectedDatimId = null
       axios
         .post(backendServer + '/noMatch/' + orgid, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => { })
+        .then(() => { 
+          this.dynamicProgress = false
+          // remove from MOH Unmatched
+          for (let k in this.$store.state.mohUnMatched) {
+            if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
+              this.$store.state.noMatchContent.push({
+                mohName: this.selectedMohName,
+                mohId: this.selectedMohId,
+                parents: this.$store.state.mohUnMatched[k].parents
+              })
+              ++this.$store.state.totalAllNoMatch
+              this.$store.state.mohUnMatched.splice(k, 1)
+            }
+          }
+          this.dialog = false
+          this.selectedMohId = null
+          this.selectedMohName = null
+          this.selectedDatimId = null
+        })
         .catch(err => {
-          console.log(err)
+          this.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.dialog = false
+          this.selectedMohId = null
+          this.selectedMohName = null
+          this.selectedDatimId = null
         })
     },
     back () {
