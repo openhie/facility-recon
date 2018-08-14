@@ -6,18 +6,23 @@ import router from './router'
 import Vuetify from 'vuetify'
 import Vuelidate from 'vuelidate'
 import 'vuetify/dist/vuetify.min.css'
-import { store } from './store/store'
+import {
+  store
+} from './store/store'
 
+Vue.use(require('vue-moment'))
 Vue.use(Vuelidate)
-Vue.use(Vuetify, { theme: {
-  primary: '#3F51B5',
-  secondary: '#7986CB',
-  accent: '#9c27b0',
-  error: '#f44336',
-  warning: '#ffeb3b',
-  info: '#2196f3',
-  success: '#4caf50'
-}})
+Vue.use(Vuetify, {
+  theme: {
+    primary: '#3F51B5',
+    secondary: '#7986CB',
+    accent: '#9c27b0',
+    error: '#f44336',
+    warning: '#ffeb3b',
+    info: '#2196f3',
+    success: '#4caf50'
+  }
+})
 
 Vue.config.productionTip = false
 
@@ -26,6 +31,8 @@ new Vue({
   el: '#app',
   router,
   store,
-  components: { App },
+  components: {
+    App
+  },
   template: '<App/>'
 })

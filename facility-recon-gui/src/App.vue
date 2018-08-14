@@ -4,7 +4,7 @@
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-toolbar-items>
         <v-btn flat :href="dhisLink" v-if='dhisLink'>
-          <img src="./assets/dhis2.png"/>
+          <img src="./assets/dhis2.png" />
         </v-btn>
         <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
           <v-icon>cloud_upload</v-icon>Upload
@@ -52,7 +52,7 @@
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-
+      Last GeoAlign Data Sync: {{datimUpdateTime | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}
     </v-footer>
   </v-app>
 </template>
@@ -64,6 +64,7 @@ import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const updateTimeURL = (isProduction ? config.build.updateTimeURL : config.dev.updateTimeURL)
 
 export default {
   mixins: [scoresMixin],
@@ -71,7 +72,8 @@ export default {
     return {
       initializingApp: false,
       fixed: false,
-      title: 'Facility Reconciliation'
+      title: 'Facility Reconciliation',
+      datimUpdateTime: 'Loading...'
     }
   },
   computed: {
@@ -99,13 +101,13 @@ export default {
       axios.get(backendServer + '/uploadAvailable/' + OrgId).then((results) => {
         this.getTotalLevels()
         if (results.data.dataUploaded) {
-          this.$router.push({name: 'FacilityReconScores'})
+          this.$router.push({ name: 'FacilityReconScores' })
         } else {
-          this.$router.push({name: 'FacilityReconUpload'})
+          this.$router.push({ name: 'FacilityReconUpload' })
         }
       }).catch((err) => {
         console.log(err)
-        this.$router.push({name: 'FacilityReconScores'})
+        this.$router.push({ name: 'FacilityReconScores' })
       })
     },
     getTotalLevels () {
@@ -147,6 +149,14 @@ export default {
         }
       })
     }
+  },
+  mounted () {
+    axios.get(updateTimeURL).then((update) => {
+      this.datimUpdateTime = update.data.value
+    }).catch((error) => {
+      console.log('Failed to get last update time.', error)
+      this.datimUpdateTime = 'Failed'
+    })
   },
   created () {
     this.$store.state.clientId = uuid.v4()

@@ -19,8 +19,8 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-    backend: "http://localhost:3000",
-
+    backend: 'http://localhost:3000',
+    updateTimeURL: 'https://test.geoalign.datim.org/api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign',
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and
     // linting errors and warnings will be shown in the console.
@@ -41,7 +41,7 @@ module.exports = {
     // https://vue-loader.vuejs.org/en/options.html#cachebusting
     cacheBusting: true,
 
-    cssSourceMap: true,
+    cssSourceMap: true
   },
 
   build: {
@@ -53,8 +53,8 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '',
 
-    backend: "https://test.geoalign.datim.org/facrecon",
-
+    backend: 'https://test.geoalign.datim.org/facrecon',
+    updateTimeURL: 'https://test.geoalign.datim.org/api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign',
     /**
      * Source Maps
      */
