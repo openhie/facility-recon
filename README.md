@@ -38,8 +38,8 @@ cd ~
 wget http://download.redis.io/redis-stable.tar.gz
 tar xvzf redis-stable.tar.gz
 cd redis-stable
-redis-server
 make
+redis-server
 cd ~/facility-recon/facility-recon-backend
 node lib/index.js
 ```
