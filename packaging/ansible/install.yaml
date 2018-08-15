@@ -1,0 +1,44 @@
+---
+- name: Install facility reconciliation tool
+  hosts: all
+  remote_user: "{{ user }}"
+  tags: install
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (without sudo)"
+      private: no
+
+  tasks:
+
+  - git:
+      repo: 'https://github.com/intrahealth/hearth.git'
+      dest: $HOME/hearth
+      clone: yes
+      update: yes
+
+  - git:
+      repo: 'https://github.com/openhie/facility-recon.git'
+      dest: $HOME/facility-recon
+      clone: yes
+      update: yes
+  
+  - name: Backend - Update packages based on package.json.
+    npm:
+      path: $HOME/facility-recon/facility-recon-backend
+      state: latest
+  
+# run
+
+  - name: Frontend - Update packages based on package.json.
+    npm:
+      path: $HOME/facility-recon/facility-recon-gui
+      state: latest
+
+# run
+
+
+
+# cp -r facility-recon/facility-recon-gui/dist/* facility-reco/dhis2App/
+# cd facility-recon/dhis2App
+# zip GOFR.zip ./*
