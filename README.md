@@ -54,6 +54,7 @@ npm run build
 ```sh
 cp -r facility-recon/facility-recon-gui/dist/* facility-reco/dhis2App/
 cd facility-recon/dhis2App
+rm GOFR.zip
 zip GOFR.zip ./*
 ```
 Login to DHIS2 and install the zipped file (GOFR.zip)
