@@ -27,12 +27,19 @@ npm run dev:start
 
 ### Download GOFR
 ```sh
+cd ~
 git clone https://github.com/openhie/facility-recon.git
 ```
 ### GOFR Backend Installation
 ```sh
 cd facility-recon/facility-recon-backend
 npm install
+cd ~
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+cd ~/facility-recon/facility-recon-backend
 node lib/index.js
 ```
 ### GOFR Frontend Installation
