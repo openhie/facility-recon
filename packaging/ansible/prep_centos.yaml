@@ -18,16 +18,23 @@
       state: present
 
 
-  - name: Ensure wget
-    yum:
-      name: wget
-      state: present
+  - name: install enterprise packages for enterprise linux
+    yum: 
+      name: epel-release
+      state: installed
 
 
-  - name: Ensure unzip
-    yum:
-      name: unzip
-      state: present
+  - name: install redis packages
+    yum: 
+      name: redis
+      state: installed
+
+
+  - name: start redis
+    service:
+      name: redis
+      state: started
+      enabled: yes
 
 
   - name: Download nodesource script for node v8
