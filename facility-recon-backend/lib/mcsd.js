@@ -51,12 +51,10 @@ module.exports = function () {
         },
       );
     },
-
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
-      }
-      else {
+      } else {
         var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
           .toString();
       }
@@ -96,9 +94,9 @@ module.exports = function () {
       const locations = {};
       locations.entry = [];
       if (identifier) {
-        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?identifier=${identifier}`.toString()
+        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?identifier=${identifier}`.toString();
       } else {
-        return callback(locations)
+        return callback(locations);
       }
       async.doWhilst(
         (callback) => {
@@ -147,12 +145,12 @@ module.exports = function () {
 
     getLocationParentsFromDB(source, database, entityParent, topOrg, details, callback) {
       const parents = [];
-      if (entityParent == null
-        || entityParent == false
-        || entityParent == undefined
-        || !topOrg
-        || !database
-        || !source
+      if (entityParent == null ||
+        entityParent == false ||
+        entityParent == undefined ||
+        !topOrg ||
+        !database ||
+        !source
       ) {
         return callback(parents);
       }
@@ -268,10 +266,10 @@ module.exports = function () {
             // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
             else if (topOrg && sourceEntityID.endsWith(topOrg)) {
               return callback(parents);
-            } else if (body.entry[0].resource.hasOwnProperty('partOf')
-              && body.entry[0].resource.partOf.reference != false
-              && body.entry[0].resource.partOf.reference != null
-              && body.entry[0].resource.partOf.reference != undefined) {
+            } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
+              body.entry[0].resource.partOf.reference != false &&
+              body.entry[0].resource.partOf.reference != null &&
+              body.entry[0].resource.partOf.reference != undefined) {
               var entityParent = body.entry[0].resource.partOf.reference;
               getPar(entityParent, (parents) => {
                 callback(parents);
@@ -323,10 +321,10 @@ module.exports = function () {
           else if (details == 'names') parents.push(entry.resource.name);
           else winston.error('parent details (either id,names or all) to be returned not specified');
 
-          if (entry.resource.hasOwnProperty('partOf')
-            && entry.resource.partOf.reference != false
-            && entry.resource.partOf.reference != null
-            && entry.resource.partOf.reference != undefined) {
+          if (entry.resource.hasOwnProperty('partOf') &&
+            entry.resource.partOf.reference != false &&
+            entry.resource.partOf.reference != null &&
+            entry.resource.partOf.reference != undefined) {
             entityParent = entry.resource.partOf.reference;
             filter(entityParent, parents => callback(parents));
           } else {
@@ -464,10 +462,10 @@ module.exports = function () {
             }
             totalLevels++;
             counter++;
-            if (entry.resource.hasOwnProperty('id')
-              && entry.resource.id != false
-              && entry.resource.id != null
-              && entry.resource.id != undefined) {
+            if (entry.resource.hasOwnProperty('id') &&
+              entry.resource.id != false &&
+              entry.resource.id != null &&
+              entry.resource.id != undefined) {
               const reference = entry.resource.id;
 
               if (source == 'MOH') {
@@ -508,50 +506,48 @@ module.exports = function () {
       const datimSystem = 'http://geoalign.datim.org/DATIM';
       // check if its already mapped and inore
       const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
-      
-      var me = this
-      async.parallel(
-        {
-          datimMapped: function(callback) {
-            const datimIdentifier = URI(config.getConf('mCSD:url')).
-                                    segment(database).
-                                    segment('fhir').
-                                    segment('Location').
-                                    segment(datimId).
-                                    toString();
+
+      const me = this;
+      async.parallel({
+          datimMapped(callback) {
+            const datimIdentifier = URI(config.getConf('mCSD:url'))
+              .segment(database)
+              .segment('fhir')
+              .segment('Location')
+              .segment(datimId)
+              .toString();
             me.getLocationByIdentifier(mappingDB, datimIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error("Attempting to map already mapped location")
-                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
+                winston.error('Attempting to map already mapped location');
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-              else {
-                return callback(null,null)
-              }
-            })
+
+              return callback(null, null);
+            });
           },
-          mohMapped: function(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url')).
-                                  segment(topOrgId).
-                                  segment('fhir').
-                                  segment('Location').
-                                  segment(mohId).
-                                  toString();
+          mohMapped(callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url'))
+              .segment(topOrgId)
+              .segment('fhir')
+              .segment('Location')
+              .segment(mohId)
+              .toString();
             me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error("Attempting to map already mapped location")
-                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
+                winston.error('Attempting to map already mapped location');
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-              else {
-                return callback(null, null)
-              }
-            })
-          }
+
+              return callback(null, null);
+            });
+          },
         },
-        function (err,res) {
-          if(res.mohMapped !== null) {
-            return callback(res.mohMapped)
-          } else if (res.datimMapped !== null) {
-            return callback(res.datimMapped)
+        (err, res) => {
+          if (res.mohMapped !== null) {
+            return callback(res.mohMapped);
+          }
+          if (res.datimMapped !== null) {
+            return callback(res.datimMapped);
           }
 
           me.getLocationByID(database, datimId, false, (mcsd) => {
@@ -619,8 +615,8 @@ module.exports = function () {
               callback(err);
             });
           });
-        }
-      )
+        },
+      );
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -667,30 +663,28 @@ module.exports = function () {
       const mohSystem = 'http://geoalign.datim.org/MOH';
       const noMatchCode = config.getConf('mapping:noMatchCode');
 
-      var me = this
-      async.parallel(
-        {
-          mohMapped: function (callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url')).
-                                  segment(topOrgId).
-                                  segment('fhir').
-                                  segment('Location').
-                                  segment(mohId).
-                                  toString();
+      const me = this;
+      async.parallel({
+          mohMapped(callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url'))
+              .segment(topOrgId)
+              .segment('fhir')
+              .segment('Location')
+              .segment(mohId)
+              .toString();
             const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
             me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error("Attempting to mark an already mapped location as no match")
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
-              } else {
-                return callback(null, null)
+                winston.error('Attempting to mark an already mapped location as no match');
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-            })
-          }
+              return callback(null, null);
+            });
+          },
         },
-        function (err, res) {
+        (err, res) => {
           if (res.mohMapped !== null) {
-            return callback(res.mohMapped)
+            return callback(res.mohMapped);
           }
           me.getLocationByID(database, mohId, false, (mcsd) => {
             const fhir = {};
@@ -723,7 +717,8 @@ module.exports = function () {
               }],
             };
             resource.identifier = [];
-            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
+            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
+              .segment(mohId)
               .toString();
             resource.identifier.push({
               system: mohSystem,
@@ -748,8 +743,8 @@ module.exports = function () {
               callback(err);
             });
           });
-        }
-      )
+        },
+      );
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -835,7 +830,7 @@ module.exports = function () {
       let countRow = 0;
 
       let totalRows = 0;
-      exec.exec(`wc -l ${ filePath}`, (err, stdout, stderr) => {
+      exec.exec(`wc -l ${filePath}`, (err, stdout, stderr) => {
         if (err) {
           // node couldn't execute the command
           winston.error(err);
@@ -869,8 +864,8 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array.apply(null, {
-                  length: levelNumber
+                const topLevels = Array({
+                  length: levelNumber,
                 }).map(Number.call, Number);
                 // removing zero as levels starts from 1
                 topLevels.splice(0, 1);
@@ -988,11 +983,11 @@ module.exports = function () {
             value: jurisdiction.uuid,
           });
           if (jurisdiction.parentUUID) {
- resource.partOf = {
-            display: jurisdiction.parent,
-            reference: `Location/${jurisdiction.parentUUID}`,
-          }; 
-}
+            resource.partOf = {
+              display: jurisdiction.parent,
+              reference: `Location/${jurisdiction.parentUUID}`,
+            };
+          }
           resource.physicalType = {
             coding: [{
               code: 'jdn',
@@ -1093,7 +1088,7 @@ module.exports = function () {
             if (lookup[id]) {
               lookup[id].children.push(...addLater[id]);
             } else {
-              winston.error(`Couldn't find ${id } in tree.`);
+              winston.error(`Couldn't find ${id} in tree.`);
             }
           }
         }
@@ -1130,7 +1125,7 @@ module.exports = function () {
               filesDelete.push(file);
               return nxtFile();
             }
-            let replaceDel = filesDelete.find((fDelete) => {
+            const replaceDel = filesDelete.find((fDelete) => {
               fDelete = fDelete.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
               fDelete = moment(fDelete);
               searchFile = file.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
@@ -1138,7 +1133,7 @@ module.exports = function () {
               return fDelete > searchFile;
             });
             if (replaceDel) {
-              let index = filesDelete.indexOf(replaceDel);
+              const index = filesDelete.indexOf(replaceDel);
               filesDelete.splice(index, 1);
               filesDelete.push(file);
             }
@@ -1170,7 +1165,7 @@ module.exports = function () {
       const mongoPasswd = config.getConf('mCSD:databasePassword');
       const mongoHost = config.getConf('mCSD:databaseHost');
       const mongoPort = config.getConf('mCSD:databasePort');
-      const name = `${db }_${ moment().format()}`;
+      const name = `${db}_${moment().format()}`;
       const dbList = [];
       dbList.push({
         name,
@@ -1184,7 +1179,7 @@ module.exports = function () {
       async.eachSeries(dbList, (list, nxtList) => {
         const db = list.db;
         const name = list.name;
-        winston.info(`Archiving DB ${ db}`);
+        winston.info(`Archiving DB ${db}`);
         if (mongoUser && mongoPasswd) {
           var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
         } else {
@@ -1194,11 +1189,11 @@ module.exports = function () {
         const dir = `${__dirname}/dbArchives`;
 
         const tmpDir = tmp.dirSync();
-        exec.execSync(`mongodump --uri=${ uri} -o ${tmpDir.name}`, {
+        exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
         tar.c({
-          file: `${dir }/${name}.tar`,
+          file: `${dir}/${name}.tar`,
           cwd: tmpDir.name,
           sync: true,
         }, [db]);
@@ -1317,7 +1312,7 @@ module.exports = function () {
               error = err;
               throw err;
             } else {
-              winston.info(`${db } Dropped`);
+              winston.info(`${db} Dropped`);
             }
             return nxtList();
           });

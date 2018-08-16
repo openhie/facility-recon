@@ -44,7 +44,7 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" hide-overlay persistent width="300">
+    <v-dialog v-model="uploadPrepaProgr" persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
@@ -52,7 +52,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" hide-overlay persistent width="270">
+    <v-dialog v-model="percentDialog" persistent width="270">
       <v-card color="white" dark>
         <v-card-text>
           <center>
@@ -187,10 +187,10 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
-import FacilityReconDbAdmin from './FacilityReconDbAdmin.vue'
+import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
 
-const config = require('../../config')
+const config = require('../../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
@@ -359,7 +359,7 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
         this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
-        clearInterval(this.checkUploadProgress)
+        clearInterval(this.UploadProgressTimer)
         console.log(err.response.data.error)
       })
     },

@@ -6,6 +6,38 @@
         <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
       </v-alert>
     </template>
+    <v-dialog persistent v-model="editDialog" width="830px">
+      <v-card width='830px'>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="editDialog = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-title>
+          title
+        </v-card-title>
+        <v-card-text>
+          <v-layout wrap>
+            <v-flex xs12 sm6 md4 v-for='(location,index) in locationDetails' v-bind:key='index'>
+              <v-text-field v-model="location.name" :label="headerText[index]" v-if="location.hasOwnProperty('name')"></v-text-field>
+              <v-text-field v-model="locationDetails[index]" :label="headerText[index]" v-else></v-text-field>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+        <v-card-actions style='float: center'>
+          <v-btn color="primary" dark @click.native="match('match')">
+            <v-icon left>thumb_up</v-icon>Save
+          </v-btn>
+          <v-btn color="orange darken-2" @click.native="editDialog = false" style="color: white">
+            <v-icon dark left>cancel</v-icon>Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-slide-y-transition mode="out-in">
         <v-layout row wrap>
@@ -58,7 +90,12 @@
                 <v-card-text>
                   <v-data-table :headers="mohGridHeader" :items="mohGridData" :search="searchMOH" :pagination.sync="mohPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in mohGridHeader'>{{props.item[header.value]}}</td>
+                      <td v-for='header in mohGridHeader' v-if="header.value != 'action' && props.item[header.value].hasOwnProperty('id')">{{props.item[header.value].name}}</td>
+                      <td v-for='header in mohGridHeader' v-if="header.value != 'action' && !props.item[header.value].hasOwnProperty('id')">{{props.item[header.value]}}</td>
+                      <td>
+                        <v-icon style="cursor: pointer" @click="editLocation(props.item)">edit</v-icon>
+                        <v-icon>delete</v-icon>
+                      </td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -83,7 +120,7 @@
                 <v-card-text>
                   <v-data-table :headers="datimGridHeader" :items="datimGridData" :search="searchDATIM" :pagination.sync="datimPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in datimGridHeader'>{{props.item[header.value]}}</td>
+                      <td v-for='header in datimGridHeader'>{{props.item[header.value] | formatGridData}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -114,7 +151,7 @@ import LiquorTree from 'liquor-tree'
 const addChildren = (treeData, results, filter, ...rest) => {
   for (const node of treeData) {
     if (node.children && node.children.length > 0) {
-      addChildren(node.children, results, filter, node.text, ...rest)
+      addChildren(node.children, results, filter, { name: node.text, id: node.id }, ...rest)
     } else {
       let row = {}
       for (let i = rest.length - 1, level = 1; i >= 0; i = i - 1, level++) {
@@ -123,7 +160,7 @@ const addChildren = (treeData, results, filter, ...rest) => {
         }
         row['level' + level] = rest[i]
       }
-      row.facility = node.text
+      row.facility = { name: node.text, id: node.id }
       row.latitude = node.lat
       row.longitude = node.long
       // Do nothing for level1 since that's the whole country
@@ -137,6 +174,8 @@ const addChildren = (treeData, results, filter, ...rest) => {
 export default {
   data () {
     return {
+      editDialog: false,
+      locationDetails: {},
       headerText: {
         level2: 'Level 1',
         level3: 'Level 2',
@@ -166,6 +205,23 @@ export default {
       filterDATIM: { text: '', level: '' },
       datimPagination: { rowsPerPage: 20 },
       mohPagination: { rowsPerPage: 20 }
+    }
+  },
+  filters: {
+    formatGridData (data) {
+      if (data === '' || data === undefined || data === null || !data) {
+        return data
+      } else if (data.hasOwnProperty('id')) {
+        return data.name
+      } else {
+        return data
+      }
+    }
+  },
+  methods: {
+    editLocation (item) {
+      this.editDialog = true
+      this.locationDetails = item
     }
   },
   computed: {
@@ -203,6 +259,12 @@ export default {
         for (const key in this.mohGridData[0]) {
           header.push({ text: this.headerText[key], value: key })
         }
+      }
+      if (header.length > 0) {
+        header.push({
+          text: 'Action',
+          value: 'action'
+        })
       }
       return header
     },

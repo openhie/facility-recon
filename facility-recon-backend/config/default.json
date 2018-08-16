@@ -60,11 +60,11 @@
   },
   "dictionary": {
     "HC": "Health Center",
-    "HOSP": "Hospital",
+    "Health Centre": "Health Center",
     "H/C": "Health Center",
+    "HOSP": "Hospital",
     "St": "Saint",
     "ST.": "Saint",
-    "Health Centre": "Health Center",
     "HP": "Health Post",
     "HP.": "Health Post",
     "DISP": "Dispensary",
