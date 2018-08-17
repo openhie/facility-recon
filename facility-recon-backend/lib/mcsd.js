@@ -51,6 +51,7 @@ module.exports = function () {
         },
       );
     },
+
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
@@ -145,12 +146,12 @@ module.exports = function () {
 
     getLocationParentsFromDB(source, database, entityParent, topOrg, details, callback) {
       const parents = [];
-      if (entityParent == null ||
-        entityParent == false ||
-        entityParent == undefined ||
-        !topOrg ||
-        !database ||
-        !source
+      if (entityParent == null
+        || entityParent == false
+        || entityParent == undefined
+        || !topOrg
+        || !database
+        || !source
       ) {
         return callback(parents);
       }
@@ -266,10 +267,10 @@ module.exports = function () {
             // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
             else if (topOrg && sourceEntityID.endsWith(topOrg)) {
               return callback(parents);
-            } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
-              body.entry[0].resource.partOf.reference != false &&
-              body.entry[0].resource.partOf.reference != null &&
-              body.entry[0].resource.partOf.reference != undefined) {
+            } else if (body.entry[0].resource.hasOwnProperty('partOf')
+              && body.entry[0].resource.partOf.reference != false
+              && body.entry[0].resource.partOf.reference != null
+              && body.entry[0].resource.partOf.reference != undefined) {
               var entityParent = body.entry[0].resource.partOf.reference;
               getPar(entityParent, (parents) => {
                 callback(parents);
@@ -321,10 +322,10 @@ module.exports = function () {
           else if (details == 'names') parents.push(entry.resource.name);
           else winston.error('parent details (either id,names or all) to be returned not specified');
 
-          if (entry.resource.hasOwnProperty('partOf') &&
-            entry.resource.partOf.reference != false &&
-            entry.resource.partOf.reference != null &&
-            entry.resource.partOf.reference != undefined) {
+          if (entry.resource.hasOwnProperty('partOf')
+            && entry.resource.partOf.reference != false
+            && entry.resource.partOf.reference != null
+            && entry.resource.partOf.reference != undefined) {
             entityParent = entry.resource.partOf.reference;
             filter(entityParent, parents => callback(parents));
           } else {
@@ -462,10 +463,10 @@ module.exports = function () {
             }
             totalLevels++;
             counter++;
-            if (entry.resource.hasOwnProperty('id') &&
-              entry.resource.id != false &&
-              entry.resource.id != null &&
-              entry.resource.id != undefined) {
+            if (entry.resource.hasOwnProperty('id')
+              && entry.resource.id != false
+              && entry.resource.id != null
+              && entry.resource.id != undefined) {
               const reference = entry.resource.id;
 
               if (source == 'MOH') {
@@ -507,47 +508,46 @@ module.exports = function () {
       // check if its already mapped and inore
       const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
 
-      const me = this;
+      let me = this;
       async.parallel({
-          datimMapped(callback) {
-            const datimIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(database)
-              .segment('fhir')
-              .segment('Location')
-              .segment(datimId)
-              .toString();
+        datimMapped (callback) {
+            const datimIdentifier = URI(config.getConf('mCSD:url')).
+            segment(database).
+            segment('fhir').
+            segment('Location').
+            segment(datimId).
+            toString();
             me.getLocationByIdentifier(mappingDB, datimIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error('Attempting to map already mapped location');
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+                winston.error("Attempting to map already mapped location")
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
+                return callback(null, null)
               }
-
-              return callback(null, null);
-            });
+            })
           },
-          mohMapped(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(topOrgId)
-              .segment('fhir')
-              .segment('Location')
-              .segment(mohId)
-              .toString();
+        mohMapped (callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url')).
+            segment(topOrgId).
+            segment('fhir').
+            segment('Location').
+            segment(mohId).
+            toString();
             me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error('Attempting to map already mapped location');
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+                winston.error("Attempting to map already mapped location")
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
+                return callback(null, null)
               }
-
-              return callback(null, null);
-            });
+            })
           },
-        },
-        (err, res) => {
+      },
+      (err, res) => {
           if (res.mohMapped !== null) {
-            return callback(res.mohMapped);
-          }
-          if (res.datimMapped !== null) {
-            return callback(res.datimMapped);
+            return callback(res.mohMapped)
+          } else if (res.datimMapped !== null) {
+            return callback(res.datimMapped)
           }
 
           me.getLocationByID(database, datimId, false, (mcsd) => {
@@ -615,8 +615,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        },);
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -663,28 +662,29 @@ module.exports = function () {
       const mohSystem = 'http://geoalign.datim.org/MOH';
       const noMatchCode = config.getConf('mapping:noMatchCode');
 
-      const me = this;
+      let me = this;
       async.parallel({
-          mohMapped(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(topOrgId)
-              .segment('fhir')
-              .segment('Location')
-              .segment(mohId)
-              .toString();
+        mohMapped (callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url')).
+            segment(topOrgId).
+            segment('fhir').
+            segment('Location').
+            segment(mohId).
+            toString();
             const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
             me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
-                winston.error('Attempting to mark an already mapped location as no match');
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+                winston.error("Attempting to mark an already mapped location as no match")
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
+                return callback(null, null)
               }
-              return callback(null, null);
-            });
+            })
           },
-        },
-        (err, res) => {
+      },
+      (err, res) => {
           if (res.mohMapped !== null) {
-            return callback(res.mohMapped);
+            return callback(res.mohMapped)
           }
           me.getLocationByID(database, mohId, false, (mcsd) => {
             const fhir = {};
@@ -717,8 +717,7 @@ module.exports = function () {
               }],
             };
             resource.identifier = [];
-            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
-              .segment(mohId)
+            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location').segment(mohId)
               .toString();
             resource.identifier.push({
               system: mohSystem,
@@ -743,8 +742,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        },);
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -864,8 +862,8 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array({
-                  length: levelNumber,
+                const topLevels = Array(...{
+                  length: levelNumber
                 }).map(Number.call, Number);
                 // removing zero as levels starts from 1
                 topLevels.splice(0, 1);
@@ -1052,7 +1050,6 @@ module.exports = function () {
       const tree = [];
       const lookup = [];
       const addLater = {};
-
       async.each(mcsd.entry, (entry, callback1) => {
         let lat = null;
         let long = null;

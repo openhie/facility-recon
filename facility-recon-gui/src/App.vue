@@ -9,9 +9,6 @@
         <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
           <v-icon>cloud_upload</v-icon>Upload
         </v-btn>
-        <v-btn to="source" flat v-if='!$store.state.denyAccess'>
-          <v-icon>sync</v-icon>Data Sync
-        </v-btn>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
         </v-btn>
@@ -55,18 +52,20 @@
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-
+      Last GeoAlign Data Sync: {{datimUpdateTime | formatLastUpdated}}
     </v-footer>
   </v-app>
 </template>
 
 <script>
 import axios from 'axios'
+import moment from 'moment'
 import { scoresMixin } from './mixins/scoresMixin'
 import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const updateTimeURL = (isProduction ? config.build.updateTimeURL : config.dev.updateTimeURL)
 
 export default {
   mixins: [scoresMixin],
@@ -74,7 +73,17 @@ export default {
     return {
       initializingApp: false,
       fixed: false,
-      title: 'Facility Reconciliation'
+      title: 'Facility Reconciliation',
+      datimUpdateTime: 'Loading...'
+    }
+  },
+  filters: {
+    formatLastUpdated (date) {
+      if (!moment(date).isValid()) {
+        return 'Failed'
+      } else {
+        return moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a')
+      }
     }
   },
   computed: {
@@ -150,6 +159,14 @@ export default {
         }
       })
     }
+  },
+  mounted () {
+    axios.get(updateTimeURL).then((update) => {
+      this.datimUpdateTime = update.data.value
+    }).catch((error) => {
+      console.log('Failed to get last update time.', error)
+      this.datimUpdateTime = 'Failed'
+    })
   },
   created () {
     this.$store.state.clientId = uuid.v4()

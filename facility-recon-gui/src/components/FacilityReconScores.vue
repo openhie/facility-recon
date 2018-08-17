@@ -186,29 +186,6 @@
                 </v-flex>
               </v-layout>
             </v-chip>
-            <br>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>thumb_down</v-icon>
-                  <b>No Match</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{mohTotalNoMatch}}/{{mohTotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatch" color="yellow">
-                      <font color="white">
-                        <b>{{mohPercentNoMatch}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
             <v-chip color="green" text-color='white' style='height:138px;width:128px'>
               <v-layout column>
                 <v-flex align-center>
@@ -225,6 +202,28 @@
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
                       <font color="white">
                         <b>{{mohPercentFlagged}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>thumb_down</v-icon>
+                  <b>No Match</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{mohTotalNoMatch}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatch" color="yellow">
+                      <font color="white">
+                        <b>{{mohPercentNoMatch}} %</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -602,7 +601,13 @@ export default {
               var matched = this.$store.state.matchedContent.find(matched => {
                 return matched.datimId === potentials.id
               })
+              var flagged = this.$store.state.flagged.find(flagged => {
+                return flagged.datimId === potentials.id
+              })
               if (matched) {
+                continue
+              }
+              if (flagged) {
                 continue
               }
               this.potentialMatches.push({
