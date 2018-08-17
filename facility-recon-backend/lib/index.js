@@ -10,22 +10,22 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const redis = require('redis');
-const request = require('request');
+
+const redisClient = redis.createClient();
 const URI = require('urijs');
-const isJSON = require('is-json');
 const async = require('async');
 const mongoose = require('mongoose');
-const redisClient = redis.createClient();
+const mongo = require('./mongo')();
 const config = require('./config');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const scores = require('./scores')();
 
 const app = express();
-let server = require('http').createServer(app);
+const server = require('http').createServer(app);
 
 app.use(bodyParser.urlencoded({
-  extended: true
+  extended: true,
 }));
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
@@ -57,19 +57,19 @@ app.post('/oauth/registerUser', (req, res) => {
 */
 
 if (cluster.isMaster) {
-  let numWorkers = require('os').cpus().length;
-  console.log(`Master cluster setting up ${  numWorkers  } workers...`);
+  const numWorkers = require('os').cpus().length;
+  console.log(`Master cluster setting up ${numWorkers} workers...`);
 
   for (let i = 0; i < numWorkers; i++) {
     cluster.fork();
   }
 
   cluster.on('online', (worker) => {
-    console.log('Worker ' + worker.process.pid + ' is online');
+    console.log(`Worker ${worker.process.pid} is online`);
   });
 
   cluster.on('exit', (worker, code, signal) => {
-    console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
+    console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
     console.log('Starting a new worker');
     cluster.fork();
   });
@@ -77,11 +77,11 @@ if (cluster.isMaster) {
   app.get('/countLevels/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
     } else {
       const orgid = req.params.orgid;
@@ -91,14 +91,14 @@ if (cluster.isMaster) {
         if (err) {
           winston.error(err);
           res.status(401).json({
-            error: 'Missing Orgid'
+            error: 'Missing Orgid',
           });
         } else {
           const recoLevel = 2;
           winston.info(`Received total levels of ${totalLevels} for ${orgid}`);
           res.status(200).json({
             totalLevels,
-            recoLevel
+            recoLevel,
           });
         }
       });
@@ -136,11 +136,11 @@ if (cluster.isMaster) {
   app.get('/getArchives/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
     } else {
       const orgid = req.params.orgid;
@@ -149,10 +149,10 @@ if (cluster.isMaster) {
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
           winston.error({
-            error: 'Unexpected error has occured'
+            error: 'Unexpected error has occured',
           });
           res.status(400).json({
-            error: 'Unexpected error'
+            error: 'Unexpected error',
           });
           return;
         }
@@ -164,11 +164,11 @@ if (cluster.isMaster) {
   app.post('/restoreArchive/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
     } else {
       const orgid = req.params.orgid;
@@ -180,7 +180,7 @@ if (cluster.isMaster) {
           if (err) {
             winston.error(err);
             res.status(401).json({
-              error: 'Unexpected error occured while restoring the database,please retry'
+              error: 'Unexpected error occured while restoring the database,please retry',
             });
           }
           res.status(200).send();
@@ -190,28 +190,33 @@ if (cluster.isMaster) {
   });
 
   app.post('/dhisSync', (req, res) => {
-    winston.info('received request to sync DHIS2 data')
+    winston.info('received request to sync DHIS2 data');
     const form = new formidable.IncomingForm();
     res.set('Access-Control-Allow-Origin', '*');
     res.status(200).end();
     form.parse(req, (err, fields, files) => {
-      var host = fields.host
-      var username = fields.username
-      var password = fields.password
-      var name = fields.name
-      var clientId = fields.clientId
-      dhis.sync(host, username, password, name, clientId, false, false, false, true)
-    })
-  })
+      const host = fields.host;
+      const username = fields.username;
+      const password = fields.password;
+      const name = fields.name;
+      const clientId = fields.clientId;
+      const type = fields.type;
+      let full = true;
+      if (type === 'update') {
+        full = false;
+      }
+      dhis.sync(host, username, password, name, clientId, false, full, false, true);
+    });
+  });
 
   app.get('/hierarchy/:source', (req, res) => {
     if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
       winston.error({
-        error: 'Missing Orgid or source'
+        error: 'Missing Orgid or source',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or source'
+        error: 'Missing Orgid or source',
       });
     } else {
       const orgid = req.query.OrgId;
@@ -269,7 +274,7 @@ if (cluster.isMaster) {
     statusResData = JSON.stringify({
       status: '1/2 - Loading DATIM and MOH Data',
       error: null,
-      percent: null
+      percent: null,
     });
     redisClient.set(statusRequestId, statusResData);
 
@@ -295,9 +300,9 @@ if (cluster.isMaster) {
       });
     });
     Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
-      let datimLocations = locations[0];
-      let mohLocations = locations[1];
-      let mappedLocations = locations[2];
+      const datimLocations = locations[0];
+      const mohLocations = locations[1];
+      const mappedLocations = locations[2];
       scores.getMappingStatus(mohLocations, datimLocations, mappedLocations, datimTopId, clientId, (mappingStatus) => {
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).json(mappingStatus);
@@ -308,11 +313,11 @@ if (cluster.isMaster) {
   app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
     if (!req.params.orgid || !req.params.recoLevel) {
       winston.error({
-        error: 'Missing Orgid or reconciliation Level'
+        error: 'Missing Orgid or reconciliation Level',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or reconciliation Level'
+        error: 'Missing Orgid or reconciliation Level',
       });
     } else {
       winston.info('Getting scores');
@@ -332,7 +337,7 @@ if (cluster.isMaster) {
       scoreResData = JSON.stringify({
         status: '1/3 - Loading DATIM and MOH Data',
         error: null,
-        percent: null
+        percent: null,
       });
       redisClient.set(scoreRequestId, scoreResData);
       const datimLocationReceived = new Promise((resolve, reject) => {
@@ -364,7 +369,7 @@ if (cluster.isMaster) {
           scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
             recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
-              let mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped;
+              const mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped;
               res.status(200).json({
                 scoreResults,
                 recoLevel,
@@ -383,7 +388,7 @@ if (cluster.isMaster) {
           scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
             recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
-              let mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped;
+              const mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped;
               res.status(200).json({
                 scoreResults,
                 recoLevel,
@@ -406,8 +411,8 @@ if (cluster.isMaster) {
 
     function recoStatus(orgid, callback) {
       // getting total Mapped
-      let database = config.getConf('mapping:dbPrefix') + orgid;
-      let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      const database = config.getConf('mapping:dbPrefix') + orgid;
+      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .toString();
       const options = {
         url,
@@ -415,7 +420,7 @@ if (cluster.isMaster) {
       let totalAllMapped = 0;
       let totalAllNoMatch = 0;
       let totalAllFlagged = 0;
-      let mohTotalAllNotMapped = 0;
+      const mohTotalAllNotMapped = 0;
       const noMatchCode = config.getConf('mapping:noMatchCode');
       const flagCode = config.getConf('mapping:flagCode');
       setTimeout(() => {
@@ -427,23 +432,18 @@ if (cluster.isMaster) {
           }
           async.each(body.entry, (entry, nxtEntry) => {
             if (entry.resource.hasOwnProperty('tag')) {
-              var nomatch = entry.resource.tag.find((tag) => {
-                return tag.code === noMatchCode
-              })
-              var flagged = entry.resource.tag.find((tag) => {
-                return tag.code === flagCode
-              })
+              const nomatch = entry.resource.tag.find(tag => tag.code === noMatchCode);
+              const flagged = entry.resource.tag.find(tag => tag.code === flagCode);
               if (nomatch) {
-                totalAllNoMatch++
+                totalAllNoMatch++;
               }
               if (flagged) {
-                totalAllFlagged++
+                totalAllFlagged++;
               }
-              return nxtEntry()
+              return nxtEntry();
             }
 
-            return nxtEntry()
-
+            return nxtEntry();
           }, () => {
             totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged;
             return callback(totalAllMapped, totalAllNoMatch, totalAllFlagged);
@@ -459,11 +459,11 @@ if (cluster.isMaster) {
     winston.info(`Getting DATIM Unmatched Orgs for ${req.params.orgid}`);
     if (!req.params.orgid || !req.params.source) {
       winston.error({
-        error: 'Missing Orgid or Source'
+        error: 'Missing Orgid or Source',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or Source'
+        error: 'Missing Orgid or Source',
       });
       return;
     }
@@ -486,11 +486,11 @@ if (cluster.isMaster) {
     winston.info('Received data for matching');
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       return;
     }
@@ -504,11 +504,11 @@ if (cluster.isMaster) {
       const totalLevels = fields.totalLevels;
       if (!mohId || !datimId) {
         winston.error({
-          error: 'Missing either MOHID or DATIMID or both'
+          error: 'Missing either MOHID or DATIMID or both',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing either MOHID or DATIMID or both'
+          error: 'Missing either MOHID or DATIMID or both',
         });
         return;
       }
@@ -519,10 +519,11 @@ if (cluster.isMaster) {
       mcsd.saveMatch(mohId, datimId, orgid, recoLevel, totalLevels, type, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
-          error: err
-        });
-        else res.status(200).send();
+        if (err) {
+          res.status(401).send({
+            error: err,
+          });
+        } else res.status(200).send();
       });
     });
   });
@@ -531,11 +532,11 @@ if (cluster.isMaster) {
     winston.info('Received data for marking flag as a match');
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       return;
     }
@@ -547,11 +548,11 @@ if (cluster.isMaster) {
       const totalLevels = fields.totalLevels;
       if (!datimId) {
         winston.error({
-          error: 'Missing DATIMID'
+          error: 'Missing DATIMID',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing DATIMID'
+          error: 'Missing DATIMID',
         });
         return;
       }
@@ -562,10 +563,11 @@ if (cluster.isMaster) {
       mcsd.acceptFlag(datimId, orgid, (err) => {
         winston.info('Done marking flag as a match');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
-          error: err
-        });
-        else res.status(200).send();
+        if (err) {
+          res.status(401).send({
+            error: err,
+          });
+        } else res.status(200).send();
       });
     });
   });
@@ -574,11 +576,11 @@ if (cluster.isMaster) {
     winston.info('Received data for matching');
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       return;
     }
@@ -590,11 +592,11 @@ if (cluster.isMaster) {
       const totalLevels = fields.totalLevels;
       if (!mohId) {
         winston.error({
-          error: 'Missing either MOHID'
+          error: 'Missing either MOHID',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing either MOHID'
+          error: 'Missing either MOHID',
         });
         return;
       }
@@ -605,10 +607,11 @@ if (cluster.isMaster) {
       mcsd.saveNoMatch(mohId, orgid, recoLevel, totalLevels, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
-          error: err
-        });
-        else res.status(200).send();
+        if (err) {
+          res.status(401).send({
+            error: err,
+          });
+        } else res.status(200).send();
       });
     });
   });
@@ -616,11 +619,11 @@ if (cluster.isMaster) {
   app.post('/breakMatch/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       return;
     }
@@ -640,11 +643,11 @@ if (cluster.isMaster) {
   app.post('/breakNoMatch/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Orgid',
       });
       return;
     }
@@ -654,11 +657,11 @@ if (cluster.isMaster) {
       let mohId = fields.mohId;
       if (!mohId) {
         winston.error({
-          error: 'Missing MOH ID'
+          error: 'Missing MOH ID',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing MOH ID'
+          error: 'Missing MOH ID',
         });
         return;
       }
@@ -698,7 +701,7 @@ if (cluster.isMaster) {
     } catch (e) {
       mongoose.model('ReconciliationStatus', new Schema({
         status: {
-          type: Object
+          type: Object,
         },
       }));
       ReconciliationStatusModel = mongoose.model('ReconciliationStatus');
@@ -708,24 +711,24 @@ if (cluster.isMaster) {
     const query = {
       status: {
         code: recoStatusCode,
-        text: 'Done'
-      }
+        text: 'Done',
+      },
     };
     const update = {
       status: {
         code: recoStatusCode,
-        text: 'on-progress'
-      }
+        text: 'on-progress',
+      },
     };
     ReconciliationStatusModel.findOneAndUpdate(query, update, (err, data) => {
       res.set('Access-Control-Allow-Origin', '*');
       if (err) {
         res.status(500).json({
-          error: 'An error occured while processing request'
+          error: 'An error occured while processing request',
         });
       } else {
         res.status(200).json({
-          status: 'on-progresss'
+          status: 'on-progresss',
         });
       }
     });
@@ -752,7 +755,7 @@ if (cluster.isMaster) {
     } catch (e) {
       mongoose.model('ReconciliationStatus', new Schema({
         status: {
-          type: Object
+          type: Object,
         },
       }));
       ReconciliationStatusModel = mongoose.model('ReconciliationStatus');
@@ -763,56 +766,56 @@ if (cluster.isMaster) {
     ReconciliationStatusModel.findOne({
       status: {
         code: recoStatusCode,
-        text: 'on-progress'
-      }
+        text: 'on-progress',
+      },
     }, (err, data) => {
       if (err) {
         winston.error('Unexpected error occured,please retry');
         res.status(500).json({
-          error: 'Unexpected error occured,please retry'
+          error: 'Unexpected error occured,please retry',
         });
         return;
       }
       if (!data) {
-        let recoStatus = new ReconciliationStatusModel({
+        const recoStatus = new ReconciliationStatusModel({
           status: {
             code: recoStatusCode,
-            text: 'Done'
+            text: 'Done',
           },
         });
         recoStatus.save((err, data) => {
           if (err) {
-            winston.error('Unexpected error occured,please retry')
+            winston.error('Unexpected error occured,please retry');
             res.set('Access-Control-Allow-Origin', '*');
             res.status(500).json({
-              error: 'Unexpected error occured,please retry'
+              error: 'Unexpected error occured,please retry',
             });
           }
-          winston.info(`${orgid} marked as done with reconciliation`)
+          winston.info(`${orgid} marked as done with reconciliation`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
-            status: 'done'
+            status: 'done',
           });
         });
       } else {
         ReconciliationStatusModel.findByIdAndUpdate(data.id, {
           status: {
             code: recoStatusCode,
-            text: 'Done'
-          }
+            text: 'Done',
+          },
         }, (err, data) => {
           if (err) {
             winston.error('Unexpected error occured,please retry');
             res.set('Access-Control-Allow-Origin', '*');
             res.status(500).json({
-              error: 'Unexpected error occured,please retry'
+              error: 'Unexpected error occured,please retry',
             });
             return;
           }
           winston.info(`${orgid} already marked as done with reconciliation`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
-            status: 'done'
+            status: 'done',
           });
         });
       }
@@ -841,7 +844,7 @@ if (cluster.isMaster) {
     } catch (e) {
       mongoose.model('ReconciliationStatus', new Schema({
         status: {
-          type: Object
+          type: Object,
         },
       }));
       ReconciliationStatusModel = mongoose.model('ReconciliationStatus');
@@ -851,22 +854,22 @@ if (cluster.isMaster) {
     ReconciliationStatusModel.findOne({
       status: {
         code: recoStatusCode,
-        text: 'Done'
-      }
+        text: 'Done',
+      },
     }, (err, data) => {
       if (err) {
         res.status(500).json({
-          error: 'Unexpected error occured,please retry'
+          error: 'Unexpected error occured,please retry',
         });
         return;
       }
       if (data) {
         res.status(200).json({
-          status: 'done'
+          status: 'done',
         });
       } else {
         res.status(200).json({
-          status: 'on-progress'
+          status: 'on-progress',
         });
       }
     });
@@ -874,8 +877,8 @@ if (cluster.isMaster) {
 
   app.get('/progress/:type/:clientId', (req, res) => {
     const clientId = req.params.clientId;
-    const type = req.params.type
-    let progressRequestId = `${type}${clientId}`;
+    const type = req.params.type;
+    const progressRequestId = `${type}${clientId}`;
     redisClient.get(progressRequestId, (error, results) => {
       results = JSON.parse(results);
       // reset progress
@@ -883,14 +886,14 @@ if (cluster.isMaster) {
         const uploadReqRes = JSON.stringify({
           status: null,
           error: null,
-          percent: null
+          percent: null,
         });
         redisClient.set(progressRequestId, uploadReqRes);
       }
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results);
     });
-  })
+  });
   app.get('/uploadProgress/:orgid/:clientId', (req, res) => {
     const orgid = req.params.orgid;
     const clientId = req.params.clientId;
@@ -898,11 +901,11 @@ if (cluster.isMaster) {
       results = JSON.parse(results);
       // reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        let uploadRequestId = `uploadProgress${orgid}${clientId}`;
+        const uploadRequestId = `uploadProgress${orgid}${clientId}`;
         const uploadReqPro = JSON.stringify({
           status: null,
           error: null,
-          percent: null
+          percent: null,
         });
         redisClient.set(uploadRequestId, uploadReqPro);
       }
@@ -918,11 +921,11 @@ if (cluster.isMaster) {
       results = JSON.parse(results);
       // reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        let statusRequestId = `mappingStatus${orgid}${clientId}`;
+        const statusRequestId = `mappingStatus${orgid}${clientId}`;
         const statusResData = JSON.stringify({
           status: null,
           error: null,
-          percent: null
+          percent: null,
         });
         redisClient.set(statusRequestId, statusResData);
       }
@@ -942,12 +945,88 @@ if (cluster.isMaster) {
         const uploadReqPro = JSON.stringify({
           status: null,
           error: null,
-          percent: null
+          percent: null,
         });
         redisClient.set(scoreRequestId, uploadReqPro);
       }
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results);
+    });
+  });
+
+  app.post('/addServer', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info('Received a request to add a new server');
+      mongo.addServer(fields, (err, response) => {
+        if (err) {
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(500).json({
+            error: 'Unexpected error occured,please retry',
+          });
+        } else {
+          winston.info('server saved successfully');
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(200).json({
+            status: 'done',
+          });
+        }
+      });
+    });
+  });
+  app.post('/editServer', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info('Received a request to edit a server');
+      mongo.editServer(fields, (err, response) => {
+        if (err) {
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(500).json({
+            error: 'Unexpected error occured,please retry',
+          });
+        } else {
+          winston.info('Server edited sucessfully');
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(200).json({
+            status: 'done',
+          });
+        }
+      });
+    });
+  });
+
+  app.get('/deleteServer/:_id', (req, res) => {
+    const id = req.params._id;
+    mongo.deleteServer(id, (err, response) => {
+      if (err) {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(500).json({
+          error: 'Unexpected error occured,please retry',
+        });
+      } else {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(200).json({
+          status: 'done',
+        });
+      }
+    });
+  });
+
+  app.get('/getServers', (req, res) => {
+    winston.info('received reqjuest to get servers');
+    mongo.getServers((err, servers) => {
+      if (err) {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(500).json({
+          error: 'Unexpected error occured,please retry',
+        });
+      } else {
+        winston.info('returning list of servers');
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(200).json({
+          servers,
+        });
+      }
     });
   });
 
@@ -957,11 +1036,11 @@ if (cluster.isMaster) {
       winston.info(`Received MOH Data with fields Mapping ${JSON.stringify(fields)}`);
       if (!fields.orgid) {
         winston.error({
-          error: 'Missing Orgid'
+          error: 'Missing Orgid',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing Orgid'
+          error: 'Missing Orgid',
         });
         return;
       }
@@ -970,18 +1049,18 @@ if (cluster.isMaster) {
       const database = config.getConf('mCSD:database');
       const expectedLevels = config.getConf('levels');
       const clientId = fields.clientId;
-      let uploadRequestId = `uploadProgress${orgid}${clientId}`;
+      const uploadRequestId = `uploadProgress${orgid}${clientId}`;
       const uploadReqPro = JSON.stringify({
         status: 'Request received by server',
         error: null,
-        percent: null
+        percent: null,
       });
       redisClient.set(uploadRequestId, uploadReqPro);
       if (!Array.isArray(expectedLevels)) {
         winston.error('Invalid config data for key Levels ');
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Un expected error occured while processing this request'
+          error: 'Un expected error occured while processing this request',
         });
         res.end();
         return;
@@ -989,7 +1068,7 @@ if (cluster.isMaster) {
       if (Object.keys(files).length == 0) {
         winston.error('No file submitted for reconciliation');
         res.status(401).json({
-          error: 'Please submit CSV file for facility reconciliation'
+          error: 'Please submit CSV file for facility reconciliation',
         });
         res.end();
         return;
@@ -999,11 +1078,11 @@ if (cluster.isMaster) {
       validateCSV(fields, (valid, missing) => {
         if (!valid) {
           winston.error({
-            MissingHeaders: missing
+            MissingHeaders: missing,
           });
           res.set('Access-Control-Allow-Origin', '*');
           res.status(401).json({
-            error: 'Some Headers are Missing'
+            error: 'Some Headers are Missing',
           });
           res.end();
           return;
@@ -1013,62 +1092,62 @@ if (cluster.isMaster) {
         res.status(200).end();
 
         winston.info('CSV File Passed Validation');
-        //archive existing DB first
-        let uploadReqPro = JSON.stringify({
+        // archive existing DB first
+        const uploadReqPro = JSON.stringify({
           status: '2/4 Archiving Old DB',
           error: null,
-          percent: null
-        })
-        redisClient.set(uploadRequestId, uploadReqPro)
+          percent: null,
+        });
+        redisClient.set(uploadRequestId, uploadReqPro);
         mcsd.archiveDB(orgid, (err) => {
           if (err) {
-            let uploadReqPro = JSON.stringify({
+            const uploadReqPro = JSON.stringify({
               status: '1/3 Archiving Old DB',
               error: 'An error occured while archiving Database,retry',
-              percent: null
-            })
-            redisClient.set(uploadRequestId, uploadReqPro)
-            winston.error('An error occured while Archiving existing DB,Upload of new dataset was stopped')
-            return
+              percent: null,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+            winston.error('An error occured while Archiving existing DB,Upload of new dataset was stopped');
+            return;
           }
-          //ensure old archives are deleted
-          let uploadReqPro = JSON.stringify({
+          // ensure old archives are deleted
+          const uploadReqPro = JSON.stringify({
             status: '3/4 Deleting Old DB',
             error: null,
-            percent: null
-          })
-          redisClient.set(uploadRequestId, uploadReqPro)
-          mcsd.cleanArchives(orgid, () => {})
-          //delete existing db
+            percent: null,
+          });
+          redisClient.set(uploadRequestId, uploadReqPro);
+          mcsd.cleanArchives(orgid, () => {});
+          // delete existing db
           mcsd.deleteDB(orgid, (err) => {
             if (!err) {
-              winston.info(`Uploading data for ${orgid} now`)
-              let uploadReqPro = JSON.stringify({
+              winston.info(`Uploading data for ${orgid} now`);
+              const uploadReqPro = JSON.stringify({
                 status: '4/4 Uploading of DB started',
                 error: null,
-                percent: null
-              })
-              redisClient.set(uploadRequestId, uploadReqPro)
+                percent: null,
+              });
+              redisClient.set(uploadRequestId, uploadReqPro);
               mcsd.CSVTomCSD(files[fileName].path, fields, orgid, clientId, () => {
-                winston.info(`Data upload for ${orgid} is done`)
-                let uploadReqPro = JSON.stringify({
+                winston.info(`Data upload for ${orgid} is done`);
+                const uploadReqPro = JSON.stringify({
                   status: 'Done',
                   error: null,
-                  percent: 100
-                })
-                redisClient.set(uploadRequestId, uploadReqPro)
+                  percent: 100,
+                });
+                redisClient.set(uploadRequestId, uploadReqPro);
               });
             } else {
-              winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
-              let uploadReqPro = JSON.stringify({
+              winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped');
+              const uploadReqPro = JSON.stringify({
                 status: '3/4 Deleting Old DB',
                 error: 'An error occured while dropping existing Database,retry',
-                percent: null
-              })
-              redisClient.set(uploadRequestId, uploadReqPro)
+                percent: null,
+              });
+              redisClient.set(uploadRequestId, uploadReqPro);
             }
-          })
-        })
+          });
+        });
       });
     });
 

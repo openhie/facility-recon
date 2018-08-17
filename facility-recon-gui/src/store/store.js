@@ -42,6 +42,12 @@ export const store = new Vuex.Store({
     scoreResults: [],
     levelArray: [],
     scoresProgressData: {},
-    uploadProgressData: {}
+    uploadProgressData: {},
+    syncServers: [{
+      name: 'server1',
+      host: 'http://localhost:8984/CSD',
+      username: 'user1',
+      password: 'password'
+    }]
   }
 })
