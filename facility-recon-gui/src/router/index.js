@@ -12,39 +12,40 @@ Vue.use(Router)
 
 export default new Router({
   routes: [{
-    path: '/',
-    name: 'FacilityReconHome',
-    component: FacilityReconHome
-  },
-  {
-    path: '/upload',
-    name: 'FacilityReconUpload',
-    component: FacilityReconUpload
-  },
-  {
-    path: '/source',
-    name: 'FacilityReconDataSource',
-    component: FacilityReconDataSource
-  },
-  {
-    path: '/view',
-    name: 'FacilityReconView',
-    component: FacilityReconView
-  },
-  {
-    path: '/scores',
-    name: 'FacilityReconScores',
-    component: FacilityReconScores
-  },
-  {
-    path: '/recoStatus',
-    name: 'FacilityRecoStatus',
-    component: FacilityRecoStatus
-  },
-  {
-    path: '/dbAdmin',
-    name: 'FacilityReconDbAdmin',
-    component: FacilityReconDbAdmin
-  }
+      path: '/',
+      name: 'FacilityReconHome',
+      component: FacilityReconHome
+
+    },
+    {
+      path: '/upload',
+      name: 'FacilityReconUpload',
+      component: FacilityReconUpload
+    },
+    {
+      path: '/source',
+      name: 'FacilityReconDataSource',
+      component: FacilityReconDataSource
+    },
+    {
+      path: '/view',
+      name: 'FacilityReconView',
+      component: FacilityReconView
+    },
+    {
+      path: '/scores',
+      name: 'FacilityReconScores',
+      component: FacilityReconScores
+    },
+    {
+      path: '/recoStatus',
+      name: 'FacilityRecoStatus',
+      component: FacilityRecoStatus
+    },
+    {
+      path: '/dbAdmin',
+      name: 'FacilityReconDbAdmin',
+      component: FacilityReconDbAdmin
+    }
   ]
 })
