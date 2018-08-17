@@ -359,7 +359,7 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
         this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
-        clearInterval(this.checkUploadProgress)
+        clearInterval(this.UploadProgressTimer)
         console.log(err.response.data.error)
       })
     },
