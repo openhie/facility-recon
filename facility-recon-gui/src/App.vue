@@ -30,9 +30,11 @@
     <v-content>
       <v-dialog persistent v-model="$store.state.dialogError" max-width="500px">
         <v-card>
-          <v-card-title>
-            {{$store.state.errorTitle}}
-          </v-card-title>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              {{$store.state.errorTitle}}
+            </v-toolbar-title>
+          </v-toolbar>
           <v-card-text>
             {{$store.state.errorDescription}}
           </v-card-text>

@@ -58,7 +58,7 @@
                 <v-card-text>
                   <v-data-table :headers="mohGridHeader" :items="mohGridData" :search="searchMOH" :pagination.sync="mohPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in mohGridHeader'>{{props.item[header.value]}}</td>
+                      <td v-for='header in mohGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -83,7 +83,7 @@
                 <v-card-text>
                   <v-data-table :headers="datimGridHeader" :items="datimGridData" :search="searchDATIM" :pagination.sync="datimPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in datimGridHeader'>{{props.item[header.value]}}</td>
+                      <td v-for='header in datimGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>

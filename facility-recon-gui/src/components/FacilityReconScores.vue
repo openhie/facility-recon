@@ -34,9 +34,12 @@
       </v-dialog>
       <v-dialog persistent v-model="alert" width="500px">
         <v-card>
-          <v-card-title>
-            {{alertTitle}}
-          </v-card-title>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              {{alertTitle}}
+            </v-toolbar-title>
+          </v-toolbar>
+
           <v-card-text>
             {{alertText}}
           </v-card-text>
@@ -859,12 +862,6 @@ export default {
       }
     },
     noMatch () {
-      if (this.selectedDatimId !== null) {
-        this.alert = true
-        this.alertTitle = 'Information'
-        this.alertText = 'Dont select any location if you want to mark as no match'
-        return
-      }
       this.progressTitle = 'Saving as no match'
       this.dynamicProgress = true
       let formData = new FormData()

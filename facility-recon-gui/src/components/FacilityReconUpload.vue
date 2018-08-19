@@ -2,9 +2,11 @@
   <v-container fluid>
     <v-dialog persistent v-model="dialog" max-width="500px">
       <v-card>
-        <v-card-title>
-          <v-icon left>info</v-icon> Info
-        </v-card-title>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Information
+          </v-toolbar-title>
+        </v-toolbar>
         <v-card-text>
           Data uploaded successfully
         </v-card-text>
@@ -18,9 +20,11 @@
     </v-dialog>
     <v-dialog persistent v-model="confirmUpload" max-width="500px">
       <v-card>
-        <v-card-title>
-          Warning
-        </v-card-title>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Warning
+          </v-toolbar-title>
+        </v-toolbar>
         <v-card-text>
           You are about to upload a new dataset, this will erase any existing data
         </v-card-text>
