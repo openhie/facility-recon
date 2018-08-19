@@ -52,13 +52,14 @@
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-      Last GeoAlign Data Sync: {{datimUpdateTime | moment("dddd, MMMM Do YYYY, h:mm:ss a")}}
+      Last GeoAlign Data Sync: {{datimUpdateTime | formatLastUpdated}}
     </v-footer>
   </v-app>
 </template>
 
 <script>
 import axios from 'axios'
+import moment from 'moment'
 import { scoresMixin } from './mixins/scoresMixin'
 import { uuid } from 'vue-uuid'
 const config = require('../config')
@@ -74,6 +75,15 @@ export default {
       fixed: false,
       title: 'Facility Reconciliation',
       datimUpdateTime: 'Loading...'
+    }
+  },
+  filters: {
+    formatLastUpdated (date) {
+      if (!moment(date).isValid()) {
+        return 'Failed'
+      } else {
+        return moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a')
+      }
     }
   },
   computed: {

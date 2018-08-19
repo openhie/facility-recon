@@ -55,8 +55,7 @@ module.exports = function () {
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
-      }
-      else {
+      } else {
         var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
           .toString();
       }
@@ -96,9 +95,9 @@ module.exports = function () {
       const locations = {};
       locations.entry = [];
       if (identifier) {
-        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?identifier=${identifier}`.toString()
+        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?identifier=${identifier}`.toString();
       } else {
-        return callback(locations)
+        return callback(locations);
       }
       async.doWhilst(
         (callback) => {
@@ -508,47 +507,44 @@ module.exports = function () {
       const datimSystem = 'http://geoalign.datim.org/DATIM';
       // check if its already mapped and inore
       const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
-      
-      var me = this
-      async.parallel(
-        {
-          datimMapped: function(callback) {
+
+      let me = this;
+      async.parallel({
+        datimMapped (callback) {
             const datimIdentifier = URI(config.getConf('mCSD:url')).
-                                    segment(database).
-                                    segment('fhir').
-                                    segment('Location').
-                                    segment(datimId).
-                                    toString();
+            segment(database).
+            segment('fhir').
+            segment('Location').
+            segment(datimId).
+            toString();
             me.getLocationByIdentifier(mappingDB, datimIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error("Attempting to map already mapped location")
-                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
-              }
-              else {
-                return callback(null,null)
-              }
-            })
-          },
-          mohMapped: function(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url')).
-                                  segment(topOrgId).
-                                  segment('fhir').
-                                  segment('Location').
-                                  segment(mohId).
-                                  toString();
-            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
-              if (mapped.entry.length > 0) {
-                winston.error("Attempting to map already mapped location")
-                return callback(null,'This location was already mapped, recalculate scores to update the level you are working on')
-              }
-              else {
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
                 return callback(null, null)
               }
             })
-          }
-        },
-        function (err,res) {
-          if(res.mohMapped !== null) {
+          },
+        mohMapped (callback) {
+            const mohIdentifier = URI(config.getConf('mCSD:url')).
+            segment(topOrgId).
+            segment('fhir').
+            segment('Location').
+            segment(mohId).
+            toString();
+            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
+              if (mapped.entry.length > 0) {
+                winston.error("Attempting to map already mapped location")
+                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on')
+              } else {
+                return callback(null, null)
+              }
+            })
+          },
+      },
+      (err, res) => {
+          if (res.mohMapped !== null) {
             return callback(res.mohMapped)
           } else if (res.datimMapped !== null) {
             return callback(res.datimMapped)
@@ -619,8 +615,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        }
-      )
+        },);
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -667,16 +662,15 @@ module.exports = function () {
       const mohSystem = 'http://geoalign.datim.org/MOH';
       const noMatchCode = config.getConf('mapping:noMatchCode');
 
-      var me = this
-      async.parallel(
-        {
-          mohMapped: function (callback) {
+      let me = this;
+      async.parallel({
+        mohMapped (callback) {
             const mohIdentifier = URI(config.getConf('mCSD:url')).
-                                  segment(topOrgId).
-                                  segment('fhir').
-                                  segment('Location').
-                                  segment(mohId).
-                                  toString();
+            segment(topOrgId).
+            segment('fhir').
+            segment('Location').
+            segment(mohId).
+            toString();
             const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
             me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
               if (mapped.entry.length > 0) {
@@ -686,9 +680,9 @@ module.exports = function () {
                 return callback(null, null)
               }
             })
-          }
-        },
-        function (err, res) {
+          },
+      },
+      (err, res) => {
           if (res.mohMapped !== null) {
             return callback(res.mohMapped)
           }
@@ -748,8 +742,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        }
-      )
+        },);
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -835,7 +828,7 @@ module.exports = function () {
       let countRow = 0;
 
       let totalRows = 0;
-      exec.exec(`wc -l ${ filePath}`, (err, stdout, stderr) => {
+      exec.exec(`wc -l ${filePath}`, (err, stdout, stderr) => {
         if (err) {
           // node couldn't execute the command
           winston.error(err);
@@ -869,7 +862,7 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array.apply(null, {
+                const topLevels = Array(...{
                   length: levelNumber
                 }).map(Number.call, Number);
                 // removing zero as levels starts from 1
@@ -988,11 +981,11 @@ module.exports = function () {
             value: jurisdiction.uuid,
           });
           if (jurisdiction.parentUUID) {
- resource.partOf = {
-            display: jurisdiction.parent,
-            reference: `Location/${jurisdiction.parentUUID}`,
-          }; 
-}
+            resource.partOf = {
+              display: jurisdiction.parent,
+              reference: `Location/${jurisdiction.parentUUID}`,
+            };
+          }
           resource.physicalType = {
             coding: [{
               code: 'jdn',
@@ -1057,7 +1050,6 @@ module.exports = function () {
       const tree = [];
       const lookup = [];
       const addLater = {};
-
       async.each(mcsd.entry, (entry, callback1) => {
         let lat = null;
         let long = null;
@@ -1093,7 +1085,7 @@ module.exports = function () {
             if (lookup[id]) {
               lookup[id].children.push(...addLater[id]);
             } else {
-              winston.error(`Couldn't find ${id } in tree.`);
+              winston.error(`Couldn't find ${id} in tree.`);
             }
           }
         }
@@ -1130,7 +1122,7 @@ module.exports = function () {
               filesDelete.push(file);
               return nxtFile();
             }
-            let replaceDel = filesDelete.find((fDelete) => {
+            const replaceDel = filesDelete.find((fDelete) => {
               fDelete = fDelete.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
               fDelete = moment(fDelete);
               searchFile = file.replace(`${__dirname}/dbArchives/${db}_`, '').replace('.tar', '');
@@ -1138,7 +1130,7 @@ module.exports = function () {
               return fDelete > searchFile;
             });
             if (replaceDel) {
-              let index = filesDelete.indexOf(replaceDel);
+              const index = filesDelete.indexOf(replaceDel);
               filesDelete.splice(index, 1);
               filesDelete.push(file);
             }
@@ -1170,7 +1162,7 @@ module.exports = function () {
       const mongoPasswd = config.getConf('mCSD:databasePassword');
       const mongoHost = config.getConf('mCSD:databaseHost');
       const mongoPort = config.getConf('mCSD:databasePort');
-      const name = `${db }_${ moment().format()}`;
+      const name = `${db}_${moment().format()}`;
       const dbList = [];
       dbList.push({
         name,
@@ -1184,7 +1176,7 @@ module.exports = function () {
       async.eachSeries(dbList, (list, nxtList) => {
         const db = list.db;
         const name = list.name;
-        winston.info(`Archiving DB ${ db}`);
+        winston.info(`Archiving DB ${db}`);
         if (mongoUser && mongoPasswd) {
           var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
         } else {
@@ -1194,11 +1186,11 @@ module.exports = function () {
         const dir = `${__dirname}/dbArchives`;
 
         const tmpDir = tmp.dirSync();
-        exec.execSync(`mongodump --uri=${ uri} -o ${tmpDir.name}`, {
+        exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
         tar.c({
-          file: `${dir }/${name}.tar`,
+          file: `${dir}/${name}.tar`,
           cwd: tmpDir.name,
           sync: true,
         }, [db]);
@@ -1317,7 +1309,7 @@ module.exports = function () {
               error = err;
               throw err;
             } else {
-              winston.info(`${db } Dropped`);
+              winston.info(`${db} Dropped`);
             }
             return nxtList();
           });

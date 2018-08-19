@@ -1,14 +1,14 @@
 {
   "ilr": {
-    "url": "",
+    "url": "http://localhost:3447/fhir",
     "user": "",
     "pass": "",
     "doc": ""
   },
   "dhis2": {
-    "url": "",
-    "user": "",
-    "pass": "",
+    "url": "https://play.dhis2.org/2.30",
+    "user": "admin",
+    "pass": "district",
     "dousers": false,
     "doservices": true
   }

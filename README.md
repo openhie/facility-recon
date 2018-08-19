@@ -27,12 +27,20 @@ npm run dev:start
 
 ### Download GOFR
 ```sh
+cd ~
 git clone https://github.com/openhie/facility-recon.git
 ```
 ### GOFR Backend Installation
 ```sh
 cd facility-recon/facility-recon-backend
 npm install
+cd ~
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+redis-server
+cd ~/facility-recon/facility-recon-backend
 node lib/index.js
 ```
 ### GOFR Frontend Installation
@@ -46,6 +54,7 @@ npm run build
 ```sh
 cp -r facility-recon/facility-recon-gui/dist/* facility-reco/dhis2App/
 cd facility-recon/dhis2App
+rm GOFR.zip
 zip GOFR.zip ./*
 ```
 Login to DHIS2 and install the zipped file (GOFR.zip)

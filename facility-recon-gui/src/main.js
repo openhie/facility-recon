@@ -10,7 +10,6 @@ import {
   store
 } from './store/store'
 
-Vue.use(require('vue-moment'))
 Vue.use(Vuelidate)
 Vue.use(Vuetify, {
   theme: {
