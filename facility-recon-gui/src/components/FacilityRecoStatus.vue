@@ -201,6 +201,30 @@
 						</v-chip>
 					</v-flex>
 					<v-flex xs1>
+						<v-chip color="green" text-color='white' style='height:138px;width:143px'>
+							<v-layout column>
+								<v-flex xs1>
+									<v-icon light>thumb_down</v-icon>
+									<b>MOH Not Mapped</b>
+								</v-flex>
+								<v-flex xs1 align-center>
+									<center>
+										<b>{{totalNotMapped}}/{{totalRecords}}</b>
+									</center>
+								</v-flex>
+								<v-flex xs1>
+									<center>
+										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMappedLevel" color="yellow">
+											<font color="white">
+												<b>{{ mohPercentNotMappedLevel }}%</b>
+											</font>
+										</v-progress-circular>
+									</center>
+								</v-flex>
+							</v-layout>
+						</v-chip>
+					</v-flex>
+					<v-flex xs1>
 						<v-chip color="green" text-color='white' style='height:138px;width:137px'>
 							<v-layout column>
 								<v-flex xs1>
@@ -241,30 +265,6 @@
 										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
 											<font color="white">
 												<b>{{ mohPercentFlagged }}%</b>
-											</font>
-										</v-progress-circular>
-									</center>
-								</v-flex>
-							</v-layout>
-						</v-chip>
-					</v-flex>
-					<v-flex xs1>
-						<v-chip color="green" text-color='white' style='height:138px;width:143px'>
-							<v-layout column>
-								<v-flex xs1>
-									<v-icon light>thumb_down</v-icon>
-									<b>MOH Not Mapped</b>
-								</v-flex>
-								<v-flex xs1 align-center>
-									<center>
-										<b>{{totalNotMapped}}/{{totalRecords}}</b>
-									</center>
-								</v-flex>
-								<v-flex xs1>
-									<center>
-										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMappedLevel" color="yellow">
-											<font color="white">
-												<b>{{ mohPercentNotMappedLevel }}%</b>
 											</font>
 										</v-progress-circular>
 									</center>
@@ -366,24 +366,24 @@ export default {
   data () {
     return {
       matchedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' },
-        { text: 'DATIM Location', value: 'datimName' },
-        { text: 'DATIM ID', value: 'datimId' }
+				{ text: 'MOH Location', value: 'mohName' },
+				{ text: 'MOH ID', value: 'mohId' },
+				{ text: 'DATIM Location', value: 'datimName' },
+				{ text: 'DATIM ID', value: 'datimId' }
       ],
       noMatchHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' }
+				{ text: 'MOH Location', value: 'mohName' },
+				{ text: 'MOH ID', value: 'mohId' }
       ],
       notMappedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' }
+				{ text: 'MOH Location', value: 'mohName' },
+				{ text: 'MOH ID', value: 'mohId' }
       ],
       flaggedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' },
-        { text: 'DATIM Location', value: 'datimName' },
-        { text: 'DATIM ID', value: 'datimId' }
+				{ text: 'MOH Location', value: 'mohName' },
+				{ text: 'MOH ID', value: 'mohId' },
+				{ text: 'DATIM Location', value: 'datimName' },
+				{ text: 'DATIM ID', value: 'datimId' }
       ],
       searchMatched: '',
       mappingData: {},
@@ -436,8 +436,8 @@ export default {
     markRecoDone () {
       axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
         if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
-        }
+        	this.$store.state.recoStatus.status = status.data.status
+      	}
       }).catch((err) => {
         console.log(err.response.data.error)
       })

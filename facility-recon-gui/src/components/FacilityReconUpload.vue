@@ -2,9 +2,11 @@
   <v-container fluid>
     <v-dialog persistent v-model="dialog" max-width="500px">
       <v-card>
-        <v-card-title>
-          <v-icon left>info</v-icon> Info
-        </v-card-title>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Information
+          </v-toolbar-title>
+        </v-toolbar>
         <v-card-text>
           Data uploaded successfully
         </v-card-text>
@@ -18,9 +20,11 @@
     </v-dialog>
     <v-dialog persistent v-model="confirmUpload" max-width="500px">
       <v-card>
-        <v-card-title>
-          Warning
-        </v-card-title>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Warning
+          </v-toolbar-title>
+        </v-toolbar>
         <v-card-text>
           You are about to upload a new dataset, this will erase any existing data
         </v-card-text>
@@ -44,7 +48,7 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" persistent width="300">
+    <v-dialog v-model="uploadPrepaProgr" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
@@ -52,7 +56,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" persistent width="270">
+    <v-dialog v-model="percentDialog" hide-overlay persistent width="270">
       <v-card color="white" dark>
         <v-card-text>
           <center>
@@ -187,10 +191,10 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
-import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
+import FacilityReconDbAdmin from './FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
 
-const config = require('../../../config')
+const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 

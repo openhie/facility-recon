@@ -19,6 +19,7 @@ const tar = require('tar');
 const tmp = require('tmp');
 const config = require('./config');
 
+
 module.exports = function () {
   return {
     getLocations(database, callback) {
@@ -51,6 +52,7 @@ module.exports = function () {
         },
       );
     },
+
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
@@ -521,7 +523,6 @@ module.exports = function () {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-
               return callback(null, null);
             });
           },
@@ -537,7 +538,6 @@ module.exports = function () {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-
               return callback(null, null);
             });
           },
@@ -615,8 +615,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        });
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -743,8 +742,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        });
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -838,23 +836,40 @@ module.exports = function () {
         }
         if (stdout) {
           totalRows = stdout.split(' ').shift();
+          //remove the first row as it is the header
+          totalRows--
         }
       });
 
       csv
         .fromPath(filePath, {
-          ignoreEmpty: true,
           headers: true,
         })
         .on('data', (data) => {
           const jurisdictions = [];
           promises.push(new Promise((resolve, reject) => {
+            if (data[headerMapping.facility] == '') {
+              countRow++
+              const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+              const uploadReqPro = JSON.stringify({
+                status: '4/4 Writing Uploaded data into server',
+                error: null,
+                percent,
+              });
+              redisClient.set(uploadRequestId, uploadReqPro);
+              resolve()
+              return;
+            }
             levels.sort();
             levels.reverse();
             let facilityParent = null;
             let facilityParentUUID = null;
             async.eachSeries(levels, (level, nxtLevel) => {
-              if (data[headerMapping[level]] != null && data[headerMapping[level]] != undefined && data[headerMapping[level]] != false) {
+              if (data[headerMapping[level]] != null &&
+                data[headerMapping[level]] != undefined &&
+                data[headerMapping[level]] != false &&
+                data[headerMapping[level]] != ''
+              ) {
                 const name = data[headerMapping[level]];
                 const levelNumber = level.replace('level', '');
                 if (levelNumber.toString().length < 2) {
@@ -864,9 +879,9 @@ module.exports = function () {
                 }
 
                 const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array({
-                  length: levelNumber,
-                }).map(Number.call, Number);
+                const topLevels = Array.apply(null, {
+                  length: levelNumber
+                }).map(Function.call, Number);
                 // removing zero as levels starts from 1
                 topLevels.splice(0, 1);
                 topLevels.reverse();
@@ -918,14 +933,6 @@ module.exports = function () {
                 parentUUID: null,
               });
               this.saveJurisdiction(jurisdictions, orgid, () => {
-                countRow++;
-                const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-                const uploadReqPro = JSON.stringify({
-                  status: '4/4 Writing Uploaded data into server',
-                  error: null,
-                  percent,
-                });
-                redisClient.set(uploadRequestId, uploadReqPro);
                 resolve();
               });
               const facilityName = data[headerMapping.facility];
@@ -941,21 +948,22 @@ module.exports = function () {
               };
               this.saveBuilding(building, orgid, () => {
                 if (jurisdictions.length == 0) {
-                  countRow++;
-                  const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-                  const uploadReqPro = JSON.stringify({
-                    status: '4/4 Writing Uploaded data into server',
-                    error: null,
-                    percent,
-                  });
-                  redisClient.set(uploadRequestId, uploadReqPro);
                   resolve();
                 }
+                countRow++;
+                const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+                const uploadReqPro = JSON.stringify({
+                  status: '4/4 Writing Uploaded data into server',
+                  error: null,
+                  percent,
+                });
+                redisClient.set(uploadRequestId, uploadReqPro);
               });
             });
           }));
         }).on('end', () => {
           Promise.all(promises).then(() => {
+            winston.error('done')
             const uploadReqPro = JSON.stringify({
               status: 'Done',
               error: null,
@@ -1052,7 +1060,6 @@ module.exports = function () {
       const tree = [];
       const lookup = [];
       const addLater = {};
-
       async.each(mcsd.entry, (entry, callback1) => {
         let lat = null;
         let long = null;

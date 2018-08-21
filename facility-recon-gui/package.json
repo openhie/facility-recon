@@ -14,6 +14,7 @@
     "axios": "^0.18.0",
     "fast-csv": "^2.4.1",
     "liquor-tree": "^0.2.27",
+    "url-parse": "^1.4.3",
     "vue": "^2.5.2",
     "vue-moment": "^4.0.0",
     "vue-router": "^3.0.1",
