@@ -1071,15 +1071,15 @@ module.exports = function () {
     createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
       let grid = []
       var allCounter = 1
-      var limitCounter = 1
       var cnt = 0
       async.each(buildings, (building, callback) => {
         cnt++
-        winston.error(cnt + '/' + buildings.length)
+        //winston.error(cnt + '/' + buildings.length)
         if (allCounter < start) {
+          allCounter++
           return callback()
         }
-        if (limitCounter > count) {
+        if (grid.length >= count) {
           return callback()
         }
         let lat = null;
@@ -1110,8 +1110,6 @@ module.exports = function () {
               level++
               return nxtParent()
             }, () => {
-              allCounter++
-              limitCounter++
               grid.push(row)
               return callback()
             })

@@ -159,7 +159,8 @@ export default {
       datimStart: 1,
       mohCount: 10,
       datimCount: 10,
-      currentDatimPagination: {}
+      currentDatimPagination: {},
+      currentMohPagination: {}
     }
   },
   methods: {
@@ -170,6 +171,7 @@ export default {
         id = orgUnit.OrgId
       }
       axios.get(backendServer + '/hierarchy/moh/' + id + '/' + this.mohStart + '/' + this.mohCount, { params: orgUnit }).then((hierarchy) => {
+        this.currentMohPagination = Object.assign({}, this.mohPagination)
         const { sortBy, descending, page, rowsPerPage } = this.mohPagination
         if (this.mohPagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
@@ -198,7 +200,6 @@ export default {
       if (!id) {
         id = orgUnit.OrgId
       }
-      alert(id)
       axios.get(backendServer + '/hierarchy/datim/' + id + '/' + this.datimStart + '/' + this.datimCount, { params: orgUnit }).then((hierarchy) => {
         this.currentDatimPagination = Object.assign({}, this.datimPagination)
         const { sortBy, descending, page, rowsPerPage } = this.datimPagination
@@ -294,6 +295,13 @@ export default {
   watch: {
     mohPagination: {
       handler () {
+        //if nothing has changed then dont send server request
+        if (this.currentMohPagination.sortBy === this.mohPagination.sortBy &&
+          this.currentMohPagination.descending === this.mohPagination.descending &&
+          this.currentMohPagination.page === this.mohPagination.page
+        ) {
+          return
+        }
         let page = this.mohPagination.page - 1
         this.mohStart = page * this.mohCount + 1
         this.getMohGrid()
@@ -302,6 +310,7 @@ export default {
     },
     datimPagination: {
       handler () {
+        //if nothing has changed then dont send server request
         if (this.currentDatimPagination.sortBy === this.datimPagination.sortBy &&
           this.currentDatimPagination.descending === this.datimPagination.descending &&
           this.currentDatimPagination.page === this.datimPagination.page
