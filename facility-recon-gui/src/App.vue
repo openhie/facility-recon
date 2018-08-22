@@ -128,7 +128,7 @@ export default {
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.initializingApp = false
         this.$store.state.totalLevels = levels.data.totalLevels
-        this.getOrgHierarchy()
+        //this.getOrgHierarchy()
         this.getScores()
       })
     },
