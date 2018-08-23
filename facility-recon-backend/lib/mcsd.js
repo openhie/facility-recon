@@ -340,7 +340,16 @@ module.exports = function () {
 
       filter(entityParent, parents => callback(parents));
     },
-
+    getBuildings(mcsd, callback) {
+      let buildings = []
+      mcsd.entry.map((entry) => {
+        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
+        if (found) {
+          buildings.push(entry)
+        }
+      })
+      return callback(buildings)
+    },
     /*
     if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
     if levelNumber is set then it returns locations at level levelNumber only
@@ -370,7 +379,7 @@ module.exports = function () {
       if (totalLevels) {
         mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
       }
-      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'building');
+      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'bu');
 
       if (building) {
         mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
@@ -816,7 +825,7 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
-      const uploadRequestId = `uploadProgress${orgid}${clientId}`;
+      var uploadRequestId = `uploadProgress${orgid}${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -828,20 +837,6 @@ module.exports = function () {
       let countRow = 0;
 
       let totalRows = 0;
-        /*
-      exec.exec(`wc -l ${filePath}`, (err, stdout, stderr) => {
-        if (err) {
-          // node couldn't execute the command
-          winston.error(err);
-          return;
-        }
-        if (stdout) {
-          totalRows = stdout.split(' ').shift();
-          //remove the first row as it is the header
-          totalRows--
-        }
-      });
-      */
 
       let recordCount = 0
       let saveBundle = { id: uuid4(), resourceType: 'Bundle', type: 'batch', entry: [] }
@@ -861,7 +856,8 @@ module.exports = function () {
               percent,
             });
             redisClient.set(uploadRequestId, uploadReqPro);
-            resolve()
+            winston.error(countRow + '/' + totalRows)
+            winston.error('Skipped ' + JSON.stringify(data))
             return;
           }
           levels.sort();
@@ -941,7 +937,7 @@ module.exports = function () {
             }
             recordCount += jurisdictions.length
             this.buildJurisdiction(jurisdictions, saveBundle)
-            konst facilityName = data[headerMapping.facility];
+            const facilityName = data[headerMapping.facility];
             const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
             const building = {
               uuid: UUID,
@@ -963,7 +959,6 @@ module.exports = function () {
                 this.saveLocations(tmpBundle, orgid, () => {
                   countRow += tmpBundle.entry.length
                   const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-                  //winston.info("SAVED "+countRow+'/'+totalRows)
                   const uploadReqPro = JSON.stringify({
                       status: '4/4 Writing Uploaded data into server',
                       error: null,
@@ -979,6 +974,7 @@ module.exports = function () {
         }).on('end', () => {
           this.saveLocations(saveBundle, orgid, () => {
             Promise.all(promises).then(() => {
+              var uploadRequestId = `uploadProgress${orgid}${clientId}`;
               winston.info('done')
               const uploadReqPro = JSON.stringify({
                 status: 'Done',
@@ -1052,23 +1048,72 @@ module.exports = function () {
       bundle.entry.push( { resource, request: { method: 'PUT', url: 'Location/' + resource.id } } )
     },
 
+    createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
+      let grid = []
+      var allCounter = 1
+      var cnt = 0
+      async.each(buildings, (building, callback) => {
+        cnt++
+        //winston.error(cnt + '/' + buildings.length)
+        if (allCounter < start) {
+          allCounter++
+          return callback()
+        }
+        if (grid.length >= count) {
+          return callback()
+        }
+        let lat = null;
+        let long = null;
+        if (building.resource.hasOwnProperty('position')) {
+          lat = building.resource.position.latitude;
+          long = building.resource.position.longitude;
+        }
+        let row = {}
+        if (building.resource.hasOwnProperty('partOf')) {
+          this.getLocationParentsFromData(building.resource.partOf.reference, mcsdAll, 'all', (parents) => {
+            if (id !== topOrgId) {
+              var parentFound = parents.find((parent) => {
+                return parent.id === id
+              })
+              if (!parentFound) {
+                return callback()
+              }
+            }
+            parents.reverse()
+            row.facility = building.resource.name
+            row.id = building.resource.id
+            row.latitude = lat
+            row.longitude = long
+            let level = 1
+            async.eachSeries(parents, (parent, nxtParent) => {
+              row['level' + level] = parent.text
+              level++
+              return nxtParent()
+            }, () => {
+              grid.push(row)
+              return callback()
+            })
+          })
+        }
+      }, () => {
+        return callback(grid, buildings.length)
+      })
+    },
+
     createTree(mcsd, source, database, topOrg, callback) {
       const tree = [];
       const lookup = [];
       const addLater = {};
       async.each(mcsd.entry, (entry, callback1) => {
-        let lat = null;
-        let long = null;
-        const id = entry.resource.id;
-        if (entry.resource.hasOwnProperty('position')) {
-          lat = entry.resource.position.latitude;
-          long = entry.resource.position.longitude;
+        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
+        if (found) {
+          return callback1()
         }
+
+        const id = entry.resource.id;
         const item = {
           text: entry.resource.name,
           id,
-          lat,
-          long,
           children: [],
         };
         lookup[id] = item;
@@ -1264,6 +1309,7 @@ module.exports = function () {
       });
     },
     deleteDB(db, callback) {
+      return callback(false)
       const dbList = [];
       dbList.push(db);
       dbList.push(`MOHDATIM${db}`);

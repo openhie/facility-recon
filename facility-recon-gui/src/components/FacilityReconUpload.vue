@@ -253,7 +253,10 @@ export default {
   methods: {
     fileSelected (e) {
       this.uploadedFileName = e.target.files[0]['name']
-      if (e.target.files[0]['type'] !== 'text/csv') {
+      if (e.target.files[0]['type'] !== 'text/csv' &&
+        !(e.target.files[0]['type'] === 'application/vnd.ms-excel' &&
+          e.target.files[0].name.slice(-3).toLowerCase() === 'csv')
+      ) {
         this.errorDialog = true
         this.errorTitle = 'Error'
         this.errorContent = 'Wrong file type uploaded,Only CSV format is supported'
@@ -315,7 +318,7 @@ export default {
           }
           this.uploadPercent = uploadProgress.data.percent
         }
-        if (uploadProgress.data.status === 'Done') {
+        if (uploadProgress.data.status === 'Done' || uploadProgress.data.status >= 100) {
           clearInterval(this.UploadProgressTimer)
           this.$root.$emit('recalculateScores')
           this.$root.$emit('reloadTree')
