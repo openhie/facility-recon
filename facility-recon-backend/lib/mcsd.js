@@ -2,6 +2,7 @@ require('./init');
 const request = require('request');
 const URI = require('urijs');
 const uuid5 = require('uuid/v5');
+const uuid4 = require('uuid/v4');
 const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
@@ -496,7 +497,6 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
-        // winston.info('Data saved successfully');
         callback(err, body);
       });
     },
@@ -828,6 +828,7 @@ module.exports = function () {
       let countRow = 0;
 
       let totalRows = 0;
+        /*
       exec.exec(`wc -l ${filePath}`, (err, stdout, stderr) => {
         if (err) {
           // node couldn't execute the command
@@ -840,6 +841,10 @@ module.exports = function () {
           totalRows--
         }
       });
+      */
+
+      let recordCount = 0
+      let saveBundle = { id: uuid4(), resourceType: 'Bundle', type: 'batch', entry: [] }
 
       csv
         .fromPath(filePath, {
@@ -847,213 +852,204 @@ module.exports = function () {
         })
         .on('data', (data) => {
           const jurisdictions = [];
-          promises.push(new Promise((resolve, reject) => {
-            if (data[headerMapping.facility] == '') {
-              countRow++
-              const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-              const uploadReqPro = JSON.stringify({
-                status: '4/4 Writing Uploaded data into server',
-                error: null,
-                percent,
-              });
-              redisClient.set(uploadRequestId, uploadReqPro);
-              resolve()
-              return;
-            }
-            levels.sort();
-            levels.reverse();
-            let facilityParent = null;
-            let facilityParentUUID = null;
-            async.eachSeries(levels, (level, nxtLevel) => {
-              if (data[headerMapping[level]] != null &&
-                data[headerMapping[level]] != undefined &&
-                data[headerMapping[level]] != false &&
-                data[headerMapping[level]] != ''
-              ) {
-                const name = data[headerMapping[level]];
-                const levelNumber = level.replace('level', '');
-                if (levelNumber.toString().length < 2) {
-                  var namespaceMod = `${namespace}00${levelNumber}`;
-                } else {
-                  var namespaceMod = `${namespace}0${levelNumber}`;
-                }
-
-                const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array.apply(null, {
-                  length: levelNumber
-                }).map(Function.call, Number);
-                // removing zero as levels starts from 1
-                topLevels.splice(0, 1);
-                topLevels.reverse();
-                let parentFound = false;
-                let parentUUID = null;
-                let parent = null;
-                if (levelNumber == 1) {
-                  parent = orgname;
-                  parentUUID = countryUUID;
-                }
-
-                if (!facilityParent) {
-                  facilityParent = name;
-                  facilityParentUUID = UUID;
-                }
-                async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
-                  const topLevelName = `level${topLevel}`;
-                  if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
-                    parent = data[headerMapping[topLevelName]];
-                    if (topLevel.toString().length < 2) {
-                      var namespaceMod = `${namespace}00${topLevel}`;
-                    } else {
-                      var namespaceMod = `${namespace}0${topLevel}`;
-                    }
-                    parentUUID = uuid5(parent, namespaceMod);
-                    parentFound = true;
-                  }
-                  nxtTopLevel();
-                }, () => {
-                  if (!processed.includes(UUID)) {
-                    jurisdictions.push({
-                      name,
-                      parent,
-                      uuid: UUID,
-                      parentUUID,
-                    });
-                    processed.push(UUID);
-                  }
-                  nxtLevel();
-                });
+          if (data[headerMapping.facility] == '') {
+            countRow++
+            const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+            const uploadReqPro = JSON.stringify({
+              status: '4/4 Writing Uploaded data into server',
+              error: null,
+              percent,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+            resolve()
+            return;
+          }
+          levels.sort();
+          levels.reverse();
+          let facilityParent = null;
+          let facilityParentUUID = null;
+          async.eachSeries(levels, (level, nxtLevel) => {
+            if (data[headerMapping[level]] != null &&
+              data[headerMapping[level]] != undefined &&
+              data[headerMapping[level]] != false &&
+              data[headerMapping[level]] != ''
+            ) {
+              const name = data[headerMapping[level]];
+              const levelNumber = level.replace('level', '');
+              if (levelNumber.toString().length < 2) {
+                var namespaceMod = `${namespace}00${levelNumber}`;
               } else {
-                nxtLevel();
+                var namespaceMod = `${namespace}0${levelNumber}`;
               }
-            }, () => {
+
+              const UUID = uuid5(name, namespaceMod);
+              const topLevels = Array.apply(null, {
+                length: levelNumber
+              }).map(Function.call, Number);
+              // removing zero as levels starts from 1
+              topLevels.splice(0, 1);
+              topLevels.reverse();
+              let parentFound = false;
+              let parentUUID = null;
+              let parent = null;
+              if (levelNumber == 1) {
+                parent = orgname;
+                parentUUID = countryUUID;
+              }
+
+              if (!facilityParent) {
+                facilityParent = name;
+                facilityParentUUID = UUID;
+              }
+              async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
+                const topLevelName = `level${topLevel}`;
+                if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
+                  parent = data[headerMapping[topLevelName]];
+                  if (topLevel.toString().length < 2) {
+                    var namespaceMod = `${namespace}00${topLevel}`;
+                  } else {
+                    var namespaceMod = `${namespace}0${topLevel}`;
+                  }
+                  parentUUID = uuid5(parent, namespaceMod);
+                  parentFound = true;
+                }
+                nxtTopLevel();
+              }, () => {
+                if (!processed.includes(UUID)) {
+                  jurisdictions.push({
+                    name,
+                    parent,
+                    uuid: UUID,
+                    parentUUID,
+                  });
+                  processed.push(UUID);
+                }
+                nxtLevel();
+              });
+            } else {
+              nxtLevel();
+            }
+          }, () => {
+            if (!processed.includes(countryUUID)) {
               jurisdictions.push({
                 name: orgname,
                 parent: null,
                 uuid: countryUUID,
                 parentUUID: null,
               });
-              this.saveJurisdiction(jurisdictions, orgid, () => {
-                resolve();
-              });
-              const facilityName = data[headerMapping.facility];
-              const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
-              const building = {
-                uuid: UUID,
-                id: data[headerMapping.code],
-                name: facilityName,
-                lat: data[headerMapping.lat],
-                long: data[headerMapping.long],
-                parent: facilityParent,
-                parentUUID: facilityParentUUID,
-              };
-              this.saveBuilding(building, orgid, () => {
-                if (jurisdictions.length == 0) {
-                  resolve();
-                }
-                countRow++;
-                const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-                const uploadReqPro = JSON.stringify({
-                  status: '4/4 Writing Uploaded data into server',
-                  error: null,
-                  percent,
-                });
-                redisClient.set(uploadRequestId, uploadReqPro);
-              });
-            });
-          }));
-        }).on('end', () => {
-          Promise.all(promises).then(() => {
-            winston.error('done')
-            const uploadReqPro = JSON.stringify({
-              status: 'Done',
-              error: null,
-              percent: 100,
-            });
-            redisClient.set(uploadRequestId, uploadReqPro);
-            callback();
-          });
-        });
-    },
-
-    saveJurisdiction(jurisdictions, orgid, callback) {
-      const promises = [];
-      jurisdictions.forEach((jurisdiction) => {
-        promises.push(new Promise((resolve, reject) => {
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = jurisdiction.name;
-          resource.status = 'active';
-          resource.mode = 'instance';
-          resource.id = jurisdiction.uuid;
-          resource.identifier = [];
-          resource.identifier.push({
-            system: 'http://geoalign.datim.org/MOH',
-            value: jurisdiction.uuid,
-          });
-          if (jurisdiction.parentUUID) {
-            resource.partOf = {
-              display: jurisdiction.parent,
-              reference: `Location/${jurisdiction.parentUUID}`,
+              processed.push(countryUUID);
+            }
+            recordCount += jurisdictions.length
+            this.buildJurisdiction(jurisdictions, saveBundle)
+            konst facilityName = data[headerMapping.facility];
+            const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
+            const building = {
+              uuid: UUID,
+              id: data[headerMapping.code],
+              name: facilityName,
+              lat: data[headerMapping.lat],
+              long: data[headerMapping.long],
+              parent: facilityParent,
+              parentUUID: facilityParentUUID,
             };
-          }
-          resource.physicalType = {
-            coding: [{
-              code: 'jdn',
-              display: 'Jurisdiction',
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
-          };
-          const mcsd = {
-            type: 'document',
-            entry: [{
-              resource,
-            }],
-          };
-          this.saveLocations(mcsd, orgid, () => {
-            resolve();
-          });
-        }));
-      });
+            recordCount++
+            this.buildBuilding( building, saveBundle )
+            if ( recordCount >= 250 ) {
+              const tmpBundle = { ...saveBundle }
+              saveBundle = { id: uuid4(), resourceType: 'Bundle', type: 'batch', entry: [] }
+              recordCount = 0
+              totalRows += tmpBundle.entry.length
+              promises.push(new Promise((resolve, reject) => {
+                this.saveLocations(tmpBundle, orgid, () => {
+                  countRow += tmpBundle.entry.length
+                  const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+                  //winston.info("SAVED "+countRow+'/'+totalRows)
+                  const uploadReqPro = JSON.stringify({
+                      status: '4/4 Writing Uploaded data into server',
+                      error: null,
+                      percent,
+                  });
+                  redisClient.set(uploadRequestId, uploadReqPro);
 
-      Promise.all(promises).then(() => callback()).catch((reason) => {
-        winston.error(reason);
-      });
+                  resolve()
+                })
+              }))
+            }
+          });
+        }).on('end', () => {
+          this.saveLocations(saveBundle, orgid, () => {
+            Promise.all(promises).then(() => {
+              winston.info('done')
+              const uploadReqPro = JSON.stringify({
+                status: 'Done',
+                error: null,
+                percent: 100,
+              })
+              redisClient.set(uploadRequestId, uploadReqPro)
+              callback()
+            })
+          })
+        })
     },
 
-    saveBuilding(building, orgid, callback) {
-      const resource = {};
-      resource.resourceType = 'Location';
-      resource.status = 'active';
-      resource.mode = 'instance';
-      resource.name = building.name;
-      resource.id = building.uuid;
-      resource.identifier = [];
+    buildJurisdiction(jurisdictions, bundle) {
+      jurisdictions.forEach((jurisdiction) => {
+        let resource = {}
+        resource.resourceType = 'Location'
+        resource.name = jurisdiction.name
+        resource.status = 'active'
+        resource.mode = 'instance'
+        resource.id = jurisdiction.uuid
+        resource.identifier = []
+        resource.identifier.push({
+          system: 'http://geoalign.datim.org/MOH',
+          value: jurisdiction.uuid,
+        })
+        if (jurisdiction.parentUUID) {
+          resource.partOf = {
+            display: jurisdiction.parent,
+            reference: `Location/${jurisdiction.parentUUID}`,
+          }
+        }
+        resource.physicalType = {
+          coding: [{
+            code: 'jdn',
+            display: 'Jurisdiction',
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        }
+        bundle.entry.push( { resource, request: { method: 'PUT', url: 'Location/' + resource.id } } )
+     })
+    },
+
+    buildBuilding(building, bundle) {
+      let resource = {}
+      resource.resourceType = 'Location'
+      resource.status = 'active'
+      resource.mode = 'instance'
+      resource.name = building.name
+      resource.id = building.uuid
+      resource.identifier = []
       resource.identifier.push({
         system: 'http://geoalign.datim.org/MOH',
         value: building.id,
-      });
+      })
       resource.partOf = {
         display: building.parent,
         reference: `Location/${building.parentUUID}`,
-      };
+      }
       resource.physicalType = {
         coding: [{
           code: 'bu',
           display: 'Building',
           system: 'http://hl7.org/fhir/location-physical-type',
         }],
-      };
+      }
       resource.position = {
         longitude: building.long,
         latitude: building.lat,
-      };
-      const mcsd = {
-        type: 'document',
-        entry: [{
-          resource,
-        }],
-      };
-      this.saveLocations(mcsd, orgid, () => callback());
+      }
+      bundle.entry.push( { resource, request: { method: 'PUT', url: 'Location/' + resource.id } } )
     },
 
     createTree(mcsd, source, database, topOrg, callback) {
@@ -1199,30 +1195,18 @@ module.exports = function () {
         exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
-        tar.c({
-          file: `${dir}/${name}.tar`,
-          cwd: tmpDir.name,
-          sync: true,
-        }, [db]);
+        if ( fs.existsSync(tmpDir.name+"/"+db) ) {
+          tar.c({
+            file: `${dir}/${name}.tar`,
+            cwd: tmpDir.name,
+            sync: true,
+          }, [db]);
+        } else {
+          winston.info(`No archive created because no database exists: ${db}`)
+        }
         fs.removeSync(tmpDir.name);
         nxtList();
 
-        /*
-        mongoBackup ({
-          uri: uri,
-          root: dir,
-          tar: `${name}.tar`,
-          callback: (err) => {
-            if (err) {
-              error = err
-              winston.error(err);
-            } else {
-              winston.info(db + ' archived successfully');
-            }
-            return nxtList()
-          }
-        })
-        */
       }, () => {
         callback(error);
       });
@@ -1273,32 +1257,6 @@ module.exports = function () {
             fs.removeSync(tmpDir.name);
             nxtList();
 
-            /*
-            mongoRestore ({
-              uri: uri,
-              root: `${__dirname}/dbArchives`,
-              tar: archive,
-              callback: (err) => {
-                if (err) {
-                  error = err
-                  winston.error(err);
-                } else {
-                  winston.info(archive + ' restored successfully');
-                }
-                winston.info('Deleting Archive ' + archive)
-                var fileDelete = `${__dirname}/dbArchives/${archive}`
-                fs.unlink(fileDelete,(err)=>{
-                  if(err) {
-                    winston.error(err)
-                  }
-                  if(!db.includes('MOHDATIM')){
-                    me.cleanArchives(db,()=>{})
-                  }
-                  return nxtList()
-                })
-              }
-            })
-            */
           }, () => {
             callback(error);
           });
