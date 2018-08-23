@@ -26,6 +26,7 @@ const dhis2URL = url.parse( nconf.get('dhis2:url') )
 const auth = 'Basic ' + Buffer.from( nconf.get('dhis2:user') + ':' + nconf.get('dhis2:pass') ).toString('base64')
 
 var thisRunTime = new Date().toISOString()
+var organisationUnitLevels = []
 
 if ( nconf.get("reset-time") ) {
 
@@ -78,7 +79,7 @@ async function processMetaData() {
         'assumeTrue=false',
         'organisationUnits=true',
         'organisationUnitGroups=true',
-        'organisationUnitLevels=true',
+        'organisationUnitLevels=false',
         'organisationUnitGroupSets=true',
         "categoryOptions="+sflag,
         "optionSets="+sflag,
@@ -101,12 +102,11 @@ async function processMetaData() {
         metadataOpts.push( "filter=lastUpdated:gt:"+lastUpdate )
     }
 
-    console.log( "GETTING "+dhis2URL.protocol+"//"+dhis2URL.hostname+":"+dhis2URL.port+dhis2URL.path+"/api/metadata.json?" 
-        +metadataOpts.join('&') )
-    let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+    console.log( "GETTING levels: "+dhis2URL.protocol+"//"+dhis2URL.hostname+":"+dhis2URL.port+dhis2URL.path+"/api/metadata.json?assumeTrue=false&organisationUnitLevels=true" )
+    let olReq = (dhis2URL.protocol == 'https:' ? https : http).request({
         hostname: dhis2URL.hostname,
         port: dhis2URL.port,
-        path: dhis2URL.path + '/api/metadata.json?' + metadataOpts.join('&'),
+        path: dhis2URL.path + '/api/metadata.json?assumeTrue=false&organisationUnitLevels=true',
         headers: {
             Authorization: auth
         },
@@ -119,8 +119,35 @@ async function processMetaData() {
             body += chunk
         })
         res.on('end', () => {
+
             let metadata = JSON.parse(body);
-            processOrgUnit( metadata, 0, metadata.organisationUnits.length, hasKey )
+            organisationUnitLevels = metadata.organisationUnitLevels
+ 
+            console.log( "GETTING "+dhis2URL.protocol+"//"+dhis2URL.hostname+":"+dhis2URL.port+dhis2URL.path+"/api/metadata.json?" 
+                +metadataOpts.join('&') )
+            let req = (dhis2URL.protocol == 'https:' ? https : http).request({
+                hostname: dhis2URL.hostname,
+                port: dhis2URL.port,
+                path: dhis2URL.path + '/api/metadata.json?' + metadataOpts.join('&'),
+                headers: {
+                    Authorization: auth
+                },
+                method: 'GET'
+            }, (res) => {
+                console.log('STATUS: '+res.statusCode)
+                console.log('HEADERS: ' +JSON.stringify(res.headers,null,2))
+                var body = ''
+                res.on('data', (chunk) => {
+                    body += chunk
+                })
+                res.on('end', () => {
+                    let metadata = JSON.parse(body);
+                    processOrgUnit( metadata, 0, metadata.organisationUnits.length, hasKey )
+                })
+                res.on('error', (e) => {
+                    console.log('ERROR: ' +e.message)
+                })
+            }).end()
         })
         res.on('error', (e) => {
             console.log('ERROR: ' +e.message)
@@ -147,7 +174,7 @@ function processOrgUnit( metadata, i, max, hasKey ) {
         lastUpdated: org.lastUpdated
     }
     let path = org.path.split('/')
-    let level = metadata.organisationUnitLevels.find( x => x.level == path.length-1 )
+    let level = organisationUnitLevels.find( x => x.level == path.length-1 )
     fhir.meta.tag = [
         { 
             system: "http://test.geoalign.datim.org/organistionUnitLevels",
