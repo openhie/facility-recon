@@ -172,7 +172,8 @@ export default {
       }
       axios.get(backendServer + '/hierarchy/moh/' + id + '/' + this.mohStart + '/' + this.mohCount, { params: orgUnit }).then((hierarchy) => {
         this.currentMohPagination = Object.assign({}, this.mohPagination)
-        const { sortBy, descending, page, rowsPerPage } = this.mohPagination
+        // const { sortBy, descending, page, rowsPerPage } = this.mohPagination
+        const { sortBy, descending } = this.mohPagination
         if (this.mohPagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
             const sortA = a[sortBy]
@@ -202,7 +203,8 @@ export default {
       }
       axios.get(backendServer + '/hierarchy/datim/' + id + '/' + this.datimStart + '/' + this.datimCount, { params: orgUnit }).then((hierarchy) => {
         this.currentDatimPagination = Object.assign({}, this.datimPagination)
-        const { sortBy, descending, page, rowsPerPage } = this.datimPagination
+        // const { sortBy, descending, page, rowsPerPage } = this.datimPagination
+        const { sortBy, descending } = this.datimPagination
         if (this.datimPagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
             const sortA = a[sortBy]
@@ -295,7 +297,7 @@ export default {
   watch: {
     mohPagination: {
       handler () {
-        //if nothing has changed then dont send server request
+        // if nothing has changed then dont send server request
         if (this.currentMohPagination.sortBy === this.mohPagination.sortBy &&
           this.currentMohPagination.descending === this.mohPagination.descending &&
           this.currentMohPagination.page === this.mohPagination.page
@@ -310,7 +312,7 @@ export default {
     },
     datimPagination: {
       handler () {
-        //if nothing has changed then dont send server request
+        // if nothing has changed then dont send server request
         if (this.currentDatimPagination.sortBy === this.datimPagination.sortBy &&
           this.currentDatimPagination.descending === this.datimPagination.descending &&
           this.currentDatimPagination.page === this.datimPagination.page
