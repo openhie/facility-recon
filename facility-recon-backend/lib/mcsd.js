@@ -20,7 +20,6 @@ const tar = require('tar');
 const tmp = require('tmp');
 const config = require('./config');
 
-
 module.exports = function () {
   return {
     getLocations(database, callback) {
@@ -288,6 +287,10 @@ module.exports = function () {
     This function finds parents of an entity from passed mCSD data
     */
     getLocationParentsFromData(entityParent, mcsd, details, callback) {
+      if (mcsd.hasOwnProperty('parentCache') && mcsd.parentCache.id === entityParent) {
+        // return a copy
+        return callback(mcsd.parentCache.parents.slice())
+      }
       const parents = [];
       if (!mcsd.hasOwnProperty('entry') || !entityParent) {
         return callback(parents);
@@ -309,9 +312,10 @@ module.exports = function () {
             long = entry.resource.position.longitude;
             lat = entry.resource.position.latitude;
           }
-          const oldEntityParent = entityParent;
           var entityParent = null;
-          if (entry.resource.hasOwnProperty('partOf')) entityParent = entry.resource.partOf.reference;
+          if (entry.resource.hasOwnProperty('partOf')) {
+            entityParent = entry.resource.partOf.reference;
+          }
 
           if (details == 'all' || !details) {
             parents.push({
@@ -320,9 +324,13 @@ module.exports = function () {
               lat,
               long,
             });
-          } else if (details == 'id') parents.push(entry.resource.id);
-          else if (details == 'names') parents.push(entry.resource.name);
-          else winston.error('parent details (either id,names or all) to be returned not specified');
+          } else if (details == 'id') {
+            parents.push(entry.resource.id);
+          } else if (details == 'names') {
+            parents.push(entry.resource.name);
+          } else {
+            winston.error('parent details (either id,names or all) to be returned not specified');
+          }
 
           if (entry.resource.hasOwnProperty('partOf') &&
             entry.resource.partOf.reference != false &&
@@ -338,7 +346,13 @@ module.exports = function () {
         }
       }
 
-      filter(entityParent, parents => callback(parents));
+      filter(entityParent, (parents) => {
+        mcsd.parentCache = {}
+        mcsd.parentCache.id = entityParent
+        mcsd.parentCache.parents = parents
+        // return a copy
+        callback(parents.slice())
+      });
     },
     getBuildings(mcsd, callback) {
       let buildings = []
@@ -839,7 +853,12 @@ module.exports = function () {
       let totalRows = 0;
 
       let recordCount = 0
-      let saveBundle = { id: uuid4(), resourceType: 'Bundle', type: 'batch', entry: [] }
+      let saveBundle = {
+        id: uuid4(),
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: []
+      }
 
       csv
         .fromPath(filePath, {
@@ -949,10 +968,16 @@ module.exports = function () {
               parentUUID: facilityParentUUID,
             };
             recordCount++
-            this.buildBuilding( building, saveBundle )
-            if ( recordCount >= 250 ) {
-              const tmpBundle = { ...saveBundle }
-              saveBundle = { id: uuid4(), resourceType: 'Bundle', type: 'batch', entry: [] }
+            this.buildBuilding(building, saveBundle)
+            if (recordCount >= 250) {
+              const tmpBundle = { ...saveBundle
+              }
+              saveBundle = {
+                id: uuid4(),
+                resourceType: 'Bundle',
+                type: 'batch',
+                entry: []
+              }
               recordCount = 0
               totalRows += tmpBundle.entry.length
               promises.push(new Promise((resolve, reject) => {
@@ -960,9 +985,9 @@ module.exports = function () {
                   countRow += tmpBundle.entry.length
                   const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
                   const uploadReqPro = JSON.stringify({
-                      status: '4/4 Writing Uploaded data into server',
-                      error: null,
-                      percent,
+                    status: '4/4 Writing Uploaded data into server',
+                    error: null,
+                    percent,
                   });
                   redisClient.set(uploadRequestId, uploadReqPro);
 
@@ -1014,8 +1039,14 @@ module.exports = function () {
             system: 'http://hl7.org/fhir/location-physical-type',
           }],
         }
-        bundle.entry.push( { resource, request: { method: 'PUT', url: 'Location/' + resource.id } } )
-     })
+        bundle.entry.push({
+          resource,
+          request: {
+            method: 'PUT',
+            url: 'Location/' + resource.id
+          }
+        })
+      })
     },
 
     buildBuilding(building, bundle) {
@@ -1045,16 +1076,19 @@ module.exports = function () {
         longitude: building.long,
         latitude: building.lat,
       }
-      bundle.entry.push( { resource, request: { method: 'PUT', url: 'Location/' + resource.id } } )
+      bundle.entry.push({
+        resource,
+        request: {
+          method: 'PUT',
+          url: 'Location/' + resource.id
+        }
+      })
     },
 
     createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
       let grid = []
       var allCounter = 1
-      var cnt = 0
       async.each(buildings, (building, callback) => {
-        cnt++
-        //winston.error(cnt + '/' + buildings.length)
         if (allCounter < start) {
           allCounter++
           return callback()
@@ -1240,7 +1274,7 @@ module.exports = function () {
         exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
-        if ( fs.existsSync(tmpDir.name+"/"+db) ) {
+        if (fs.existsSync(tmpDir.name + "/" + db)) {
           tar.c({
             file: `${dir}/${name}.tar`,
             cwd: tmpDir.name,

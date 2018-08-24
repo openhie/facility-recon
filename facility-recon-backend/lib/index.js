@@ -203,9 +203,11 @@ if (cluster.isMaster) {
       const start = req.params.start
       const id = req.params.id
       const source = req.params.source.toUpperCase();
-      if (source == 'DATIM') var database = config.getConf('mCSD:database');
-      else if (source == 'MOH') var database = topOrgId;
-
+      if (source == 'DATIM') {
+        var database = config.getConf('mCSD:database');
+      } else if (source == 'MOH') {
+        var database = topOrgId;
+      }
       winston.info(`Fetching ${source} Locations For ${topOrgId}`);
       if (source == 'MOH') {
         var database = topOrgId;

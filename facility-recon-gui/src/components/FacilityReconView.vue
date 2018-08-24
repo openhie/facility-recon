@@ -171,8 +171,6 @@ export default {
         id = orgUnit.OrgId
       }
       axios.get(backendServer + '/hierarchy/moh/' + id + '/' + this.mohStart + '/' + this.mohCount, { params: orgUnit }).then((hierarchy) => {
-        this.currentMohPagination = Object.assign({}, this.mohPagination)
-        // const { sortBy, descending, page, rowsPerPage } = this.mohPagination
         const { sortBy, descending } = this.mohPagination
         if (this.mohPagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
@@ -192,6 +190,21 @@ export default {
         }
         this.mohGrid = hierarchy.data.grid
         this.totalMohRecords = hierarchy.data.total
+
+        // set these values to stop reloading data due to watcher see that the var datimPagination has changed
+        this.currentMohPagination = Object.assign({}, this.mohPagination)
+        if (!this.currentMohPagination.hasOwnProperty('descending')) {
+          this.currentMohPagination.descending = false
+        }
+        if (!this.currentMohPagination.hasOwnProperty('page')) {
+          this.currentMohPagination.page = 1
+        }
+        if (!this.currentMohPagination.hasOwnProperty('sortBy')) {
+          this.currentMohPagination.sortBy = 'facility'
+        }
+        if (!this.currentMohPagination.hasOwnProperty('totalItems')) {
+          this.currentMohPagination.totalItems = hierarchy.data.total
+        }
         this.loadingMoh = false
       })
     },
@@ -202,7 +215,6 @@ export default {
         id = orgUnit.OrgId
       }
       axios.get(backendServer + '/hierarchy/datim/' + id + '/' + this.datimStart + '/' + this.datimCount, { params: orgUnit }).then((hierarchy) => {
-        this.currentDatimPagination = Object.assign({}, this.datimPagination)
         // const { sortBy, descending, page, rowsPerPage } = this.datimPagination
         const { sortBy, descending } = this.datimPagination
         if (this.datimPagination.sortBy) {
@@ -223,6 +235,21 @@ export default {
         }
         this.datimGrid = hierarchy.data.grid
         this.totalDatimRecords = hierarchy.data.total
+
+        // set these values to stop reloading data due to watcher see that the var datimPagination has changed
+        this.currentDatimPagination = Object.assign({}, this.datimPagination)
+        if (!this.currentDatimPagination.hasOwnProperty('descending')) {
+          this.currentDatimPagination.descending = false
+        }
+        if (!this.currentDatimPagination.hasOwnProperty('page')) {
+          this.currentDatimPagination.page = 1
+        }
+        if (!this.currentDatimPagination.hasOwnProperty('sortBy')) {
+          this.currentDatimPagination.sortBy = 'facility'
+        }
+        if (!this.currentDatimPagination.hasOwnProperty('totalItems')) {
+          this.currentDatimPagination.totalItems = hierarchy.data.total
+        }
         this.loadingDatim = false
       })
     },
