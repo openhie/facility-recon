@@ -1090,9 +1090,6 @@ module.exports = function () {
       var allCounter = 1
       let totalBuildings = 0
       async.each(buildings, (building, callback) => {
-        if (grid.length >= count) {
-          //return callback()
-        }
         let lat = null;
         let long = null;
         if (building.resource.hasOwnProperty('position')) {
@@ -1100,6 +1097,19 @@ module.exports = function () {
           long = building.resource.position.longitude;
         }
         let row = {}
+        // if no parent filter is applied then stop in here of all the conditions are satisfied
+        if (id === topOrgId) {
+          if (allCounter < start) {
+            totalBuildings++
+            allCounter++
+            return callback()
+          }
+          // if no filter is applied then return in here if the grid length is satisfied
+          if (grid.length >= count) {
+            totalBuildings++
+            return callback()
+          }
+        }
         if (building.resource.hasOwnProperty('partOf')) {
           this.getLocationParentsFromData(building.resource.partOf.reference, mcsdAll, 'all', (parents) => {
             if (id !== topOrgId) {
@@ -1132,6 +1142,18 @@ module.exports = function () {
               return callback()
             })
           })
+        } else if (id !== topOrgId) { //if the filter by parent is applied then dont return buildings that has no parents
+          totalBuildings++
+          return callback()
+        } else {
+          row.facility = building.resource.name
+          row.id = building.resource.id
+          row.latitude = lat
+          row.longitude = long
+          totalBuildings++
+          if (grid.length < count) {
+            grid.push(row)
+          }
         }
       }, () => {
         return callback(grid, totalBuildings)
