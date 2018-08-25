@@ -1088,13 +1088,10 @@ module.exports = function () {
     createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
       let grid = []
       var allCounter = 1
+      let totalBuildings = 0
       async.each(buildings, (building, callback) => {
-        if (allCounter < start) {
-          allCounter++
-          return callback()
-        }
         if (grid.length >= count) {
-          return callback()
+          //return callback()
         }
         let lat = null;
         let long = null;
@@ -1124,13 +1121,20 @@ module.exports = function () {
               level++
               return nxtParent()
             }, () => {
-              grid.push(row)
+              totalBuildings++
+              if (allCounter < start) {
+                allCounter++
+                return callback()
+              }
+              if (grid.length < count) {
+                grid.push(row)
+              }
               return callback()
             })
           })
         }
       }, () => {
-        return callback(grid, buildings.length)
+        return callback(grid, totalBuildings)
       })
     },
 

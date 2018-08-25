@@ -48,7 +48,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">MoH Data Grid</h3>
               </v-card-title>
-              <template v-if="!mohTreeData">
+              <template v-if="!mohGrid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -73,7 +73,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">DATIM Data Grid</h3>
               </v-card-title>
-              <template v-if="!datimTreeData">
+              <template v-if="!datimGrid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -160,7 +160,9 @@ export default {
       mohCount: 10,
       datimCount: 10,
       currentDatimPagination: {},
-      currentMohPagination: {}
+      currentMohPagination: {},
+      mohSelNodeId: false,
+      datimSelNodeId: false
     }
   },
   methods: {
@@ -235,6 +237,7 @@ export default {
         }
         this.datimGrid = hierarchy.data.grid
         this.totalDatimRecords = hierarchy.data.total
+        this.datimPagination.totalItems = hierarchy.data.total
 
         // set these values to stop reloading data due to watcher see that the var datimPagination has changed
         this.currentDatimPagination = Object.assign({}, this.datimPagination)
@@ -251,6 +254,7 @@ export default {
           this.currentDatimPagination.totalItems = hierarchy.data.total
         }
         this.loadingDatim = false
+        console.log(this.datimPages)
       })
     },
     getTree () {
@@ -264,21 +268,23 @@ export default {
       })
     },
     mohNodeSelected (node) {
+      this.mohSelNodeId = node.id
       this.getMohGrid(node.id)
     },
     datimNodeSelected (node) {
+      this.datimSelNodeId = node.id
       this.getDatimGrid(node.id)
     }
   },
   computed: {
     datimGridHeader () {
       let header = []
-      let gridWithAllHeaders = []
+      let gridWithAllHeaders = {}
       if (this.datimGrid && this.datimGrid.length > 0) {
         for (var grid in this.datimGrid) {
-          if (gridWithAllHeaders.length > 0 && this.datimGrid[grid].length > gridWithAllHeaders[0].length) {
+          if (gridWithAllHeaders.length > 0 && this.datimGrid[grid].length > Object.keys(gridWithAllHeaders).length) {
             gridWithAllHeaders = this.datimGrid[grid]
-          } else {
+          } else if (Object.keys(gridWithAllHeaders).length === 0) {
             gridWithAllHeaders = this.datimGrid[grid]
           }
         }
@@ -293,6 +299,16 @@ export default {
     },
     mohGridHeader () {
       let header = []
+      let gridWithAllHeaders = {}
+      if (this.mohGrid && this.mohGrid.length > 0) {
+        for (var grid in this.mohGrid) {
+          if (gridWithAllHeaders.length > 0 && this.mohGrid[grid].length > Object.keys(gridWithAllHeaders).length) {
+            gridWithAllHeaders = this.mohGrid[grid]
+          } else if (Object.keys(gridWithAllHeaders).length === 0) {
+            gridWithAllHeaders = this.mohGrid[grid]
+          }
+        }
+      }
       if (this.mohGrid && this.mohGrid.length > 0) {
         for (const key in this.mohGrid[0]) {
           if (this.headerText[key]) {
@@ -313,12 +329,6 @@ export default {
         return 0
       }
       return Math.ceil(this.mohPagination.totalItems / this.mohCount)
-    },
-    datimTreeData () {
-      return this.datimGrid
-    },
-    mohTreeData () {
-      return this.mohGrid
     }
   },
   watch: {
@@ -333,7 +343,7 @@ export default {
         }
         let page = this.mohPagination.page - 1
         this.mohStart = page * this.mohCount + 1
-        this.getMohGrid()
+        this.getMohGrid(this.mohSelNodeId)
       },
       deep: true
     },
@@ -348,37 +358,12 @@ export default {
         }
         let page = this.datimPagination.page - 1
         this.datimStart = page * this.datimCount + 1
-        this.getDatimGrid()
+        this.getDatimGrid(this.datimSelNodeId)
       },
       deep: true
     }
   },
   mounted () {
-    const setListener = () => {
-      if (this.$refs && this.$refs.datimTree && this.$refs.mohTree) {
-        this.$refs.datimTree.$on('node:selected', (node) => {
-          this.filterDATIM.text = node.data.text
-          let level = 1
-          while (node.parent) {
-            node = node.parent
-            level++
-          }
-          this.filterDATIM.level = 'level' + level
-        })
-        this.$refs.mohTree.$on('node:selected', (node) => {
-          this.filterMOH.text = node.data.text
-          let level = 1
-          while (node.parent) {
-            node = node.parent
-            level++
-          }
-          this.filterMOH.level = 'level' + level
-        })
-      } else {
-        setTimeout(function () { setListener() }, 500)
-      }
-    }
-    setListener()
     this.getMohGrid()
     this.getDatimGrid()
     this.getTree()
