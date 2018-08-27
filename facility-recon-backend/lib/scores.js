@@ -67,7 +67,7 @@ module.exports = function () {
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
               scoreResData = JSON.stringify({status: '2/3 - Scanning DATIM Location Parents', error: null, percent: percent})
               redisClient.set(scoreRequestId,scoreResData)
-              if(count === mcsdDATIM.entry.length) {
+              if (count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
               }
             })
@@ -102,6 +102,7 @@ module.exports = function () {
               entityParent = mohEntry.resource.partOf.reference;
             }
             mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'names', (mohParents) => {
+
             // mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
               const thisRanking = {};
               thisRanking.moh = {

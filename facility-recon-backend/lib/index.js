@@ -966,16 +966,18 @@ if (cluster.isMaster) {
     const orgid = req.params.orgid
     const clientId = req.params.clientId
     redisClient.get(`scoreResults${orgid}${clientId}`, (error, results) => {
-      results = JSON.parse(results)
+      results = JSON.parse(results)      
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
+        winston.error('1.' + JSON.stringify(results))
         const scoreRequestId = `scoreResults${orgid}${clientId}`
         let uploadReqPro = JSON.stringify({
           status: null,
           error: null,
           percent: null
         })
-        redisClient.set(scoreRequestId, uploadReqPro)
+        //redisClient.set(scoreRequestId, uploadReqPro)
+        winston.error('2.'+JSON.stringify(results))
       }
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)

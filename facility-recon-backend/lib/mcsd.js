@@ -287,7 +287,7 @@ module.exports = function () {
     This function finds parents of an entity from passed mCSD data
     */
     getLocationParentsFromData(entityParent, mcsd, details, callback) {
-      if (mcsd.hasOwnProperty('parentCache') && mcsd.parentCache.id === entityParent) {
+      if (mcsd.hasOwnProperty('parentCache') && mcsd.parentCache.id === entityParent && mcsd.parentCache.details === details) {
         // return a copy
         return callback(mcsd.parentCache.parents.slice())
       }
@@ -349,6 +349,7 @@ module.exports = function () {
       filter(entityParent, (parents) => {
         mcsd.parentCache = {}
         mcsd.parentCache.id = entityParent
+        mcsd.parentCache.details = details
         mcsd.parentCache.parents = parents
         // return a copy
         callback(parents.slice())
