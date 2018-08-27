@@ -985,8 +985,9 @@ export default {
         }
       }
       let results = []
-      if (Object.keys(this.$store.state.mohParents).length == 1 && Object.keys(this.$store.state.mohParents)[0] === 'null')
+      if (Object.keys(this.$store.state.mohParents).length === 1 && Object.keys(this.$store.state.mohParents)[0] === 'null') {
         return results
+      }
       createTree(this.$store.state.mohParents, results)
       // This is needed because the tree doesn't show up on the initial page load without it
       this.mohTreeUpdate++

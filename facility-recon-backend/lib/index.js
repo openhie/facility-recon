@@ -927,6 +927,8 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId
     redisClient.get(`uploadProgress${orgid}${clientId}`, (error, results) => {
       results = JSON.parse(results)
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
         var uploadRequestId = `uploadProgress${orgid}${clientId}`
@@ -937,8 +939,6 @@ if (cluster.isMaster) {
         })
         redisClient.set(uploadRequestId, uploadReqPro)
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results)
     })
   });
 
@@ -947,6 +947,8 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId
     redisClient.get(`mappingStatus${orgid}${clientId}`, (error, results) => {
       results = JSON.parse(results)
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
         var statusRequestId = `mappingStatus${orgid}${clientId}`
@@ -957,8 +959,6 @@ if (cluster.isMaster) {
         })
         redisClient.set(statusRequestId, statusResData)
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results)
     })
   });
 
@@ -966,21 +966,19 @@ if (cluster.isMaster) {
     const orgid = req.params.orgid
     const clientId = req.params.clientId
     redisClient.get(`scoreResults${orgid}${clientId}`, (error, results) => {
-      results = JSON.parse(results)      
+      results = JSON.parse(results)
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        winston.error('1.' + JSON.stringify(results))
         const scoreRequestId = `scoreResults${orgid}${clientId}`
         let uploadReqPro = JSON.stringify({
           status: null,
           error: null,
           percent: null
         })
-        //redisClient.set(scoreRequestId, uploadReqPro)
-        winston.error('2.'+JSON.stringify(results))
+        redisClient.set(scoreRequestId, uploadReqPro)
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results)
     })
   });
 

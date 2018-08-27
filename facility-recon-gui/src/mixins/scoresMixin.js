@@ -29,7 +29,6 @@ export const scoresMixin = {
           this.scoreProgressPercent = scoreProgress.data.percent
         }
         if (scoreProgress.data.status === 'Done') {
-          console.log('here')
           clearInterval(this.scoreProgressTimer)
           this.scoreDialog = false
           this.scoreProgressTitle = 'Waiting for progress status'
