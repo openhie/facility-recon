@@ -277,7 +277,7 @@
       <v-flex xs1>
         <v-layout row wrap>
           <v-flex xs1 sm2 md2 right>
-            <v-select :items="$store.state.levelArray" v-model="recoLevel" :item-value='$store.state.levelArray.value' :item-name='$store.state.levelArray.text' label="Level" class="input-group--focused" height='1' full-width @change="levelChanged" single-line>
+            <v-select :items="locationLevels" v-model="recoLevel" :item-value='locationLevels.value' :item-name='locationLevels.text' label="Level" class="input-group--focused" height='1' full-width @change="levelChanged" single-line>
             </v-select>
           </v-flex>
           <v-spacer></v-spacer>
@@ -390,7 +390,8 @@ export default {
       recoLevel: 2,
       mappingStatusDialog: false,
       mappingStatusProgressTitle: 'Waiting for progress status',
-      mappingStatusProgressPercent: 0
+      mappingStatusProgressPercent: 0,
+      locationLevels: []
     }
   },
   methods: {
@@ -557,6 +558,12 @@ export default {
   },
   created () {
     this.mappingStatus()
+    for (var k = 1; k < this.$store.state.totalLevels; k++) {
+      this.locationLevels.push({
+        text: 'Level ' + k,
+        value: k + 1
+      })
+    }
   }
 }
 </script>
