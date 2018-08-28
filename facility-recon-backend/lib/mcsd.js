@@ -1370,7 +1370,6 @@ module.exports = function () {
       });
     },
     deleteDB(db, callback) {
-      return callback(false)
       const dbList = [];
       dbList.push(db);
       dbList.push(`MOHDATIM${db}`);

@@ -1070,7 +1070,9 @@ if (cluster.isMaster) {
           redisClient.set(uploadRequestId, uploadReqPro)
           mcsd.cleanArchives(orgid, () => {})
           //delete existing db
+          winston.info('Deleting DB ' + orgid)
           mcsd.deleteDB(orgid, (err) => {
+            process.exit()
             if (!err) {
               winston.info(`Uploading data for ${orgid} now`)
               let uploadReqPro = JSON.stringify({
