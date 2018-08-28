@@ -61,7 +61,7 @@ export const scoresMixin = {
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalLevels; k++) {
         if (k + 1 > this.$store.state.recoLevel) {
-          // continue
+          continue
         }
         this.$store.state.levelArray.push({
           text: 'Level ' + k,
