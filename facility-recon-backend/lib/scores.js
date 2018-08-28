@@ -12,7 +12,7 @@ const mcsd = require('./mcsd')();
 
 module.exports = function () {
   return {
-    getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
+    getJurisdictionScore (mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
       const scoreRequestId = `scoreResults${datimTopId}${clientId}`
       const scoreResults = [];
       const mapped = [];
@@ -138,11 +138,13 @@ module.exports = function () {
               var matchInDatim = mcsdDATIM.entry.find((entry)=>{
                 return entry.resource.id == match.resource.id
               })
-              thisRanking.exactMatch = {
-                name: matchInDatim.resource.name,
-                parents: datimParentNames[match.resource.id],
-                id: match.resource.id,
-              };
+              if (matchInDatim) {
+                thisRanking.exactMatch = {
+                  name: matchInDatim.resource.name,
+                  parents: datimParentNames[match.resource.id],
+                  id: match.resource.id,
+                };
+              }
               scoreResults.push(thisRanking);
               count++
               let percent = parseFloat((count*100/totalRecords).toFixed(2))
@@ -264,7 +266,6 @@ module.exports = function () {
                 let percent = parseFloat((count*100/totalRecords).toFixed(2))
                 scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
                 redisClient.set(scoreRequestId,scoreResData)
-                winston.info(`${count}/${mcsdMOH.entry.length}`);
                 return mohCallback();
               });
             }).catch((err) => {
