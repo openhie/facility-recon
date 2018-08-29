@@ -1,0 +1,16 @@
+[
+        "npm WARN deprecated hoek@2.16.3: The major version is no longer supported. Please update to 4.x or newer",
+        "npm WARN rolex@1.0.0 requires a peer of bower@* but none is installed. You must install peer dependencies yourself.",
+        "npm WARN hearth@0.1.0 No repository field.",
+        "",
+        "npm ERR! path /home/vagrant/hearth/node_modules/fhir/node_modules/path/node_modules/inherits",
+        "npm ERR! code ENOENT",
+        "npm ERR! errno -2",
+        "npm ERR! syscall rename",
+        "npm ERR! enoent ENOENT: no such file or directory, rename '/home/vagrant/hearth/node_modules/fhir/node_modules/path/node_modules/inherits' -> '/home/vagrant/hearth/node_modules/fhir/node_modules/path/node_modules/.inherits.DELETE'",
+        "npm ERR! enoent This is related to npm not being able to find a file.",
+        "npm ERR! enoent ",
+        "",
+        "npm ERR! A complete log of this run can be found in:",
+        "npm ERR!     /home/vagrant/.npm/_logs/2018-08-28T18_28_26_983Z-debug.log"
+],
