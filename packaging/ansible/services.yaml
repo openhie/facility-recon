@@ -1,0 +1,69 @@
+---
+- name: Preparation for facility reconciliation
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo) -- NOT root user or it will fail"
+      private: no
+
+  tasks:
+
+
+# hearth
+
+  - name: install systemd template for hearth service
+    template:
+      src: facility-recon-hearth.service.j2
+      dest: /etc/systemd/system/facility-recon-hearth.service
+      mode: 644
+      force: yes
+
+
+  - name: run hearth
+    service: 
+      name: facility-recon-hearth.service
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+
+# backend
+
+  - name: install systemd template for backend service
+    template:
+      src: facility-recon-backend.service.j2
+      dest: /etc/systemd/system/facility-recon-backend.service
+      mode: 644
+      force: yes
+
+
+  - name: run backend
+    service: 
+      name: facility-recon-backend.service
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+
+# frontend
+
+  - name: install systemd template for frontend service
+    template:
+      src: facility-recon-frontend.service.j2
+      dest: /etc/systemd/system/facility-recon-frontend.service
+      mode: 644
+      force: yes
+
+
+  - name: run frontend
+    service: 
+      name: facility-recon-frontend.service
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+

@@ -30,6 +30,7 @@
       state: installed
 
 
+  # redis is running under systemd
   - name: start redis
     service:
       name: redis
@@ -49,13 +50,29 @@
     register: hello
 
 
-  - debug: msg="{{ hello.stdout_lines }}"
+  - debug:
+      msg: "{{ hello.stdout_lines }}"
 
 
   - name: Ensure node
     yum: 
       name: nodejs
       state: present
+
+
+# need dev tools for compiling hearth native extensions later
+  # - name: Install build tools
+  #   yum:
+  #     name: "@Development tools"
+  #     state: present
+
+  - name: Ensure native tools for native builds
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - gcc-c++
+      - make
 
 
 # this ties the version to 3.6
@@ -70,14 +87,34 @@
       enabled: yes
 
 
+  - name: install system packages
+    package: name={{ item }} state=present
+    become: true
+    with_items:
+      - libselinux-python
+      - policycoreutils-python
+
+
+  - name: Configure SELinux
+    seport:
+      ports: 27017
+      proto: tcp
+      setype: mongod_port_t
+      state: present
+
+
   - name: install mongodb
     yum:
       name: mongodb-org
       state: present
+      # update_cache: yes
+      # disable_plugin: fastestmirror
 
 
+  # mongo is running under systemd
   - name: run mongodb
     service: 
       name: mongod
       state: started
       enabled: yes
+

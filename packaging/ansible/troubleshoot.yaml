@@ -1,0 +1,61 @@
+---
+- name: Preparation for facility reconciliation
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+
+  # mongo is running under systemd
+  - name: run mongodb
+    service: 
+      name: mongod
+      state: started
+      enabled: yes
+
+  # redis is running under systemd
+  - name: run redis
+    service:
+      name: redis
+      state: started
+      enabled: yes
+  
+  # mongo is enabled in systemctl
+  - name: mongo status is systemctl
+    command: systemctl cat mongod.service
+    register: hi
+
+
+  - debug: msg="{{ hi.stdout_lines }}"
+
+
+  - name: run backend
+    service: 
+      name: facility-recon-backend.service
+      state: started
+      enabled: yes
+    register: service1
+
+
+  - name: Debug
+    debug:
+      var: service1
+
+
+  - name: run frontend
+    service: 
+      name: facility-recon-frontend.service
+      state: started
+      enabled: yes
+    register: service2
+
+
+  - name: Debug
+    debug:
+      var: service2
