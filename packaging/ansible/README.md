@@ -19,22 +19,16 @@ localhost ansible_connection=local
 ansible-playbook -i /usr/local/etc/ansible/hosts prep_centos.yaml
 # prepare hearth, backend, frontend, and prepare the DHIS2 web application
 ansible-playbook -i /usr/local/etc/ansible/hosts install_centos.yaml
-```
-
-Stop here and `cd $HOME/hearth && npm install` through ssh:
-```sh
-cd $HOME/hearth && npm install
-```
-
-Continue:
-```
 # install into systemd and begin the hearth and backend services
 ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
-# double-check all processes are running
-ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```
 
 ### Troubeshooting
+
+* Check that all processes are running
+```
+ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
+```
 
 * Basic status
 ```
@@ -42,6 +36,14 @@ systemctl status mongod.service
 systemctl status redis.service
 systemctl status facility-recon-backend.service
 systemctl status facility-recon-hearth.service
+```
+
+* Logs
+```
+journalctl -u facility-recon-backend.service -b
+journalctl -u facility-recon-hearth.service -b
+journalctl -u mongod.service -b
+journalctl -u redis.service -b
 ```
 
 * Restart services
@@ -56,10 +58,3 @@ systemctl restart mongod.service
 systemctl restart redis.service
 ```
 
-* Logs
-```
-journalctl -u facility-recon-backend.service -b
-journalctl -u facility-recon-hearth.service -b
-journalctl -u mongod.service -b
-journalctl -u redis.service -b
-```
