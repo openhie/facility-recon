@@ -47,23 +47,3 @@
       state: started
       enabled: yes
       daemon_reload: yes
-
-
-# frontend
-
-  - name: install systemd template for frontend service
-    template:
-      src: facility-recon-frontend.service.j2
-      dest: /etc/systemd/system/facility-recon-frontend.service
-      mode: 644
-      force: yes
-
-
-  - name: run frontend
-    service: 
-      name: facility-recon-frontend.service
-      state: started
-      enabled: yes
-      daemon_reload: yes
-
-

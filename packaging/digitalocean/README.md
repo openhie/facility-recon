@@ -9,5 +9,8 @@
 ansible-playbook -i /usr/local/etc/ansible/hosts user.yaml
 ```
 
+* To add additional ssh keys to the user facility-recon then run:
 
-
+```
+ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
+```

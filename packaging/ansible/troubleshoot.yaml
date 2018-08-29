@@ -32,7 +32,8 @@
     register: hi
 
 
-  - debug: msg="{{ hi.stdout_lines }}"
+  - debug:
+      msg: "{{ hi.stdout_lines }}"
 
 
   - name: run backend
@@ -40,22 +41,27 @@
       name: facility-recon-backend.service
       state: started
       enabled: yes
-    register: service1
+  #   register: service1
 
 
-  - name: Debug
-    debug:
-      var: service1
+  # - name: Debug
+  #   debug:
+  #     var: service1
 
 
-  - name: run frontend
-    service: 
-      name: facility-recon-frontend.service
-      state: started
-      enabled: yes
-    register: service2
+  - name: hearth journalctl
+    command: journalctl -u facility-recon-hearth.service -b
+    register: hearth
 
 
-  - name: Debug
-    debug:
-      var: service2
+  - debug:
+      msg: "{{ hearth.stdout_lines }}"
+
+
+  - name: backend journalctl
+    command: journalctl -u facility-recon-backend.service -b
+    register: backend
+
+
+  - debug:
+      msg: "{{ backend.stdout_lines }}"

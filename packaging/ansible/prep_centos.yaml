@@ -54,17 +54,12 @@
       msg: "{{ hello.stdout_lines }}"
 
 
-  - name: Ensure node
-    yum: 
-      name: nodejs
+  - name: Ensure npm is latest
+    npm: 
+      name: npm
       state: present
+      global: yes
 
-
-# need dev tools for compiling hearth native extensions later
-  # - name: Install build tools
-  #   yum:
-  #     name: "@Development tools"
-  #     state: present
 
   - name: Ensure native tools for native builds
     yum:

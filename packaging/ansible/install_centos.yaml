@@ -33,16 +33,14 @@
     shell: cd $HOME/hearth && git pull
 
 
-# this fails on vagrant with vmware plugin
+# this fails
   # - name: Hearth - Install/update packages based on package.json.
   #   npm:
   #     path: $HOME/hearth
   #     state: latest
 
-
-  # this appears to only work the first time around
-  # - name: npm build of hearth
-  #   shell: cd $HOME/hearth && npm install
+  - name: npm build of hearth
+    shell: cd $HOME/hearth && npm install
 
 
 # facility-recon repos and packages
@@ -74,28 +72,30 @@
       state: latest
 
 
-  - name: Frontend - Install/update packages based on package.json.
-    npm:
-      path: $HOME/facility-recon/facility-recon-gui
-      state: latest
+  # this is no longer needed, the files are already built inside the repo
+  # - name: Frontend - Install/update packages based on package.json.
+  #   npm:
+  #     path: $HOME/facility-recon/facility-recon-gui
+  #     state: latest
 
 
 # dhis2 app
 # fyi: remote recursive copy does not work, see: https://github.com/ansible/ansible/issues/14131
 # use shell module as command module will abort on wildcard - until above fix
 
-  - name: npm build of dhis2 app
-    shell: cd $HOME/facility-recon/facility-recon-gui/ && node build/build.js
+  # this is no longer needed as the files are already built
+  # - name: npm build of dhis2 app
+  #   shell: cd $HOME/facility-recon/facility-recon-gui/ && node build/build.js
 
 
-  - name: dhis2 app was built
+  - name: checking dist folder for dhis2 app
     stat:
       path: $HOME/facility-recon/facility-recon-gui/dist
     register: huh
 
 
   - debug:
-      msg: "dhis2 app built"
+      msg: "dhis2 app was (already) built"
     when: huh.stat.exists and huh.stat.isdir
 
 
