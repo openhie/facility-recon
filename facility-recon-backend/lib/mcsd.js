@@ -876,7 +876,6 @@ module.exports = function () {
               percent,
             });
             redisClient.set(uploadRequestId, uploadReqPro);
-            winston.error(countRow + '/' + totalRows)
             winston.error('Skipped ' + JSON.stringify(data))
             return;
           }
