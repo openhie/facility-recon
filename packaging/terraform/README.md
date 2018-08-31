@@ -7,7 +7,7 @@
 curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $DO_TOKEN" "https://api.digitalocean.com/v2/account/keys"
 ```
 * Export a `TF_VAR_fingerprint` variable with the hash.
-* Get the latest droplet instances and sizes, you'll need to awesome jq parser for JSON installed.
+* Get the latest droplet instances and sizes, you'll need the awesome [jq](https://stedolan.github.io/jq/) parser for JSON installed.
 ```sh
 curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $DO_TOKEN" > droplets.json
 curl --silent -X GET "https://api.digitalocean.com/v2/sizes" -H "Authorization: Bearer $DO_TOKEN" | jq '.sizes[].slug' > sizes.json
@@ -18,7 +18,7 @@ curl --silent -X GET "https://api.digitalocean.com/v2/sizes" -H "Authorization: 
 terraform init
 terraform apply
 terraform state pull | jq --raw-output
-
+```
 Clean up.
 ```
 terraform destroy
