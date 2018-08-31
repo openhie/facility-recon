@@ -82,20 +82,22 @@
       enabled: yes
 
 
-  - name: install system packages
-    package: name={{ item }} state=present
-    become: true
-    with_items:
-      - libselinux-python
-      - policycoreutils-python
+# required for selinux
+  # - name: install system packages
+  #   package: name={{ item }} state=present
+  #   become: true
+  #   with_items:
+  #     - libselinux-python
+  #     - policycoreutils-python
 
 
-  - name: Configure SELinux
-    seport:
-      ports: 27017
-      proto: tcp
-      setype: mongod_port_t
-      state: present
+# selinux not in use
+  # - name: Configure SELinux
+  #   seport:
+  #     ports: 27017
+  #     proto: tcp
+  #     setype: mongod_port_t
+  #     state: present
 
 
   - name: install mongodb
