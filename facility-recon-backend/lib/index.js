@@ -10,12 +10,10 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const redis = require('redis')
-const request = require('request');
+const redisClient = redis.createClient()
 const URI = require('urijs');
-const isJSON = require('is-json')
 const async = require('async')
 const mongoose = require('mongoose')
-const redisClient = redis.createClient()
 const config = require('./config');
 const mcsd = require('./mcsd')();
 const scores = require('./scores')();
@@ -568,10 +566,13 @@ if (cluster.isMaster) {
       mcsd.saveMatch(mohId, datimId, orgid, recoLevel, totalLevels, type, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
-          error: err
-        });
-        else res.status(200).send();
+        if (err) {
+          res.status(401).send({
+            error: err
+          });
+        } else {
+          res.status(200).send();
+        }
       });
     });
   });
@@ -919,7 +920,6 @@ if (cluster.isMaster) {
         });
       }
     })
-
   })
 
   app.get('/uploadProgress/:orgid/:clientId', (req, res) => {

@@ -102,8 +102,6 @@ module.exports = function () {
               entityParent = mohEntry.resource.partOf.reference;
             }
             mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'names', (mohParents) => {
-
-            // mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"names",(mohParents)=>{
               const thisRanking = {};
               thisRanking.moh = {
                 name: mohEntry.resource.name,

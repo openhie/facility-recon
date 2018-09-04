@@ -182,7 +182,7 @@ export default {
     this.$root.$on('reloadTree', () => {
       this.$store.state.mohHierarchy = ''
       this.$store.state.datimHierarchy = ''
-      this.getOrgHierarchy()
+      // this.getOrgHierarchy()
     })
     this.$root.$on('refreshApp', () => {
       this.getTotalLevels()

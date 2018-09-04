@@ -1361,7 +1361,6 @@ module.exports = function () {
             });
             fs.removeSync(tmpDir.name);
             nxtList();
-
           }, () => {
             callback(error);
           });

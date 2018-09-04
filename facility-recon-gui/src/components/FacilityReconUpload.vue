@@ -403,12 +403,6 @@ export default {
       !this.$v.level1.required && errors.push('Level 1 is required')
       return errors
     },
-    level4Errors () {
-      const errors = []
-      if (!this.$v.level4.$dirty) return errors
-      !this.$v.level4.required && errors.push('Level 4 is required')
-      return errors
-    },
     filteredItemFacility () {
       let uploadedHeaders = this.uploadedHeaders
       return uploadedHeaders.filter(o => o !== this.code && o !== this.lat && o !== this.long && o !== this.level1 && o !== this.level2 && o !== this.level3 && o !== this.level4 && o !== this.level5 && o !== this.level6 && o !== this.level7)

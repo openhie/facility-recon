@@ -39,7 +39,6 @@
               {{alertTitle}}
             </v-toolbar-title>
           </v-toolbar>
-
           <v-card-text>
             {{alertText}}
           </v-card-text>

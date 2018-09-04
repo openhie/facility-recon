@@ -254,7 +254,6 @@ export default {
           this.currentDatimPagination.totalItems = hierarchy.data.total
         }
         this.loadingDatim = false
-        console.log(this.datimPages)
       })
     },
     getTree () {
