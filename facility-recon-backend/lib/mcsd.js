@@ -2,6 +2,7 @@ require('./init');
 const request = require('request');
 const URI = require('urijs');
 const uuid5 = require('uuid/v5');
+const uuid4 = require('uuid/v4');
 const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
@@ -51,6 +52,7 @@ module.exports = function () {
         },
       );
     },
+
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
@@ -284,7 +286,11 @@ module.exports = function () {
     /*
     This function finds parents of an entity from passed mCSD data
     */
-    getLocationParentsFromData(entityParent, mcsd, details, callback) {
+    getLocationParentsFromData (entityParent, mcsd, details, callback) {
+      if (mcsd.hasOwnProperty('parentCache') && mcsd.parentCache.id === entityParent && mcsd.parentCache.details === details) {
+        // return a copy
+        return callback(mcsd.parentCache.parents.slice())
+      }
       const parents = [];
       if (!mcsd.hasOwnProperty('entry') || !entityParent) {
         return callback(parents);
@@ -293,7 +299,7 @@ module.exports = function () {
         return callback(parents);
       }
 
-      function filter(entityParent, callback) {
+      function filter (entityParent, callback) {
         const splParent = entityParent.split('/');
         entityParent = splParent[(splParent.length - 1)];
 
@@ -306,9 +312,10 @@ module.exports = function () {
             long = entry.resource.position.longitude;
             lat = entry.resource.position.latitude;
           }
-          const oldEntityParent = entityParent;
           var entityParent = null;
-          if (entry.resource.hasOwnProperty('partOf')) entityParent = entry.resource.partOf.reference;
+          if (entry.resource.hasOwnProperty('partOf')) {
+            entityParent = entry.resource.partOf.reference;
+          }
 
           if (details == 'all' || !details) {
             parents.push({
@@ -317,9 +324,13 @@ module.exports = function () {
               lat,
               long,
             });
-          } else if (details == 'id') parents.push(entry.resource.id);
-          else if (details == 'names') parents.push(entry.resource.name);
-          else winston.error('parent details (either id,names or all) to be returned not specified');
+          } else if (details == 'id') {
+            parents.push(entry.resource.id);
+          } else if (details == 'names') {
+            parents.push(entry.resource.name);
+          } else {
+            winston.error('parent details (either id,names or all) to be returned not specified');
+          }
 
           if (entry.resource.hasOwnProperty('partOf') &&
             entry.resource.partOf.reference != false &&
@@ -335,9 +346,25 @@ module.exports = function () {
         }
       }
 
-      filter(entityParent, parents => callback(parents));
+      filter(entityParent, (parents) => {
+        mcsd.parentCache = {}
+        mcsd.parentCache.id = entityParent
+        mcsd.parentCache.details = details
+        mcsd.parentCache.parents = parents
+        // return a copy
+        callback(parents.slice())
+      });
     },
-
+    getBuildings(mcsd, callback) {
+      let buildings = []
+      mcsd.entry.map((entry) => {
+        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
+        if (found) {
+          buildings.push(entry)
+        }
+      })
+      return callback(buildings)
+    },
     /*
     if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
     if levelNumber is set then it returns locations at level levelNumber only
@@ -494,7 +521,6 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
-        // winston.info('Data saved successfully');
         callback(err, body);
       });
     },
@@ -536,7 +562,6 @@ module.exports = function () {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
-
               return callback(null, null);
             });
           },
@@ -614,8 +639,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        });
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -742,8 +766,7 @@ module.exports = function () {
               callback(err);
             });
           });
-        },
-      );
+        });
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -817,7 +840,7 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
-      const uploadRequestId = `uploadProgress${orgid}${clientId}`;
+      var uploadRequestId = `uploadProgress${orgid}${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -829,18 +852,14 @@ module.exports = function () {
       let countRow = 0;
 
       let totalRows = 0;
-      exec.exec(`wc -l ${filePath}`, (err, stdout, stderr) => {
-        if (err) {
-          // node couldn't execute the command
-          winston.error(err);
-          return;
-        }
-        if (stdout) {
-          totalRows = stdout.split(' ').shift();
-          //remove the first row as it is the header
-          totalRows--
-        }
-      });
+
+      let recordCount = 0
+      let saveBundle = {
+        id: uuid4(),
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: []
+      }
 
       csv
         .fromPath(filePath, {
@@ -848,232 +867,313 @@ module.exports = function () {
         })
         .on('data', (data) => {
           const jurisdictions = [];
-          promises.push(new Promise((resolve, reject) => {
-            if (data[headerMapping.facility] == '') {
-              countRow++
-              const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-              const uploadReqPro = JSON.stringify({
-                status: '4/4 Writing Uploaded data into server',
-                error: null,
-                percent,
-              });
-              redisClient.set(uploadRequestId, uploadReqPro);
-              resolve()
-              return;
-            }
-            levels.sort();
-            levels.reverse();
-            let facilityParent = null;
-            let facilityParentUUID = null;
-            async.eachSeries(levels, (level, nxtLevel) => {
-              if (data[headerMapping[level]] != null &&
-                data[headerMapping[level]] != undefined &&
-                data[headerMapping[level]] != false &&
-                data[headerMapping[level]] != ''
-              ) {
-                const name = data[headerMapping[level]];
-                const levelNumber = level.replace('level', '');
-                if (levelNumber.toString().length < 2) {
-                  var namespaceMod = `${namespace}00${levelNumber}`;
-                } else {
-                  var namespaceMod = `${namespace}0${levelNumber}`;
-                }
-
-                const UUID = uuid5(name, namespaceMod);
-                const topLevels = Array.apply(null, {
-                  length: levelNumber
-                }).map(Function.call, Number);
-                // removing zero as levels starts from 1
-                topLevels.splice(0, 1);
-                topLevels.reverse();
-                let parentFound = false;
-                let parentUUID = null;
-                let parent = null;
-                if (levelNumber == 1) {
-                  parent = orgname;
-                  parentUUID = countryUUID;
-                }
-
-                if (!facilityParent) {
-                  facilityParent = name;
-                  facilityParentUUID = UUID;
-                }
-                async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
-                  const topLevelName = `level${topLevel}`;
-                  if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
-                    parent = data[headerMapping[topLevelName]];
-                    if (topLevel.toString().length < 2) {
-                      var namespaceMod = `${namespace}00${topLevel}`;
-                    } else {
-                      var namespaceMod = `${namespace}0${topLevel}`;
-                    }
-                    parentUUID = uuid5(parent, namespaceMod);
-                    parentFound = true;
-                  }
-                  nxtTopLevel();
-                }, () => {
-                  if (!processed.includes(UUID)) {
-                    jurisdictions.push({
-                      name,
-                      parent,
-                      uuid: UUID,
-                      parentUUID,
-                    });
-                    processed.push(UUID);
-                  }
-                  nxtLevel();
-                });
+          if (data[headerMapping.facility] == '') {
+            countRow++
+            const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+            const uploadReqPro = JSON.stringify({
+              status: '4/4 Writing Uploaded data into server',
+              error: null,
+              percent,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+            winston.error('Skipped ' + JSON.stringify(data))
+            return;
+          }
+          levels.sort();
+          levels.reverse();
+          let facilityParent = null;
+          let facilityParentUUID = null;
+          async.eachSeries(levels, (level, nxtLevel) => {
+            if (data[headerMapping[level]] != null &&
+              data[headerMapping[level]] != undefined &&
+              data[headerMapping[level]] != false &&
+              data[headerMapping[level]] != ''
+            ) {
+              const name = data[headerMapping[level]];
+              const levelNumber = level.replace('level', '');
+              if (levelNumber.toString().length < 2) {
+                var namespaceMod = `${namespace}00${levelNumber}`;
               } else {
-                nxtLevel();
+                var namespaceMod = `${namespace}0${levelNumber}`;
               }
-            }, () => {
+
+              const UUID = uuid5(name, namespaceMod);
+              const topLevels = Array.apply(null, {
+                length: levelNumber
+              }).map(Function.call, Number);
+              // removing zero as levels starts from 1
+              topLevels.splice(0, 1);
+              topLevels.reverse();
+              let parentFound = false;
+              let parentUUID = null;
+              let parent = null;
+              if (levelNumber == 1) {
+                parent = orgname;
+                parentUUID = countryUUID;
+              }
+
+              if (!facilityParent) {
+                facilityParent = name;
+                facilityParentUUID = UUID;
+              }
+              async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
+                const topLevelName = `level${topLevel}`;
+                if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
+                  parent = data[headerMapping[topLevelName]];
+                  if (topLevel.toString().length < 2) {
+                    var namespaceMod = `${namespace}00${topLevel}`;
+                  } else {
+                    var namespaceMod = `${namespace}0${topLevel}`;
+                  }
+                  parentUUID = uuid5(parent, namespaceMod);
+                  parentFound = true;
+                }
+                nxtTopLevel();
+              }, () => {
+                if (!processed.includes(UUID)) {
+                  jurisdictions.push({
+                    name,
+                    parent,
+                    uuid: UUID,
+                    parentUUID,
+                  });
+                  processed.push(UUID);
+                }
+                nxtLevel();
+              });
+            } else {
+              nxtLevel();
+            }
+          }, () => {
+            if (!processed.includes(countryUUID)) {
               jurisdictions.push({
                 name: orgname,
                 parent: null,
                 uuid: countryUUID,
                 parentUUID: null,
               });
-              this.saveJurisdiction(jurisdictions, orgid, () => {
-                resolve();
-              });
-              const facilityName = data[headerMapping.facility];
-              const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
-              const building = {
-                uuid: UUID,
-                id: data[headerMapping.code],
-                name: facilityName,
-                lat: data[headerMapping.lat],
-                long: data[headerMapping.long],
-                parent: facilityParent,
-                parentUUID: facilityParentUUID,
-              };
-              this.saveBuilding(building, orgid, () => {
-                if (jurisdictions.length == 0) {
-                  resolve();
-                }
-                countRow++;
-                const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
-                const uploadReqPro = JSON.stringify({
-                  status: '4/4 Writing Uploaded data into server',
-                  error: null,
-                  percent,
-                });
-                redisClient.set(uploadRequestId, uploadReqPro);
-              });
-            });
-          }));
-        }).on('end', () => {
-          Promise.all(promises).then(() => {
-            const uploadReqPro = JSON.stringify({
-              status: 'Done',
-              error: null,
-              percent: 100,
-            });
-            redisClient.set(uploadRequestId, uploadReqPro);
-            callback();
-          });
-        });
-    },
-
-    saveJurisdiction(jurisdictions, orgid, callback) {
-      const promises = [];
-      jurisdictions.forEach((jurisdiction) => {
-        promises.push(new Promise((resolve, reject) => {
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = jurisdiction.name;
-          resource.status = 'active';
-          resource.mode = 'instance';
-          resource.id = jurisdiction.uuid;
-          resource.identifier = [];
-          resource.identifier.push({
-            system: 'http://geoalign.datim.org/MOH',
-            value: jurisdiction.uuid,
-          });
-          if (jurisdiction.parentUUID) {
-            resource.partOf = {
-              display: jurisdiction.parent,
-              reference: `Location/${jurisdiction.parentUUID}`,
+              processed.push(countryUUID);
+            }
+            recordCount += jurisdictions.length
+            this.buildJurisdiction(jurisdictions, saveBundle)
+            const facilityName = data[headerMapping.facility];
+            const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
+            const building = {
+              uuid: UUID,
+              id: data[headerMapping.code],
+              name: facilityName,
+              lat: data[headerMapping.lat],
+              long: data[headerMapping.long],
+              parent: facilityParent,
+              parentUUID: facilityParentUUID,
             };
-          }
-          resource.physicalType = {
-            coding: [{
-              code: 'jdn',
-              display: 'Jurisdiction',
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
-          };
-          const mcsd = {
-            type: 'document',
-            entry: [{
-              resource,
-            }],
-          };
-          this.saveLocations(mcsd, orgid, () => {
-            resolve();
-          });
-        }));
-      });
+            recordCount++
+            this.buildBuilding(building, saveBundle)
+            if (recordCount >= 250) {
+              const tmpBundle = { ...saveBundle
+              }
+              saveBundle = {
+                id: uuid4(),
+                resourceType: 'Bundle',
+                type: 'batch',
+                entry: []
+              }
+              recordCount = 0
+              totalRows += tmpBundle.entry.length
+              promises.push(new Promise((resolve, reject) => {
+                this.saveLocations(tmpBundle, orgid, () => {
+                  countRow += tmpBundle.entry.length
+                  const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
+                  const uploadReqPro = JSON.stringify({
+                    status: '4/4 Writing Uploaded data into server',
+                    error: null,
+                    percent,
+                  });
+                  redisClient.set(uploadRequestId, uploadReqPro);
 
-      Promise.all(promises).then(() => callback()).catch((reason) => {
-        winston.error(reason);
-      });
+                  resolve()
+                })
+              }))
+            }
+          });
+        }).on('end', () => {
+          this.saveLocations(saveBundle, orgid, () => {
+            Promise.all(promises).then(() => {
+              var uploadRequestId = `uploadProgress${orgid}${clientId}`;
+              winston.info('done')
+              const uploadReqPro = JSON.stringify({
+                status: 'Done',
+                error: null,
+                percent: 100,
+              })
+              redisClient.set(uploadRequestId, uploadReqPro)
+              callback()
+            })
+          })
+        })
     },
 
-    saveBuilding(building, orgid, callback) {
-      const resource = {};
-      resource.resourceType = 'Location';
-      resource.status = 'active';
-      resource.mode = 'instance';
-      resource.name = building.name;
-      resource.id = building.uuid;
-      resource.identifier = [];
+    buildJurisdiction(jurisdictions, bundle) {
+      jurisdictions.forEach((jurisdiction) => {
+        let resource = {}
+        resource.resourceType = 'Location'
+        resource.name = jurisdiction.name
+        resource.status = 'active'
+        resource.mode = 'instance'
+        resource.id = jurisdiction.uuid
+        resource.identifier = []
+        resource.identifier.push({
+          system: 'http://geoalign.datim.org/MOH',
+          value: jurisdiction.uuid,
+        })
+        if (jurisdiction.parentUUID) {
+          resource.partOf = {
+            display: jurisdiction.parent,
+            reference: `Location/${jurisdiction.parentUUID}`,
+          }
+        }
+        resource.physicalType = {
+          coding: [{
+            code: 'jdn',
+            display: 'Jurisdiction',
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        }
+        bundle.entry.push({
+          resource,
+          request: {
+            method: 'PUT',
+            url: 'Location/' + resource.id
+          }
+        })
+      })
+    },
+
+    buildBuilding(building, bundle) {
+      let resource = {}
+      resource.resourceType = 'Location'
+      resource.status = 'active'
+      resource.mode = 'instance'
+      resource.name = building.name
+      resource.id = building.uuid
+      resource.identifier = []
       resource.identifier.push({
         system: 'http://geoalign.datim.org/MOH',
         value: building.id,
-      });
+      })
       resource.partOf = {
         display: building.parent,
         reference: `Location/${building.parentUUID}`,
-      };
+      }
       resource.physicalType = {
         coding: [{
           code: 'bu',
           display: 'Building',
           system: 'http://hl7.org/fhir/location-physical-type',
         }],
-      };
+      }
       resource.position = {
         longitude: building.long,
         latitude: building.lat,
-      };
-      const mcsd = {
-        type: 'document',
-        entry: [{
-          resource,
-        }],
-      };
-      this.saveLocations(mcsd, orgid, () => callback());
+      }
+      bundle.entry.push({
+        resource,
+        request: {
+          method: 'PUT',
+          url: 'Location/' + resource.id
+        }
+      })
+    },
+
+    createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
+      let grid = []
+      var allCounter = 1
+      let totalBuildings = 0
+      async.each(buildings, (building, callback) => {
+        let lat = null;
+        let long = null;
+        if (building.resource.hasOwnProperty('position')) {
+          lat = building.resource.position.latitude;
+          long = building.resource.position.longitude;
+        }
+        let row = {}
+        // if no parent filter is applied then stop in here of all the conditions are satisfied
+        if (id === topOrgId) {
+          if (allCounter < start) {
+            totalBuildings++
+            allCounter++
+            return callback()
+          }
+          // if no filter is applied then return in here if the grid length is satisfied
+          if (grid.length >= count) {
+            totalBuildings++
+            return callback()
+          }
+        }
+        if (building.resource.hasOwnProperty('partOf')) {
+          this.getLocationParentsFromData(building.resource.partOf.reference, mcsdAll, 'all', (parents) => {
+            if (id !== topOrgId) {
+              var parentFound = parents.find((parent) => {
+                return parent.id === id
+              })
+              if (!parentFound) {
+                return callback()
+              }
+            }
+            parents.reverse()
+            row.facility = building.resource.name
+            row.id = building.resource.id
+            row.latitude = lat
+            row.longitude = long
+            let level = 1
+            async.eachSeries(parents, (parent, nxtParent) => {
+              row['level' + level] = parent.text
+              level++
+              return nxtParent()
+            }, () => {
+              totalBuildings++
+              if (allCounter < start) {
+                allCounter++
+                return callback()
+              }
+              if (grid.length < count) {
+                grid.push(row)
+              }
+              return callback()
+            })
+          })
+        } else if (id !== topOrgId) { //if the filter by parent is applied then dont return buildings that has no parents
+          totalBuildings++
+          return callback()
+        } else {
+          row.facility = building.resource.name
+          row.id = building.resource.id
+          row.latitude = lat
+          row.longitude = long
+          totalBuildings++
+          if (grid.length < count) {
+            grid.push(row)
+          }
+        }
+      }, () => {
+        return callback(grid, totalBuildings)
+      })
     },
 
     createTree(mcsd, source, database, topOrg, callback) {
       const tree = [];
       const lookup = [];
       const addLater = {};
-
       async.each(mcsd.entry, (entry, callback1) => {
-        let lat = null;
-        let long = null;
-        const id = entry.resource.id;
-        if (entry.resource.hasOwnProperty('position')) {
-          lat = entry.resource.position.latitude;
-          long = entry.resource.position.longitude;
+        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
+        if (found) {
+          return callback1()
         }
+
+        const id = entry.resource.id;
         const item = {
           text: entry.resource.name,
           id,
-          lat,
-          long,
           children: [],
         };
         lookup[id] = item;
@@ -1200,30 +1300,18 @@ module.exports = function () {
         exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
-        tar.c({
-          file: `${dir}/${name}.tar`,
-          cwd: tmpDir.name,
-          sync: true,
-        }, [db]);
+        if (fs.existsSync(tmpDir.name + "/" + db)) {
+          tar.c({
+            file: `${dir}/${name}.tar`,
+            cwd: tmpDir.name,
+            sync: true,
+          }, [db]);
+        } else {
+          winston.info(`No archive created because no database exists: ${db}`)
+        }
         fs.removeSync(tmpDir.name);
         nxtList();
 
-        /*
-        mongoBackup ({
-          uri: uri,
-          root: dir,
-          tar: `${name}.tar`,
-          callback: (err) => {
-            if (err) {
-              error = err
-              winston.error(err);
-            } else {
-              winston.info(db + ' archived successfully');
-            }
-            return nxtList()
-          }
-        })
-        */
       }, () => {
         callback(error);
       });
@@ -1273,33 +1361,6 @@ module.exports = function () {
             });
             fs.removeSync(tmpDir.name);
             nxtList();
-
-            /*
-            mongoRestore ({
-              uri: uri,
-              root: `${__dirname}/dbArchives`,
-              tar: archive,
-              callback: (err) => {
-                if (err) {
-                  error = err
-                  winston.error(err);
-                } else {
-                  winston.info(archive + ' restored successfully');
-                }
-                winston.info('Deleting Archive ' + archive)
-                var fileDelete = `${__dirname}/dbArchives/${archive}`
-                fs.unlink(fileDelete,(err)=>{
-                  if(err) {
-                    winston.error(err)
-                  }
-                  if(!db.includes('MOHDATIM')){
-                    me.cleanArchives(db,()=>{})
-                  }
-                  return nxtList()
-                })
-              }
-            })
-            */
           }, () => {
             callback(error);
           });

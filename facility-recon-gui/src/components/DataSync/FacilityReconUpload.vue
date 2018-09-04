@@ -48,7 +48,7 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" persistent width="300">
+    <v-dialog v-model="uploadPrepaProgr" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
@@ -56,7 +56,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" persistent width="270">
+    <v-dialog v-model="percentDialog" hide-overlay persistent width="270">
       <v-card color="white" dark>
         <v-card-text>
           <center>
@@ -87,7 +87,6 @@
                 <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
-
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
@@ -134,7 +133,7 @@
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel2" v-model="level2" @blur="$v.level2.$touch()" @change="$v.level2.$touch()" :error-messages="level2Errors" label="Select" required single-line clearable></v-select>
+                    <v-select :items="filteredItemLevel2" v-model="level2" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 3'>
@@ -191,7 +190,6 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
-import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
 
 const config = require('../../../config')
@@ -242,13 +240,7 @@ export default {
     },
     level1: {
       required: required
-    },
-    level2: {
-      required: required
     }
-  },
-  components: {
-    appFacilityReconDbAdmin: FacilityReconDbAdmin
   },
   methods: {
     fileSelected (e) {
@@ -318,7 +310,7 @@ export default {
           }
           this.uploadPercent = uploadProgress.data.percent
         }
-        if (uploadProgress.data.status === 'Done') {
+        if (uploadProgress.data.status === 'Done' || uploadProgress.data.status >= 100) {
           clearInterval(this.UploadProgressTimer)
           this.$root.$emit('recalculateScores')
           this.$root.$emit('reloadTree')
@@ -404,26 +396,6 @@ export default {
       const errors = []
       if (!this.$v.level1.$dirty) return errors
       !this.$v.level1.required && errors.push('Level 1 is required')
-      return errors
-    },
-    level2Errors () {
-      const errors = []
-      if (!this.$v.level2.$dirty) return errors
-      !this.$v.level2.required && errors.push('Level 2 is required')
-      return errors
-    },
-    /*
-    level3Errors () {
-      const errors = []
-      if (!this.$v.level3.$dirty) return errors
-      !this.$v.level3.required && errors.push('Level 3 is required')
-      return errors
-    },
-    */
-    level4Errors () {
-      const errors = []
-      if (!this.$v.level4.$dirty) return errors
-      !this.$v.level4.required && errors.push('Level 4 is required')
       return errors
     },
     filteredItemFacility () {

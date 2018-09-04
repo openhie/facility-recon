@@ -10,7 +10,6 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const redis = require('redis');
-
 const redisClient = redis.createClient();
 const URI = require('urijs');
 const async = require('async');
@@ -209,7 +208,72 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/hierarchy/:source', (req, res) => {
+  app.get('/hierarchy/:source/:id/:start/:count', (req, res) => {
+    if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
+      winston.error({
+        error: 'Missing Orgid or source',
+      });
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(401).json({
+        error: 'Missing Orgid or source',
+      });
+    } else {
+      const topOrgId = req.query.OrgId;
+      const count = req.params.count
+      const start = req.params.start
+      const id = req.params.id
+      const source = req.params.source.toUpperCase();
+      if (source == 'DATIM') {
+        var database = config.getConf('mCSD:database');
+      } else if (source == 'MOH') {
+        var database = topOrgId;
+      }
+      winston.info(`Fetching ${source} Locations For ${topOrgId}`);
+      if (source == 'MOH') {
+        var database = topOrgId;
+        var locationReceived = new Promise((resolve, reject) => {
+          mcsd.getLocations(database, (mcsdData) => {
+            mcsd.getBuildings(mcsdData, (buildings) => {
+              resolve({
+                buildings,
+                mcsdData
+              })
+              winston.info(`Done Fetching ${source} Locations`);
+            });
+          });
+        });
+      } else if (source == 'DATIM') {
+        var database = config.getConf('mCSD:database');
+        var locationReceived = new Promise((resolve, reject) => {
+          mcsd.getLocationChildren(database, topOrgId, (mcsdData) => {
+            mcsd.getBuildings(mcsdData, (buildings) => {
+              resolve({
+                buildings,
+                mcsdData
+              })
+              winston.info(`Done Fetching ${source} Locations`);
+            });
+          });
+        });
+      }
+
+      locationReceived.then((data) => {
+        winston.info(`Creating ${source} Grid`);
+        mcsd.createGrid(id, topOrgId, data.buildings, data.mcsdData, start, count, (grid, total) => {
+          winston.info(`Done Creating ${source} Grid`);
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(200).json({
+            grid,
+            total
+          });
+        })
+      }).catch((err) => {
+        winston.error(err)
+      })
+    }
+  });
+
+  app.get('/getTree/:source', (req, res) => {
     if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
       winston.error({
         error: 'Missing Orgid or source',
@@ -523,7 +587,9 @@ if (cluster.isMaster) {
           res.status(401).send({
             error: err,
           });
-        } else res.status(200).send();
+        } else {
+          res.status(200).send();
+        }
       });
     });
   });
@@ -899,6 +965,8 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId;
     redisClient.get(`uploadProgress${orgid}${clientId}`, (error, results) => {
       results = JSON.parse(results);
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results);
       // reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
         const uploadRequestId = `uploadProgress${orgid}${clientId}`;
@@ -909,8 +977,6 @@ if (cluster.isMaster) {
         });
         redisClient.set(uploadRequestId, uploadReqPro);
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results);
     });
   });
 
@@ -919,6 +985,8 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId;
     redisClient.get(`mappingStatus${orgid}${clientId}`, (error, results) => {
       results = JSON.parse(results);
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results);
       // reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
         const statusRequestId = `mappingStatus${orgid}${clientId}`;
@@ -929,8 +997,6 @@ if (cluster.isMaster) {
         });
         redisClient.set(statusRequestId, statusResData);
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results);
     });
   });
 
@@ -939,6 +1005,8 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId;
     redisClient.get(`scoreResults${orgid}${clientId}`, (error, results) => {
       results = JSON.parse(results);
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(200).json(results);
       // reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
         const scoreRequestId = `scoreResults${orgid}${clientId}`;
@@ -949,8 +1017,6 @@ if (cluster.isMaster) {
         });
         redisClient.set(scoreRequestId, uploadReqPro);
       }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(200).json(results);
     });
   });
 
@@ -1073,6 +1139,14 @@ if (cluster.isMaster) {
         res.end();
         return;
       }
+      if (Object.keys(files).length == 0) {
+        winston.error('No file submitted for reconciliation');
+        res.status(401).json({
+          error: 'Please submit CSV file for facility reconciliation'
+        });
+        res.end();
+        return;
+      }
       const fileName = Object.keys(files)[0];
       winston.info('validating CSV File');
       validateCSV(fields, (valid, missing) => {
@@ -1086,11 +1160,10 @@ if (cluster.isMaster) {
           });
           res.end();
           return;
+        } else {
+          res.set('Access-Control-Allow-Origin', '*');
+          res.status(200).end();
         }
-
-        res.set('Access-Control-Allow-Origin', '*');
-        res.status(200).end();
-
         winston.info('CSV File Passed Validation');
         // archive existing DB first
         const uploadReqPro = JSON.stringify({
@@ -1119,6 +1192,7 @@ if (cluster.isMaster) {
           redisClient.set(uploadRequestId, uploadReqPro);
           mcsd.cleanArchives(orgid, () => {});
           // delete existing db
+          winston.info('Deleting DB ' + orgid)
           mcsd.deleteDB(orgid, (err) => {
             if (!err) {
               winston.info(`Uploading data for ${orgid} now`);

@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import FacilityReconHome from '@/components/FacilityReconHome'
 import FacilityReconUpload from '@/components/DataSync/FacilityReconUpload'
 import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
@@ -14,7 +13,7 @@ export default new Router({
   routes: [{
     path: '/',
     name: 'FacilityReconHome',
-    component: FacilityReconHome
+    component: FacilityReconScores
   },
   {
     path: '/upload',

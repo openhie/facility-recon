@@ -87,7 +87,6 @@
                 <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
-
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
@@ -134,7 +133,7 @@
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel2" v-model="level2" @blur="$v.level2.$touch()" @change="$v.level2.$touch()" :error-messages="level2Errors" label="Select" required single-line clearable></v-select>
+                    <v-select :items="filteredItemLevel2" v-model="level2" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
                 <template v-if='$store.state.totalLevels-1 > 3'>
@@ -241,9 +240,6 @@ export default {
       required: required
     },
     level1: {
-      required: required
-    },
-    level2: {
       required: required
     }
   },
@@ -404,26 +400,6 @@ export default {
       const errors = []
       if (!this.$v.level1.$dirty) return errors
       !this.$v.level1.required && errors.push('Level 1 is required')
-      return errors
-    },
-    level2Errors () {
-      const errors = []
-      if (!this.$v.level2.$dirty) return errors
-      !this.$v.level2.required && errors.push('Level 2 is required')
-      return errors
-    },
-    /*
-    level3Errors () {
-      const errors = []
-      if (!this.$v.level3.$dirty) return errors
-      !this.$v.level3.required && errors.push('Level 3 is required')
-      return errors
-    },
-    */
-    level4Errors () {
-      const errors = []
-      if (!this.$v.level4.$dirty) return errors
-      !this.$v.level4.required && errors.push('Level 4 is required')
       return errors
     },
     filteredItemFacility () {

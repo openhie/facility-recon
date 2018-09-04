@@ -63,7 +63,10 @@ export const scoresMixin = {
         if (k + 1 > this.$store.state.recoLevel) {
           continue
         }
-        this.$store.state.levelArray.push({text: 'Level ' + k, value: k + 1})
+        this.$store.state.levelArray.push({
+          text: 'Level ' + k,
+          value: k + 1
+        })
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
         this.getDatimUnmached()
