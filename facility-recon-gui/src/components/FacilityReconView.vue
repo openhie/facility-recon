@@ -6,21 +6,53 @@
         <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
       </v-alert>
     </template>
+    <v-dialog persistent v-model="editDialog" width="830px">
+      <v-card width='830px'>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="editDialog = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-title>
+          title
+        </v-card-title>
+        <v-card-text>
+          <v-layout wrap>
+            <v-flex xs12 sm6 md4 v-for='(location,index) in locationDetails' v-bind:key='index'>
+              <v-text-field v-model="location.name" :label="headerText[index]" v-if="location.hasOwnProperty('name')"></v-text-field>
+              <v-text-field v-model="locationDetails[index]" :label="headerText[index]" v-else></v-text-field>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+        <v-card-actions style='float: center'>
+          <v-btn color="primary" dark @click.native="match('match')">
+            <v-icon left>thumb_up</v-icon>Save
+          </v-btn>
+          <v-btn color="orange darken-2" @click.native="editDialog = false" style="color: white">
+            <v-icon dark left>cancel</v-icon>Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-slide-y-transition mode="out-in">
         <v-layout row wrap>
           <v-flex xs6>
             <v-card>
               <v-card-title primary-title>
-                <h3 class="headline mb-0">MOH Data Tree</h3>
+                <h3 class="headline mb-0">MoH Data Tree</h3>
               </v-card-title>
-              <template v-if="mohTree.length == 0">
+              <template v-if="!$store.state.mohHierarchy.data">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-text>
                   <p>
-                    <liquor-tree @node:selected="mohNodeSelected" :data="mohTree" :options="{}" ref="mohTree" />
+                    <liquor-tree :data="$store.state.mohHierarchy.data" :options="{}" ref="mohTree" />
                   </p>
                 </v-card-text>
               </template>
@@ -31,13 +63,13 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">DATIM Data Tree</h3>
               </v-card-title>
-              <template v-if="datimTree.length == 0">
+              <template v-if="!datimTreeData">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-text>
                   <p>
-                    <liquor-tree @node:selected="datimNodeSelected" :data="datimTree" :options="{}" ref="datimTree" />
+                    <liquor-tree :data="datimTreeData" :options="{}" ref="datimTree" />
                   </p>
                 </v-card-text>
               </template>
@@ -56,9 +88,14 @@
                   <v-text-field v-model="searchMOH" append-icon="search" label="Search" single-line hide-details></v-text-field>
                 </v-card-title>
                 <v-card-text>
-                  <v-data-table :headers="mohGridHeader" :items="mohGrid" :search="searchMOH" :pagination.sync="mohPagination" :total-items="totalMohRecords" :loading="loadingMoh" hide-actions class="elevation-1">
+                  <v-data-table :headers="mohGridHeader" :items="mohGridData" :search="searchMOH" :pagination.sync="mohPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in mohGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in mohGridHeader' v-if="header.value != 'action' && props.item[header.value].hasOwnProperty('id')" style="white-space:nowrap;overflow: hidden;">{{props.item[header.value].name}}</td>
+                      <td v-for='header in mohGridHeader' v-if="header.value != 'action' && !props.item[header.value].hasOwnProperty('id')" style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td>
+                        <v-icon style="cursor: pointer" @click="editLocation(props.item)">edit</v-icon>
+                        <v-icon>delete</v-icon>
+                      </td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -81,9 +118,9 @@
                   <v-text-field v-model="searchDATIM" append-icon="search" label="Search" single-line hide-details></v-text-field>
                 </v-card-title>
                 <v-card-text>
-                  <v-data-table :headers="datimGridHeader" :items="datimGrid" :search="searchDATIM" :pagination.sync="datimPagination" :total-items="totalDatimRecords" :loading="loadingDatim" hide-actions class="elevation-1">
+                  <v-data-table :headers="datimGridHeader" :items="datimGridData" :search="searchDATIM" :pagination.sync="datimPagination" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in datimGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in datimGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value] | formatGridData}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -110,14 +147,35 @@
 
 <script scoped>
 import LiquorTree from 'liquor-tree'
-import axios from 'axios'
-const config = require('../../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+
+const addChildren = (treeData, results, filter, ...rest) => {
+  for (const node of treeData) {
+    if (node.children && node.children.length > 0) {
+      addChildren(node.children, results, filter, { name: node.text, id: node.id }, ...rest)
+    } else {
+      let row = {}
+      for (let i = rest.length - 1, level = 1; i >= 0; i = i - 1, level++) {
+        if (level === 1) {
+          continue
+        }
+        row['level' + level] = rest[i]
+      }
+      row.facility = { name: node.text, id: node.id }
+      row.latitude = node.lat
+      row.longitude = node.long
+      // Do nothing for level1 since that's the whole country
+      if (filter.level === '' || filter.level === 'level1' ? true : row[filter.level] && row[filter.level] === filter.text) {
+        results.push(row)
+      }
+    }
+  }
+}
 
 export default {
   data () {
     return {
+      editDialog: false,
+      locationDetails: {},
       headerText: {
         level2: 'Level 1',
         level3: 'Level 2',
@@ -146,129 +204,67 @@ export default {
       filterMOH: { text: '', level: '' },
       filterDATIM: { text: '', level: '' },
       datimPagination: { rowsPerPage: 20 },
-      mohPagination: { rowsPerPage: 20 },
-      loadingMoh: false,
-      loadingDatim: false,
-      totalMohRecords: 0,
-      totalDatimRecords: 0,
-      datimGrid: '',
-      mohGrid: '',
-      mohTree: [],
-      datimTree: [],
-      mohStart: 1,
-      datimStart: 1,
-      mohCount: 10,
-      datimCount: 10,
-      currentDatimPagination: {}
+      mohPagination: { rowsPerPage: 20 }
+    }
+  },
+  filters: {
+    formatGridData (data) {
+      if (data === '' || data === undefined || data === null || !data) {
+        return data
+      } else if (data.hasOwnProperty('id')) {
+        return data.name
+      } else {
+        return data
+      }
     }
   },
   methods: {
-    getMohGrid (id) {
-      this.loadingMoh = true
-      var orgUnit = this.$store.state.orgUnit
-      if (!id) {
-        id = orgUnit.OrgId
-      }
-      axios.get(backendServer + '/hierarchy/moh/' + id + '/' + this.mohStart + '/' + this.mohCount, { params: orgUnit }).then((hierarchy) => {
-        const { sortBy, descending, page, rowsPerPage } = this.mohPagination
-        if (this.mohPagination.sortBy) {
-          hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
-            const sortA = a[sortBy]
-            const sortB = b[sortBy]
-
-            if (descending) {
-              if (sortA < sortB) return 1
-              if (sortA > sortB) return -1
-              return 0
-            } else {
-              if (sortA < sortB) return -1
-              if (sortA > sortB) return 1
-              return 0
-            }
-          })
-        }
-        this.mohGrid = hierarchy.data.grid
-        this.totalMohRecords = hierarchy.data.total
-        this.loadingMoh = false
-      })
-    },
-    getDatimGrid (id) {
-      this.loadingDatim = true
-      let orgUnit = this.$store.state.orgUnit
-      if (!id) {
-        id = orgUnit.OrgId
-      }
-      alert(id)
-      axios.get(backendServer + '/hierarchy/datim/' + id + '/' + this.datimStart + '/' + this.datimCount, { params: orgUnit }).then((hierarchy) => {
-        this.currentDatimPagination = Object.assign({}, this.datimPagination)
-        const { sortBy, descending, page, rowsPerPage } = this.datimPagination
-        if (this.datimPagination.sortBy) {
-          hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
-            const sortA = a[sortBy]
-            const sortB = b[sortBy]
-
-            if (descending) {
-              if (sortA < sortB) return 1
-              if (sortA > sortB) return -1
-              return 0
-            } else {
-              if (sortA < sortB) return -1
-              if (sortA > sortB) return 1
-              return 0
-            }
-          })
-        }
-        this.datimGrid = hierarchy.data.grid
-        this.totalDatimRecords = hierarchy.data.total
-        this.loadingDatim = false
-      })
-    },
-    getTree () {
-      var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/getTree/datim', { params: orgUnit }).then((hierarchy) => {
-        this.datimTree = hierarchy.data
-      })
-
-      axios.get(backendServer + '/getTree/moh/', { params: orgUnit }).then((hierarchy) => {
-        this.mohTree = hierarchy.data
-      })
-    },
-    mohNodeSelected (node) {
-      this.getMohGrid(node.id)
-    },
-    datimNodeSelected (node) {
-      this.getDatimGrid(node.id)
+    editLocation (item) {
+      this.editDialog = true
+      this.locationDetails = item
     }
   },
   computed: {
+    datimGridData () {
+      var results = []
+      addChildren(this.datimTreeData, results, this.filterDATIM)
+      return results
+    },
     datimGridHeader () {
       let header = []
       let gridWithAllHeaders = []
-      if (this.datimGrid && this.datimGrid.length > 0) {
-        for (var grid in this.datimGrid) {
-          if (gridWithAllHeaders.length > 0 && this.datimGrid[grid].length > gridWithAllHeaders[0].length) {
-            gridWithAllHeaders = this.datimGrid[grid]
+      if (this.datimGridData && this.datimGridData.length > 0) {
+        for (var grid in this.datimGridData) {
+          if (gridWithAllHeaders.length > 0 && this.datimGridData[grid].length > gridWithAllHeaders[0].length) {
+            gridWithAllHeaders = this.datimGridData[grid]
           } else {
-            gridWithAllHeaders = this.datimGrid[grid]
+            gridWithAllHeaders = this.datimGridData[grid]
           }
         }
       }
 
       for (const key in gridWithAllHeaders) {
-        if (this.headerText[key]) {
-          header.push({ text: this.headerText[key], value: key })
-        }
+        header.push({ text: this.headerText[key], value: key })
       }
       return header
     },
+    mohGridData () {
+      var results = []
+      addChildren(this.mohTreeData, results, this.filterMOH)
+      return results
+    },
     mohGridHeader () {
       let header = []
-      if (this.mohGrid && this.mohGrid.length > 0) {
-        for (const key in this.mohGrid[0]) {
-          if (this.headerText[key]) {
-            header.push({ text: this.headerText[key], value: key })
-          }
+      if (this.mohGridData && this.mohGridData.length > 0) {
+        for (const key in this.mohGridData[0]) {
+          header.push({ text: this.headerText[key], value: key })
         }
+      }
+      if (header.length > 0) {
+        header.push({
+          text: 'Action',
+          value: 'action'
+        })
       }
       return header
     },
@@ -276,43 +272,19 @@ export default {
       if (this.datimPagination.rowsPerPage == null || this.datimPagination.totalItems == null) {
         return 0
       }
-      return Math.ceil(this.datimPagination.totalItems / this.datimCount)
+      return Math.ceil(this.datimPagination.totalItems / this.datimPagination.rowsPerPage)
     },
     mohPages () {
       if (this.mohPagination.rowsPerPage == null || this.mohPagination.totalItems == null) {
         return 0
       }
-      return Math.ceil(this.mohPagination.totalItems / this.mohCount)
+      return Math.ceil(this.mohPagination.totalItems / this.mohPagination.rowsPerPage)
     },
     datimTreeData () {
-      return this.datimGrid
+      return this.$store.state.datimHierarchy.data
     },
     mohTreeData () {
-      return this.mohGrid
-    }
-  },
-  watch: {
-    mohPagination: {
-      handler () {
-        let page = this.mohPagination.page - 1
-        this.mohStart = page * this.mohCount + 1
-        this.getMohGrid()
-      },
-      deep: true
-    },
-    datimPagination: {
-      handler () {
-        if (this.currentDatimPagination.sortBy === this.datimPagination.sortBy &&
-          this.currentDatimPagination.descending === this.datimPagination.descending &&
-          this.currentDatimPagination.page === this.datimPagination.page
-        ) {
-          return
-        }
-        let page = this.datimPagination.page - 1
-        this.datimStart = page * this.datimCount + 1
-        this.getDatimGrid()
-      },
-      deep: true
+      return this.$store.state.mohHierarchy.data
     }
   },
   mounted () {
@@ -341,9 +313,6 @@ export default {
       }
     }
     setListener()
-    this.getMohGrid()
-    this.getDatimGrid()
-    this.getTree()
   },
   components: {
     'liquor-tree': LiquorTree

@@ -19,7 +19,6 @@ const tar = require('tar');
 const tmp = require('tmp');
 const config = require('./config');
 
-
 module.exports = function () {
   return {
     getLocations(database, callback) {
@@ -52,7 +51,6 @@ module.exports = function () {
         },
       );
     },
-
     getLocationByID(database, id, getCached, callback) {
       if (id) {
         var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
@@ -339,16 +337,7 @@ module.exports = function () {
 
       filter(entityParent, parents => callback(parents));
     },
-    getBuildings(mcsd, callback) {
-      let buildings = []
-      mcsd.entry.map((entry) => {
-        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
-        if (found) {
-          buildings.push(entry)
-        }
-      })
-      return callback(buildings)
-    },
+
     /*
     if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
     if levelNumber is set then it returns locations at level levelNumber only
@@ -378,7 +367,7 @@ module.exports = function () {
       if (totalLevels) {
         mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
       }
-      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'bu');
+      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'building');
 
       if (building) {
         mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
@@ -547,6 +536,7 @@ module.exports = function () {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
               }
+
               return callback(null, null);
             });
           },
@@ -624,7 +614,8 @@ module.exports = function () {
               callback(err);
             });
           });
-        });
+        },
+      );
     },
     acceptFlag(datimId, topOrgId, callback) {
       const database = config.getConf('mapping:dbPrefix') + topOrgId;
@@ -751,7 +742,8 @@ module.exports = function () {
               callback(err);
             });
           });
-        });
+        },
+      );
     },
     breakMatch(id, database, topOrgId, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
@@ -825,7 +817,7 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
-      var uploadRequestId = `uploadProgress${orgid}${clientId}`;
+      const uploadRequestId = `uploadProgress${orgid}${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
       var orgid = headerMapping.orgid;
@@ -849,7 +841,7 @@ module.exports = function () {
           totalRows--
         }
       });
-      winston.error(totalRows)
+
       csv
         .fromPath(filePath, {
           headers: true,
@@ -866,8 +858,6 @@ module.exports = function () {
                 percent,
               });
               redisClient.set(uploadRequestId, uploadReqPro);
-              winston.error(countRow + '/' + totalRows)
-              winston.error('Skipped ' + JSON.stringify(data))
               resolve()
               return;
             }
@@ -937,6 +927,15 @@ module.exports = function () {
                 nxtLevel();
               }
             }, () => {
+              jurisdictions.push({
+                name: orgname,
+                parent: null,
+                uuid: countryUUID,
+                parentUUID: null,
+              });
+              this.saveJurisdiction(jurisdictions, orgid, () => {
+                resolve();
+              });
               const facilityName = data[headerMapping.facility];
               const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
               const building = {
@@ -949,6 +948,9 @@ module.exports = function () {
                 parentUUID: facilityParentUUID,
               };
               this.saveBuilding(building, orgid, () => {
+                if (jurisdictions.length == 0) {
+                  resolve();
+                }
                 countRow++;
                 const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
                 const uploadReqPro = JSON.stringify({
@@ -957,25 +959,11 @@ module.exports = function () {
                   percent,
                 });
                 redisClient.set(uploadRequestId, uploadReqPro);
-                winston.error(countRow + '/' + totalRows)
-                if (jurisdictions.length == 0) {
-                  resolve();
-                }
-                jurisdictions.push({
-                  name: orgname,
-                  parent: null,
-                  uuid: countryUUID,
-                  parentUUID: null,
-                });
-                this.saveJurisdiction(jurisdictions, orgid, () => {
-                  resolve();
-                });
               });
             });
           }));
         }).on('end', () => {
           Promise.all(promises).then(() => {
-            var uploadRequestId = `uploadProgress${orgid}${clientId}`;
             const uploadReqPro = JSON.stringify({
               status: 'Done',
               error: null,
@@ -1068,74 +1056,24 @@ module.exports = function () {
       this.saveLocations(mcsd, orgid, () => callback());
     },
 
-    createGrid(id, topOrgId, buildings, mcsdAll, start, count, callback) {
-      let grid = []
-      var allCounter = 1
-      var limitCounter = 1
-      var cnt = 0
-      async.each(buildings, (building, callback) => {
-        cnt++
-        winston.error(cnt + '/' + buildings.length)
-        if (allCounter < start) {
-          return callback()
-        }
-        if (limitCounter > count) {
-          return callback()
-        }
-        let lat = null;
-        let long = null;
-        if (building.resource.hasOwnProperty('position')) {
-          lat = building.resource.position.latitude;
-          long = building.resource.position.longitude;
-        }
-        let row = {}
-        if (building.resource.hasOwnProperty('partOf')) {
-          this.getLocationParentsFromData(building.resource.partOf.reference, mcsdAll, 'all', (parents) => {
-            if (id !== topOrgId) {
-              var parentFound = parents.find((parent) => {
-                return parent.id === id
-              })
-              if (!parentFound) {
-                return callback()
-              }
-            }
-            parents.reverse()
-            row.facility = building.resource.name
-            row.id = building.resource.id
-            row.latitude = lat
-            row.longitude = long
-            let level = 1
-            async.eachSeries(parents, (parent, nxtParent) => {
-              row['level' + level] = parent.text
-              level++
-              return nxtParent()
-            }, () => {
-              allCounter++
-              limitCounter++
-              grid.push(row)
-              return callback()
-            })
-          })
-        }
-      }, () => {
-        return callback(grid, buildings.length)
-      })
-    },
-
     createTree(mcsd, source, database, topOrg, callback) {
       const tree = [];
       const lookup = [];
       const addLater = {};
-      async.each(mcsd.entry, (entry, callback1) => {
-        var found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu')
-        if (found) {
-          return callback1()
-        }
 
+      async.each(mcsd.entry, (entry, callback1) => {
+        let lat = null;
+        let long = null;
         const id = entry.resource.id;
+        if (entry.resource.hasOwnProperty('position')) {
+          lat = entry.resource.position.latitude;
+          long = entry.resource.position.longitude;
+        }
         const item = {
           text: entry.resource.name,
           id,
+          lat,
+          long,
           children: [],
         };
         lookup[id] = item;
@@ -1369,7 +1307,6 @@ module.exports = function () {
       });
     },
     deleteDB(db, callback) {
-      return callback(false)
       const dbList = [];
       dbList.push(db);
       dbList.push(`MOHDATIM${db}`);

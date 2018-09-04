@@ -201,30 +201,6 @@
 						</v-chip>
 					</v-flex>
 					<v-flex xs1>
-						<v-chip color="green" text-color='white' style='height:138px;width:143px'>
-							<v-layout column>
-								<v-flex xs1>
-									<v-icon light>thumb_down</v-icon>
-									<b>MOH Not Mapped</b>
-								</v-flex>
-								<v-flex xs1 align-center>
-									<center>
-										<b>{{totalNotMapped}}/{{totalRecords}}</b>
-									</center>
-								</v-flex>
-								<v-flex xs1>
-									<center>
-										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMappedLevel" color="yellow">
-											<font color="white">
-												<b>{{ mohPercentNotMappedLevel }}%</b>
-											</font>
-										</v-progress-circular>
-									</center>
-								</v-flex>
-							</v-layout>
-						</v-chip>
-					</v-flex>
-					<v-flex xs1>
 						<v-chip color="green" text-color='white' style='height:138px;width:137px'>
 							<v-layout column>
 								<v-flex xs1>
@@ -265,6 +241,30 @@
 										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
 											<font color="white">
 												<b>{{ mohPercentFlagged }}%</b>
+											</font>
+										</v-progress-circular>
+									</center>
+								</v-flex>
+							</v-layout>
+						</v-chip>
+					</v-flex>
+					<v-flex xs1>
+						<v-chip color="green" text-color='white' style='height:138px;width:143px'>
+							<v-layout column>
+								<v-flex xs1>
+									<v-icon light>thumb_down</v-icon>
+									<b>MOH Not Mapped</b>
+								</v-flex>
+								<v-flex xs1 align-center>
+									<center>
+										<b>{{totalNotMapped}}/{{totalRecords}}</b>
+									</center>
+								</v-flex>
+								<v-flex xs1>
+									<center>
+										<v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMappedLevel" color="yellow">
+											<font color="white">
+												<b>{{ mohPercentNotMappedLevel }}%</b>
 											</font>
 										</v-progress-circular>
 									</center>
@@ -362,201 +362,201 @@ const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
-	mixins: [scoresMixin],
-	data () {
-		return {
-			matchedHeaders: [
-				{ text: 'MOH Location', value: 'mohName' },
-				{ text: 'MOH ID', value: 'mohId' },
-				{ text: 'DATIM Location', value: 'datimName' },
-				{ text: 'DATIM ID', value: 'datimId' }
-			],
-			noMatchHeaders: [
-				{ text: 'MOH Location', value: 'mohName' },
-				{ text: 'MOH ID', value: 'mohId' }
-			],
-			notMappedHeaders: [
-				{ text: 'MOH Location', value: 'mohName' },
-				{ text: 'MOH ID', value: 'mohId' }
-			],
-			flaggedHeaders: [
-				{ text: 'MOH Location', value: 'mohName' },
-				{ text: 'MOH ID', value: 'mohId' },
-				{ text: 'DATIM Location', value: 'datimName' },
-				{ text: 'DATIM ID', value: 'datimId' }
-			],
-			searchMatched: '',
-			mappingData: {},
-			recoLevel: 2,
-			mappingStatusDialog: false,
-			mappingStatusProgressTitle: 'Waiting for progress status',
-			mappingStatusProgressPercent: 0
-		}
-	},
-	methods: {
-		checkMappingStatusProgress () {
-			const orgId = this.$store.state.orgUnit.OrgId
-			const clientId = this.$store.state.clientId
-			axios.get(backendServer + '/mappingStatusProgress/' + orgId + '/' + clientId).then((mappingStatusProgress) => {
-				if (mappingStatusProgress.data === null || mappingStatusProgress.data === undefined || mappingStatusProgress.data === false) {
-					clearInterval(this.mappingStatusProgressTimer)
-					return
-				}
-				this.mappingStatusProgressTitle = mappingStatusProgress.data.status
-				if (mappingStatusProgress.data.percent) {
-					if (this.progressType !== 'percent') {
-						this.progressType = 'percent'
-					}
-					this.mappingStatusProgressPercent = mappingStatusProgress.data.percent
-				}
-				if (mappingStatusProgress.data.status === 'Done') {
-					clearInterval(this.mappingStatusProgressTimer)
-					this.mappingStatusDialog = false
-					this.mappingStatusProgressTitle = 'Waiting for progress status'
-				}
-			}).catch((err) => {
-				console.log(err)
-			})
-		},
-		mappingStatus () {
-			var orgUnit = this.$store.state.orgUnit
-			this.mappingData = {}
-			const clientId = this.$store.state.clientId
-			this.mappingStatusDialog = true
-			this.progressType = 'indeterminate'
-			axios.get(backendServer + '/mappingStatus/' + orgUnit.OrgId + '/' + this.recoLevel + '/' + clientId).then((mappingStatus) => {
-				this.mappingData = mappingStatus.data
-			})
-			this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)
-		},
-		levelChanged (level) {
-			this.recoLevel = level
-			this.mappingStatus()
-		},
-		markRecoDone () {
-			axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
-				if (status.data.status) {
-					this.$store.state.recoStatus.status = status.data.status
-				}
-			}).catch((err) => {
-				console.log(err.response.data.error)
-			})
-		},
-		markRecoUnDone () {
-			axios.get(backendServer + '/markRecoUnDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
-				if (status.data.status) {
-					this.$store.state.recoStatus.status = status.data.status
-				}
-			}).catch((err) => {
-				console.log(err.response.data.error)
-			})
-		}
-	},
-	computed: {
-		mohPercentMapped () {
-			if (this.$store.state.mohTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
-			}
-		},
-		mohPercentMappedLevel () {
-			if (this.totalRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.totalMapped * 100 / this.totalRecords).toFixed(2))
-			}
-		},
-		mohPercentNoMatch () {
-			if (this.$store.state.mohTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.totalAllNoMatch * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
-			}
-		},
-		mohPercentNoMatchLevel () {
-			if (this.totalRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.totalNoMatch * 100 / this.totalRecords).toFixed(2))
-			}
-		},
-		mohPercentFlagged () {
-			if (this.$store.state.mohTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
-			}
-		},
-		mohPercentFlaggedLevel () {
-			if (this.totalRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.totalFlagged * 100 / this.totalRecords).toFixed(2))
-			}
-		},
-		mohPercentNotMapped () {
-			if (this.$store.state.mohTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.mohTotalAllNotMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
-			}
-		},
-		mohPercentNotMappedLevel () {
-			if (this.totalRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.totalNotMapped * 100 / this.totalRecords).toFixed(2))
-			}
-		},
-		datimPercentFlagged () {
-			if (this.$store.state.datimTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
-			}
-		},
-		datimPercentMapped () {
-			if (this.$store.state.datimTotalAllRecords === 0) {
-				return 0
-			} else {
-				return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
-			}
-		},
-		totalMapped () {
-			if (this.mappingData && this.mappingData.hasOwnProperty('mapped')) {
-				return this.mappingData.mapped.length
-			} else {
-				return 0
-			}
-		},
-		totalNotMapped () {
-			if (this.mappingData && this.mappingData.hasOwnProperty('notMapped')) {
-				return this.mappingData.notMapped.length
-			} else {
-				return 0
-			}
-		},
-		totalNoMatch () {
-			if (this.mappingData && this.mappingData.hasOwnProperty('noMatch')) {
-				return this.mappingData.noMatch.length
-			} else {
-				return 0
-			}
-		},
-		totalFlagged () {
-			if (this.mappingData && this.mappingData.hasOwnProperty('flagged')) {
-				return this.mappingData.flagged.length
-			} else {
-				return 0
-			}
-		},
-		totalRecords () {
-			return this.totalMapped + this.totalNotMapped + this.totalNoMatch + this.totalFlagged
-		}
-	},
-	created () {
-		this.mappingStatus()
-	}
+  mixins: [scoresMixin],
+  data () {
+    return {
+      matchedHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' },
+        { text: 'DATIM Location', value: 'datimName' },
+        { text: 'DATIM ID', value: 'datimId' }
+      ],
+      noMatchHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' }
+      ],
+      notMappedHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' }
+      ],
+      flaggedHeaders: [
+        { text: 'MOH Location', value: 'mohName' },
+        { text: 'MOH ID', value: 'mohId' },
+        { text: 'DATIM Location', value: 'datimName' },
+        { text: 'DATIM ID', value: 'datimId' }
+      ],
+      searchMatched: '',
+      mappingData: {},
+      recoLevel: 2,
+      mappingStatusDialog: false,
+      mappingStatusProgressTitle: 'Waiting for progress status',
+      mappingStatusProgressPercent: 0
+    }
+  },
+  methods: {
+    checkMappingStatusProgress () {
+      const orgId = this.$store.state.orgUnit.OrgId
+      const clientId = this.$store.state.clientId
+      axios.get(backendServer + '/mappingStatusProgress/' + orgId + '/' + clientId).then((mappingStatusProgress) => {
+        if (mappingStatusProgress.data === null || mappingStatusProgress.data === undefined || mappingStatusProgress.data === false) {
+          clearInterval(this.mappingStatusProgressTimer)
+          return
+        }
+        this.mappingStatusProgressTitle = mappingStatusProgress.data.status
+        if (mappingStatusProgress.data.percent) {
+          if (this.progressType !== 'percent') {
+            this.progressType = 'percent'
+          }
+          this.mappingStatusProgressPercent = mappingStatusProgress.data.percent
+        }
+        if (mappingStatusProgress.data.status === 'Done') {
+          clearInterval(this.mappingStatusProgressTimer)
+          this.mappingStatusDialog = false
+          this.mappingStatusProgressTitle = 'Waiting for progress status'
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
+    mappingStatus () {
+      var orgUnit = this.$store.state.orgUnit
+      this.mappingData = {}
+      const clientId = this.$store.state.clientId
+      this.mappingStatusDialog = true
+      this.progressType = 'indeterminate'
+      axios.get(backendServer + '/mappingStatus/' + orgUnit.OrgId + '/' + this.recoLevel + '/' + clientId).then((mappingStatus) => {
+        this.mappingData = mappingStatus.data
+      })
+      this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)
+    },
+    levelChanged (level) {
+      this.recoLevel = level
+      this.mappingStatus()
+    },
+    markRecoDone () {
+      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+        if (status.data.status) {
+          this.$store.state.recoStatus.status = status.data.status
+        }
+      }).catch((err) => {
+        console.log(err.response.data.error)
+      })
+    },
+    markRecoUnDone () {
+      axios.get(backendServer + '/markRecoUnDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+        if (status.data.status) {
+          this.$store.state.recoStatus.status = status.data.status
+        }
+      }).catch((err) => {
+        console.log(err.response.data.error)
+      })
+    }
+  },
+  computed: {
+    mohPercentMapped () {
+      if (this.$store.state.mohTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+      }
+    },
+    mohPercentMappedLevel () {
+      if (this.totalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.totalMapped * 100 / this.totalRecords).toFixed(2))
+      }
+    },
+    mohPercentNoMatch () {
+      if (this.$store.state.mohTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllNoMatch * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+      }
+    },
+    mohPercentNoMatchLevel () {
+      if (this.totalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.totalNoMatch * 100 / this.totalRecords).toFixed(2))
+      }
+    },
+    mohPercentFlagged () {
+      if (this.$store.state.mohTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+      }
+    },
+    mohPercentFlaggedLevel () {
+      if (this.totalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.totalFlagged * 100 / this.totalRecords).toFixed(2))
+      }
+    },
+    mohPercentNotMapped () {
+      if (this.$store.state.mohTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.mohTotalAllNotMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+      }
+    },
+    mohPercentNotMappedLevel () {
+      if (this.totalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.totalNotMapped * 100 / this.totalRecords).toFixed(2))
+      }
+    },
+    datimPercentFlagged () {
+      if (this.$store.state.datimTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
+      }
+    },
+    datimPercentMapped () {
+      if (this.$store.state.datimTotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
+      }
+    },
+    totalMapped () {
+      if (this.mappingData && this.mappingData.hasOwnProperty('mapped')) {
+        return this.mappingData.mapped.length
+      } else {
+        return 0
+      }
+    },
+    totalNotMapped () {
+      if (this.mappingData && this.mappingData.hasOwnProperty('notMapped')) {
+        return this.mappingData.notMapped.length
+      } else {
+        return 0
+      }
+    },
+    totalNoMatch () {
+      if (this.mappingData && this.mappingData.hasOwnProperty('noMatch')) {
+        return this.mappingData.noMatch.length
+      } else {
+        return 0
+      }
+    },
+    totalFlagged () {
+      if (this.mappingData && this.mappingData.hasOwnProperty('flagged')) {
+        return this.mappingData.flagged.length
+      } else {
+        return 0
+      }
+    },
+    totalRecords () {
+      return this.totalMapped + this.totalNotMapped + this.totalNoMatch + this.totalFlagged
+    }
+  },
+  created () {
+    this.mappingStatus()
+  }
 }
 </script>

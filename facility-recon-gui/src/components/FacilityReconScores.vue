@@ -39,7 +39,6 @@
               {{alertTitle}}
             </v-toolbar-title>
           </v-toolbar>
-
           <v-card-text>
             {{alertText}}
           </v-card-text>
@@ -113,40 +112,20 @@
             </v-data-table>
           </v-card-text>
           <v-card-actions style='float: center'>
-            <v-tooltip top>
-              <v-btn color="error" @click.native="match('flag')" slot="activator">
-                <v-icon dark left>notification_important</v-icon>Flag
+            <v-btn color="error" @click.native="match('flag')">
+              <v-icon dark left>notification_important</v-icon>Flag</v-btn>
+            <v-btn color="green" dark @click.native="noMatch">
+              <v-icon left>thumb_down</v-icon>No Match</v-btn>
+            <v-btn color="primary" dark @click.native="match('match')">
+              <v-icon left>thumb_up</v-icon>Save Match</v-btn>
+            <v-btn color="orange darken-2" @click.native="back" style="color: white">
+              <v-icon dark left>arrow_back</v-icon>Back</v-btn>
+            <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential">
+              <v-btn color="teal darken-2" style="color: white;" value="all">
+                <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
+                <template v-else>Show All Suggestions</template>
               </v-btn>
-              <span>Mark the selected item as a match to be reviewed</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="green" dark @click.native="noMatch" slot="activator">
-                <v-icon left>thumb_down</v-icon>No Match
-              </v-btn>
-              <span>Save this MOH location as having no match</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="primary" dark @click.native="match('match')" slot="activator">
-                <v-icon left>thumb_up</v-icon>Save Match
-              </v-btn>
-              <span>Save the selected item as a match</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential" slot="activator">
-                <v-btn color="teal darken-2" style="color: white;" value="all">
-                  <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
-                  <template v-else>Show All Suggestions</template>
-                </v-btn>
-              </v-btn-toggle>
-              <span v-if="showAllPotential === 'all'">Limit to only scored suggestions</span>
-              <span v-else>See all possible choices ignoring the score</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="orange darken-2" @click.native="back" style="color: white" slot="activator">
-                <v-icon dark left>arrow_back</v-icon>Back
-              </v-btn>
-              <span>Return without saving</span>
-            </v-tooltip>
+            </v-btn-toggle>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -209,28 +188,7 @@
                 </v-flex>
               </v-layout>
             </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>notification_important</v-icon>
-                  <b>Flagged</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{totalFlagged}}/{{mohTotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
-                      <font color="white">
-                        <b>{{mohPercentFlagged}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
+            <br>
             <v-chip color="green" text-color='white' style='height:138px;width:128px'>
               <v-layout column>
                 <v-flex align-center>
@@ -247,6 +205,28 @@
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatch" color="yellow">
                       <font color="white">
                         <b>{{mohPercentNoMatch}} %</b>
+                      </font>
+                    </v-progress-circular>
+                  </center>
+                </v-flex>
+              </v-layout>
+            </v-chip>
+            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
+              <v-layout column>
+                <v-flex align-center>
+                  <v-icon light>notification_important</v-icon>
+                  <b>Flagged</b>
+                </v-flex>
+                <v-flex xs1>
+                  <center>
+                    <b>{{totalFlagged}}/{{mohTotalRecords}}</b>
+                  </center>
+                </v-flex>
+                <v-flex xs1 align-center>
+                  <center>
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
+                      <font color="white">
+                        <b>{{mohPercentFlagged}} %</b>
                       </font>
                     </v-progress-circular>
                   </center>

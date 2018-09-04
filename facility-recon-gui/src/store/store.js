@@ -21,8 +21,8 @@ export const store = new Vuex.Store({
     mohHierarchy: '',
     uploadRunning: false,
     orgUnit: {
-      OrgId: 'PqlFzhuPcF1',
-      OrgName: 'Nigeria'
+      OrgId: 'lZsCb6y0KDX',
+      OrgName: 'Malawi'
     },
     mohTotalAllRecords: 0,
     datimTotalAllRecords: 0,
@@ -42,6 +42,12 @@ export const store = new Vuex.Store({
     scoreResults: [],
     levelArray: [],
     scoresProgressData: {},
-    uploadProgressData: {}
+    uploadProgressData: {},
+    syncServers: [{
+      name: 'server1',
+      host: 'http://localhost:8984/CSD',
+      username: 'user1',
+      password: 'password'
+    }]
   }
 })
