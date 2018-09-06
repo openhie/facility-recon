@@ -18,6 +18,26 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog persistent v-model="invalidRows" max-width="1050px">
+      <v-card>
+        <v-toolbar color="error" dark>
+          <v-toolbar-title>
+            <v-icon>error</v-icon> was not successful,review below rows in your CSV
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="closeInvalidRows()">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          <v-data-table :headers="invalidRowsHeader" :items="invalidRowsContent" light class="elevation-1">
+            <template slot="items" slot-scope="props">
+              <td v-for='header in invalidRowsHeader'>{{props.item[header.value]}}</td>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-dialog persistent v-model="confirmUpload" max-width="500px">
       <v-card>
         <v-toolbar color="primary" dark>
@@ -72,7 +92,12 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess'>
+    <template v-if='$store.state.totalLevels <= 1'><br><br><br>
+      <v-alert type="info" :value="true">
+        <b>No Data found in GeoAlign ...</b>
+      </v-alert>
+    </template>
+    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalLevels > 1'>
       <v-stepper v-model="e1">
         <v-stepper-header>
           <v-stepper-step step="1" :complete="e1 > 1">Upload MoH CSV</v-stepper-step>
@@ -87,7 +112,6 @@
                 <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
-
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
@@ -208,7 +232,7 @@ export default {
       percentDialog: false,
       uploadPrepaProgr: false,
       UploadProgressTimer: '',
-      uploadStatus: '1/4 Uploading CSV to the server',
+      uploadStatus: '1/5 Uploading CSV to the server',
       uploadPercent: null,
       confirmUpload: false,
       confirmTitle: '',
@@ -230,6 +254,9 @@ export default {
       uploadedHeaders: [
       ],
       mappedHeaders: [],
+      invalidRowsHeader: [],
+      invalidRowsContent: [],
+      invalidRows: false,
       valid: false
     }
   },
@@ -357,15 +384,46 @@ export default {
       ).then((data) => {
         this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
       }).catch((err) => {
+        if (Array.isArray(err.response.data.error)) {
+          this.invalidRows = true
+          for (var k = 0; k < err.response.data.error.length; k++) {
+            if (k === 0) {
+              let headers = Object.keys(err.response.data.error[k].data)
+              for (let header of headers) {
+                this.invalidRowsHeader.push({
+                  text: header,
+                  value: header
+                })
+              }
+              this.invalidRowsHeader.push({
+                text: 'Reason',
+                value: 'reason'
+              })
+            }
+            let row = Object.values(err.response.data.error[k].data)
+            let content = {}
+            for (let ind in row) {
+              content[this.invalidRowsHeader[ind].value] = row[ind]
+            }
+            content['reason'] = err.response.data.error[k].reason
+            this.invalidRowsContent.push(content)
+          }
+        } else {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
+        }
         this.$store.state.uploadRunning = false
         this.uploadPrepaProgr = false
         this.percentDialog = false
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
         clearInterval(this.UploadProgressTimer)
-        console.log(err.response.data.error)
       })
+    },
+    closeInvalidRows () {
+      this.invalidRows = false
+      this.invalidRowsHeader = []
+      this.invalidRowsContent = []
+      this.e1 = 1
     },
     closeDialog (component) {
       this.$router.push({ name: component })

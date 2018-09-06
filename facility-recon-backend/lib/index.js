@@ -11,6 +11,7 @@ const https = require('https');
 const http = require('http');
 const redis = require('redis')
 const redisClient = redis.createClient()
+const csv = require('fast-csv');
 const URI = require('urijs');
 const async = require('async')
 const mongoose = require('mongoose')
@@ -1027,14 +1028,18 @@ if (cluster.isMaster) {
       }
       const fileName = Object.keys(files)[0];
       winston.info('validating CSV File');
-      validateCSV(fields, (valid, missing) => {
-        if (!valid) {
-          winston.error({
-            MissingHeaders: missing
-          });
+      uploadReqPro = JSON.stringify({
+        status: '2/5 Validating CSV Data',
+        error: null,
+        percent: null
+      })
+      redisClient.set(uploadRequestId, uploadReqPro)
+      validateCSV(files[fileName].path, fields, (valid, invalid) => {
+        if (invalid.length > 0) {
+          winston.error("Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),stop execution");
           res.set('Access-Control-Allow-Origin', '*');
           res.status(401).json({
-            error: 'Some Headers are Missing'
+            error: invalid
           });
           res.end();
           return;
@@ -1045,7 +1050,7 @@ if (cluster.isMaster) {
         winston.info('CSV File Passed Validation');
         //archive existing DB first
         let uploadReqPro = JSON.stringify({
-          status: '2/4 Archiving Old DB',
+          status: '3/5 Archiving Old DB',
           error: null,
           percent: null
         })
@@ -1053,7 +1058,7 @@ if (cluster.isMaster) {
         mcsd.archiveDB(orgid, (err) => {
           if (err) {
             let uploadReqPro = JSON.stringify({
-              status: '1/3 Archiving Old DB',
+              status: '3/5 Archiving Old DB',
               error: 'An error occured while archiving Database,retry',
               percent: null
             })
@@ -1063,7 +1068,7 @@ if (cluster.isMaster) {
           }
           //ensure old archives are deleted
           let uploadReqPro = JSON.stringify({
-            status: '3/4 Deleting Old DB',
+            status: '4/5 Deleting Old DB',
             error: null,
             percent: null
           })
@@ -1075,7 +1080,7 @@ if (cluster.isMaster) {
             if (!err) {
               winston.info(`Uploading data for ${orgid} now`)
               let uploadReqPro = JSON.stringify({
-                status: '4/4 Uploading of DB started',
+                status: '5/5 Uploading of DB started',
                 error: null,
                 percent: null
               })
@@ -1103,36 +1108,89 @@ if (cluster.isMaster) {
       });
     });
 
-    function validateCSV(cols, callback) {
-      const missing = [];
-      if (!cols.hasOwnProperty('facility') || cols.facility === null || cols.facility === undefined || cols.facility === false) {
-        missing.push('facility');
+    function validateCSV (filePath, headerMapping, callback) {
+      let invalid = []
+      let ids = []
+      const levels = config.getConf('levels');
+      levels.sort();
+      levels.reverse();
+      csv
+        .fromPath(filePath, {
+          headers: true,
+        })
+        .on('data', (data) => {
+          let rowMarkedInvalid = false
+          let index = 0
+          async.eachSeries(levels, (level, nxtLevel) => {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
+              return nxtLevel()
+            }
+            if (index === 0) {
+              index++
+              if (ids.length == 0) {
+                ids.push(data[headerMapping.code])
+              } else {
+                let idExist = ids.find((id) => {
+                  return id === data[headerMapping.code]
+                })
+                if (idExist) {
+                  rowMarkedInvalid = true
+                  let reason = 'Duplicate ID'
+                  populateData(headerMapping, data, reason, invalid)
+                } else {
+                  ids.push(data[headerMapping.code])
+                }
+              }
+            }
+            if (!rowMarkedInvalid) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                data[headerMapping[level]] == 0) {
+                let reason = headerMapping[level] + ' is blank'
+                populateData(headerMapping, data, reason, invalid)
+              } else {
+                return nxtLevel()
+              }
+            }
+          }, () => {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
+              let reason = headerMapping.facility + ' is blank'
+              populateData(headerMapping, data, reason, invalid)
+                
+              }
+          })
+        })
+        .on('end', () => {
+          return callback(true, invalid);
+        })
+      function populateData (headerMapping, data, reason, invalid) {
+        let row = {}
+        async.each(headerMapping,(header,nxtHeader)=> {
+          if (header == 'null') {
+            return nxtHeader()
+          }
+          if(!data.hasOwnProperty(header)) {
+            return nxtHeader()
+          }
+          row[header] = data[header]
+          return nxtHeader()
+        }, () => {
+          invalid.push({
+            data: row,
+            reason
+          })
+        })
       }
-      if (!cols.hasOwnProperty('code') || cols.code === null || cols.code === undefined || cols.code === false) {
-        missing.push('code');
-      }
-      if (!cols.hasOwnProperty('lat') || cols.lat === null || cols.lat === undefined || cols.lat === false) {
-        missing.push('lat');
-      }
-      if (!cols.hasOwnProperty('long') || cols.long === null || cols.long === undefined || cols.long === false) {
-        missing.push('long');
-      }
-      if (!cols.hasOwnProperty('level1') || cols.level1 === null || cols.level1 === undefined || cols.facility === false) {
-        missing.push('level1');
-      }
-      if (!cols.hasOwnProperty('level2') || cols.level2 === null || cols.level2 === undefined || cols.level2 === false) {
-        missing.push('level2');
-      }
-      if (!cols.hasOwnProperty('level3') || cols.level3 === null || cols.level3 === undefined || cols.level3 === false) {
-        missing.push('level3');
-      }
-      if (!cols.hasOwnProperty('level4') || cols.level4 === null || cols.level4 === undefined || cols.level4 === false) {
-        missing.push('level4');
-      }
-      if (missing.length > 0) {
-        return callback(false, missing);
-      }
-      return callback(true, missing);
     }
   });
 
