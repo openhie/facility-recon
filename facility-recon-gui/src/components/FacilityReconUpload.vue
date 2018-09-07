@@ -22,7 +22,7 @@
       <v-card>
         <v-toolbar color="error" dark>
           <v-toolbar-title>
-            <v-icon>error</v-icon> was not successful,review below rows in your CSV
+            <v-icon>error</v-icon>Data Upload was not successful,review below invalid rows in your CSV
           </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-btn icon dark @click.native="closeInvalidRows()">
@@ -72,7 +72,8 @@
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
-          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+          <v-progress-linear indeterminate color="white" class="mb-0" v-if='!fileUploadPercentage'></v-progress-linear>
+          <v-progress-linear v-model="fileUploadPercentage" color="white" class="mb-0" v-else></v-progress-linear>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -229,6 +230,7 @@ export default {
       errorTitle: '',
       errorContent: '',
       dialog: false,
+      fileUploadPercentage: '',
       percentDialog: false,
       uploadPrepaProgr: false,
       UploadProgressTimer: '',
@@ -379,7 +381,14 @@ export default {
         {
           headers: {
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          onUploadProgress: function(progressEvent) {
+            this.fileUploadPercentage = parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total))
+            if (this.fileUploadPercentage === 100) {
+              this.fileUploadPercentage = ''
+              this.uploadStatus = '2/5 Validating CSV Data'
+            }
+          }.bind(this)
         }
       ).then((data) => {
         this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)

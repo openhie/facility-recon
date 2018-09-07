@@ -22,6 +22,10 @@ const scores = require('./scores')();
 const app = express();
 var server = require('http').createServer(app);
 
+var cors = require('cors');
+
+app.use(cors({ origin: true, credentials: true }));
+
 app.use(bodyParser.urlencoded({
   extended: true
 }));
