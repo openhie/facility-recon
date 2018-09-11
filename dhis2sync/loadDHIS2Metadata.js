@@ -63,7 +63,7 @@ async function processMetaData() {
     if ( !nconf.get("full") && hasKey ) {
         lastUpdate = await getLastUpdate()
         // Convert to yyyy-mm-dd format (dropping time as it is ignored by DHIS2)
-        lastUpdate = new Date( Date.parse( lastUpdate ) ).toISOString().substr(0,10)
+        lastUpdate = new Date( Date.parse( lastUpdate ) ).toISOString()
     }
 
     let uflag = 'false'
