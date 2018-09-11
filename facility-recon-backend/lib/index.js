@@ -1040,7 +1040,7 @@ if (cluster.isMaster) {
       redisClient.set(uploadRequestId, uploadReqPro)
       validateCSV(files[fileName].path, fields, (valid, invalid) => {
         if (invalid.length > 0) {
-          winston.error("Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),stop execution");
+          winston.error("Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),execution stopped");
           res.set('Access-Control-Allow-Origin', '*');
           res.status(401).json({
             error: invalid
@@ -1155,6 +1155,7 @@ if (cluster.isMaster) {
                 data[headerMapping[level]] === false ||
                 !data[headerMapping[level]] ||
                 data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
                 data[headerMapping[level]] == 0) {
                 let reason = headerMapping[level] + ' is blank'
                 populateData(headerMapping, data, reason, invalid)

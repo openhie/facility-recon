@@ -382,7 +382,7 @@ export default {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
-          onUploadProgress: function(progressEvent) {
+          onUploadProgress: function (progressEvent) {
             this.fileUploadPercentage = parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total))
             if (this.fileUploadPercentage === 100) {
               this.fileUploadPercentage = ''

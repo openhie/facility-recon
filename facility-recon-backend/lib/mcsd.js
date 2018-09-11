@@ -466,12 +466,24 @@ module.exports = function () {
     },
 
     countLevels(source, topOrgId, callback) {
-      const database = config.getConf('mCSD:database');
-      if (source == 'MOH') var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
-      else if (source == 'DATIM') var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+      function constructURL (id, callback) {
+        const database = config.getConf('mCSD:database');
+        if (source == 'MOH') {
+          var url = `${URI(config.getConf('mCSD:url'))
+          .segment(topOrgId)
+          .segment('fhir')
+          .segment('Location')}?partof=Location/${id.toString()}`;
+        } else if (source == 'DATIM') {
+          var url = `${URI(config.getConf('mCSD:url'))
+          .segment(database)
+          .segment('fhir')
+          .segment('Location')}?partof=Location/${id.toString()}`;
+        }
+        return callback (url)
+      }
 
       let totalLevels = 1;
-
+      let prev_entry = {}
       function cntLvls(url, callback) {
         const options = {
           url,
@@ -481,31 +493,27 @@ module.exports = function () {
             return callback(0);
           }
           body = JSON.parse(body);
-          if (body.total == 0) return callback(totalLevels);
-          let counter = 0;
-          async.eachSeries(body.entry, (entry, nxtEntry) => {
-            if (entry.resource.name.startsWith('_') || counter > 0) {
-              return nxtEntry();
-            }
+          let entry
+          if (body.entry.length === 0 && prev_entry.length > 0) {
+            entry = prev_entry.shift()
+          } else if (body.entry.length === 0 && prev_entry.length === 0) {
+            return callback(totalLevels);
+          } else {
+            prev_entry = []
+            prev_entry = body.entry.slice()
+            entry = prev_entry.shift()
             totalLevels++;
-            counter++;
-            if (entry.resource.hasOwnProperty('id') &&
-              entry.resource.id != false &&
-              entry.resource.id != null &&
-              entry.resource.id != undefined) {
-              const reference = entry.resource.id;
+          }
+          const reference = entry.resource.id;
+          constructURL(reference, (url) => {
+            cntLvls(url, totalLevels => callback(totalLevels));
+          })
 
-              if (source == 'MOH') {
-                var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
-              } else if (source == 'DATIM') {
-                var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
-              }
-              cntLvls(url, totalLevels => callback(totalLevels));
-            } else return callback(totalLevels);
-          }, () => callback(totalLevels));
         });
       }
-      cntLvls(url, totalLevels => callback(false, totalLevels));
+      constructURL(topOrgId, (url) => {
+        cntLvls(url, totalLevels => callback(false, totalLevels));
+      })
     },
     saveLocations(mCSD, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').toString();
