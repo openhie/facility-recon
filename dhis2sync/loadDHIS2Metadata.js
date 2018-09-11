@@ -142,7 +142,11 @@ async function processMetaData() {
                 })
                 res.on('end', () => {
                     let metadata = JSON.parse(body);
-                    processOrgUnit( metadata, 0, metadata.organisationUnits.length, hasKey )
+                    if ( metadata.organisationUnits && metadata.organisationUnits.length > 0 ) {
+                        processOrgUnit( metadata, 0, metadata.organisationUnits.length, hasKey )
+                    } else {
+                        setLastUpdate( hasKey, thisRunTime )
+                    }
                 })
                 res.on('error', (e) => {
                     console.log('ERROR: ' +e.message)
