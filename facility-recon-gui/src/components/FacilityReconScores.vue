@@ -63,8 +63,8 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="dialog" width="830px">
-        <v-card width='830px'>
+      <v-dialog persistent v-model="dialog" :width="dialogWidth">
+        <v-card :width='dialogWidth'>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
               {{ selectedMohName }}
@@ -111,9 +111,10 @@
                 </tr>
               </template>
               <template slot="items" slot-scope="props">
-                <tr @click='changeMappingSelection(props.item.id,props.item.name)'>
+                <tr>
                   <td>{{props.item.name}}</td>
                   <td>{{props.item.id}}</td>
+                  <td>{{props.item.parents.join('->')}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
@@ -562,6 +563,7 @@ export default {
       matchType: '',
       confirmMatch: false,
       dialog: false,
+      dialogWidth: '',
       mohUnmatchedHeaders: [{ text: 'Location', value: 'name' }],
       matchedHeaders: [
         { text: 'MOH Location', value: 'mohName' },
@@ -629,6 +631,11 @@ export default {
     levelChanged (level) {
       this.$store.state.recoLevel = level
       this.getScores()
+      if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+        this.dialogWidth = '1730px'
+      } else {
+        this.dialogWidth = '1190px'
+      }
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
@@ -669,10 +676,6 @@ export default {
         }
       }
       this.dialog = true
-    },
-    changeMappingSelection (id, name) {
-      this.selectedDatimId = id
-      this.selectedDatimName = name
     },
     confirm (type, id, name) {
       this.confirmMatch = true
@@ -961,7 +964,8 @@ export default {
       var results = []
       results.push(
         { text: 'DATIM Location', value: 'name', sortable: false },
-        { text: 'ID', value: 'id', sortable: false }
+        { text: 'ID', value: 'id', sortable: false },
+        { text: 'Parent', value: 'datimParent', sortable: false }
       )
       if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
         results.push(
@@ -1224,6 +1228,11 @@ export default {
   },
   created () {
     this.addListener()
+    if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+      this.dialogWidth = '1730px'
+    } else {
+      this.dialogWidth = '1190px'
+    }
   },
   components: {
     'liquor-tree': LiquorTree
