@@ -312,6 +312,8 @@ export default {
         }
         if (uploadProgress.data.status === 'Done' || uploadProgress.data.status >= 100) {
           clearInterval(this.UploadProgressTimer)
+          // resetting reco level
+          this.$store.state.recoLevel = 2
           this.$root.$emit('recalculateScores')
           this.$root.$emit('reloadTree')
           this.percentDialog = false

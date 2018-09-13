@@ -467,8 +467,11 @@ module.exports = function () {
 
     countLevels(source, topOrgId, callback) {
       const database = config.getConf('mCSD:database');
-      if (source == 'MOH') var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
-      else if (source == 'DATIM') var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+      if (source == 'MOH') {
+        var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+      } else if (source == 'DATIM') {
+        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+      }
 
       let totalLevels = 1;
 
@@ -481,7 +484,9 @@ module.exports = function () {
             return callback(0);
           }
           body = JSON.parse(body);
-          if (body.total == 0) return callback(totalLevels);
+          if (body.total == 0) {
+            return callback(totalLevels);
+          }
           let counter = 0;
           async.eachSeries(body.entry, (entry, nxtEntry) => {
             if (entry.resource.name.startsWith('_') || counter > 0) {
@@ -501,7 +506,9 @@ module.exports = function () {
                 var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
               }
               cntLvls(url, totalLevels => callback(totalLevels));
-            } else return callback(totalLevels);
+            } else {
+              return callback(totalLevels);
+            }
           }, () => callback(totalLevels));
         });
       }

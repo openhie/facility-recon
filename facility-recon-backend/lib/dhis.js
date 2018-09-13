@@ -68,7 +68,6 @@ async function processMetaData(full, dousers, doservices) {
   const hasKey = await checkLoaderDataStore();
   let lastUpdate = false;
   if (!full && hasKey) {
-    winston.error('here')
     lastUpdate = await getLastUpdate();
     // Convert to yyyy-mm-dd format (dropping time as it is ignored by DHIS2)
     lastUpdate = new Date(Date.parse(lastUpdate)).toISOString().substr(0, 10);

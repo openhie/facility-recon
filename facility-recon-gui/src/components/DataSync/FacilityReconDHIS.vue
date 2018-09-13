@@ -50,7 +50,6 @@ export default {
     'appSyncProgress': SyncProgress
   },
   created () {
-    console.log('created')
     this.syncRunning = false
   }
 }
