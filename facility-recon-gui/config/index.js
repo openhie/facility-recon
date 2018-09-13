@@ -53,8 +53,8 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '',
 
-    backend: 'https://hearth.geoalign.datim.org/facrecon',
-    updateTimeURL: 'https://geoalign.datim.org/api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign',
+    backend: 'https://test.geoalign.datim.org/facrecon',
+    updateTimeURL: 'https://test.geoalign.datim.org/api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign',
     /**
      * Source Maps
      */

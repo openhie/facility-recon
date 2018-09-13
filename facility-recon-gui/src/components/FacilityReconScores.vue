@@ -1,5 +1,21 @@
 <template>
   <v-container fluid>
+    <v-dialog persistent v-model="confirmMatch" max-width="500px">
+      <v-card>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Warning
+          </v-toolbar-title>
+        </v-toolbar>
+        <v-card-text>
+          Are you sure you want to {{matchType}} {{selectedMohName}} with {{selectedDatimName}}
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" @click.native="confirmMatch = false">Cancel</v-btn>
+          <v-btn color="primary" dark @click.native="match()">Proceed</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
@@ -96,56 +112,61 @@
               </template>
               <template slot="items" slot-scope="props">
                 <tr @click='changeMappingSelection(props.item.id,props.item.name)'>
-                  <v-radio-group v-model='selectedDatimId' style="height: 5px">
-                    <td>
-                      <v-radio :value="props.item.id" color="red"></v-radio>
-                    </td>
-                  </v-radio-group>
                   <td>{{props.item.name}}</td>
                   <td>{{props.item.id}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
                   <td>{{props.item.score}}</td>
+                  <td>
+                    <v-tooltip top>
+                      <v-btn color="error" small @click.native="confirm('flag',props.item.id)" slot="activator">
+                        <v-icon dark left>notification_important</v-icon>Flag
+                      </v-btn>
+                      <span>Mark the selected item as a match to be reviewed</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                      <v-btn color="primary" small dark @click.native="confirm('match',props.item.id)" slot="activator">
+                        <v-icon left>thumb_up</v-icon>Save Match
+                      </v-btn>
+                      <span>Save the selected item as a match</span>
+                    </v-tooltip>
+                  </td>
                 </tr>
               </template>
             </v-data-table>
           </v-card-text>
           <v-card-actions style='float: center'>
-            <v-tooltip top>
-              <v-btn color="error" @click.native="match('flag')" slot="activator">
-                <v-icon dark left>notification_important</v-icon>Flag
-              </v-btn>
-              <span>Mark the selected item as a match to be reviewed</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="green" dark @click.native="noMatch" slot="activator">
-                <v-icon left>thumb_down</v-icon>No Match
-              </v-btn>
-              <span>Save this MOH location as having no match</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="primary" dark @click.native="match('match')" slot="activator">
-                <v-icon left>thumb_up</v-icon>Save Match
-              </v-btn>
-              <span>Save the selected item as a match</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential" slot="activator">
-                <v-btn color="teal darken-2" style="color: white;" value="all">
-                  <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
-                  <template v-else>Show All Suggestions</template>
-                </v-btn>
-              </v-btn-toggle>
-              <span v-if="showAllPotential === 'all'">Limit to only scored suggestions</span>
-              <span v-else>See all possible choices ignoring the score</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <v-btn color="orange darken-2" @click.native="back" style="color: white" slot="activator">
-                <v-icon dark left>arrow_back</v-icon>Back
-              </v-btn>
-              <span>Return without saving</span>
-            </v-tooltip>
+            <v-layout row wrap>
+              <v-flex xs4 text-sm-left>
+                <v-tooltip top>
+                  <v-btn color="green" small dark @click.native="noMatch" slot="activator">
+                    <v-icon left>thumb_down</v-icon>No Match (add as new site)
+                  </v-btn>
+                  <span>Save this MOH location as having no match</span>
+                </v-tooltip>
+              </v-flex>
+              <v-flex xs4 text-xs-center>
+                <v-tooltip top>
+                  <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential" slot="activator">
+                    <v-btn color="teal darken-2" style="color: white;" value="all">
+                      <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
+                      <template v-else>Show All Suggestions</template>
+                    </v-btn>
+                  </v-btn-toggle>
+                  <span v-if="showAllPotential === 'all'">Limit to only scored suggestions</span>
+                  <span v-else>See all possible choices ignoring the score</span>
+                </v-tooltip>
+              </v-flex>
+              <v-flex xs4 text-sm-right>
+                <v-tooltip top>
+                  <v-btn color="orange darken-2" @click.native="back" style="color: white" slot="activator">
+                    <v-icon dark left>arrow_back</v-icon>Back
+                  </v-btn>
+                  <span>Return without saving</span>
+                </v-tooltip>
+              </v-flex>
+            </v-layout>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -538,6 +559,8 @@ export default {
       selectedMohParents: [],
       selectedDatimId: null,
       selectedDatimName: null,
+      matchType: '',
+      confirmMatch: false,
       dialog: false,
       mohUnmatchedHeaders: [{ text: 'Location', value: 'name' }],
       matchedHeaders: [
@@ -651,13 +674,20 @@ export default {
       this.selectedDatimId = id
       this.selectedDatimName = name
     },
-    match (type) {
+    confirm (type, id, name) {
+      this.confirmMatch = true
+      this.matchType = type
+      this.selectedDatimId = id
+      this.selectedDatimName = name
+    },
+    match () {
       if (this.selectedDatimId === null) {
         this.alert = true
         this.alertTitle = 'Information'
         this.alertText = 'Select DATIM Location to match against MOH Location'
         return
       }
+      this.confirmMatch = false
       this.progressTitle = 'Saving match'
       this.dynamicProgress = true
       let formData = new FormData()
@@ -667,7 +697,7 @@ export default {
       formData.append('totalLevels', this.$store.state.totalLevels)
       var orgid = this.$store.state.orgUnit.OrgId
       axios
-        .post(backendServer + '/match/' + type + '/' + orgid, formData, {
+        .post(backendServer + '/match/' + this.matchType + '/' + orgid, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -686,7 +716,7 @@ export default {
           // Add from a list of MOH Matched and remove from list of MOH unMatched
           for (let k in this.$store.state.mohUnMatched) {
             if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
-              if (type === 'match') {
+              if (this.matchType === 'match') {
                 ++this.$store.state.totalAllMapped
                 this.$store.state.matchedContent.push({
                   mohName: this.selectedMohName,
@@ -696,7 +726,7 @@ export default {
                   datimId: this.selectedDatimId,
                   datimParents: datimParents
                 })
-              } else if (type === 'flag') {
+              } else if (this.matchType === 'flag') {
                 ++this.$store.state.totalAllFlagged
                 this.$store.state.flagged.push({
                   mohName: this.selectedMohName,
@@ -713,6 +743,7 @@ export default {
           this.selectedMohId = null
           this.selectedMohName = null
           this.selectedDatimId = null
+          this.matchType = ''
           this.dialog = false
         })
         .catch(err => {
@@ -929,7 +960,6 @@ export default {
     potentialHeaders () {
       var results = []
       results.push(
-        { sortable: false },
         { text: 'DATIM Location', value: 'name', sortable: false },
         { text: 'ID', value: 'id', sortable: false }
       )
@@ -941,6 +971,7 @@ export default {
         )
       }
       results.push({ text: 'Score', value: 'score' })
+      results.push({sortable: false})
       return results
     },
     potentialAvailable () {
