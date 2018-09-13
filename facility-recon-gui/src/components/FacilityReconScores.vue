@@ -906,6 +906,7 @@ export default {
         })
     },
     back () {
+      this.searchPotential = ''
       this.dialog = false
       this.selectedDatimId = null
     }
