@@ -1,21 +1,5 @@
 <template>
   <v-container fluid>
-    <v-dialog persistent v-model="confirmMatch" max-width="500px">
-      <v-card>
-        <v-toolbar color="primary" dark>
-          <v-toolbar-title>
-            Warning
-          </v-toolbar-title>
-        </v-toolbar>
-        <v-card-text>
-          Are you sure you want to {{matchType}} {{selectedMohName}} with {{selectedDatimName}}
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="error" @click.native="confirmMatch = false">Cancel</v-btn>
-          <v-btn color="primary" dark @click.native="match()">Proceed</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
@@ -112,27 +96,25 @@
               </template>
               <template slot="items" slot-scope="props">
                 <tr>
-                  <td>{{props.item.name}}</td>
-                  <td>{{props.item.id}}</td>
-                  <td>{{props.item.parents.join('->')}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
-                  <td>{{props.item.score}}</td>
                   <td>
                     <v-tooltip top>
-                      <v-btn color="error" small @click.native="confirm('flag',props.item.id)" slot="activator">
+                      <v-btn color="error" small @click.native="match('flag', props.item.id, props.item.name)" slot="activator">
                         <v-icon dark left>notification_important</v-icon>Flag
                       </v-btn>
                       <span>Mark the selected item as a match to be reviewed</span>
                     </v-tooltip>
                     <v-tooltip top>
-                      <v-btn color="primary" small dark @click.native="confirm('match',props.item.id)" slot="activator">
+                      <v-btn color="primary" small dark @click.native="match('match', props.item.id, props.item.name)" slot="activator">
                         <v-icon left>thumb_up</v-icon>Save Match
                       </v-btn>
                       <span>Save the selected item as a match</span>
                     </v-tooltip>
                   </td>
+                  <td>{{props.item.name}}</td>
+                  <td>{{props.item.id}}</td>
+                  <td>{{props.item.parents.join('->')}}</td>
+                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
+                  <td>{{props.item.score}}</td>
                 </tr>
               </template>
             </v-data-table>
@@ -632,7 +614,7 @@ export default {
       this.$store.state.recoLevel = level
       this.getScores()
       if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
-        this.dialogWidth = '1730px'
+        this.dialogWidth = '1440px'
       } else {
         this.dialogWidth = '1190px'
       }
@@ -677,13 +659,10 @@ export default {
       }
       this.dialog = true
     },
-    confirm (type, id, name) {
-      this.confirmMatch = true
+    match (type, id, name) {
       this.matchType = type
       this.selectedDatimId = id
       this.selectedDatimName = name
-    },
-    match () {
       if (this.selectedDatimId === null) {
         this.alert = true
         this.alertTitle = 'Information'
@@ -748,6 +727,7 @@ export default {
           this.selectedDatimId = null
           this.matchType = ''
           this.dialog = false
+          this.searchPotential = ''
         })
         .catch(err => {
           this.dynamicProgress = false
@@ -924,6 +904,7 @@ export default {
             }
           }
           this.dialog = false
+          this.searchPotential = ''
           this.selectedMohId = null
           this.selectedMohName = null
           this.selectedDatimId = null
@@ -940,8 +921,8 @@ export default {
         })
     },
     back () {
-      this.searchPotential = ''
       this.dialog = false
+      this.searchPotential = ''
       this.selectedDatimId = null
     }
   },
@@ -963,19 +944,17 @@ export default {
     potentialHeaders () {
       var results = []
       results.push(
+        {sortable: false},
         { text: 'DATIM Location', value: 'name', sortable: false },
         { text: 'ID', value: 'id', sortable: false },
         { text: 'Parent', value: 'datimParent', sortable: false }
       )
       if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
         results.push(
-          { text: 'Lat', value: 'lat', sortable: false },
-          { text: 'Long', value: 'long', sortable: false },
           { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
         )
       }
       results.push({ text: 'Score', value: 'score' })
-      results.push({sortable: false})
       return results
     },
     potentialAvailable () {
@@ -1229,7 +1208,7 @@ export default {
   created () {
     this.addListener()
     if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
-      this.dialogWidth = '1730px'
+      this.dialogWidth = 'auto'
     } else {
       this.dialogWidth = '1190px'
     }

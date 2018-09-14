@@ -897,7 +897,7 @@ module.exports = function () {
               data[headerMapping[level]] != false &&
               data[headerMapping[level]] != ''
             ) {
-              const name = data[headerMapping[level]];
+              const name = data[headerMapping[level]].trim();
               const levelNumber = level.replace('level', '');
               if (levelNumber.toString().length < 2) {
                 var namespaceMod = `${namespace}00${levelNumber}`;
@@ -927,7 +927,7 @@ module.exports = function () {
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
                 if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
-                  parent = data[headerMapping[topLevelName]];
+                  parent = data[headerMapping[topLevelName]].trim();
                   if (topLevel.toString().length < 2) {
                     var namespaceMod = `${namespace}00${topLevel}`;
                   } else {
@@ -964,7 +964,7 @@ module.exports = function () {
             }
             recordCount += jurisdictions.length
             this.buildJurisdiction(jurisdictions, saveBundle)
-            const facilityName = data[headerMapping.facility];
+            const facilityName = data[headerMapping.facility].trim();
             const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
             const building = {
               uuid: UUID,
