@@ -8,6 +8,7 @@ export const store = new Vuex.Store({
   // Malawi lZsCb6y0KDX
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
+  // Cote D'Ivoire ds0ADyc9UCU
   state: {
     recoStatus: {
       'status': 'on-progress'

@@ -40,12 +40,12 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
       } else if (stderr) {
         console.log('Unable to copy to dhis2App folder ' + chalk.red(stderr))
       } else {
-        exec(`rm ../dhis2App/GOFR.zip && cd ../dhis2App && zip GOFR.zip ./*`, (err, stdout, stderr) => {
+        exec(`touch ../dhis2App/GOFR.zip && rm ../dhis2App/GOFR.zip && cd ../dhis2App && zip -r GOFR.zip ./*`, (err, stdout, stderr) => {
           if (err) {
             console.log('Unable to zip dhis2 App ' + chalk.red(err))
             return
           } else if (stderr) {
-            console.log('Unable to zip to dhis2 App ' + chalk.red(stderr))
+            console.log('Unable to zip dhis2 App ' + chalk.red(stderr))
           }
         })
       }

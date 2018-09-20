@@ -495,7 +495,7 @@ module.exports = function () {
           let entry
           if (body.entry.length === 0 && prev_entry.length > 0) {
             entry = prev_entry.shift()
-          } else if (body.entry.length === 0 && prev_entry.length === 0) {
+          } else if (body.entry.length === 0 && Object.keys(prev_entry).length === 0) {
             return callback(totalLevels);
           } else {
             prev_entry = []
@@ -928,7 +928,8 @@ module.exports = function () {
               }
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
-                if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
+                if (data[headerMapping[topLevelName]] && parentFound == false) {
+                  winston.error(data[headerMapping[topLevelName]])
                   parent = data[headerMapping[topLevelName]].trim();
                   if (topLevel.toString().length < 2) {
                     var namespaceMod = `${namespace}00${topLevel}`;

@@ -76,6 +76,11 @@ if (cluster.isMaster) {
     cluster.fork();
   });
 } else {
+  const levelMaps = {
+    'ds0ADyc9UCU': { // Cote D'Ivoire
+      4: 5,
+    }
+  }
   app.get('/countLevels/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
@@ -353,6 +358,9 @@ if (cluster.isMaster) {
         } else {
           level = recoLevel
         }
+        if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
+          level = levelMaps[orgid][recoLevel];
+        }
         mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
           resolve(mcsdDatimLevel);
         });
@@ -421,6 +429,10 @@ if (cluster.isMaster) {
             level = totalDATIMLevels
           } else {
             level = recoLevel
+          }
+
+          if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
+            level = levelMaps[orgid][recoLevel];
           }
           mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
             resolve(mcsdDatimLevel);
@@ -553,7 +565,10 @@ if (cluster.isMaster) {
     }
     const orgid = req.params.orgid;
     const source = req.params.source.toUpperCase();
-    const recoLevel = req.params.recoLevel;
+    let recoLevel = req.params.recoLevel;
+    if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
+      recoLevel = levelMaps[orgid][recoLevel];
+    }
     const datimDB = config.getConf('mCSD:database');
     mcsd.getLocationChildren(datimDB, orgid, (locations) => {
       mcsd.filterLocations(locations, orgid, 0, recoLevel, 0, (mcsdLevels, mcsdLevel, mcsdBuildings) => {

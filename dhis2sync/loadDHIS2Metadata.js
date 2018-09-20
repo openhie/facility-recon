@@ -63,7 +63,11 @@ async function processMetaData() {
     if ( !nconf.get("full") && hasKey ) {
         lastUpdate = await getLastUpdate()
         // Convert to ISO format
-        lastUpdate = new Date( Date.parse( lastUpdate ) ).toISOString()
+	try {
+          lastUpdate = new Date( Date.parse( lastUpdate ) ).toISOString()
+        } catch (error) {
+	  console.log(error)
+        }
     }
 
     let uflag = 'false'
