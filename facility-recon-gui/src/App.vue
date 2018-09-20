@@ -28,7 +28,7 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
-      <v-dialog persistent v-model="$store.state.dialogError" max-width="500px">
+      <v-dialog persistent v-model="$store.state.dialogError" transition="scale-transition" max-width="500px">
         <v-card>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
@@ -43,7 +43,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="initializingApp" hide-overlay persistent width="300">
+      <v-dialog v-model="initializingApp" transition="scale-transition" hide-overlay persistent width="300">
         <v-card color="primary" dark>
           <v-card-text>
             Initializing App
@@ -81,6 +81,9 @@ export default {
   },
   filters: {
     formatLastUpdated (date) {
+      if (date === 'Failed' || date === 'Loading...') {
+        return 'Failed'
+      }
       if (!moment(date).isValid()) {
         return 'Failed'
       } else {
@@ -123,12 +126,11 @@ export default {
       })
     },
     getTotalLevels () {
-      this.getRecoStatus()
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.initializingApp = false
-        this.$store.state.totalLevels = levels.data.totalLevels
-        // this.getOrgHierarchy()
+        this.$store.state.totalMOHLevels = levels.data.totalMOHLevels
+        this.$store.state.totalDATIMLevels = levels.data.totalDATIMLevels
         this.getScores()
       })
     },

@@ -465,17 +465,16 @@ module.exports = function () {
       });
     },
 
-    countLevels(source, topOrgId, callback) {
+    countLevels(source, db, topOrgId, callback) {
       function constructURL (id, callback) {
-        const database = config.getConf('mCSD:database');
         if (source == 'MOH') {
           var url = `${URI(config.getConf('mCSD:url'))
-          .segment(topOrgId)
+          .segment(db)
           .segment('fhir')
           .segment('Location')}?partof=Location/${id.toString()}`;
         } else if (source == 'DATIM') {
           var url = `${URI(config.getConf('mCSD:url'))
-          .segment(database)
+          .segment(db)
           .segment('fhir')
           .segment('Location')}?partof=Location/${id.toString()}`;
         }
@@ -830,7 +829,10 @@ module.exports = function () {
       });
     },
     breakNoMatch(id, database, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      const url = URI(config.getConf('mCSD:url'))
+        .segment(database)
+        .segment('fhir')
+        .segment('Location')
         .segment(id)
         .toString();
       const options = {

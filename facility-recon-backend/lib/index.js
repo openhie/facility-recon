@@ -87,23 +87,40 @@ if (cluster.isMaster) {
       });
     } else {
       const orgid = req.params.orgid;
+      const namespace = config.getConf('UUID:namespace');
+      const mohTopId = uuid5(orgid, `${namespace}000`);
       winston.info(`Getting total levels for ${orgid}`);
-      mcsd.countLevels('DATIM', orgid, (err, totalLevels) => {
+      const db = config.getConf('mCSD:database');
+
+      async.parallel({
+        MOHLevels: function (callback) {
+          mcsd.countLevels('MOH', orgid, mohTopId, (err, mohTotalLevels) => {
+            winston.info(`Received total MOH levels of ${mohTotalLevels} for ${orgid}`);
+            return callback(err,mohTotalLevels)
+          })
+        },
+        DATIMLevels: function (callback) {
+          mcsd.countLevels('DATIM', db, orgid, (err, datimTotalLevels) => {
+            winston.info(`Received total DATIM levels of ${datimTotalLevels} for ${orgid}`);
+            return callback(err, datimTotalLevels)
+          })
+        }
+      }, (err,results) => {
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
           winston.error(err);
           res.status(401).json({
-            error: 'Missing Orgid'
+            error: err
           });
         } else {
           const recoLevel = 2;
-          winston.info(`Received total levels of ${totalLevels} for ${orgid}`);
           res.status(200).json({
-            totalLevels,
+            totalMOHLevels: results.MOHLevels,
+            totalDATIMLevels: results.DATIMLevels,
             recoLevel
           });
         }
-      });
+      })
     }
   });
 
@@ -306,13 +323,15 @@ if (cluster.isMaster) {
     }
   });
 
-  app.get('/mappingStatus/:orgid/:level/:clientId', (req, res) => {
+  app.get('/mappingStatus/:orgid/:level/:totalDATIMLevels/:totalMOHLevels/:clientId', (req, res) => {
     winston.info('Getting mapping status');
     const orgid = req.params.orgid;
     const mohDB = orgid;
     const datimTopId = orgid;
     const datimDB = config.getConf('mCSD:database');
     const recoLevel = req.params.level;
+    const totalDATIMLevels = req.params.totalDATIMLevels;
+    const totalMOHLevels = req.params.totalMOHLevels;
     const namespace = config.getConf('UUID:namespace');
     const mohTopId = uuid5(orgid, `${namespace}000`);
     const clientId = req.params.clientId;
@@ -328,7 +347,13 @@ if (cluster.isMaster) {
     const datimLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
         mcsdDatimAll = mcsdDATIM;
-        mcsd.filterLocations(mcsdDATIM, datimTopId, 0, recoLevel, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+        let level
+        if (recoLevel === totalMOHLevels) {
+          level = totalDATIMLevels
+        } else {
+          level = recoLevel
+        }
+        mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
           resolve(mcsdDatimLevel);
         });
       });
@@ -357,7 +382,7 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/reconcile/:orgid/:totalLevels/:recoLevel/:clientId', (req, res) => {
+  app.get('/reconcile/:orgid/:totalLevels/:totalDATIMLevels/:recoLevel/:clientId', (req, res) => {
     if (!req.params.orgid || !req.params.recoLevel) {
       winston.error({
         error: 'Missing Orgid or reconciliation Level'
@@ -371,6 +396,7 @@ if (cluster.isMaster) {
       const orgid = req.params.orgid;
       const recoLevel = req.params.recoLevel;
       const totalLevels = req.params.totalLevels;
+      const totalDATIMLevels = req.params.totalDATIMLevels;
       const clientId = req.params.clientId;
       const datimDB = config.getConf('mCSD:database');
       const mohDB = orgid;
@@ -390,7 +416,13 @@ if (cluster.isMaster) {
       const datimLocationReceived = new Promise((resolve, reject) => {
         mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
           mcsdDatimAll = mcsdDATIM;
-          mcsd.filterLocations(mcsdDATIM, datimTopId, 0, recoLevel, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+          let level
+          if (recoLevel === totalLevels) {
+            level = totalDATIMLevels
+          } else {
+            level = recoLevel
+          }
+          mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
             resolve(mcsdDatimLevel);
           });
         });

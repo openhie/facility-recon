@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
+    <v-dialog v-model="dynamicProgress" transition="scale-transition" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{progressTitle}}
@@ -15,7 +15,7 @@
       </v-alert>
     </template>
     <v-container fluid grid-list-lg v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
-      <v-dialog v-model="scoreDialog" hide-overlay persistent width="350">
+      <v-dialog v-model="scoreDialog" transition="scale-transition" hide-overlay persistent width="350">
         <v-card color="white" dark>
           <v-card-text>
             <center>
@@ -32,7 +32,7 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="alert" width="500px">
+      <v-dialog persistent transition="scale-transition" v-model="alert" width="500px">
         <v-card>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
@@ -47,7 +47,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="dialog" :width="dialogWidth">
+      <v-dialog persistent transition="scale-transition" v-model="dialog" :width="dialogWidth">
         <v-card :width='dialogWidth'>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
@@ -63,7 +63,7 @@
             Parents:
             <b>{{selectedMohParents.join('->')}}</b>
             <v-spacer></v-spacer>
-            <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
+            <template v-if='$store.state.recoLevel == $store.state.totalMOHLevels'>
               Latitude:
               <b>{{selectedMohLat}}</b>
               <v-spacer></v-spacer>
@@ -113,7 +113,7 @@
                   <td>{{props.item.name}}</td>
                   <td>{{props.item.id}}</td>
                   <td>{{props.item.parents.join('->')}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
+                  <td v-if='$store.state.recoLevel == $store.state.totalMOHLevels'>{{props.item.geoDistance}}</td>
                   <td>{{props.item.score}}</td>
                 </tr>
               </template>
@@ -613,7 +613,7 @@ export default {
     levelChanged (level) {
       this.$store.state.recoLevel = level
       this.getScores()
-      if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+      if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
         this.dialogWidth = '1440px'
       } else {
         this.dialogWidth = '1190px'
@@ -676,7 +676,7 @@ export default {
       formData.append('mohId', this.selectedMohId)
       formData.append('datimId', this.selectedDatimId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       var orgid = this.$store.state.orgUnit.OrgId
       axios
         .post(backendServer + '/match/' + this.matchType + '/' + orgid, formData, {
@@ -760,7 +760,7 @@ export default {
       let formData = new FormData()
       formData.append('datimId', datimId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       var orgid = this.$store.state.orgUnit.OrgId
       axios
         .post(backendServer + '/acceptFlag/' + orgid, formData, {
@@ -852,7 +852,7 @@ export default {
       let formData = new FormData()
       formData.append('mohId', mohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       axios
         .post(backendServer + '/breakNoMatch/' + orgid, formData, {
           headers: {
@@ -880,7 +880,7 @@ export default {
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       let orgid = this.$store.state.orgUnit.OrgId
 
       axios
@@ -949,7 +949,7 @@ export default {
         { text: 'ID', value: 'id', sortable: false },
         { text: 'Parent', value: 'datimParent', sortable: false }
       )
-      if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+      if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
         results.push(
           { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
         )
@@ -1023,7 +1023,7 @@ export default {
     },
     nextLevel () {
       if (
-        this.$store.state.recoLevel < this.$store.state.totalLevels &&
+        this.$store.state.recoLevel < this.$store.state.totalMOHLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
@@ -1036,7 +1036,7 @@ export default {
     },
     lastLevelDone () {
       if (
-        this.$store.state.recoLevel === this.$store.state.totalLevels &&
+        this.$store.state.recoLevel === this.$store.state.totalMOHLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
@@ -1207,7 +1207,7 @@ export default {
   },
   created () {
     this.addListener()
-    if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+    if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
       this.dialogWidth = 'auto'
     } else {
       this.dialogWidth = '1190px'
