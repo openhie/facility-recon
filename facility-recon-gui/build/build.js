@@ -9,6 +9,7 @@ const path = require('path')
 const chalk = require('chalk')
 const webpack = require('webpack')
 const config = require('../config')
+const { exec } = require('child_process');
 const webpackConfig = require('./webpack.prod.conf')
 
 const spinner = ora('building for production...')
@@ -32,6 +33,23 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
       process.exit(1)
     }
 
+    exec(`cp -r dist/* ../dhis2App/`, (err, stdout, stderr) => {
+      if (err) {
+        console.log('Unable to copy to dhis2App folder ' + chalk.red(err))
+        return
+      } else if (stderr) {
+        console.log('Unable to copy to dhis2App folder ' + chalk.red(stderr))
+      } else {
+        exec(`rm ../dhis2App/GOFR.zip && cd ../dhis2App && zip GOFR.zip ./*`, (err, stdout, stderr) => {
+          if (err) {
+            console.log('Unable to zip dhis2 App ' + chalk.red(err))
+            return
+          } else if (stderr) {
+            console.log('Unable to zip to dhis2 App ' + chalk.red(stderr))
+          }
+        })
+      }
+    });
     console.log(chalk.cyan('  Build complete.\n'))
     console.log(chalk.yellow(
       '  Tip: built files are meant to be served over an HTTP server.\n' +
