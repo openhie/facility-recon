@@ -18,7 +18,8 @@
     "databaseUser": "",
     "databasePassword": "",
     "databaseHost": "localhost",
-    "databasePort": "27017"
+    "databasePort": "27017",
+    "cacheTime": 600000
   },
   "CSD":{
     "url":"http://localhost:8984/CSD",
