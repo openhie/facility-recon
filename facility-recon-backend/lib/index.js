@@ -361,14 +361,14 @@ if (cluster.isMaster) {
         if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
           level = levelMaps[orgid][recoLevel];
         }
-        mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+        mcsd.filterLocations(mcsdDATIM, datimTopId, level, (mcsdDatimLevel) => {
           resolve(mcsdDatimLevel);
         });
       });
     });
     const mohLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocations(mohDB, (mcsdMOH) => {
-        mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
+        mcsd.filterLocations(mcsdMOH, mohTopId, recoLevel, (mcsdMohLevel) => {
           resolve(mcsdMohLevel);
         });
       });
@@ -421,9 +421,10 @@ if (cluster.isMaster) {
         percent: null
       })
       redisClient.set(scoreRequestId, scoreResData)
-      async.series({
+      async.parallel({
         datimLocations: function (callback) {
           mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
+            winston.error ('DATIM ' + mcsdDATIM.entry.length)
             mcsdDatimAll = mcsdDATIM;
             let level
             if (recoLevel === totalLevels) {
@@ -435,15 +436,16 @@ if (cluster.isMaster) {
             if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
               level = levelMaps[orgid][recoLevel];
             }
-            mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+            mcsd.filterLocations(mcsdDATIM, datimTopId, level, (mcsdDatimLevel) => {
               return callback(false, mcsdDatimLevel)
             });
           });
         },
         mohLoations: function (callback) {
           mcsd.getLocations(mohDB, (mcsdMOH) => {
+            winston.error('MOH ' + mcsdMOH.entry.length)
             mcsdMohAll = mcsdMOH;
-            mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
+            mcsd.filterLocations(mcsdMOH, mohTopId, recoLevel, (mcsdMohLevel) => {
               return callback(false, mcsdMohLevel);
             });
           });
@@ -574,7 +576,7 @@ if (cluster.isMaster) {
     }
     const datimDB = config.getConf('mCSD:database');
     mcsd.getLocationChildren(datimDB, orgid, (locations) => {
-      mcsd.filterLocations(locations, orgid, 0, recoLevel, 0, (mcsdLevels, mcsdLevel, mcsdBuildings) => {
+      mcsd.filterLocations(locations, orgid, recoLevel, (mcsdLevel) => {
         scores.getUnmatched(locations, mcsdLevel, orgid, (unmatched) => {
           winston.info(`sending back DATIM unmatched Orgs for ${req.params.orgid}`);
           res.set('Access-Control-Allow-Origin', '*');

@@ -416,33 +416,20 @@ module.exports = function () {
     if buildings is set then it returns all buildings
     buildings argument accepts a building level
     */
-    filterLocations(mcsd, topOrgId, totalLevels, levelNumber, buildings, callback) {
-      // holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
-      const mcsdTotalLevels = {};
+    filterLocations(mcsd, topOrgId, levelNumber, callback) {
       // holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
-      const mcsdlevelNumber = {};
-      // holds buildings only
-      const mcsdBuildings = {};
-      mcsdTotalLevels.entry = [];
-      mcsdlevelNumber.entry = [];
-      mcsdBuildings.entry = [];
+      const mcsdLevelNumber = {};
+      mcsdLevelNumber.entry = [];
       if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0 || !topOrgId) {
-        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        return callback(mcsdLevelNumber);
       }
       const entry = mcsd.entry.find(entry => entry.resource.id == topOrgId);
       if (!entry) {
-        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        return callback(mcsdLevelNumber);
       }
       if (levelNumber == 1) {
-        mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry);
-      }
-      if (totalLevels) {
-        mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
-      }
-      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'bu');
-
-      if (building) {
-        mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
+        mcsdLevelNumber.entry = mcsdLevelNumber.entry.concat(entry);
+        return callback(mcsdLevelNumber);
       }
 
       function filter(id, callback) {
@@ -455,13 +442,7 @@ module.exports = function () {
       }
 
       let totalLoops = 0;
-      if (totalLevels >= levelNumber && totalLevels >= buildings) {
-        totalLoops = totalLevels;
-      } else if (levelNumber >= totalLevels && levelNumber >= buildings) {
-        totalLoops = levelNumber;
-      } else if (buildings >= totalLevels && buildings >= levelNumber) {
-        totalLoops = buildings;
-      }
+      totalLoops = levelNumber;
 
       let tmpArr = [];
       tmpArr.push(entry);
@@ -473,29 +454,11 @@ module.exports = function () {
           promises.push(new Promise((resolve, reject) => {
             filter(arr.resource.id, (res) => {
               tmpArr = tmpArr.concat(res);
-              if (totalLevels) {
-                mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(res);
-              }
               if (levelNumber == loop + 1) {
-                mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(res);
+                mcsdLevelNumber.entry = mcsdLevelNumber.entry.concat(res);
               }
-              const promises1 = [];
-              for (var k in res) {
-                promises1.push(new Promise((resolve1, reject1) => {
-                  var building = res[k].resource.physicalType.coding.find((coding) => {
-                    if (building) {
-                      mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
-                    }
-                  });
-                  resolve1();
-                }));
-              }
-              Promise.all(promises1).then(() => {
-                totalElements++;
-                resolve();
-              }).catch((err) => {
-                winston.error(err);
-              });
+              totalElements++;
+              resolve();
             });
           }));
         });
@@ -506,7 +469,7 @@ module.exports = function () {
           winston.error(err);
         });
       }, () => {
-        callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        callback(mcsdLevelNumber);
       });
     },
 

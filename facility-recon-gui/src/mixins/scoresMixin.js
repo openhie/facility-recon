@@ -3,7 +3,7 @@ const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export const scoresMixin = {
-  data() {
+  data () {
     return {
       scoreProgressTitle: 'Waiting for progress status',
       scoreDialog: false,
@@ -13,7 +13,7 @@ export const scoresMixin = {
     }
   },
   methods: {
-    checkScoreProgress() {
+    checkScoreProgress () {
       const orgId = this.$store.state.orgUnit.OrgId
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/scoreProgress/' + orgId + '/' + clientId).then((scoreProgress) => {
@@ -37,7 +37,7 @@ export const scoresMixin = {
         console.log(err)
       })
     },
-    getScores() {
+    getScores () {
       this.scoreDialog = true
       this.scoreProgressTitle = 'Waiting for progress status'
       this.progressType = 'indeterminate'
@@ -70,6 +70,7 @@ export const scoresMixin = {
         })
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + totalDATIMLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
+        console.log('received')
         this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
@@ -128,7 +129,7 @@ export const scoresMixin = {
       })
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
-    getDatimUnmached() {
+    getDatimUnmached () {
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
       let totalMOHLevels = this.$store.state.totalMOHLevels
@@ -144,7 +145,7 @@ export const scoresMixin = {
       })
     }
   },
-  created() {
+  created () {
     this.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
     this.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
     if (this.$store.state.scoresProgressData.scoreDialog) {
@@ -158,7 +159,7 @@ export const scoresMixin = {
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     }
   },
-  destroyed() {
+  destroyed () {
     this.$store.state.scoresProgressData.scoreProgressTitle = this.scoreProgressTitle
     this.$store.state.scoresProgressData.scoreProgressPercent = this.scoreProgressPercent
     this.$store.state.scoresProgressData.scoreDialog = this.scoreDialog
