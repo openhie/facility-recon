@@ -67,7 +67,6 @@ import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
-const updateTimeURL = (isProduction ? config.build.updateTimeURL : config.dev.updateTimeURL)
 
 export default {
   mixins: [scoresMixin],
@@ -165,12 +164,17 @@ export default {
     }
   },
   mounted () {
-    axios.get(updateTimeURL).then((update) => {
-      this.datimUpdateTime = update.data.value
-    }).catch((error) => {
-      console.log('Failed to get last update time.', error)
+    if (isProduction) {
+      var href = location.href.split('api').shift()
+      axios.get(href + 'api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign').then((update) => {
+        this.datimUpdateTime = update.data.value
+      }).catch((error) => {
+        console.log('Failed to get last update time.', error)
+        this.datimUpdateTime = 'Failed'
+      })
+    } else {
       this.datimUpdateTime = 'Failed'
-    })
+    }
   },
   created () {
     this.$store.state.clientId = uuid.v4()

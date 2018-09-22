@@ -421,50 +421,55 @@ if (cluster.isMaster) {
         percent: null
       })
       redisClient.set(scoreRequestId, scoreResData)
-      const datimLocationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
-          mcsdDatimAll = mcsdDATIM;
-          let level
-          if (recoLevel === totalLevels) {
-            level = totalDATIMLevels
-          } else {
-            level = recoLevel
-          }
+      async.series({
+        datimLocations: function (callback) {
+          mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
+            mcsdDatimAll = mcsdDATIM;
+            let level
+            if (recoLevel === totalLevels) {
+              level = totalDATIMLevels
+            } else {
+              level = recoLevel
+            }
 
-          if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
-            level = levelMaps[orgid][recoLevel];
-          }
-          mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
-            resolve(mcsdDatimLevel);
+            if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
+              level = levelMaps[orgid][recoLevel];
+            }
+            mcsd.filterLocations(mcsdDATIM, datimTopId, 0, level, 0, (mcsdDatimTotalLevels, mcsdDatimLevel, mcsdDatimBuildings) => {
+              return callback(false, mcsdDatimLevel)
+            });
           });
-        });
-      });
-
-      const mohLocationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocations(mohDB, (mcsdMOH) => {
-          mcsdMohAll = mcsdMOH;
-          mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
-            resolve(mcsdMohLevel);
+        },
+        mohLoations: function (callback) {
+          mcsd.getLocations(mohDB, (mcsdMOH) => {
+            mcsdMohAll = mcsdMOH;
+            mcsd.filterLocations(mcsdMOH, mohTopId, 0, recoLevel, 0, (mcsdMohTotalLevels, mcsdMohLevel, mcsdMohBuildings) => {
+              return callback(false, mcsdMohLevel);
+            });
           });
-        });
-      });
-
-      const mappingDB = config.getConf('mapping:dbPrefix') + orgid;
-      const mappingLocationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
-          resolve(mcsdMapped);
-        });
-      });
-      Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
+        },
+        mappingData: function (callback) {
+          const mappingDB = config.getConf('mapping:dbPrefix') + orgid;
+          mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
+            return callback(false, mcsdMapped);
+          });
+        }
+      }, (error, results) => {
         if (recoLevel == totalLevels) {
-          scores.getBuildingsScores(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
+          scores.getBuildingsScores(results.mohLoations, results.datimLocations, results.mappingData, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
             recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+              scoreResData = JSON.stringify({
+                status: 'Done',
+                error: null,
+                percent: 100
+              })
+              redisClient.set(scoreRequestId, scoreResData)
               var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
                 recoLevel,
-                datimTotalRecords: locations[0].entry.length,
+                datimTotalRecords: results.datimLocations.entry.length,
                 datimTotalAllRecords: mcsdDatimAll.entry.length,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
@@ -476,14 +481,14 @@ if (cluster.isMaster) {
             })
           });
         } else {
-          scores.getJurisdictionScore(locations[1], locations[0], locations[2], mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
+          scores.getJurisdictionScore(results.mohLoations, results.datimLocations, results.mappingData, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
             recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
               var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
                 recoLevel,
-                datimTotalRecords: locations[0].entry.length,
+                datimTotalRecords: results.datimLocations.entry.length,
                 datimTotalAllRecords: mcsdDatimAll.entry.length,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
@@ -495,9 +500,7 @@ if (cluster.isMaster) {
             })
           });
         }
-      }).catch((err) => {
-        winston.error(err)
-      });
+      })
     }
 
     function recoStatus(orgid, callback) {
