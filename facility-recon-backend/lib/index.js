@@ -424,7 +424,6 @@ if (cluster.isMaster) {
       async.parallel({
         datimLocations: function (callback) {
           mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
-            winston.error ('DATIM ' + mcsdDATIM.entry.length)
             mcsdDatimAll = mcsdDATIM;
             let level
             if (recoLevel === totalLevels) {
@@ -443,7 +442,6 @@ if (cluster.isMaster) {
         },
         mohLoations: function (callback) {
           mcsd.getLocations(mohDB, (mcsdMOH) => {
-            winston.error('MOH ' + mcsdMOH.entry.length)
             mcsdMohAll = mcsdMOH;
             mcsd.filterLocations(mcsdMOH, mohTopId, recoLevel, (mcsdMohLevel) => {
               return callback(false, mcsdMohLevel);

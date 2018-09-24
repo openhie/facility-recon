@@ -410,14 +410,8 @@ module.exports = function () {
       })
       return callback(buildings)
     },
-    /*
-    if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
-    if levelNumber is set then it returns locations at level levelNumber only
-    if buildings is set then it returns all buildings
-    buildings argument accepts a building level
-    */
+
     filterLocations(mcsd, topOrgId, levelNumber, callback) {
-      // holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
       const mcsdLevelNumber = {};
       mcsdLevelNumber.entry = [];
       if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0 || !topOrgId) {

@@ -53,9 +53,9 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '',
 
-    // backend: 'https://test.geoalign.datim.org/facrecon',
+    backend: 'https://test.geoalign.datim.org/facrecon',
 
-    backend: 'https://hearth.geoalign.datim.org/facrecon',
+    // backend: 'https://hearth.geoalign.datim.org/facrecon',
     /**
      * Source Maps
      */
