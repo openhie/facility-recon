@@ -494,7 +494,6 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               const datimPromises = [];
               var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-                //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
                 // in case there are different levels of parents (only DATIM can have more levels due to import)
                 return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
               })
@@ -540,7 +539,7 @@ module.exports = function () {
                   };
                   thisRanking.potentialMatches = {};
                   mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
-
+                    
                   });
                   return datimCallback();
                 }
@@ -591,7 +590,7 @@ module.exports = function () {
                   };
                   thisRanking.potentialMatches = {};
                   mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
-
+                    
                   });
                   return datimCallback();
                 }

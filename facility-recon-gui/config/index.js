@@ -20,7 +20,6 @@ module.exports = {
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
     backend: 'http://localhost:3000',
-    updateTimeURL: 'https://test.geoalign.datim.org/api/dataStore/CSD-Loader-Last-Export/mCSDTestGeoAlign',
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and
     // linting errors and warnings will be shown in the console.

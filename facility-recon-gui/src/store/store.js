@@ -9,6 +9,7 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   // Cote D'Ivoire ds0ADyc9UCU
+  // Namibia FFVkaV9Zk1S
   state: {
     recoStatus: {
       'status': 'on-progress'
@@ -22,8 +23,8 @@ export const store = new Vuex.Store({
     mohHierarchy: '',
     uploadRunning: false,
     orgUnit: {
-      OrgId: 'mdXu6iCbn2G',
-      OrgName: 'Tanzania'
+      OrgId: 'lZsCb6y0KDX',
+      OrgName: 'Malawi'
     },
     mohTotalAllRecords: 0,
     datimTotalAllRecords: 0,
