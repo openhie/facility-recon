@@ -89,21 +89,16 @@ module.exports = function () {
             url,
           };
           url = false;
-          const cachedData = cache.get(`getLocationByID${url}`);
-          if (cachedData && getCached) {
-            return callback(cachedData);
-          }
           request.get(options, (err, res, body) => {
             if (!isJSON(body)) {
               return callback(false, false);
             }
-            const cacheData = JSON.parse(body);
-            const next = cacheData.link.find(link => link.relation == 'next');
+            const mcsd = JSON.parse(body);
+            const next = mcsd.link.find(link => link.relation == 'next');
             if (next) {
               url = next.url;
             }
-            cache.put(`getLocationByID${url}`, cacheData, 120 * 2000);
-            locations.entry = locations.entry.concat(cacheData.entry);
+            locations.entry = locations.entry.concat(mcsd.entry);
             return callback(false, url);
           });
         },
@@ -530,16 +525,17 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
-
-        for( const key of cache.keys() ) {
-          if ( key.substring(0, url.length+4) === 'url_'+url ) {
-            winston.info("DELETING "+key+" from cache because something was saved.");
-            cache.del(key);
-          }
-        }
-
+        this.cleanCache(url + '/Location')
         callback(err, body);
       });
+    },
+    cleanCache(url) {
+      for (const key of cache.keys()) {
+        if (key.substring(0, url.length + 4) === 'url_' + url) {
+          winston.info("DELETING " + key + " from cache because something was modified.")
+          cache.del(key)
+        }
+      }
     },
     saveMatch(mohId, datimId, topOrgId, recoLevel, totalLevels, type, callback) {
       const database = config.getConf('mCSD:database');
@@ -677,13 +673,13 @@ module.exports = function () {
         flagged.type = 'document';
 
         // deleting existing location
-        const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-          .segment(datimId)
-          .toString();
+        const url_prefix = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        const url = URI(url_prefix).segment(datimId).toString();
         const options = {
           url,
         };
         request.delete(options, (err, res, body) => {
+          this.cleanCache(url_prefix.toString());
           if (err) {
             winston.error(err);
             return callback(err);
@@ -786,9 +782,11 @@ module.exports = function () {
         });
     },
     breakMatch(id, database, topOrgId, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        .segment(id)
-        .toString();
+      const url_prefix = URI(config.getConf('mCSD:url'))
+        .segment(database)
+        .segment('fhir')
+        .segment('Location')
+      const url = URI(url_prefix).segment(id).toString()
       const options = {
         url,
       };
@@ -797,6 +795,7 @@ module.exports = function () {
           return callback(true, null);
         }
         request.delete(options, (err, res, body) => {
+          this.cleanCache(url_prefix.toString());
           if (err) {
             winston.error(err);
           }
@@ -839,20 +838,18 @@ module.exports = function () {
       });
     },
     breakNoMatch(id, database, callback) {
-      const url = URI(config.getConf('mCSD:url'))
+      const url_prefix = URI(config.getConf('mCSD:url'))
         .segment(database)
         .segment('fhir')
         .segment('Location')
+      const url = URI(url_prefix)
         .segment(id)
         .toString();
       const options = {
         url,
       };
-      const cachedData = cache.get(`getLocationByID${url}`);
-      if (cachedData) {
-        return callback(cachedData);
-      }
       request.delete(options, (err, res, body) => {
+        this.cleanCache(url_prefix.toString());
         if (err) {
           winston.error(err);
         }
@@ -939,7 +936,6 @@ module.exports = function () {
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
                 if (data[headerMapping[topLevelName]] && parentFound == false) {
-                  winston.error(data[headerMapping[topLevelName]])
                   parent = data[headerMapping[topLevelName]].trim();
                   if (topLevel.toString().length < 2) {
                     var namespaceMod = `${namespace}00${topLevel}`;
@@ -1021,7 +1017,6 @@ module.exports = function () {
           this.saveLocations(saveBundle, orgid, () => {
             Promise.all(promises).then(() => {
               var uploadRequestId = `uploadProgress${orgid}${clientId}`;
-              winston.info('done')
               const uploadReqPro = JSON.stringify({
                 status: 'Done',
                 error: null,

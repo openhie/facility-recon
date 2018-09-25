@@ -1,14 +1,14 @@
 {
   "ilr": {
-    "url": "http://localhost:3447/GeoAlign",
+    "url": "http://localhost:3447/fhir",
     "user": "",
     "pass": "",
     "doc": ""
   },
   "dhis2": {
     "url": "https://test.geoalign.datim.org",
-    "user": "ashaban",
-    "pass": "Mw@n@m1gu",
+    "user": "",
+    "pass": "",
     "dousers": false,
     "doservices": true
   }

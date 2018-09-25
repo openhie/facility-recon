@@ -524,7 +524,6 @@ module.exports = function () {
                   var dist = geodist({ datimLatitude, datimLongitude }, { mohLatitude, mohLongitude }, { exact: false, unit: 'miles' });
                 }
                 datimIdPromises = [];
-
                 // check if IDS are the same and mark as exact match
                 const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
                 if (matchingIdent && !matchBroken) {
