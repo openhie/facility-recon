@@ -83,6 +83,7 @@ if (cluster.isMaster) {
   }
 
   app.get('/doubleMapping/:db', (req,res)=>{
+    winston.info('Received a request to check MOH Locations that are double mapped')
     let mohDB = req.params.db
     let mappingDB = "MOHDATIM" + req.params.db
     async.parallel({
@@ -99,9 +100,8 @@ if (cluster.isMaster) {
     },(err,results)=>{
       let dupplicated = []
       let url = 'http://localhost:3447/' + mohDB + '/fhir/Location/'
-      async.eachSeries(results.mohData.entry,(mohEntry,nxtMoh)=>{
+      async.each(results.mohData.entry,(mohEntry,nxtMoh)=>{
         mohid = mohEntry.resource.id
-        winston.error(url + mohid)
         let checkDup = []
         async.each(results.mappingData.entry,(mappingEntry,nxtMap)=>{
           var isMapped = mappingEntry.resource.identifier.find((ident)=>{
@@ -123,6 +123,7 @@ if (cluster.isMaster) {
           return nxtMoh()
         })
       },()=>{
+        winston.info ('Found ' + dupplicated.length + ' MOH Locations with Double Matching' )
         res.send(dupplicated)
       })
     })
