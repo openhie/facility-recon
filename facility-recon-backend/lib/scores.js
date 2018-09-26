@@ -500,7 +500,10 @@ module.exports = function () {
                 // in case there are different levels of parents (only DATIM can have more levels due to import)
                 return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
               })
-              async.each(datimFiltered, (datimEntry, datimCallback) => {
+              async.eachSeries(datimFiltered, (datimEntry, datimCallback) => {
+                if (Object.keys(thisRanking.exactMatch).length > 0) {
+                  return datimCallback()
+                }
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
                 const datimIdentifiers = datimEntry.resource.identifier;
