@@ -229,11 +229,14 @@ module.exports = function () {
                     return datimCallback();
                   }
                   if (lev == 0 && matchBroken) {
-                    thisRanking.potentialMatches = {'0': [{
+                    if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                      thisRanking.potentialMatches['0'] = []
+                    }
+                    thisRanking.potentialMatches['0'].push({
                       name: datimName,
                       parents: datimParentNames[datimId],
                       id: datimEntry.resource.id,
-                    }]};
+                    })
                     return datimCallback();
                   }
                   if (Object.keys(thisRanking.exactMatch).length == 0) {
@@ -543,14 +546,17 @@ module.exports = function () {
                   return datimCallback();
                 }
                 else if (matchingIdent && matchBroken) {
-                  thisRanking.potentialMatches = {'0': [{
+                  if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                    thisRanking.potentialMatches['0'] = []
+                  }
+                  thisRanking.potentialMatches['0'].push({
                     name: datimName,
-                    parents: datimParentNames[datimEntry.resource.id],
-                    lat: datimLatitude,
-                    long: datimLongitude,
-                    geoDistance: dist,
-                    id: datimEntry.resource.id,
-                  }]};
+                      parents: datimParentNames[datimEntry.resource.id],
+                      lat: datimLatitude,
+                      long: datimLongitude,
+                      geoDistance: dist,
+                      id: datimEntry.resource.id
+                  })
                   return datimCallback();
                 }
 
@@ -594,14 +600,17 @@ module.exports = function () {
                   return datimCallback();
                 }
                 else if (lev == 0 && matchBroken) {
-                  thisRanking.potentialMatches = {'0': [{
+                  if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                    thisRanking.potentialMatches['0'] = []
+                  }
+                  thisRanking.potentialMatches['0'].push({
                     name: datimName,
                     parents: datimParentNames[datimEntry.resource.id],
                     lat: datimLatitude,
                     long: datimLongitude,
                     geoDistance: dist,
                     id: datimEntry.resource.id,
-                  }]};
+                  })
                   return datimCallback();
                 }
                 if (Object.keys(thisRanking.exactMatch).length == 0) {

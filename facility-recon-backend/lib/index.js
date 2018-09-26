@@ -81,6 +81,53 @@ if (cluster.isMaster) {
       4: 5,
     }
   }
+
+  app.get('/doubleMapping/:db', (req,res)=>{
+    let mohDB = req.params.db
+    let mappingDB = "MOHDATIM" + req.params.db
+    async.parallel({
+      mohData: function(callback) {
+        mcsd.getLocations(mohDB, (data) => {
+          return callback(false,data)
+        })
+      },
+      mappingData: function (callback) {
+        mcsd.getLocations(mappingDB, (data) => {
+          return callback(false,data)
+        })
+      }
+    },(err,results)=>{
+      let dupplicated = []
+      let url = 'http://localhost:3447/' + mohDB + '/fhir/Location/'
+      async.eachSeries(results.mohData.entry,(mohEntry,nxtMoh)=>{
+        mohid = mohEntry.resource.id
+        winston.error(url + mohid)
+        let checkDup = []
+        async.each(results.mappingData.entry,(mappingEntry,nxtMap)=>{
+          var isMapped = mappingEntry.resource.identifier.find((ident)=>{
+            return ident.system === 'http://geoalign.datim.org/MOH' && ident.value === url + mohid
+          })
+          if (isMapped) {
+            checkDup.push({
+              mohName: mohEntry.resource.name,
+              mohID: mohEntry.resource.id,
+              datimName: mappingEntry.resource.name,
+              datimID: mappingEntry.resource.id
+            })
+          }
+          return nxtMap()
+        },()=>{
+          if (checkDup.length > 1) {
+            dupplicated.push(checkDup)
+          }
+          return nxtMoh()
+        })
+      },()=>{
+        res.send(dupplicated)
+      })
+    })
+  })
+
   app.get('/countLevels/:orgid', (req, res) => {
     if (!req.params.orgid) {
       winston.error({
