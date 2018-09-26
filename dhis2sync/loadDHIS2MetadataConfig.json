@@ -6,9 +6,9 @@
     "doc": ""
   },
   "dhis2": {
-    "url": "https://test.geoalign.datim.org",
-    "user": "",
-    "pass": "",
+    "url": "https://play.dhis2.org/2.30",
+    "user": "admin",
+    "pass": "district",
     "dousers": false,
     "doservices": true
   }
