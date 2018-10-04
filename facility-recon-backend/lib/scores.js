@@ -32,14 +32,14 @@ module.exports = function () {
       var datimMappedParentIds = {}
       winston.info('Populating parents')
       var totalRecords = mcsdDATIM.entry.length
-      for ( entry of mcsdDATIM.entry ) {
+      for (entry of mcsdDATIM.entry) {
         if (entry.resource.hasOwnProperty('partOf')) {
           datimParentNames[entry.resource.id] = [];
           datimMappedParentIds[entry.resource.id] = [];
           var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
-            async.each(parents,(parent,parentCallback)=>{
+            async.each(parents, (parent, parentCallback) => {
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
                   mapped.resource.identifier.find((identifier) => {
@@ -49,25 +49,27 @@ module.exports = function () {
                     }
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
-                }
-                else {
-                  if(parent.id == datimTopId) {
+                } else {
+                  if (parent.id == datimTopId) {
                     datimMappedParentIds[entry.resource.id].push(mohTopId);
-                  }
-                  else {
+                  } else {
                     datimMappedParentIds[entry.resource.id].push(parent.id);
                   }
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
                 parentCallback()
               });
-            },()=>{
+            }, () => {
               count++
-              let percent = parseFloat((count*100/totalRecords).toFixed(2))
+              let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
-              scoreResData = JSON.stringify({status: '2/3 - Scanning DATIM Location Parents', error: null, percent: percent})
-              redisClient.set(scoreRequestId,scoreResData)
-              if(count === mcsdDATIM.entry.length) {
+              scoreResData = JSON.stringify({
+                status: '2/3 - Scanning DATIM Location Parents',
+                error: null,
+                percent: percent
+              })
+              redisClient.set(scoreRequestId, scoreResData)
+              if (count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
               }
             })
@@ -82,14 +84,18 @@ module.exports = function () {
         const database = config.getConf('mapping:dbPrefix') + datimTopId;
         // check if this MOH Orgid is mapped
         const mohId = mohEntry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId)
+        const mohIdentifier = URI(config.getConf('mCSD:url'))
+          .segment(datimTopId)
+          .segment('fhir')
+          .segment('Location')
+          .segment(mohId)
           .toString();
         var matchBroken = false
-        if(mohEntry.resource.hasOwnProperty('tag')) {
-          var matchBrokenTag = mohEntry.resource.tag.find((tag)=>{
-          return tag.code == matchBrokenCode
+        if (mohEntry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = mohEntry.resource.tag.find((tag) => {
+            return tag.code == matchBrokenCode
           })
-          if(matchBrokenTag) {
+          if (matchBrokenTag) {
             matchBroken = true
           }
         }
@@ -119,9 +125,13 @@ module.exports = function () {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++;
-                let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-                redisClient.set(scoreRequestId,scoreResData)
+                let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({
+                  status: '3/3 - Running Automatching',
+                  error: null,
+                  percent: percent
+                })
+                redisClient.set(scoreRequestId, scoreResData)
                 return mohCallback();
               }
               // if no macth then this is already marked as a match
@@ -133,7 +143,7 @@ module.exports = function () {
                   thisRanking.moh.tag = 'flagged';
                 }
               }
-              var matchInDatim = mcsdDATIM.entry.find((entry)=>{
+              var matchInDatim = mcsdDATIM.entry.find((entry) => {
                 return entry.resource.id == match.resource.id
               })
               if (matchInDatim) {
@@ -145,9 +155,13 @@ module.exports = function () {
               }
               scoreResults.push(thisRanking);
               count++
-              let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-              redisClient.set(scoreRequestId,scoreResData)
+              let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({
+                status: '3/3 - Running Automatching',
+                error: null,
+                percent: percent
+              })
+              redisClient.set(scoreRequestId, scoreResData)
               return mohCallback();
             });
           } else { // if not mapped
@@ -159,6 +173,7 @@ module.exports = function () {
               var entityParent = mohEntry.resource.partOf.reference;
               var mohParentReceived = new Promise((resolve, reject) => {
                 mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (parents) => {
+                  // mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"all",(parents)=>{
                   mohParents = parents;
                   async.eachSeries(parents, (parent, nxtParent) => {
                     mohParentNames.push(
@@ -187,16 +202,16 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
-              var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
+              var datimFiltered = mcsdDATIM.entry.filter((entry) => {
                 return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
               })
               async.each(datimFiltered, (datimEntry, datimCallback) => {
                 const id = datimEntry.resource.id;
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
-                var ignoreThis = ignore.find((toIgnore)=>{
+                var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
                 })
-                if(ignoreThis) {
+                if (ignoreThis) {
                   return datimCallback()
                 }
                 // check if this is already mapped
@@ -224,11 +239,14 @@ module.exports = function () {
                     return datimCallback();
                   }
                   if (lev == 0 && matchBroken) {
-                    thisRanking.potentialMatches = {'0': [{
+                    if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                      thisRanking.potentialMatches['0'] = []
+                    }
+                    thisRanking.potentialMatches['0'].push({
                       name: datimName,
                       parents: datimParentNames[datimId],
                       id: datimEntry.resource.id,
-                    }]};
+                    })
                     return datimCallback();
                   }
                   if (Object.keys(thisRanking.exactMatch).length == 0) {
@@ -260,10 +278,13 @@ module.exports = function () {
               }, () => {
                 scoreResults.push(thisRanking);
                 count++
-                let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-                redisClient.set(scoreRequestId,scoreResData)
-                winston.info(`${count}/${mcsdMOH.entry.length}`);
+                let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({
+                  status: '3/3 - Running Automatching',
+                  error: null,
+                  percent: percent
+                })
+                redisClient.set(scoreRequestId, scoreResData)
                 return mohCallback();
               });
             }).catch((err) => {
@@ -272,8 +293,12 @@ module.exports = function () {
           }
         });
       }, () => {
-        scoreResData = JSON.stringify({status: 'Done', error: null, percent: 100})
-        redisClient.set(scoreRequestId,scoreResData)
+        scoreResData = JSON.stringify({
+          status: 'Done',
+          error: null,
+          percent: 100
+        })
+        redisClient.set(scoreRequestId, scoreResData)
         callback(scoreResults)
       });
     },
@@ -303,13 +328,12 @@ module.exports = function () {
       var count = 0
       winston.info('Populating parents')
       var totalRecords = mcsdDATIM.entry.length
-      for ( entry of mcsdDATIM.entry ) {
+      for (entry of mcsdDATIM.entry) {
         datimLevelMappingStatus[entry.resource.id] = []
         this.matchStatus(mcsdMapped, entry.resource.id, (mapped) => {
           if (mapped) {
             datimLevelMappingStatus[entry.resource.id] = true
-          }
-          else {
+          } else {
             datimLevelMappingStatus[entry.resource.id] = false
           }
         })
@@ -319,7 +343,7 @@ module.exports = function () {
           var entityParent = entry.resource.partOf.reference;
           mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against MOH
-            async.each(parents,(parent,parentCallback)=>{
+            async.each(parents, (parent, parentCallback) => {
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
                   const mappedPar = mapped.resource.identifier.find((identifier) => {
@@ -329,20 +353,23 @@ module.exports = function () {
                     }
                   });
                   datimParentNames[entry.resource.id].push(parent.text);
-                }
-                else {
+                } else {
                   datimMappedParentIds[entry.resource.id].push(parent.id);
                   datimParentNames[entry.resource.id].push(parent.text);
                 }
                 parentCallback()
               })
-            },()=>{
+            }, () => {
               count++
               const scoreRequestId = `scoreResults${datimTopId}${clientId}`
-              let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '2/3 - Scanning DATIM Location Parents', error: null, percent: percent})
-              redisClient.set(scoreRequestId,scoreResData)
-              if(count === mcsdDATIM.entry.length) {
+              let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({
+                status: '2/3 - Scanning DATIM Location Parents',
+                error: null,
+                percent: percent
+              })
+              redisClient.set(scoreRequestId, scoreResData)
+              if (count === mcsdDATIM.entry.length) {
                 winston.info('Done populating parents')
               }
             })
@@ -365,15 +392,19 @@ module.exports = function () {
           mohLatitude = mohEntry.resource.position.latitude;
           mohLongitude = mohEntry.resource.position.longitude;
         }
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId)
+        const mohIdentifier = URI(config.getConf('mCSD:url'))
+          .segment(datimTopId)
+          .segment('fhir')
+          .segment('Location')
+          .segment(mohId)
           .toString();
 
         var matchBroken = false
-        if(mohEntry.resource.hasOwnProperty('tag')) {
-          var matchBrokenTag = mohEntry.resource.tag.find((tag)=>{
-          return tag.code == matchBrokenCode
+        if (mohEntry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = mohEntry.resource.tag.find((tag) => {
+            return tag.code == matchBrokenCode
           })
-          if(matchBrokenTag) {
+          if (matchBrokenTag) {
             matchBroken = true
           }
         }
@@ -411,9 +442,13 @@ module.exports = function () {
                 thisRanking.moh.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++
-                let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-                redisClient.set(scoreRequestId,scoreResData)
+                let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({
+                  status: '3/3 - Running Automatching',
+                  error: null,
+                  percent: percent
+                })
+                redisClient.set(scoreRequestId, scoreResData)
                 return mohCallback();
               }
 
@@ -437,12 +472,16 @@ module.exports = function () {
               };
               scoreResults.push(thisRanking);
               count++
-              let percent = parseFloat((count*100/totalRecords).toFixed(2))
-              scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-              redisClient.set(scoreRequestId,scoreResData)
+              let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+              scoreResData = JSON.stringify({
+                status: '3/3 - Running Automatching',
+                error: null,
+                percent: percent
+              })
+              redisClient.set(scoreRequestId, scoreResData)
               return mohCallback();
             });
-        } else { // if not mapped
+          } else { // if not mapped
             const mohName = mohEntry.resource.name;
             let mohParents = [];
             const mohParentNames = [];
@@ -485,27 +524,29 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               const datimPromises = [];
-              var datimFiltered = mcsdDATIM.entry.filter((entry)=>{
-                //return mohParentIds[0] == datimMappedParentIds[entry.resource.id][0]
+              var datimFiltered = mcsdDATIM.entry.filter((entry) => {
                 // in case there are different levels of parents (only DATIM can have more levels due to import)
                 return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
               })
-              async.each(datimFiltered, (datimEntry, datimCallback) => {
+              async.eachSeries(datimFiltered, (datimEntry, datimCallback) => {
+                if (Object.keys(thisRanking.exactMatch).length > 0) {
+                  return datimCallback()
+                }
                 const database = config.getConf('mapping:dbPrefix') + datimTopId;
                 const id = datimEntry.resource.id;
                 const datimIdentifiers = datimEntry.resource.identifier;
                 //if this datim is already mapped then skip it
-                var ignoreThis = ignore.find((toIgnore)=>{
+                var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
                 })
-                if(ignoreThis) {
+                if (ignoreThis) {
                   return datimCallback()
                 }
                 //if this is already mapped then ignore
                 if (datimLevelMappingStatus[id]) {
                   return datimCallback();
                 }
-                
+
                 const datimName = datimEntry.resource.name;
                 let datimLatitude = null;
                 let datimLongitude = null;
@@ -514,10 +555,18 @@ module.exports = function () {
                   datimLongitude = datimEntry.resource.position.longitude;
                 }
                 if (datimLatitude && datimLongitude) {
-                  var dist = geodist({ datimLatitude, datimLongitude }, { mohLatitude, mohLongitude }, { exact: false, unit: 'miles' });
+                  var dist = geodist({
+                    datimLatitude,
+                    datimLongitude
+                  }, {
+                    mohLatitude,
+                    mohLongitude
+                  }, {
+                    exact: false,
+                    unit: 'miles'
+                  });
                 }
                 datimIdPromises = [];
-
                 // check if IDS are the same and mark as exact match
                 const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
                 if (matchingIdent && !matchBroken) {
@@ -535,16 +584,18 @@ module.exports = function () {
 
                   });
                   return datimCallback();
-                }
-                else if (matchingIdent && matchBroken) {
-                  thisRanking.potentialMatches = {'0': [{
+                } else if (matchingIdent && matchBroken) {
+                  if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                    thisRanking.potentialMatches['0'] = []
+                  }
+                  thisRanking.potentialMatches['0'].push({
                     name: datimName,
                     parents: datimParentNames[datimEntry.resource.id],
                     lat: datimLatitude,
                     long: datimLongitude,
                     geoDistance: dist,
-                    id: datimEntry.resource.id,
-                  }]};
+                    id: datimEntry.resource.id
+                  })
                   return datimCallback();
                 }
 
@@ -563,8 +614,7 @@ module.exports = function () {
                         id: datimEntry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
-                      });
+                      mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {});
                       return datimCallback();
                     }
                   }
@@ -586,16 +636,18 @@ module.exports = function () {
 
                   });
                   return datimCallback();
-                }
-                else if (lev == 0 && matchBroken) {
-                  thisRanking.potentialMatches = {'0': [{
+                } else if (lev == 0 && matchBroken) {
+                  if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                    thisRanking.potentialMatches['0'] = []
+                  }
+                  thisRanking.potentialMatches['0'].push({
                     name: datimName,
                     parents: datimParentNames[datimEntry.resource.id],
                     lat: datimLatitude,
                     long: datimLongitude,
                     geoDistance: dist,
                     id: datimEntry.resource.id,
-                  }]};
+                  })
                   return datimCallback();
                 }
                 if (Object.keys(thisRanking.exactMatch).length == 0) {
@@ -632,9 +684,13 @@ module.exports = function () {
               }, () => {
                 scoreResults.push(thisRanking);
                 count++;
-                let percent = parseFloat((count*100/totalRecords).toFixed(2))
-                scoreResData = JSON.stringify({status: '3/3 - Running Automatching', error: null, percent: percent})
-                redisClient.set(scoreRequestId,scoreResData)
+                let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
+                scoreResData = JSON.stringify({
+                  status: '3/3 - Running Automatching',
+                  error: null,
+                  percent: percent
+                })
+                redisClient.set(scoreRequestId, scoreResData)
                 return mohCallback();
               });
             }).catch((err) => {
@@ -643,8 +699,12 @@ module.exports = function () {
           }
         });
       }, () => {
-        scoreResData = JSON.stringify({status: 'Done', error: null, percent: 100})
-        redisClient.set(scoreRequestId,scoreResData)
+        scoreResData = JSON.stringify({
+          status: 'Done',
+          error: null,
+          percent: 100
+        })
+        redisClient.set(scoreRequestId, scoreResData)
         callback(scoreResults)
       });
     },
@@ -661,14 +721,14 @@ module.exports = function () {
       mcsd.getLocations(database, (locations) => {
         let parentCache = {}
         async.each(mcsdDatim.entry, (datimEntry, datimCallback) => {
-          if (locations.entry.find( entry => entry.resource.id === datimEntry.resource.id ) === undefined) {
+          if (locations.entry.find(entry => entry.resource.id === datimEntry.resource.id) === undefined) {
             const name = datimEntry.resource.name;
             const id = datimEntry.resource.id;
             let entityParent = null;
             if (datimEntry.resource.hasOwnProperty('partOf')) {
               entityParent = datimEntry.resource.partOf.reference;
             }
-            if ( !parentCache[entityParent] ) {
+            if (!parentCache[entityParent]) {
               parentCache[entityParent] = []
               mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
                 parentCache[entityParent] = datimParents
@@ -695,7 +755,7 @@ module.exports = function () {
         });
       })
     },
-    getMappingStatus (mohLocations,datimLocations,mappedLocations,datimTopId,clientId,callback) {
+    getMappingStatus(mohLocations, datimLocations, mappedLocations, datimTopId, clientId, callback) {
       const noMatchCode = config.getConf('mapping:noMatchCode');
       const flagCode = config.getConf('mapping:flagCode');
       var mappingStatus = {}
@@ -704,27 +764,32 @@ module.exports = function () {
       mappingStatus.flagged = []
       mappingStatus.noMatch = []
       let count = 0
-      async.each(mohLocations.entry,(entry,mohCallback)=>{
+      async.each(mohLocations.entry, (entry, mohCallback) => {
         const ident = entry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
         let mohUploadedId = null;
         if (ident) {
           mohUploadedId = ident.value;
         }
         const mohId = entry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url')).segment(datimTopId).segment('fhir').segment('Location').segment(mohId).toString()
+        const mohIdentifier = URI(config.getConf('mCSD:url'))
+          .segment(datimTopId)
+          .segment('fhir')
+          .segment('Location')
+          .segment(mohId)
+          .toString()
         this.matchStatus(mappedLocations, mohIdentifier, (mapped) => {
           if (mapped) {
-            var datimEntry = datimLocations.entry.find((datimEntry)=>{
+            var datimEntry = datimLocations.entry.find((datimEntry) => {
               return datimEntry.resource.id === mapped.resource.id
             })
-            let nomatch,flagged
+            let nomatch, flagged
             if (mapped.resource.hasOwnProperty('tag')) {
-              nomatch = mapped.resource.tag.find((tag)=>{
+              nomatch = mapped.resource.tag.find((tag) => {
                 return tag.code === noMatchCode
               })
             }
             if (mapped.resource.hasOwnProperty('tag')) {
-              flagged = mapped.resource.tag.find((tag)=>{
+              flagged = mapped.resource.tag.find((tag) => {
                 return tag.code === flagCode
               })
             }
@@ -751,11 +816,14 @@ module.exports = function () {
             count++
             let statusRequestId = `mappingStatus${datimTopId}${clientId}`
             let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
-            statusResData = JSON.stringify({status: '2/2 - Loading DATIM and MOH Data', error: null, percent: percent})
-            redisClient.set(statusRequestId,statusResData)
+            statusResData = JSON.stringify({
+              status: '2/2 - Loading DATIM and MOH Data',
+              error: null,
+              percent: percent
+            })
+            redisClient.set(statusRequestId, statusResData)
             mohCallback()
-          }
-          else {
+          } else {
             mappingStatus.notMapped.push({
               mohName: entry.resource.name,
               mohId: mohUploadedId
@@ -763,15 +831,23 @@ module.exports = function () {
             count++
             let statusRequestId = `mappingStatus${datimTopId}${clientId}`
             let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
-            statusResData = JSON.stringify({status: '2/2 - Loading DATIM and MOH Data', error: null, percent: percent})
-            redisClient.set(statusRequestId,statusResData)
+            statusResData = JSON.stringify({
+              status: '2/2 - Loading DATIM and MOH Data',
+              error: null,
+              percent: percent
+            })
+            redisClient.set(statusRequestId, statusResData)
             mohCallback()
           }
         })
-      },()=>{
+      }, () => {
         let statusRequestId = `mappingStatus${datimTopId}${clientId}`
-        statusResData = JSON.stringify({status: 'Done', error: null, percent: 100})
-        redisClient.set(statusRequestId,statusResData)
+        statusResData = JSON.stringify({
+          status: 'Done',
+          error: null,
+          percent: 100
+        })
+        redisClient.set(statusRequestId, statusResData)
         return callback(mappingStatus)
       })
     }
