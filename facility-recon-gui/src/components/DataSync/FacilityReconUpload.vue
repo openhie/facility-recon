@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-dialog persistent v-model="dialog" max-width="500px">
+    <v-dialog persistent transition="scale-transition" v-model="dialog" max-width="500px">
       <v-card>
         <v-toolbar color="primary" dark>
           <v-toolbar-title>
@@ -18,7 +18,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent v-model="confirmUpload" max-width="500px">
+    <v-dialog persistent transition="scale-transition" v-model="invalidRows" max-width="1050px">
+      <v-card>
+        <v-toolbar color="error" dark>
+          <v-toolbar-title>
+            <v-icon>error</v-icon>Data Upload was not successful,review below invalid rows in your CSV
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="closeInvalidRows()">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          <v-data-table :headers="invalidRowsHeader" :items="invalidRowsContent" light class="elevation-1">
+            <template slot="items" slot-scope="props">
+              <td v-for='header in invalidRowsHeader'>{{props.item[header.value]}}</td>
+            </template>
+          </v-data-table>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog persistent transition="scale-transition" v-model="confirmUpload" max-width="500px">
       <v-card>
         <v-toolbar color="primary" dark>
           <v-toolbar-title>
@@ -34,7 +54,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent v-model="errorDialog" max-width="500px">
+    <v-dialog persistent transition="scale-transition" v-model="errorDialog" max-width="500px">
       <v-card>
         <v-card-title>
           {{errorTitle}}
@@ -48,15 +68,16 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" hide-overlay persistent width="300">
+    <v-dialog v-model="uploadPrepaProgr" transition="scale-transition" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
-          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+          <v-progress-linear indeterminate color="white" class="mb-0" v-if='!fileUploadPercentage'></v-progress-linear>
+          <v-progress-linear v-model="fileUploadPercentage" color="white" class="mb-0" v-else></v-progress-linear>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" hide-overlay persistent width="270">
+    <v-dialog v-model="percentDialog" transition="scale-transition" hide-overlay persistent width="270">
       <v-card color="white" dark>
         <v-card-text>
           <center>
@@ -72,7 +93,12 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess'>
+    <template v-if='$store.state.totalDATIMLevels <= 1'><br><br><br>
+      <v-alert type="info" :value="true">
+        <b>No Data found in GeoAlign ...</b>
+      </v-alert>
+    </template>
+    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalDATIMLevels > 1'>
       <v-stepper v-model="e1">
         <v-stepper-header>
           <v-stepper-step step="1" :complete="e1 > 1">Upload MoH CSV</v-stepper-step>
@@ -120,7 +146,7 @@
                 <v-flex xs6>
                   <v-select :items="filteredItemLong" v-model="long" label="Select" single-line clearable></v-select>
                 </v-flex>
-                <template v-if='$store.state.totalLevels-1 > 1'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 1'>
                   <v-flex xs6>
                     <v-subheader>Level 1</v-subheader>
                   </v-flex>
@@ -128,15 +154,15 @@
                     <v-select :items="filteredItemLevel1" v-model="level1" @blur="$v.level1.$touch()" @change="$v.level1.$touch()" :error-messages="level1Errors" required label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 2'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 2'>
                   <v-flex xs6>
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel2" v-model="level2" label="Select" single-line clearable></v-select>
+                    <v-select :items="filteredItemLevel2" v-model="level2" label="Select" required single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 3'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 3'>
                   <v-flex xs6>
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
@@ -144,7 +170,7 @@
                     <v-select :items="filteredItemLevel3" v-model="level3" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 4'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 4'>
                   <v-flex xs6>
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
@@ -152,7 +178,7 @@
                     <v-select :items="filteredItemLevel4" v-model="level4" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 5'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 5'>
                   <v-flex xs6>
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
@@ -160,7 +186,7 @@
                     <v-select :items="filteredItemLevel5" v-model="level5" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 6'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 6'>
                   <v-flex xs6>
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
@@ -168,7 +194,7 @@
                     <v-select :items="filteredItemLevel6" v-model="level6" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalLevels-1 > 7'>
+                <template v-if='$store.state.totalDATIMLevels-1 > 7'>
                   <v-flex xs6>
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
@@ -190,6 +216,7 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
+import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
 
 const config = require('../../../config')
@@ -203,10 +230,11 @@ export default {
       errorTitle: '',
       errorContent: '',
       dialog: false,
+      fileUploadPercentage: '',
       percentDialog: false,
       uploadPrepaProgr: false,
       UploadProgressTimer: '',
-      uploadStatus: '1/4 Uploading CSV to the server',
+      uploadStatus: '1/5 Uploading CSV to the server',
       uploadPercent: null,
       confirmUpload: false,
       confirmTitle: '',
@@ -228,6 +256,9 @@ export default {
       uploadedHeaders: [
       ],
       mappedHeaders: [],
+      invalidRowsHeader: [],
+      invalidRowsContent: [],
+      invalidRows: false,
       valid: false
     }
   },
@@ -241,6 +272,9 @@ export default {
     level1: {
       required: required
     }
+  },
+  components: {
+    appFacilityReconDbAdmin: FacilityReconDbAdmin
   },
   methods: {
     fileSelected (e) {
@@ -314,8 +348,7 @@ export default {
           clearInterval(this.UploadProgressTimer)
           // resetting reco level
           this.$store.state.recoLevel = 2
-          this.$root.$emit('recalculateScores')
-          this.$root.$emit('reloadTree')
+          this.$root.$emit('refreshApp')
           this.percentDialog = false
           this.dialog = true
           this.$store.state.uploadRunning = false
@@ -349,20 +382,58 @@ export default {
         {
           headers: {
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          onUploadProgress: function (progressEvent) {
+            this.fileUploadPercentage = parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total))
+            if (this.fileUploadPercentage === 100) {
+              this.fileUploadPercentage = ''
+              this.uploadStatus = '2/5 Validating CSV Data'
+            }
+          }.bind(this)
         }
       ).then((data) => {
         this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
       }).catch((err) => {
+        if (Array.isArray(err.response.data.error)) {
+          this.invalidRows = true
+          for (var k = 0; k < err.response.data.error.length; k++) {
+            if (k === 0) {
+              let headers = Object.keys(err.response.data.error[k].data)
+              for (let header of headers) {
+                this.invalidRowsHeader.push({
+                  text: header,
+                  value: header
+                })
+              }
+              this.invalidRowsHeader.push({
+                text: 'Reason',
+                value: 'reason'
+              })
+            }
+            let row = Object.values(err.response.data.error[k].data)
+            let content = {}
+            for (let ind in row) {
+              content[this.invalidRowsHeader[ind].value] = row[ind]
+            }
+            content['reason'] = err.response.data.error[k].reason
+            this.invalidRowsContent.push(content)
+          }
+        } else {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
+        }
         this.$store.state.uploadRunning = false
         this.uploadPrepaProgr = false
         this.percentDialog = false
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = err.response.data.error + '. Reload page and retry'
         clearInterval(this.UploadProgressTimer)
-        console.log(err.response.data.error)
       })
+    },
+    closeInvalidRows () {
+      this.invalidRows = false
+      this.invalidRowsHeader = []
+      this.invalidRowsContent = []
+      this.e1 = 1
     },
     closeDialog (component) {
       this.$router.push({ name: component })

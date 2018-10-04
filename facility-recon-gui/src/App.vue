@@ -118,8 +118,8 @@ export default {
       var orgUnit = this.$store.state.orgUnit
       axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
         this.initializingApp = false
-        this.$store.state.totalLevels = levels.data.totalLevels
-        // this.getOrgHierarchy()
+        this.$store.state.totalMOHLevels = levels.data.totalMOHLevels
+        this.$store.state.totalDATIMLevels = levels.data.totalDATIMLevels
         this.getScores()
       })
     },
@@ -165,7 +165,6 @@ export default {
     this.$root.$on('reloadTree', () => {
       this.$store.state.mohHierarchy = ''
       this.$store.state.datimHierarchy = ''
-      // this.getOrgHierarchy()
     })
     this.$root.$on('refreshApp', () => {
       this.getTotalLevels()

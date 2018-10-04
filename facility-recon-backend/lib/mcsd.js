@@ -23,10 +23,26 @@ const config = require('./config');
 module.exports = function () {
   return {
     getLocations(database, callback) {
-      let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location') + '?_count=37000'
-        .toString();
-      const locations = {};
-      locations.entry = [];
+      let baseUrl = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').toString();
+      let url = baseUrl + '?_count=37000'
+      let locations
+      locations = cache.get('url_' + baseUrl);
+      if (locations) {
+        winston.info("Getting " + baseUrl + " from cache");
+        return callback(locations)
+      } else {
+        locations = {
+          entry: []
+        }
+      }
+      const started = cache.get('started_' + baseUrl);
+      if (started) {
+        winston.info('getLocations is in progress will try again in 10 seconds.')
+        setTimeout(this.getLocations, 10000, database, callback)
+        return
+      }
+      cache.put('started_' + baseUrl, true);
+      winston.info("Getting " + baseUrl + " from server");
       async.doWhilst(
         (callback) => {
           const options = {
@@ -48,6 +64,13 @@ module.exports = function () {
         },
         () => url != false,
         () => {
+          if (locations.entry.length > 1) {
+            winston.info("Saving " + baseUrl + " to cache");
+            cache.put('url_' + baseUrl, locations, config.getConf("mCSD:cacheTime"));
+          } else {
+            winston.info("Not more than 1 entry for " + baseUrl + " so not caching.");
+          }
+          cache.del('started_' + baseUrl);
           callback(locations);
         },
       );
@@ -68,21 +91,16 @@ module.exports = function () {
             url,
           };
           url = false;
-          const cachedData = cache.get(`getLocationByID${url}`);
-          if (cachedData && getCached) {
-            return callback(cachedData);
-          }
           request.get(options, (err, res, body) => {
             if (!isJSON(body)) {
               return callback(false, false);
             }
-            const cacheData = JSON.parse(body);
-            const next = cacheData.link.find(link => link.relation == 'next');
+            const mcsd = JSON.parse(body);
+            const next = mcsd.link.find(link => link.relation == 'next');
             if (next) {
               url = next.url;
             }
-            cache.put(`getLocationByID${url}`, cacheData, 120 * 2000);
-            locations.entry = locations.entry.concat(cacheData.entry);
+            locations.entry = locations.entry.concat(mcsd.entry);
             return callback(false, url);
           });
         },
@@ -131,6 +149,22 @@ module.exports = function () {
         .segment(topOrgId)
         .segment('$hierarchy')
         .toString();
+
+      let data = cache.get('url_' + url);
+      if (data) {
+        winston.info("Getting " + url + " from cache");
+        return callback(data);
+      }
+
+      const started = cache.get('started_' + url);
+      if (started) {
+        winston.info('getLocationChildren is in progress will try again in 10 seconds.')
+        setTimeout(this.getLocationChildren, 10000, database, topOrgId, callback)
+        return
+      }
+      cache.put('started_' + url, true);
+      winston.info("Getting " + url + " from server");
+
       const options = {
         url,
       };
@@ -138,9 +172,17 @@ module.exports = function () {
         if (!isJSON(body)) {
           const mcsd = {};
           mcsd.entry = [];
+          cache.del('started_' + url);
           return callback(mcsd);
         }
         body = JSON.parse(body);
+        if (body.entry.length > 1) {
+          winston.info("Saving " + url + " to cache");
+          cache.put('url_' + url, body, config.getConf("mCSD:cacheTime"));
+        } else {
+          winston.info("Not more than 1 entry for " + url + " so not caching.");
+        }
+        cache.del('started_' + url);
         callback(body);
       });
     },
@@ -286,7 +328,7 @@ module.exports = function () {
     /*
     This function finds parents of an entity from passed mCSD data
     */
-    getLocationParentsFromData (entityParent, mcsd, details, callback) {
+    getLocationParentsFromData(entityParent, mcsd, details, callback) {
       if (mcsd.hasOwnProperty('parentCache') && mcsd.parentCache.id === entityParent && mcsd.parentCache.details === details) {
         // return a copy
         return callback(mcsd.parentCache.parents.slice())
@@ -299,7 +341,7 @@ module.exports = function () {
         return callback(parents);
       }
 
-      function filter (entityParent, callback) {
+      function filter(entityParent, callback) {
         const splParent = entityParent.split('/');
         entityParent = splParent[(splParent.length - 1)];
 
@@ -365,39 +407,20 @@ module.exports = function () {
       })
       return callback(buildings)
     },
-    /*
-    if totalLevels is set then this functions returns all locations from level 1 to level totalLevels
-    if levelNumber is set then it returns locations at level levelNumber only
-    if buildings is set then it returns all buildings
-    buildings argument accepts a building level
-    */
-    filterLocations(mcsd, topOrgId, totalLevels, levelNumber, buildings, callback) {
-      // holds all entities for a maximum of x Levels defined by the variable totalLevels i.e all entities at level 1,2 and 3
-      const mcsdTotalLevels = {};
-      // holds all entities for just one level,specified by variable levelNumber i.e all entities at level 1 or at level 2
-      const mcsdlevelNumber = {};
-      // holds buildings only
-      const mcsdBuildings = {};
-      mcsdTotalLevels.entry = [];
-      mcsdlevelNumber.entry = [];
-      mcsdBuildings.entry = [];
+
+    filterLocations(mcsd, topOrgId, levelNumber, callback) {
+      const mcsdLevelNumber = {};
+      mcsdLevelNumber.entry = [];
       if (!mcsd.hasOwnProperty('entry') || mcsd.entry.length == 0 || !topOrgId) {
-        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        return callback(mcsdLevelNumber);
       }
       const entry = mcsd.entry.find(entry => entry.resource.id == topOrgId);
       if (!entry) {
-        return callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        return callback(mcsdLevelNumber);
       }
       if (levelNumber == 1) {
-        mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(entry);
-      }
-      if (totalLevels) {
-        mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(entry);
-      }
-      const building = entry.resource.physicalType.coding.find(coding => coding.code == 'building');
-
-      if (building) {
-        mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
+        mcsdLevelNumber.entry = mcsdLevelNumber.entry.concat(entry);
+        return callback(mcsdLevelNumber);
       }
 
       function filter(id, callback) {
@@ -410,13 +433,7 @@ module.exports = function () {
       }
 
       let totalLoops = 0;
-      if (totalLevels >= levelNumber && totalLevels >= buildings) {
-        totalLoops = totalLevels;
-      } else if (levelNumber >= totalLevels && levelNumber >= buildings) {
-        totalLoops = levelNumber;
-      } else if (buildings >= totalLevels && buildings >= levelNumber) {
-        totalLoops = buildings;
-      }
+      totalLoops = levelNumber;
 
       let tmpArr = [];
       tmpArr.push(entry);
@@ -428,29 +445,11 @@ module.exports = function () {
           promises.push(new Promise((resolve, reject) => {
             filter(arr.resource.id, (res) => {
               tmpArr = tmpArr.concat(res);
-              if (totalLevels) {
-                mcsdTotalLevels.entry = mcsdTotalLevels.entry.concat(res);
-              }
               if (levelNumber == loop + 1) {
-                mcsdlevelNumber.entry = mcsdlevelNumber.entry.concat(res);
+                mcsdLevelNumber.entry = mcsdLevelNumber.entry.concat(res);
               }
-              const promises1 = [];
-              for (var k in res) {
-                promises1.push(new Promise((resolve1, reject1) => {
-                  var building = res[k].resource.physicalType.coding.find((coding) => {
-                    if (building) {
-                      mcsdBuildings.entry = mcsdBuildings.entry.concat(entry);
-                    }
-                  });
-                  resolve1();
-                }));
-              }
-              Promise.all(promises1).then(() => {
-                totalElements++;
-                resolve();
-              }).catch((err) => {
-                winston.error(err);
-              });
+              totalElements++;
+              resolve();
             });
           }));
         });
@@ -461,19 +460,28 @@ module.exports = function () {
           winston.error(err);
         });
       }, () => {
-        callback(mcsdTotalLevels, mcsdlevelNumber, mcsdBuildings);
+        callback(mcsdLevelNumber);
       });
     },
 
-    countLevels(source, topOrgId, callback) {
-      const database = config.getConf('mCSD:database');
-      if (source == 'MOH') {
-        var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
-      } else if (source == 'DATIM') {
-        var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${topOrgId.toString()}`;
+    countLevels(source, db, topOrgId, callback) {
+      function constructURL(id, callback) {
+        if (source == 'MOH') {
+          var url = `${URI(config.getConf('mCSD:url'))
+          .segment(db)
+          .segment('fhir')
+          .segment('Location')}?partof=Location/${id.toString()}`;
+        } else if (source == 'DATIM') {
+          var url = `${URI(config.getConf('mCSD:url'))
+          .segment(db)
+          .segment('fhir')
+          .segment('Location')}?partof=Location/${id.toString()}`;
+        }
+        return callback(url)
       }
 
       let totalLevels = 1;
+      let prev_entry = {}
 
       function cntLvls(url, callback) {
         const options = {
@@ -484,40 +492,32 @@ module.exports = function () {
             return callback(0);
           }
           body = JSON.parse(body);
-          if (body.total == 0) {
+          let entry
+          if (body.entry.length === 0 && prev_entry.length > 0) {
+            entry = prev_entry.shift()
+          } else if (body.entry.length === 0 && Object.keys(prev_entry).length === 0) {
             return callback(totalLevels);
-          }
-          let counter = 0;
-          async.eachSeries(body.entry, (entry, nxtEntry) => {
-            if (entry.resource.name.startsWith('_') || counter > 0) {
-              return nxtEntry();
-            }
+          } else {
+            prev_entry = []
+            prev_entry = body.entry.slice()
+            entry = prev_entry.shift()
             totalLevels++;
-            counter++;
-            if (entry.resource.hasOwnProperty('id') &&
-              entry.resource.id != false &&
-              entry.resource.id != null &&
-              entry.resource.id != undefined) {
-              const reference = entry.resource.id;
+          }
+          const reference = entry.resource.id;
+          constructURL(reference, (url) => {
+            cntLvls(url, totalLevels => callback(totalLevels));
+          })
 
-              if (source == 'MOH') {
-                var url = `${URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
-              } else if (source == 'DATIM') {
-                var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=Location/${reference.toString()}`;
-              }
-              cntLvls(url, totalLevels => callback(totalLevels));
-            } else {
-              return callback(totalLevels);
-            }
-          }, () => callback(totalLevels));
         });
       }
-      cntLvls(url, totalLevels => callback(false, totalLevels));
+      constructURL(topOrgId, (url) => {
+        cntLvls(url, totalLevels => callback(false, totalLevels));
+      })
     },
     saveLocations(mCSD, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').toString();
       const options = {
-        url: url.toString(),
+        url: url,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -528,8 +528,17 @@ module.exports = function () {
           winston.error(err);
           return callback(err);
         }
+        this.cleanCache(url + '/Location')
         callback(err, body);
       });
+    },
+    cleanCache(url) {
+      for (const key of cache.keys()) {
+        if (key.substring(0, url.length + 4) === 'url_' + url) {
+          winston.info("DELETING " + key + " from cache because something was modified.")
+          cache.del(key)
+        }
+      }
     },
     saveMatch(mohId, datimId, topOrgId, recoLevel, totalLevels, type, callback) {
       const database = config.getConf('mCSD:database');
@@ -667,13 +676,13 @@ module.exports = function () {
         flagged.type = 'document';
 
         // deleting existing location
-        const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-          .segment(datimId)
-          .toString();
+        const url_prefix = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        const url = URI(url_prefix).segment(datimId).toString();
         const options = {
           url,
         };
         request.delete(options, (err, res, body) => {
+          this.cleanCache(url_prefix.toString());
           if (err) {
             winston.error(err);
             return callback(err);
@@ -776,9 +785,11 @@ module.exports = function () {
         });
     },
     breakMatch(id, database, topOrgId, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        .segment(id)
-        .toString();
+      const url_prefix = URI(config.getConf('mCSD:url'))
+        .segment(database)
+        .segment('fhir')
+        .segment('Location')
+      const url = URI(url_prefix).segment(id).toString()
       const options = {
         url,
       };
@@ -787,6 +798,7 @@ module.exports = function () {
           return callback(true, null);
         }
         request.delete(options, (err, res, body) => {
+          this.cleanCache(url_prefix.toString());
           if (err) {
             winston.error(err);
           }
@@ -829,17 +841,18 @@ module.exports = function () {
       });
     },
     breakNoMatch(id, database, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      const url_prefix = URI(config.getConf('mCSD:url'))
+        .segment(database)
+        .segment('fhir')
+        .segment('Location')
+      const url = URI(url_prefix)
         .segment(id)
         .toString();
       const options = {
         url,
       };
-      const cachedData = cache.get(`getLocationByID${url}`);
-      if (cachedData) {
-        return callback(cachedData);
-      }
       request.delete(options, (err, res, body) => {
+        this.cleanCache(url_prefix.toString());
         if (err) {
           winston.error(err);
         }
@@ -878,7 +891,7 @@ module.exports = function () {
             countRow++
             const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
             const uploadReqPro = JSON.stringify({
-              status: '4/4 Writing Uploaded data into server',
+              status: '5/5 Writing Uploaded data into server',
               error: null,
               percent,
             });
@@ -896,7 +909,7 @@ module.exports = function () {
               data[headerMapping[level]] != false &&
               data[headerMapping[level]] != ''
             ) {
-              const name = data[headerMapping[level]];
+              const name = data[headerMapping[level]].trim();
               const levelNumber = level.replace('level', '');
               if (levelNumber.toString().length < 2) {
                 var namespaceMod = `${namespace}00${levelNumber}`;
@@ -925,8 +938,8 @@ module.exports = function () {
               }
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
-                if (data[headerMapping[topLevelName]] != '' && parentFound == false) {
-                  parent = data[headerMapping[topLevelName]];
+                if (data[headerMapping[topLevelName]] && parentFound == false) {
+                  parent = data[headerMapping[topLevelName]].trim();
                   if (topLevel.toString().length < 2) {
                     var namespaceMod = `${namespace}00${topLevel}`;
                   } else {
@@ -963,7 +976,7 @@ module.exports = function () {
             }
             recordCount += jurisdictions.length
             this.buildJurisdiction(jurisdictions, saveBundle)
-            const facilityName = data[headerMapping.facility];
+            const facilityName = data[headerMapping.facility].trim();
             const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
             const building = {
               uuid: UUID,
@@ -992,7 +1005,7 @@ module.exports = function () {
                   countRow += tmpBundle.entry.length
                   const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
                   const uploadReqPro = JSON.stringify({
-                    status: '4/4 Writing Uploaded data into server',
+                    status: '5/5 Writing Uploaded data into server',
                     error: null,
                     percent,
                   });
@@ -1007,7 +1020,6 @@ module.exports = function () {
           this.saveLocations(saveBundle, orgid, () => {
             Promise.all(promises).then(() => {
               var uploadRequestId = `uploadProgress${orgid}${clientId}`;
-              winston.info('done')
               const uploadReqPro = JSON.stringify({
                 status: 'Done',
                 error: null,

@@ -74,7 +74,7 @@
     <v-layout row wrap v-if='$store.state.syncServers.length > 0'>
       <v-spacer></v-spacer>
       <v-flex xs6>
-        <v-card color="white">
+        <v-card color="white" style="border:12px;border-color: red">
           <v-card-actions>
             <v-btn color="primary" @click="syncServer('update')">
               <v-icon>sync</v-icon>Sync (Update)
@@ -82,6 +82,7 @@
             <v-btn color="success" @click="syncServer('full')">
               <v-icon>sync</v-icon>Force Full Sync
             </v-btn>
+            <v-spacer></v-spacer>
             <v-btn color="success" @click="editServer">
               <v-icon>edit</v-icon>Edit
             </v-btn>

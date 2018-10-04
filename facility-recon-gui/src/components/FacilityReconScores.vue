@@ -1,21 +1,5 @@
 <template>
   <v-container fluid>
-    <v-dialog persistent v-model="confirmMatch" max-width="500px">
-      <v-card>
-        <v-toolbar color="primary" dark>
-          <v-toolbar-title>
-            Warning
-          </v-toolbar-title>
-        </v-toolbar>
-        <v-card-text>
-          Are you sure you want to {{matchType}} {{selectedMohName}} with {{selectedDatimName}}
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="error" @click.native="confirmMatch = false">Cancel</v-btn>
-          <v-btn color="primary" dark @click.native="match()">Proceed</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
@@ -63,8 +47,8 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="dialog" width="830px">
-        <v-card width='830px'>
+      <v-dialog persistent transition="scale-transition" v-model="dialog" :width="dialogWidth">
+        <v-card :width='dialogWidth'>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
               {{ selectedMohName }}
@@ -79,7 +63,7 @@
             Parents:
             <b>{{selectedMohParents.join('->')}}</b>
             <v-spacer></v-spacer>
-            <template v-if='$store.state.recoLevel == $store.state.totalLevels'>
+            <template v-if='$store.state.recoLevel == $store.state.totalMOHLevels'>
               Latitude:
               <b>{{selectedMohLat}}</b>
               <v-spacer></v-spacer>
@@ -112,26 +96,25 @@
               </template>
               <template slot="items" slot-scope="props">
                 <tr>
-                  <td>{{props.item.name}}</td>
-                  <td>{{props.item.id}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.lat}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.long}}</td>
-                  <td v-if='$store.state.recoLevel == $store.state.totalLevels'>{{props.item.geoDistance}}</td>
-                  <td>{{props.item.score}}</td>
                   <td>
                     <v-tooltip top>
-                      <v-btn color="error" small @click.native="confirm('flag',props.item.id)" slot="activator">
+                      <v-btn color="error" small @click.native="match('flag', props.item.id, props.item.name)" slot="activator">
                         <v-icon dark left>notification_important</v-icon>Flag
                       </v-btn>
                       <span>Mark the selected item as a match to be reviewed</span>
                     </v-tooltip>
                     <v-tooltip top>
-                      <v-btn color="primary" small dark @click.native="confirm('match',props.item.id)" slot="activator">
+                      <v-btn color="primary" small dark @click.native="match('match', props.item.id, props.item.name)" slot="activator">
                         <v-icon left>thumb_up</v-icon>Save Match
                       </v-btn>
                       <span>Save the selected item as a match</span>
                     </v-tooltip>
                   </td>
+                  <td>{{props.item.name}}</td>
+                  <td>{{props.item.id}}</td>
+                  <td>{{props.item.parents.join('->')}}</td>
+                  <td v-if='$store.state.recoLevel == $store.state.totalMOHLevels'>{{props.item.geoDistance}}</td>
+                  <td>{{props.item.score}}</td>
                 </tr>
               </template>
             </v-data-table>
@@ -557,11 +540,8 @@ export default {
       selectedMohLat: null,
       selectedMohLong: null,
       selectedMohParents: [],
-      selectedDatimId: null,
-      selectedDatimName: null,
-      matchType: '',
-      confirmMatch: false,
       dialog: false,
+      dialogWidth: '',
       mohUnmatchedHeaders: [{ text: 'Location', value: 'name' }],
       matchedHeaders: [
         { text: 'MOH Location', value: 'mohName' },
@@ -629,6 +609,11 @@ export default {
     levelChanged (level) {
       this.$store.state.recoLevel = level
       this.getScores()
+      if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
+        this.dialogWidth = '1440px'
+      } else {
+        this.dialogWidth = '1190px'
+      }
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
@@ -670,30 +655,23 @@ export default {
       }
       this.dialog = true
     },
-    confirm (type, id, name) {
-      this.confirmMatch = true
-      this.matchType = type
-      this.selectedDatimId = id
-      this.selectedDatimName = name
-    },
-    match () {
-      if (this.selectedDatimId === null) {
+    match (type, datimId, datimName) {
+      if (datimId === null) {
         this.alert = true
         this.alertTitle = 'Information'
         this.alertText = 'Select DATIM Location to match against MOH Location'
         return
       }
-      this.confirmMatch = false
       this.progressTitle = 'Saving match'
       this.dynamicProgress = true
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
-      formData.append('datimId', this.selectedDatimId)
+      formData.append('datimId', datimId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       var orgid = this.$store.state.orgUnit.OrgId
       axios
-        .post(backendServer + '/match/' + this.matchType + '/' + orgid, formData, {
+        .post(backendServer + '/match/' + type + '/' + orgid, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -703,7 +681,7 @@ export default {
           // remove from DATIM Unmatched
           let datimParents = null
           for (let k in this.$store.state.datimUnMatched) {
-            if (this.$store.state.datimUnMatched[k].id === this.selectedDatimId) {
+            if (this.$store.state.datimUnMatched[k].id === datimId) {
               datimParents = this.$store.state.datimUnMatched[k].parents
               this.$store.state.datimUnMatched.splice(k, 1)
             }
@@ -712,24 +690,24 @@ export default {
           // Add from a list of MOH Matched and remove from list of MOH unMatched
           for (let k in this.$store.state.mohUnMatched) {
             if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
-              if (this.matchType === 'match') {
+              if (type === 'match') {
                 ++this.$store.state.totalAllMapped
                 this.$store.state.matchedContent.push({
                   mohName: this.selectedMohName,
                   mohId: this.selectedMohId,
                   mohParents: this.$store.state.mohUnMatched[k].parents,
-                  datimName: this.selectedDatimName,
-                  datimId: this.selectedDatimId,
+                  datimName: datimName,
+                  datimId: datimId,
                   datimParents: datimParents
                 })
-              } else if (this.matchType === 'flag') {
+              } else if (type === 'flag') {
                 ++this.$store.state.totalAllFlagged
                 this.$store.state.flagged.push({
                   mohName: this.selectedMohName,
                   mohId: this.selectedMohId,
                   mohParents: this.$store.state.mohUnMatched[k].parents,
-                  datimName: this.selectedDatimName,
-                  datimId: this.selectedDatimId,
+                  datimName: datimName,
+                  datimId: datimId,
                   datimParents: datimParents
                 })
               }
@@ -738,8 +716,6 @@ export default {
           }
           this.selectedMohId = null
           this.selectedMohName = null
-          this.selectedDatimId = null
-          this.matchType = ''
           this.dialog = false
         })
         .catch(err => {
@@ -749,7 +725,6 @@ export default {
           this.alertText = err.response.data.error
           this.selectedMohId = null
           this.selectedMohName = null
-          this.selectedDatimId = null
           this.dialog = false
         })
     },
@@ -773,7 +748,7 @@ export default {
       let formData = new FormData()
       formData.append('datimId', datimId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       var orgid = this.$store.state.orgUnit.OrgId
       axios
         .post(backendServer + '/acceptFlag/' + orgid, formData, {
@@ -865,7 +840,7 @@ export default {
       let formData = new FormData()
       formData.append('mohId', mohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       axios
         .post(backendServer + '/breakNoMatch/' + orgid, formData, {
           headers: {
@@ -893,7 +868,7 @@ export default {
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalLevels)
+      formData.append('totalLevels', this.$store.state.totalMOHLevels)
       let orgid = this.$store.state.orgUnit.OrgId
 
       axios
@@ -919,7 +894,6 @@ export default {
           this.dialog = false
           this.selectedMohId = null
           this.selectedMohName = null
-          this.selectedDatimId = null
         })
         .catch(err => {
           this.dynamicProgress = false
@@ -929,13 +903,11 @@ export default {
           this.dialog = false
           this.selectedMohId = null
           this.selectedMohName = null
-          this.selectedDatimId = null
         })
     },
     back () {
       this.searchPotential = ''
       this.dialog = false
-      this.selectedDatimId = null
     }
   },
   computed: {
@@ -958,12 +930,11 @@ export default {
       results.push(
         { sortable: false },
         { text: 'DATIM Location', value: 'name', sortable: false },
-        { text: 'ID', value: 'id', sortable: false }
+        { text: 'ID', value: 'id', sortable: false },
+        { text: 'Parent', value: 'datimParent', sortable: false }
       )
-      if (this.$store.state.recoLevel === this.$store.state.totalLevels) {
+      if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
         results.push(
-          { text: 'Lat', value: 'lat', sortable: false },
-          { text: 'Long', value: 'long', sortable: false },
           { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
         )
       }
@@ -1036,7 +1007,7 @@ export default {
     },
     nextLevel () {
       if (
-        this.$store.state.recoLevel < this.$store.state.totalLevels &&
+        this.$store.state.recoLevel < this.$store.state.totalMOHLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
@@ -1049,7 +1020,7 @@ export default {
     },
     lastLevelDone () {
       if (
-        this.$store.state.recoLevel === this.$store.state.totalLevels &&
+        this.$store.state.recoLevel === this.$store.state.totalMOHLevels &&
         this.$store.state.mohUnMatched !== null &&
         this.$store.state.mohUnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
@@ -1220,6 +1191,11 @@ export default {
   },
   created () {
     this.addListener()
+    if (this.$store.state.recoLevel === this.$store.state.totalMOHLevels) {
+      this.dialogWidth = 'auto'
+    } else {
+      this.dialogWidth = '1190px'
+    }
   },
   components: {
     'liquor-tree': LiquorTree

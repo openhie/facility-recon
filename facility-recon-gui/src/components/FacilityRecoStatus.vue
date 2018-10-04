@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="mappingStatusDialog" hide-overlay persistent width="350">
+    <v-dialog v-model="mappingStatusDialog" transition="scale-transition" hide-overlay persistent width="350">
       <v-card color="white" dark>
         <v-card-text>
           <center>
@@ -423,9 +423,11 @@ export default {
       var orgUnit = this.$store.state.orgUnit
       this.mappingData = {}
       const clientId = this.$store.state.clientId
+      let totalDATIMLevels = this.$store.state.totalDATIMLevels
+      let totalMOHLevels = this.$store.state.totalMOHLevels
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
-      axios.get(backendServer + '/mappingStatus/' + orgUnit.OrgId + '/' + this.recoLevel + '/' + clientId).then((mappingStatus) => {
+      axios.get(backendServer + '/mappingStatus/' + orgUnit.OrgId + '/' + this.recoLevel + '/' + totalDATIMLevels + '/' + totalMOHLevels + '/' + clientId).then((mappingStatus) => {
         this.mappingData = mappingStatus.data
       })
       this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)
@@ -558,7 +560,7 @@ export default {
   },
   created () {
     this.mappingStatus()
-    for (var k = 1; k < this.$store.state.totalLevels; k++) {
+    for (var k = 1; k < this.$store.state.totalMOHLevels; k++) {
       this.locationLevels.push({
         text: 'Level ' + k,
         value: k + 1

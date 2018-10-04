@@ -54,12 +54,13 @@ export const scoresMixin = {
       this.$store.state.scoreResults = []
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
-      let totalLevels = this.$store.state.totalLevels
+      let totalLevels = this.$store.state.totalMOHLevels
+      let totalDATIMLevels = this.$store.state.totalDATIMLevels
       const clientId = this.$store.state.clientId
       let topTree = this.$store.state.mohParents.slice(0, this.$store.state.mohParents.length)
       // generating levels
       this.$store.state.levelArray = []
-      for (var k = 1; k < this.$store.state.totalLevels; k++) {
+      for (var k = 1; k < this.$store.state.totalMOHLevels; k++) {
         if (k + 1 > this.$store.state.recoLevel) {
           continue
         }
@@ -68,7 +69,7 @@ export const scoresMixin = {
           value: k + 1
         })
       }
-      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
+      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + totalDATIMLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
         this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
@@ -130,7 +131,15 @@ export const scoresMixin = {
     getDatimUnmached () {
       let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
-      axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + recoLevel).then((unmatched) => {
+      let totalMOHLevels = this.$store.state.totalMOHLevels
+      let totalDATIMLevels = this.$store.state.totalDATIMLevels
+      let level
+      if (recoLevel === totalMOHLevels) {
+        level = totalDATIMLevels
+      } else {
+        level = recoLevel
+      }
+      axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + level).then((unmatched) => {
         this.$store.state.datimUnMatched = unmatched.data
       })
     }
