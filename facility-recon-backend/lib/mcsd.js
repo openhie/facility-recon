@@ -532,12 +532,16 @@ module.exports = function () {
         callback(err, body);
       });
     },
-    cleanCache(url) {
+    cleanCache(url, selfOnly) {
       for (const key of cache.keys()) {
         if (key.substring(0, url.length + 4) === 'url_' + url) {
           winston.info("DELETING " + key + " from cache because something was modified.")
           cache.del(key)
         }
+      }
+      // clean the other workers caches
+      if ( !selfOnly ) {
+        process.send( {content: 'clean', url} );
       }
     },
     saveMatch(mohId, datimId, topOrgId, recoLevel, totalLevels, type, callback) {

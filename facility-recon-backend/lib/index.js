@@ -58,11 +58,14 @@ app.post('/oauth/registerUser', (req, res) => {
 */
 
 if (cluster.isMaster) {
+  var workers = {};
+
   var numWorkers = require('os').cpus().length;
   console.log('Master cluster setting up ' + numWorkers + ' workers...');
 
   for (var i = 0; i < numWorkers; i++) {
-    cluster.fork();
+    const worker = cluster.fork();
+    workers[ worker.process.pid ] = worker;
   }
 
   cluster.on('online', function (worker) {
@@ -71,10 +74,30 @@ if (cluster.isMaster) {
 
   cluster.on('exit', function (worker, code, signal) {
     console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
+    delete( workers[ worker.process.pid ] );
     console.log('Starting a new worker');
-    cluster.fork();
+    const newworker = cluster.fork();
+    workers[ newworker.process.pid ] = newworker;
+  });
+  cluster.on('message', (worker, message) => {
+    winston.info('Master received message from '+worker.process.pid);
+    if ( message.content === 'clean' ) {
+      for( let i in workers ) {
+        if ( workers[i].process.pid !== worker.process.pid ) {
+          workers[i].send(message);
+        } else {
+          winston.info("Not sending clean message to self: "+i);
+        }
+      }
+    }
   });
 } else {
+  process.on('message', (message) => {
+    if ( message.content === 'clean' ) {
+      winston.info(process.pid+" received clean message from master.")
+      mcsd.cleanCache( message.url, true )
+    }
+  })
   const levelMaps = {
     'ds0ADyc9UCU': { // Cote D'Ivoire
       4: 5,
