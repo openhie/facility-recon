@@ -108,9 +108,9 @@
         <v-stepper-items>
           <v-stepper-content step="1">
             <v-card class="mb-5" height="200px">
-              <v-card-title>Upload MoH CSV</v-card-title>
+              <v-card-title>Upload MoH CSV (utf-8 only)</v-card-title>
               <v-card-text>
-                <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
+                <div class="btn btn-primary jbtn-file">Upload CSV <input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
               </v-card-text>

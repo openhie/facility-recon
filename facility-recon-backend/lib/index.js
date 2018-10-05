@@ -9,6 +9,7 @@ const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
 const http = require('http');
+const cors = require('cors');
 const redis = require('redis')
 const redisClient = redis.createClient()
 const csv = require('fast-csv');
@@ -21,8 +22,6 @@ const scores = require('./scores')();
 
 const app = express();
 var server = require('http').createServer(app);
-
-var cors = require('cors');
 
 app.use(cors({ origin: true, credentials: true }));
 

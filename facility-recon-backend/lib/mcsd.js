@@ -26,21 +26,23 @@ module.exports = function () {
       let baseUrl = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').toString();
       let url = baseUrl + '?_count=37000'
       let locations
-      locations = cache.get('url_'+baseUrl);
-      if ( locations ) {
-        winston.info("Getting "+baseUrl+" from cache");
+      locations = cache.get('url_' + baseUrl);
+      if (locations) {
+        winston.info("Getting " + baseUrl + " from cache");
         return callback(locations)
       } else {
-        locations = { entry: [] }
+        locations = {
+          entry: []
+        }
       }
-      const started = cache.get('started_'+baseUrl);
-      if ( started ) {
+      const started = cache.get('started_' + baseUrl);
+      if (started) {
         winston.info('getLocations is in progress will try again in 10 seconds.')
         setTimeout(this.getLocations, 10000, database, callback)
         return
       }
-      cache.put('started_'+baseUrl, true);
-      winston.info("Getting "+baseUrl+" from server");
+      cache.put('started_' + baseUrl, true);
+      winston.info("Getting " + baseUrl + " from server");
       async.doWhilst(
         (callback) => {
           const options = {
@@ -62,13 +64,13 @@ module.exports = function () {
         },
         () => url != false,
         () => {
-          if ( locations.entry.length > 1 ) {
-            winston.info("Saving "+baseUrl+" to cache");
-            cache.put( 'url_'+baseUrl, locations, config.getConf("mCSD:cacheTime") );
+          if (locations.entry.length > 1) {
+            winston.info("Saving " + baseUrl + " to cache");
+            cache.put('url_' + baseUrl, locations, config.getConf("mCSD:cacheTime"));
           } else {
-            winston.info("Not more than 1 entry for "+baseUrl+" so not caching.");
+            winston.info("Not more than 1 entry for " + baseUrl + " so not caching.");
           }
-          cache.del('started_'+baseUrl);
+          cache.del('started_' + baseUrl);
           callback(locations);
         },
       );
@@ -148,20 +150,20 @@ module.exports = function () {
         .segment('$hierarchy')
         .toString();
 
-      let data = cache.get('url_'+url);
-      if ( data ) {
-        winston.info("Getting "+url+" from cache");
+      let data = cache.get('url_' + url);
+      if (data) {
+        winston.info("Getting " + url + " from cache");
         return callback(data);
       }
 
-      const started = cache.get('started_'+url);
-      if ( started ) {
+      const started = cache.get('started_' + url);
+      if (started) {
         winston.info('getLocationChildren is in progress will try again in 10 seconds.')
         setTimeout(this.getLocationChildren, 10000, database, topOrgId, callback)
         return
       }
-      cache.put('started_'+url, true);
-      winston.info("Getting "+url+" from server");
+      cache.put('started_' + url, true);
+      winston.info("Getting " + url + " from server");
 
       const options = {
         url,
@@ -170,17 +172,17 @@ module.exports = function () {
         if (!isJSON(body)) {
           const mcsd = {};
           mcsd.entry = [];
-          cache.del( 'started_' + url );
+          cache.del('started_' + url);
           return callback(mcsd);
         }
         body = JSON.parse(body);
-        if ( body.entry.length > 1 ) {
-          winston.info("Saving "+url+" to cache");
-          cache.put( 'url_' + url, body, config.getConf("mCSD:cacheTime") );
+        if (body.entry.length > 1) {
+          winston.info("Saving " + url + " to cache");
+          cache.put('url_' + url, body, config.getConf("mCSD:cacheTime"));
         } else {
-          winston.info("Not more than 1 entry for "+url+" so not caching.");
+          winston.info("Not more than 1 entry for " + url + " so not caching.");
         }
-        cache.del( 'started_' + url );
+        cache.del('started_' + url);
         callback(body);
       });
     },
@@ -463,7 +465,7 @@ module.exports = function () {
     },
 
     countLevels(source, db, topOrgId, callback) {
-      function constructURL (id, callback) {
+      function constructURL(id, callback) {
         if (source == 'MOH') {
           var url = `${URI(config.getConf('mCSD:url'))
           .segment(db)
@@ -475,11 +477,12 @@ module.exports = function () {
           .segment('fhir')
           .segment('Location')}?partof=Location/${id.toString()}`;
         }
-        return callback (url)
+        return callback(url)
       }
 
       let totalLevels = 1;
       let prev_entry = {}
+
       function cntLvls(url, callback) {
         const options = {
           url,

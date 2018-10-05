@@ -70,7 +70,6 @@ export const scoresMixin = {
         })
       }
       axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + totalDATIMLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
-        console.log('received')
         this.getDatimUnmached()
         this.$store.state.mohUnMatched = []
         this.$store.state.matchedContent = []
