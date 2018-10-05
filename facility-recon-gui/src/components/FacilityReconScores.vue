@@ -543,7 +543,6 @@ export default {
       selectedDatimId: null,
       selectedDatimName: null,
       matchType: '',
-      confirmMatch: false,
       dialog: false,
       dialogWidth: '',
       mohUnmatchedHeaders: [{ text: 'Location', value: 'name' }],
@@ -669,7 +668,6 @@ export default {
         this.alertText = 'Select DATIM Location to match against MOH Location'
         return
       }
-      this.confirmMatch = false
       this.progressTitle = 'Saving match'
       this.dynamicProgress = true
       let formData = new FormData()
