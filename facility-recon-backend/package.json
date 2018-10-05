@@ -25,6 +25,7 @@
     "async": "^2.6.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
+    "cryptiles": "^4.1.2",
     "express": "^4.16.3",
     "express-formidable": "^1.0.0",
     "fast-csv": "^2.4.1",
