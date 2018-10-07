@@ -55,9 +55,10 @@
         </v-card-text>
         <v-card-actions style='float: center'>
           <v-btn color="primary" dark @click.native="saveEdit('match')">
-            <v-icon left>thumb_up</v-icon>Save
+            <v-icon left>save</v-icon>Save
           </v-btn>
-          <v-btn color="orange darken-2" @click.native="editDialog = false" style="color: white">
+          <v-spacer></v-spacer>
+          <v-btn color="error" @click.native="editDialog = false" style="color: white">
             <v-icon dark left>cancel</v-icon>Cancel
           </v-btn>
         </v-card-actions>
@@ -75,7 +76,7 @@
     </v-layout>
     <v-layout>
       <v-flex>
-        <component :is="selectedComponent" v-if='!syncRunning' />
+        <component :is="selectedComponent" v-if='addDataSource' />
       </v-flex>
     </v-layout>
     <v-layout row wrap v-if='$store.state.syncServers.length > 0'>
@@ -128,6 +129,7 @@
 import FacilityReconUpload from './FacilityReconUpload'
 import FacilityReconRemoteSources from './FacilityReconRemoteSources'
 import SyncProgress from './SyncProgress'
+import { eventBus } from '../../main'
 import axios from 'axios'
 const config = require('../../../config')
 const isProduction = process.env.NODE_ENV === 'production'
@@ -152,6 +154,7 @@ export default {
         { text: 'Remote Source', value: 'remote' }
       ],
       dataSource: '',
+      addDataSource: true,
       syncProgrIndeter: false,
       syncProgrPercent: false,
       syncStatus: 'Waiting for sync status',
@@ -294,6 +297,10 @@ export default {
   },
   created () {
     this.getServers()
+    eventBus.$on('remoteServerSaved', () => {
+      this.addDataSource = false
+      this.dataSource = ''
+    })
   }
 }
 </script>
