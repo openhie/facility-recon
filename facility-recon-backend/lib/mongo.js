@@ -1,45 +1,16 @@
 require('./init');
-const mongoose = require('mongoose');
 const winston = require('winston');
+const crypto = require('crypto')
+const models = require('./models')
 const config = require('./config');
+
+require('./connection')
 
 module.exports = function () {
   return {
     addServer(fields, callback) {
-      const database = config.getConf('mCSD:database');
-      const mongoUser = config.getConf('mCSD:databaseUser');
-      const mongoPasswd = config.getConf('mCSD:databasePassword');
-      const mongoHost = config.getConf('mCSD:databaseHost');
-      const mongoPort = config.getConf('mCSD:databasePort');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri);
-      const Schema = mongoose.Schema;
-      let SyncServersModel;
-      try {
-        SyncServersModel = mongoose.model('SyncServers');
-      } catch (e) {
-        mongoose.model('SyncServers', new Schema({
-          name: {
-            type: String,
-          },
-          host: {
-            type: String,
-          },
-          username: {
-            type: String,
-          },
-          password: {
-            type: String,
-          },
-        }));
-        SyncServersModel = mongoose.model('SyncServers');
-      }
-
-      SyncServersModel.findOne({
+      let password = this.encrypt(fields.password)
+      models.SyncServers.findOne({
         host: fields.host,
       }, (err, data) => {
         if (err) {
@@ -47,163 +18,87 @@ module.exports = function () {
           return callback('Unexpected error occured,please retry', null);
         }
         if (!data) {
-          const syncServer = new SyncServersModel({
+          const syncServer = new models.SyncServers({
             name: fields.name,
             host: fields.host,
+            sourceType: fields.sourceType,
             username: fields.username,
-            password: fields.password,
+            password: password,
           });
           syncServer.save((err, data) => {
             if (err) {
               winston.error('Unexpected error occured,please retry')
               return callback('Unexpected error occured,please retry', null)
             } 
-              return callback(false, true)
+              return callback(false, password)
             
           });
         } else {
-          SyncServersModel.findByIdAndUpdate(data.id, {
+          models.SyncServers.findByIdAndUpdate(data.id, {
             name: fields.name,
             host: fields.host,
+            sourceType: fields.sourceType,
             username: fields.username,
-            password: fields.password,
+            password: password,
           }, (err, data) => {
             if (err) {
               winston.error('Unexpected error occured,please retry');
               return callback('Unexpected error occured,please retry');
-            } 
-
-            
-            return callback(false, true)
+            }
+            return callback(false, password)
           });
         }
       });
     },
     editServer(fields, callback) {
-      const database = config.getConf('mCSD:database');
-      const mongoUser = config.getConf('mCSD:databaseUser');
-      const mongoPasswd = config.getConf('mCSD:databasePassword');
-      const mongoHost = config.getConf('mCSD:databaseHost');
-      const mongoPort = config.getConf('mCSD:databasePort');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri);
-      const Schema = mongoose.Schema;
-      let SyncServersModel;
-      try {
-        SyncServersModel = mongoose.model('SyncServers');
-      } catch (e) {
-        mongoose.model('SyncServers', new Schema({
-          name: {
-            type: String,
-          },
-          host: {
-            type: String,
-          },
-          username: {
-            type: String,
-          },
-          password: {
-            type: String,
-          },
-        }));
-        SyncServersModel = mongoose.model('SyncServers');
-      }
-      SyncServersModel.findByIdAndUpdate(fields.id, {
+      let password = this.encrypt(fields.password)
+      models.SyncServers.findByIdAndUpdate(fields.id, {
         name: fields.name,
         host: fields.host,
+        sourceType: fields.sourceType,
         username: fields.username,
-        password: fields.password,
+        password: password,
       }, (err, data) => {
         if (err) {
           winston.error(err);
           return callback('Unexpected error occured,please retry');
-        } 
-          return callback(false, true)
-        
+        }
+          return callback(false, password)
       });
     },
 
     deleteServer(id, callback) {
-      const database = config.getConf('mCSD:database');
-      const mongoUser = config.getConf('mCSD:databaseUser');
-      const mongoPasswd = config.getConf('mCSD:databasePassword');
-      const mongoHost = config.getConf('mCSD:databaseHost');
-      const mongoPort = config.getConf('mCSD:databasePort');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri);
-      const Schema = mongoose.Schema;
-      let SyncServersModel;
-      try {
-        SyncServersModel = mongoose.model('SyncServers');
-      } catch (e) {
-        mongoose.model('SyncServers', new Schema({
-          name: {
-            type: String,
-          },
-          host: {
-            type: String,
-          },
-          username: {
-            type: String,
-          },
-          password: {
-            type: String,
-          },
-        }));
-        SyncServersModel = mongoose.model('SyncServers');
-      }
-
-      SyncServersModel.deleteOne({
+      models.SyncServers.deleteOne({
         _id: id,
       }, (err, data) => {
-        winston.error(JSON.stringify(data));
         return callback(err, data);
       });
     },
 
     getServers(callback) {
-      const database = config.getConf('mCSD:database');
-      const mongoUser = config.getConf('mCSD:databaseUser');
-      const mongoPasswd = config.getConf('mCSD:databasePassword');
-      const mongoHost = config.getConf('mCSD:databaseHost');
-      const mongoPort = config.getConf('mCSD:databasePort');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri);
-      const Schema = mongoose.Schema;
-      let SyncServersModel;
-      try {
-        SyncServersModel = mongoose.model('SyncServers');
-      } catch (e) {
-        mongoose.model('SyncServers', new Schema({
-          name: {
-            type: String,
-          },
-          host: {
-            type: String,
-          },
-          username: {
-            type: String,
-          },
-          password: {
-            type: String,
-          },
-        }));
-        SyncServersModel = mongoose.model('SyncServers');
-      }
-
-      SyncServersModel.find({}, (err, data) => callback(err, data));
+      models.SyncServers.find({}, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return callback('Unexpected error occured,please retry');
+        }
+        callback(err, data)
+      });
     },
+    encrypt(text) {
+      let algorithm = config.getConf('encryption:algorithm');
+      let secret = config.getConf('encryption:secret');
+      var cipher = crypto.createCipher(algorithm, secret)
+      var crypted = cipher.update(text, 'utf8', 'hex')
+      crypted += cipher.final('hex');
+      return crypted;
+    },
+    decrypt(text) {
+      let algorithm = config.getConf('encryption:algorithm');
+      let secret = config.getConf('encryption:secret');
+      var decipher = crypto.createDecipher(algorithm, secret)
+      var dec = decipher.update(text, 'hex', 'utf8')
+      dec += decipher.final('utf8');
+      return dec;
+    }
   };
 };

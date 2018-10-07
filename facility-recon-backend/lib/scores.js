@@ -464,12 +464,13 @@ module.exports = function () {
               var matchInDatim = mcsdDATIM.entry.find((entry) => {
                 return entry.resource.id == match.resource.id
               })
-
-              thisRanking.exactMatch = {
-                name: matchInDatim.resource.name,
-                parents: datimParentNames[match.resource.id],
-                id: match.resource.id,
-              };
+              if (matchInDatim) {
+                thisRanking.exactMatch = {
+                  name: matchInDatim.resource.name,
+                  parents: datimParentNames[match.resource.id],
+                  id: match.resource.id,
+                };
+              }
               scoreResults.push(thisRanking);
               count++
               let percent = parseFloat((count * 100 / totalRecords).toFixed(2))

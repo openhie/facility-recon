@@ -39,6 +39,13 @@
               <v-text-field v-model="server.host" label="Host"></v-text-field>
             </v-flex>
             <v-flex xs1>
+              <v-select
+                :items="$store.state.remoteDataSources"
+                v-model="server.sourceType"
+                label="Source Type"
+              ></v-select>
+            </v-flex>
+            <v-flex xs1>
               <v-text-field v-model="server.username" label="User Name"></v-text-field>
             </v-flex>
             <v-flex xs1>
@@ -62,7 +69,7 @@
         <v-subheader>Add Source</v-subheader>
       </v-flex>
       <v-flex xs2>
-        <v-select :items="dataSources" item-text='text' item-value='value' @change="sourceSelected" />
+        <v-select :items="dataSources" v-model="dataSource" item-text='text' item-value='value' @change="sourceSelected" />
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
@@ -104,6 +111,7 @@
                 </v-radio-group>
                 <td>{{props.item.name}}</td>
                 <td>{{props.item.host}}</td>
+                <td>{{props.item.sourceType}}</td>
                 <td>{{props.item.username}}</td>
                 <td>*****</td>
               </template>
@@ -118,15 +126,13 @@
 
 <script>
 import FacilityReconUpload from './FacilityReconUpload'
-import FacilityReconDHIS from './FacilityReconDHIS'
+import FacilityReconRemoteSources from './FacilityReconRemoteSources'
 import SyncProgress from './SyncProgress'
-import { syncMixin } from './mixins/syncMixin'
 import axios from 'axios'
 const config = require('../../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export default {
-  mixins: [syncMixin],
   data () {
     return {
       deleteConfirm: false,
@@ -136,23 +142,30 @@ export default {
         { sortable: false },
         { text: 'Server Name', value: 'name' },
         { text: 'Host', value: 'host' },
+        { text: 'Source Type', value: 'sourceType' },
         { text: 'User Name', value: 'username' },
         { text: 'Password', value: 'password' }
       ],
       selectedComponent: '',
       dataSources: [
         { text: 'Upload', value: 'upload' },
-        { text: 'DHIS2', value: 'dhis' },
-        { text: 'FHIR Server', value: 'fhir' }
-      ]
+        { text: 'Remote Source', value: 'remote' }
+      ],
+      dataSource: '',
+      syncProgrIndeter: false,
+      syncProgrPercent: false,
+      syncStatus: 'Waiting for sync status',
+      syncPercent: null,
+      syncProgressTimer: '',
+      syncRunning: false
     }
   },
   methods: {
     sourceSelected (selection) {
       if (selection === 'upload') {
         this.selectedComponent = 'FacilityReconUpload'
-      } else if (selection === 'dhis') {
-        this.selectedComponent = 'FacilityReconDHIS'
+      } else if (selection === 'remote') {
+        this.selectedComponent = 'FacilityReconRemoteSources'
       }
     },
     getServers () {
@@ -169,6 +182,7 @@ export default {
       let formData = new FormData()
       const clientId = this.$store.state.clientId
       formData.append('host', this.server.host)
+      formData.append('sourceType', this.server.sourceType)
       formData.append('username', this.server.username)
       formData.append('password', this.server.password)
       formData.append('name', this.server.name)
@@ -179,6 +193,8 @@ export default {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
+      }).then((response) => {
+        this.server.password = response.data.password
       })
     },
     syncServer (type) {
@@ -193,11 +209,87 @@ export default {
       axios.get(backendServer + '/deleteServer/' + this.server._id).then((resp) => {
         this.getServers()
       })
+    },
+    sync (type) {
+      if (!type) {
+        type = 'full'
+      }
+      let formData = new FormData()
+      const clientId = this.$store.state.clientId
+      formData.append('host', this.host)
+      formData.append('username', this.username)
+      formData.append('password', this.password)
+      formData.append('name', this.name)
+      formData.append('clientId', clientId)
+      formData.append('type', type)
+      this.syncRunning = true
+      this.syncProgrIndeter = true
+      axios.post(backendServer + '/dhisSync/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((syncRes) => {
+        this.syncProgressTimer = setInterval(this.checkSyncProgress, 1000)
+      }).catch((err) => {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = err.response.data.error + '. cross check host,user and password'
+        clearInterval(this.syncProgressTimer)
+        console.log(err.response.data.error)
+      })
+    },
+    checkSyncProgress () {
+      const clientId = this.$store.state.clientId
+      axios.get(backendServer + '/progress/dhisSyncRequest/' + clientId).then((syncProgress) => {
+        if (syncProgress.data === null || syncProgress.data === undefined || syncProgress.data === false) {
+          this.$store.state.uploadRunning = false
+          this.syncProgrIndeter = false
+          this.syncProgrPercent = false
+          clearInterval(this.syncProgressTimer)
+          return
+        } else if (syncProgress.data.error !== null) {
+          this.$store.state.uploadRunning = false
+          this.syncProgrIndeter = false
+          this.syncProgrPercent = false
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = syncProgress.data.error
+          clearInterval(this.syncProgressTimer)
+          console.log(syncProgress.data.error)
+          return
+        } else if (syncProgress.data.status === null) {
+          this.$store.state.uploadRunning = false
+          this.syncProgrIndeter = false
+          this.syncProgrPercent = false
+          clearInterval(this.syncProgressTimer)
+          return
+        }
+        this.syncStatus = syncProgress.data.status
+        if (syncProgress.data.percent) {
+          if (!this.syncProgrPercent) {
+            this.syncProgrIndeter = false
+            this.syncProgrPercent = true
+          }
+          this.syncPercent = syncProgress.data.percent
+        }
+        if (syncProgress.data.status === 'Done') {
+          clearInterval(this.syncProgressTimer)
+          this.syncProgrPercent = false
+          this.$store.state.uploadRunning = false
+        }
+      }).catch((err) => {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        console.log(err.response.data.error + '. cross check host,user and password')
+        this.$store.state.errorDescription = err.response.data.error + '. cross check host,user and password'
+        clearInterval(this.syncProgressTimer)
+        console.log(err.response.data.error)
+      })
     }
   },
   components: {
     'FacilityReconUpload': FacilityReconUpload,
-    'FacilityReconDHIS': FacilityReconDHIS,
+    'FacilityReconRemoteSources': FacilityReconRemoteSources,
     'appSyncProgress': SyncProgress
   },
   created () {

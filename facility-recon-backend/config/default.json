@@ -71,5 +71,9 @@
     "DISP.": "Dispensary",
     "Cl": "Clinic",
     "CL.": "Clinic"
+  },
+  "encryption": {
+    "algorithm": "aes-256-ctr",
+    "secret": "b1ea334a-bf5a-11e8-a355-529269fb1459"
   }
 }

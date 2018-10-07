@@ -63,23 +63,46 @@ app.post('/oauth/registerUser', (req, res) => {
 */
 
 if (cluster.isMaster) {
-  const numWorkers = require('os').cpus().length;
-  console.log(`Master cluster setting up ${numWorkers} workers...`);
+  var workers = {};
 
-  for (let i = 0; i < numWorkers; i++) {
-    cluster.fork();
+  var numWorkers = require('os').cpus().length;
+  console.log('Master cluster setting up ' + numWorkers + ' workers...');
+
+  for (var i = 0; i < numWorkers; i++) {
+    const worker = cluster.fork();
+    workers[worker.process.pid] = worker;
   }
 
-  cluster.on('online', (worker) => {
-    console.log(`Worker ${worker.process.pid} is online`);
+  cluster.on('online', function (worker) {
+    console.log('Worker ' + worker.process.pid + ' is online');
   });
 
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
+  cluster.on('exit', function (worker, code, signal) {
+    console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
-    cluster.fork();
+    const newworker = cluster.fork();
+    workers[newworker.process.pid] = newworker;
+  });
+  cluster.on('message', (worker, message) => {
+    winston.info('Master received message from ' + worker.process.pid);
+    if (message.content === 'clean') {
+      for (let i in workers) {
+        if (workers[i].process.pid !== worker.process.pid) {
+          workers[i].send(message);
+        } else {
+          winston.info("Not sending clean message to self: " + i);
+        }
+      }
+    }
   });
 } else {
+  process.on('message', (message) => {
+    if (message.content === 'clean') {
+      winston.info(process.pid + " received clean message from master.")
+      mcsd.cleanCache(message.url, true)
+    }
+  })
   const levelMaps = {
     'ds0ADyc9UCU': { // Cote D'Ivoire
       4: 5,
@@ -273,7 +296,7 @@ if (cluster.isMaster) {
     form.parse(req, (err, fields, files) => {
       const host = fields.host;
       const username = fields.username;
-      const password = fields.password;
+      const password = mongo.decrypt(fields.password);
       const name = fields.name;
       const clientId = fields.clientId;
       const type = fields.type;
@@ -1144,6 +1167,7 @@ if (cluster.isMaster) {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             status: 'done',
+            password: response
           });
         }
       });
@@ -1164,6 +1188,7 @@ if (cluster.isMaster) {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             status: 'done',
+            password: response
           });
         }
       });
@@ -1172,14 +1197,16 @@ if (cluster.isMaster) {
 
   app.get('/deleteServer/:_id', (req, res) => {
     const id = req.params._id;
+    winston.info('Received request to delete server with id ' + id)
     mongo.deleteServer(id, (err, response) => {
       if (err) {
         res.set('Access-Control-Allow-Origin', '*');
         res.status(500).json({
-          error: 'Unexpected error occured,please retry',
+          error: 'Unexpected error occured while deleting server,please retry',
         });
       } else {
         res.set('Access-Control-Allow-Origin', '*');
+        winston.info('Server with id ' + id + ' deleted')
         res.status(200).json({
           status: 'done',
         });
@@ -1196,7 +1223,7 @@ if (cluster.isMaster) {
           error: 'Unexpected error occured,please retry',
         });
       } else {
-        winston.info('returning list of servers');
+        winston.info('returning list of servers ' + JSON.stringify(servers));
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).json({
           servers,
