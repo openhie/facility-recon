@@ -104,6 +104,9 @@
           <v-stepper-step step="1" :complete="e1 > 1">Upload MoH CSV</v-stepper-step>
           <v-divider></v-divider>
           <v-stepper-step step="2" :complete="e1 > 2">Map Headers</v-stepper-step>
+          <v-btn icon @click.native="closeUploadWindow()">
+            <v-icon>close</v-icon>
+          </v-btn>
         </v-stepper-header>
         <v-stepper-items>
           <v-stepper-content step="1">
@@ -218,7 +221,7 @@
 import axios from 'axios'
 import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
 import { required } from 'vuelidate/lib/validators'
-
+import { eventBus } from '../../main'
 const config = require('../../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
@@ -438,6 +441,9 @@ export default {
     closeDialog (component) {
       this.$router.push({ name: component })
       this.dialog = false
+    },
+    closeUploadWindow () {
+      eventBus.$emit('remoteServerSaved')
     }
   },
   computed: {

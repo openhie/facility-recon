@@ -74,32 +74,50 @@
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
-    <v-layout>
+    <v-layout column>
+      <v-flex>
+        <v-alert
+          v-model="alertSuccess"
+          type="success"
+          dismissible
+          transition="scale-transition"
+        >
+          {{alertMsg}}
+        </v-alert>
+        <v-alert
+          v-model="alertError"
+          type="error"
+          dismissible
+          transition="scale-transition"
+        >
+          {{alertMsg}}
+        </v-alert>
+      </v-flex>
       <v-flex>
         <component :is="selectedComponent" v-if='addDataSource' />
       </v-flex>
     </v-layout>
     <v-layout row wrap v-if='$store.state.syncServers.length > 0'>
       <v-spacer></v-spacer>
-      <v-flex xs6>
-        <v-card color="white" style="border:12px;border-color: red">
+      <v-flex>
+        <v-card color="white">
           <v-card-actions>
-            <v-btn color="primary" @click="syncServer('update')">
-              <v-icon>sync</v-icon>Sync (Update)
+            <v-btn color="primary" @click="syncServer('full')">
+              <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="success" @click="syncServer('full')">
-              <v-icon>sync</v-icon>Force Full Sync
+            <v-btn color="primary lighten-1" @click="syncServer('update')">
+              <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn color="success" @click="editServer">
-              <v-icon>edit</v-icon>Edit
+              <v-icon left>edit</v-icon>Edit
             </v-btn>
             <v-btn color="error" @click="deleteConfirm = true">
-              <v-icon>delete</v-icon>Delete
+              <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
           <v-card-title primary-title>
-            Sync Servers
+            Remote Servers
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-text>
@@ -160,11 +178,15 @@ export default {
       syncStatus: 'Waiting for sync status',
       syncPercent: null,
       syncProgressTimer: '',
-      syncRunning: false
+      syncRunning: false,
+      alertSuccess: false,
+      alertError: false,
+      alertMsg: ''
     }
   },
   methods: {
     sourceSelected (selection) {
+      this.addDataSource = true
       if (selection === 'upload') {
         this.selectedComponent = 'FacilityReconUpload'
       } else if (selection === 'remote') {
@@ -286,7 +308,6 @@ export default {
         console.log(err.response.data.error + '. cross check host,user and password')
         this.$store.state.errorDescription = err.response.data.error + '. cross check host,user and password'
         clearInterval(this.syncProgressTimer)
-        console.log(err.response.data.error)
       })
     }
   },
@@ -300,6 +321,14 @@ export default {
     eventBus.$on('remoteServerSaved', () => {
       this.addDataSource = false
       this.dataSource = ''
+    })
+    eventBus.$on('remoteServerAddedSuccessfully', () => {
+      this.alertSuccess = true
+      this.alertMsg = 'Server Added Successfully'
+    })
+    eventBus.$on('remoteServerFailedAdd', () => {
+      this.alertError = true
+      this.alertMsg = 'Server Failed To Be Added'
     })
   }
 }
