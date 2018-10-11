@@ -915,13 +915,19 @@ module.exports = function () {
             ) {
               const name = data[headerMapping[level]].trim();
               const levelNumber = level.replace('level', '');
+              let megedParents = ''
+
+              // merge parents of this location
+              for (var k = levelNumber-1; k >= 1 ; k--) {
+                megedParents += data[headerMapping['level' + k]]
+              }
               if (levelNumber.toString().length < 2) {
                 var namespaceMod = `${namespace}00${levelNumber}`;
               } else {
                 var namespaceMod = `${namespace}0${levelNumber}`;
               }
 
-              const UUID = uuid5(name, namespaceMod);
+              const UUID = uuid5(name + megedParents, namespaceMod);
               const topLevels = Array.apply(null, {
                 length: levelNumber
               }).map(Function.call, Number);
@@ -943,13 +949,17 @@ module.exports = function () {
               async.eachSeries(topLevels, (topLevel, nxtTopLevel) => {
                 const topLevelName = `level${topLevel}`;
                 if (data[headerMapping[topLevelName]] && parentFound == false) {
+                  let mergedGrandParents = ''
+                  for (var k = topLevel - 1; k >= 1; k--) {
+                    mergedGrandParents += data[headerMapping['level' + k]]
+                  }
                   parent = data[headerMapping[topLevelName]].trim();
                   if (topLevel.toString().length < 2) {
                     var namespaceMod = `${namespace}00${topLevel}`;
                   } else {
                     var namespaceMod = `${namespace}0${topLevel}`;
                   }
-                  parentUUID = uuid5(parent, namespaceMod);
+                  parentUUID = uuid5(parent + mergedGrandParents, namespaceMod);
                   parentFound = true;
                 }
                 nxtTopLevel();
