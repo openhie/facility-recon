@@ -6,6 +6,7 @@ import FacilityReconScores from '@/components/FacilityReconScores'
 import FacilityRecoStatus from '@/components/FacilityRecoStatus'
 import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
 import FacilityReconDataSync from '@/components/DataSync/FacilityReconDataSync'
+import FacilityReconDataSources from '@/components/DataSources/FacilityReconDataSources'
 
 Vue.use(Router)
 
@@ -21,9 +22,14 @@ export default new Router({
     component: FacilityReconUpload
   },
   {
-    path: '/sync',
+    path: '/dataSync',
     name: 'FacilityReconDataSync',
     component: FacilityReconDataSync
+  },
+  {
+    path: '/dataSources',
+    name: 'FacilityReconDataSources',
+    component: FacilityReconDataSources
   },
   {
     path: '/view',

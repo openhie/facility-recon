@@ -14,12 +14,15 @@ const redis = require('redis');
 const redisClient = redis.createClient();
 const csv = require('fast-csv');
 const URI = require('urijs');
+const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
+const models = require('./models')
 const mongo = require('./mongo')();
 const config = require('./config');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
+const fhir = require('./fhir')();
 const scores = require('./scores')();
 
 const app = express();
@@ -299,14 +302,23 @@ if (cluster.isMaster) {
       const password = mongo.decrypt(fields.password);
       const name = fields.name;
       const clientId = fields.clientId;
-      const type = fields.type;
+      const mode = fields.mode;
       let full = true;
-      if (type === 'update') {
+      if (mode === 'update') {
         full = false;
       }
       dhis.sync(host, username, password, name, clientId, false, full, false, true);
     });
   });
+
+  app.post('/fhirSync', (req,res) => {
+    res.status(200).end()
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info('Received a request to sync FHIR server ' + fields.host)
+      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.clientId)
+    })
+  })
 
   app.get('/hierarchy/:source/:id/:start/:count', (req, res) => {
     if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
@@ -1223,14 +1235,82 @@ if (cluster.isMaster) {
           error: 'Unexpected error occured,please retry',
         });
       } else {
-        winston.info('returning list of servers ' + JSON.stringify(servers));
-        res.set('Access-Control-Allow-Origin', '*');
-        res.status(200).json({
-          servers,
-        });
+        async.eachOfSeries(servers, (server, key, nxtServer) => {
+          if (server.sourceType === 'FHIR') {
+            fhir.getLastUpdate(server.name, (lastUpdate) => {
+              if (lastUpdate) {
+                servers[key]["lastUpdate"] = lastUpdate
+              }
+              return nxtServer()
+            })
+          } else {
+            let password = mongo.decrypt(server.password)
+            const auth = `Basic ${Buffer.from(`${server.username}:${password}`).toString('base64')}`
+            const dhis2URL = url.parse(server.host)
+            dhis.getLastUpdate(server.name, dhis2URL, auth, (lastUpdate) => {
+              if (lastUpdate) {
+                lastUpdate = lastUpdate.split('.').shift()
+                servers[key]["lastUpdate"] = lastUpdate
+              }
+              return nxtServer()
+            })
+          }
+        },() => {
+          winston.info('returning list of servers ' + JSON.stringify(servers))
+          res.set('Access-Control-Allow-Origin', '*')
+          res.status(200).json({
+            servers,
+          })
+        })
       }
-    });
-  });
+    })
+  })
+
+  app.post('/addDataSource', (req,res) => {
+    winston.info('Received a request to save data source pairs')
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      mongo.addDataSource(fields, (error, results) => {
+        if (error) {
+          winston.error(error)
+          res.status(401).json({
+            error: 'Unexpected error occured while saving'
+          })
+        } else {
+          res.status(200).send()
+        }
+      })
+    })
+  })
+
+  app.get('/resetDataSources', (req,res) => {
+    mongo.resetDataSources((error,response) => {
+      if (error) {
+        winston.error(error)
+        res.status(401).json({
+          error: 'Unexpected error occured while saving'
+        })
+      } else {
+        res.status(200).send()
+      }
+    })
+  })
+
+  app.get('/getDataSources', (req,res) => {
+    mongo.getDataSources((err,sources) => {
+      if (err) {
+        res.status(401).json({
+          error: 'Unexpected error occured while saving'
+        })
+      } else {
+        if (sources.length > 0) {
+          res.status(200).json(sources[0])
+        } else {
+          res.status(200).send(false)
+        }
+      }
+    })
+  })
 
   app.post('/uploadCSV', (req, res) => {
     const form = new formidable.IncomingForm();

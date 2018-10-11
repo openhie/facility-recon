@@ -1,13 +1,5 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="dynamicProgress" hide-overlay persistent width="300">
-      <v-card color="primary" dark>
-        <v-card-text>
-          {{progressTitle}}
-          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
     <template v-if='$store.state.uploadRunning'><br><br><br>
       <v-alert type="info" :value="true">
         <b>Wait for upload to finish ...</b>
@@ -259,7 +251,7 @@
           </div>
         </v-flex>
         <v-flex xs4 child-flex>
-          <v-card color="green lighten-2" dark>
+          <v-card color="green lighten-2">
             <v-card-title primary-title>
               MOH Unmatched
               <v-spacer></v-spacer>
@@ -516,8 +508,6 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
-      dynamicProgress: false,
-      progressTitle: '',
       sort_arrow: 'up',
       pagination: { sortBy: 'score' },
       recoLevel: 0,
@@ -662,8 +652,8 @@ export default {
         this.alertText = 'Select DATIM Location to match against MOH Location'
         return
       }
-      this.progressTitle = 'Saving match'
-      this.dynamicProgress = true
+      this.$store.state.progressTitle = 'Saving match'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('datimId', datimId)
@@ -677,7 +667,7 @@ export default {
           }
         })
         .then(() => {
-          this.dynamicProgress = false
+          this.$store.state.dynamicProgress = false
           // remove from DATIM Unmatched
           let datimParents = null
           for (let k in this.$store.state.datimUnMatched) {
@@ -719,7 +709,7 @@ export default {
           this.dialog = false
         })
         .catch(err => {
-          this.dynamicProgress = false
+          this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
@@ -863,8 +853,8 @@ export default {
       }
     },
     noMatch () {
-      this.progressTitle = 'Saving as no match'
-      this.dynamicProgress = true
+      this.$store.state.progressTitle = 'Saving as no match'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
       formData.append('mohId', this.selectedMohId)
       formData.append('recoLevel', this.$store.state.recoLevel)
@@ -878,7 +868,7 @@ export default {
           }
         })
         .then(() => {
-          this.dynamicProgress = false
+          this.$store.state.dynamicProgress = false
           // remove from MOH Unmatched
           for (let k in this.$store.state.mohUnMatched) {
             if (this.$store.state.mohUnMatched[k].id === this.selectedMohId) {
@@ -896,7 +886,7 @@ export default {
           this.selectedMohName = null
         })
         .catch(err => {
-          this.dynamicProgress = false
+          this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error

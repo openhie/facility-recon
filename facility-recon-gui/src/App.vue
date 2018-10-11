@@ -6,11 +6,11 @@
         <v-btn flat :href="dhisLink" v-if='dhisLink'>
           <img src="./assets/dhis2.png" />
         </v-btn>
-        <v-btn to="upload" flat v-if='!$store.state.denyAccess'>
-          <v-icon>cloud_upload</v-icon>Upload
-        </v-btn>
-        <v-btn to="sync" flat v-if='!$store.state.denyAccess'>
+        <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
           <v-icon>sync</v-icon>Data Sync
+        </v-btn>
+        <v-btn flat to="dataSources" v-if='!$store.state.denyAccess'>
+          <v-icon>bar_chart</v-icon> Data Sources
         </v-btn>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
@@ -31,6 +31,14 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
+      <v-dialog v-model="$store.state.dynamicProgress" persistent width="300">
+        <v-card color="primary" dark>
+          <v-card-text>
+            {{$store.state.progressTitle}}
+            <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <v-dialog persistent v-model="$store.state.dialogError" max-width="500px">
         <v-card>
           <v-toolbar color="primary" dark>
@@ -46,7 +54,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="initializingApp" hide-overlay persistent width="300">
+      <v-dialog v-model="initializingApp" persistent width="300">
         <v-card color="primary" dark>
           <v-card-text>
             Initializing App
@@ -57,7 +65,7 @@
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-
+      
     </v-footer>
   </v-app>
 </template>
@@ -65,6 +73,7 @@
 <script>
 import axios from 'axios'
 import { scoresMixin } from './mixins/scoresMixin'
+import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
@@ -151,6 +160,25 @@ export default {
           })
         }
       })
+    },
+    getServers () {
+      this.$store.state.loadingServers = true
+      this.$store.state.syncServers = []
+      axios.get(backendServer + '/getServers/').then((response) => {
+        this.$store.state.loadingServers = false
+        this.$store.state.syncServers = response.data.servers
+      }).catch((err) => {
+        this.$store.state.loadingServers = false
+        console.log(err.response.error)
+      })
+    },
+    getDataSources () {
+      axios.get(backendServer + '/getDataSources/').then((response) => {
+        if (response.data) {
+          this.$store.state.dataSources.source1.id = response.data.source1
+          this.$store.state.dataSources.source2.id = response.data.source2
+        }
+      })
     }
   },
   created () {
@@ -172,6 +200,11 @@ export default {
     this.$root.$on('recalculateScores', () => {
       this.getScores()
     })
+    eventBus.$on('getRemoteServers', () => {
+      this.getServers()
+    })
+    this.getDataSources()
+    this.getServers()
   },
   name: 'App'
 }

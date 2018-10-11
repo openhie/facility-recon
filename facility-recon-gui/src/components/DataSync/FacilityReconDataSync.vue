@@ -75,8 +75,9 @@
       <v-spacer></v-spacer>
     </v-layout>
     <v-layout column>
-      <v-flex>
+      <v-flex xs6>
         <v-alert
+          style="width: 500px"
           v-model="alertSuccess"
           type="success"
           dismissible
@@ -85,6 +86,7 @@
           {{alertMsg}}
         </v-alert>
         <v-alert
+          style="width: 500px"
           v-model="alertError"
           type="error"
           dismissible
@@ -97,15 +99,15 @@
         <component :is="selectedComponent" v-if='addDataSource' />
       </v-flex>
     </v-layout>
-    <v-layout row wrap v-if='$store.state.syncServers.length > 0'>
+    <v-layout row wrap>
       <v-spacer></v-spacer>
       <v-flex>
         <v-card color="white">
           <v-card-actions>
-            <v-btn color="primary" @click="syncServer('full')">
+            <v-btn color="primary" @click="sync('full')">
               <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="primary lighten-1" @click="syncServer('update')">
+            <v-btn color="primary lighten-1" @click="sync('update')">
               <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
             <v-spacer></v-spacer>
@@ -121,7 +123,8 @@
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-text>
-            <v-data-table :headers="syncServersHeader" :items="$store.state.syncServers" dark class="elevation-1">
+            <v-data-table :headers="syncServersHeader" :items="$store.state.syncServers" dark class="elevation-1" :loading='$store.state.loadingServers'>
+              <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
               <template slot="items" slot-scope="props">
                 <v-radio-group v-model='server' style="height: 5px">
                   <td>
@@ -133,6 +136,7 @@
                 <td>{{props.item.sourceType}}</td>
                 <td>{{props.item.username}}</td>
                 <td>*****</td>
+                <td>{{props.item.lastUpdate}}</td>
               </template>
             </v-data-table>
           </v-card-text>
@@ -164,7 +168,8 @@ export default {
         { text: 'Host', value: 'host' },
         { text: 'Source Type', value: 'sourceType' },
         { text: 'User Name', value: 'username' },
-        { text: 'Password', value: 'password' }
+        { text: 'Password', value: 'password' },
+        { text: 'Last Sync', value: 'lastsync' }
       ],
       selectedComponent: '',
       dataSources: [
@@ -193,13 +198,6 @@ export default {
         this.selectedComponent = 'FacilityReconRemoteSources'
       }
     },
-    getServers () {
-      axios.get(backendServer + '/getServers/').then((response) => {
-        this.$store.state.syncServers = response.data.servers
-      }).catch((err) => {
-        console.log(err.response.error)
-      })
-    },
     editServer (server) {
       this.editDialog = true
     },
@@ -222,34 +220,33 @@ export default {
         this.server.password = response.data.password
       })
     },
-    syncServer (type) {
-      this.name = this.server.name
-      this.host = this.server.host
-      this.username = this.server.username
-      this.password = this.server.password
-      this.sync(type)
-    },
     deleteServer () {
       this.deleteConfirm = false
       axios.get(backendServer + '/deleteServer/' + this.server._id).then((resp) => {
-        this.getServers()
+        eventBus.$emit('getRemoteServers')
       })
     },
-    sync (type) {
-      if (!type) {
-        type = 'full'
+    sync (mode) {
+      if (!mode) {
+        mode = 'full'
+      }
+      let syncType
+      if (this.server.sourceType === 'DHIS2') {
+        syncType = 'dhisSync'
+      } else if (this.server.sourceType === 'FHIR') {
+        syncType = 'fhirSync'
       }
       let formData = new FormData()
       const clientId = this.$store.state.clientId
-      formData.append('host', this.host)
-      formData.append('username', this.username)
-      formData.append('password', this.password)
-      formData.append('name', this.name)
+      formData.append('host', this.server.host)
+      formData.append('username', this.server.username)
+      formData.append('password', this.server.password)
+      formData.append('name', this.server.name)
       formData.append('clientId', clientId)
-      formData.append('type', type)
+      formData.append('mode', mode)
       this.syncRunning = true
       this.syncProgrIndeter = true
-      axios.post(backendServer + '/dhisSync/', formData, {
+      axios.post(backendServer + '/' + syncType + '/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -265,7 +262,13 @@ export default {
     },
     checkSyncProgress () {
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/progress/dhisSyncRequest/' + clientId).then((syncProgress) => {
+      let syncProgressType
+      if (this.server.sourceType === 'DHIS2') {
+        syncProgressType = 'dhisSyncRequest'
+      } else if (this.server.sourceType === 'FHIR') {
+        syncProgressType = 'fhirSyncRequest'
+      }
+      axios.get(backendServer + '/progress/' + syncProgressType + '/' + clientId).then((syncProgress) => {
         if (syncProgress.data === null || syncProgress.data === undefined || syncProgress.data === false) {
           this.$store.state.uploadRunning = false
           this.syncProgrIndeter = false
@@ -301,6 +304,7 @@ export default {
           clearInterval(this.syncProgressTimer)
           this.syncProgrPercent = false
           this.$store.state.uploadRunning = false
+          eventBus.$emit('getRemoteServers')
         }
       }).catch((err) => {
         this.$store.state.dialogError = true
@@ -317,7 +321,6 @@ export default {
     'appSyncProgress': SyncProgress
   },
   created () {
-    this.getServers()
     eventBus.$on('remoteServerSaved', () => {
       this.addDataSource = false
       this.dataSource = ''
@@ -325,6 +328,9 @@ export default {
     eventBus.$on('remoteServerAddedSuccessfully', () => {
       this.alertSuccess = true
       this.alertMsg = 'Server Added Successfully'
+      setTimeout(() => {
+        this.alertSuccess = false
+      }, 3000)
     })
     eventBus.$on('remoteServerFailedAdd', () => {
       this.alertError = true
