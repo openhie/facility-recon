@@ -17,7 +17,7 @@ const URI = require('urijs');
 const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
-const models = require('./models')
+const mixin = require('./mixin')()
 const mongo = require('./mongo')();
 const config = require('./config');
 const mcsd = require('./mcsd')();
@@ -1104,16 +1104,16 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/uploadProgress/:orgid/:clientId', (req, res) => {
-    const orgid = req.params.orgid
+  app.get('/uploadProgress/:database/:clientId', (req, res) => {
+    const database = req.params.database
     const clientId = req.params.clientId
-    redisClient.get(`uploadProgress${orgid}${clientId}`, (error, results) => {
+    redisClient.get(`uploadProgress${database}${clientId}`, (error, results) => {
       results = JSON.parse(results)
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        var uploadRequestId = `uploadProgress${orgid}${clientId}`
+        var uploadRequestId = `uploadProgress${database}${clientId}`
         let uploadReqPro = JSON.stringify({
           status: null,
           error: null,
@@ -1164,18 +1164,18 @@ if (cluster.isMaster) {
     })
   });
 
-  app.post('/addServer', (req, res) => {
+  app.post('/addDataSource', (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info('Received a request to add a new server');
-      mongo.addServer(fields, (err, response) => {
+      winston.info('Received a request to add a new data source');
+      mongo.addDataSource(fields, (err, response) => {
         if (err) {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(500).json({
             error: 'Unexpected error occured,please retry',
           });
         } else {
-          winston.info('server saved successfully');
+          winston.info('Data source saved successfully');
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             status: 'done',
@@ -1185,10 +1185,10 @@ if (cluster.isMaster) {
       });
     });
   });
-  app.post('/editServer', (req, res) => {
+  app.post('/editDataSource', (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info('Received a request to edit a server');
+      winston.info('Received a request to edit a data source');
       mongo.editServer(fields, (err, response) => {
         if (err) {
           res.set('Access-Control-Allow-Origin', '*');
@@ -1196,7 +1196,7 @@ if (cluster.isMaster) {
             error: 'Unexpected error occured,please retry',
           });
         } else {
-          winston.info('Server edited sucessfully');
+          winston.info('Data source edited sucessfully');
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             status: 'done',
@@ -1207,28 +1207,37 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/deleteServer/:_id', (req, res) => {
+  app.get('/deleteDataSource/:_id/:name', (req, res) => {
     const id = req.params._id;
-    winston.info('Received request to delete server with id ' + id)
-    mongo.deleteServer(id, (err, response) => {
+    winston.info('Received request to delete data source with id ' + id)
+    mongo.deleteDataSource(id, (err, response) => {
       if (err) {
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(500).json({
-          error: 'Unexpected error occured while deleting server,please retry',
+          error: 'Unexpected error occured while deleting data source,please retry',
         });
       } else {
-        res.set('Access-Control-Allow-Origin', '*');
-        winston.info('Server with id ' + id + ' deleted')
-        res.status(200).json({
-          status: 'done',
-        });
+        winston.error(req.params.name)
+        let database = mixin.toTitleCase(req.params.name)
+        mcsd.deleteDB(database,(error) => {
+          if (error) {
+            winston.error(error)
+            res.status(500).json({
+              error: 'Unexpected error occured while deleting database',
+            });
+          } else {
+            winston.info('Data source with id ' + id + ' deleted')
+            res.status(200).json({
+              status: 'done',
+            });
+          }
+        })
       }
     });
   });
 
-  app.get('/getServers', (req, res) => {
-    winston.info('received request to get servers');
-    mongo.getServers((err, servers) => {
+  app.get('/getDataSources', (req, res) => {
+    winston.info('received request to get data sources');
+    mongo.getDataSources((err, servers) => {
       if (err) {
         res.set('Access-Control-Allow-Origin', '*');
         res.status(500).json({
@@ -1243,8 +1252,11 @@ if (cluster.isMaster) {
               }
               return nxtServer()
             })
-          } else {
-            let password = mongo.decrypt(server.password)
+          } else if (server.sourceType === 'DHIS2') {
+            let password = ''
+            if (server.password) {
+              password = mongo.decrypt(server.password)
+            }
             const auth = `Basic ${Buffer.from(`${server.username}:${password}`).toString('base64')}`
             const dhis2URL = url.parse(server.host)
             dhis.getLastUpdate(server.name, dhis2URL, auth, (lastUpdate) => {
@@ -1254,9 +1266,11 @@ if (cluster.isMaster) {
               }
               return nxtServer()
             })
+          } else {
+            return nxtServer()
           }
         },() => {
-          winston.info('returning list of servers ' + JSON.stringify(servers))
+          winston.info('returning list of data sources ' + JSON.stringify(servers))
           res.set('Access-Control-Allow-Origin', '*')
           res.status(200).json({
             servers,
@@ -1266,11 +1280,11 @@ if (cluster.isMaster) {
     })
   })
 
-  app.post('/addDataSource', (req,res) => {
+  app.post('/addDataSourcePair', (req,res) => {
     winston.info('Received a request to save data source pairs')
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      mongo.addDataSource(fields, (error, results) => {
+      mongo.addDataSourcePair(fields, (error, results) => {
         if (error) {
           winston.error(error)
           res.status(401).json({
@@ -1283,8 +1297,8 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/resetDataSources', (req,res) => {
-    mongo.resetDataSources((error,response) => {
+  app.get('/resetDataSourcePair', (req,res) => {
+    mongo.resetDataSourcePair((error, response) => {
       if (error) {
         winston.error(error)
         res.status(401).json({
@@ -1296,8 +1310,8 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getDataSources', (req,res) => {
-    mongo.getDataSources((err,sources) => {
+  app.get('/getDataSourcePair', (req, res) => {
+    mongo.getDataSourcePair((err, sources) => {
       if (err) {
         res.status(401).json({
           error: 'Unexpected error occured while saving'
@@ -1316,22 +1330,20 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info(`Received MOH Data with fields Mapping ${JSON.stringify(fields)}`);
-      if (!fields.orgid) {
+      if (!fields.csvName) {
         winston.error({
-          error: 'Missing Orgid'
+          error: 'Missing CSV Name'
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing Orgid'
+          error: 'Missing CSV Name'
         });
         return;
       }
-      const orgid = fields.orgid;
-      const orgname = fields.orgname;
-      const database = config.getConf('mCSD:database');
+      const database = mixin.toTitleCase(fields.csvName);
       const expectedLevels = config.getConf('levels');
       const clientId = fields.clientId
-      var uploadRequestId = `uploadProgress${orgid}${clientId}`
+      var uploadRequestId = `uploadProgress${database}${clientId}`
       let uploadReqPro = JSON.stringify({
         status: 'Request received by server',
         error: null,
@@ -1384,7 +1396,7 @@ if (cluster.isMaster) {
           percent: null
         })
         redisClient.set(uploadRequestId, uploadReqPro)
-        mcsd.archiveDB(orgid, (err) => {
+        mcsd.archiveDB(database, (err) => {
           if (err) {
             let uploadReqPro = JSON.stringify({
               status: '3/5 Archiving Old DB',
@@ -1402,20 +1414,20 @@ if (cluster.isMaster) {
             percent: null
           })
           redisClient.set(uploadRequestId, uploadReqPro)
-          mcsd.cleanArchives(orgid, () => {})
+          mcsd.cleanArchives(database, () => {})
           //delete existing db
-          winston.info('Deleting DB ' + orgid)
-          mcsd.deleteDB(orgid, (err) => {
+          winston.info('Deleting DB ' + database)
+          mcsd.deleteDB(database, (err) => {
             if (!err) {
-              winston.info(`Uploading data for ${orgid} now`)
+              winston.info(`Uploading data for ${database} now`)
               let uploadReqPro = JSON.stringify({
                 status: '5/5 Uploading of DB started',
                 error: null,
                 percent: null
               })
               redisClient.set(uploadRequestId, uploadReqPro)
-              mcsd.CSVTomCSD(files[fileName].path, fields, orgid, clientId, () => {
-                winston.info(`Data upload for ${orgid} is done`)
+              mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
+                winston.info(`Data upload for ${database} is done`)
                 let uploadReqPro = JSON.stringify({
                   status: 'Done',
                   error: null,

@@ -1,0 +1,60 @@
+import {eventBus} from '../../main'
+import axios from 'axios'
+const config = require('../../../config')
+const isProduction = process.env.NODE_ENV === 'production'
+const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+export const dataSourcesMixin = {
+  data () {
+    return {
+      name: '',
+      host: '',
+      username: '',
+      password: '',
+      sourceType: ''
+    }
+  },
+  methods: {
+    addDataSource (source) {
+      let formData = new FormData()
+      const clientId = this.$store.state.clientId
+      formData.append('host', this.host)
+      formData.append('sourceType', this.sourceType)
+      formData.append('source', source)
+      formData.append('username', this.username)
+      formData.append('password', this.password)
+      formData.append('name', this.name)
+      formData.append('clientId', clientId)
+
+      var serverExists = this.$store.state.dataSources.find((dataSource) => {
+        return dataSource.host === this.host
+      })
+      axios.post(backendServer + '/addDataSource', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response) => {
+        eventBus.$emit('dataSourceSaved')
+        eventBus.$emit('dataSourceAddedSuccessfully')
+        eventBus.$emit('getDataSources')
+        if (serverExists) {
+          serverExists.name = this.name
+          serverExists.username = this.username
+          serverExists.password = response.data.password
+          serverExists.sourceType = this.sourceType
+        } else {
+          this.$store.state.dataSources.push({
+            name: this.name,
+            host: this.host,
+            sourceType: this.sourceType,
+            source: 'syncServer',
+            username: this.username,
+            password: response.data.password
+          })
+        }
+      }).catch((err) => {
+        console.log(err)
+        eventBus.$emit('remoteServerFailedAdd')
+      })
+    }
+  }
+}

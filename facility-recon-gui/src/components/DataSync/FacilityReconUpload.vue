@@ -113,12 +113,18 @@
             <v-card class="mb-5" height="200px">
               <v-card-title>Upload MoH CSV (utf-8 only)</v-card-title>
               <v-card-text>
+                <v-text-field
+                  label="Unique Name"
+                  v-model="uploadName"
+                  @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="uploadNameErrors"
+                  required
+                ></v-text-field>
                 <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
                 </div>
                 {{uploadedFileName}}
               </v-card-text>
             </v-card>
-            <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName'>Continue</v-btn>
+            <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName && uploadName && uploadNameErrors.length === 0'>Continue</v-btn>
             <v-btn color="primary" @click.native="e1 = 2" v-else disabled>Continue</v-btn>
           </v-stepper-content>
           <v-stepper-content step="2">
@@ -216,10 +222,10 @@
   </v-container>
 </template>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
 import axios from 'axios'
-import FacilityReconDbAdmin from '../FacilityReconDbAdmin.vue'
+import { dataSourcesMixin } from './dataSourcesMixin'
+import { generalMixin } from '../../mixins/generalMixin'
 import { required } from 'vuelidate/lib/validators'
 import { eventBus } from '../../main'
 const config = require('../../../config')
@@ -227,6 +233,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
 export default {
+  mixins: [dataSourcesMixin, generalMixin],
   data () {
     return {
       errorDialog: false,
@@ -239,6 +246,8 @@ export default {
       UploadProgressTimer: '',
       uploadStatus: '1/5 Uploading CSV to the server',
       uploadPercent: null,
+      uploadName: '',
+      uploadNameErrors: [],
       confirmUpload: false,
       confirmTitle: '',
       confirmMsg: '',
@@ -274,10 +283,10 @@ export default {
     },
     level1: {
       required: required
+    },
+    uploadName: {
+      required: required
     }
-  },
-  components: {
-    appFacilityReconDbAdmin: FacilityReconDbAdmin
   },
   methods: {
     fileSelected (e) {
@@ -310,14 +319,25 @@ export default {
       }.bind(this), false)
       reader.readAsArrayBuffer(e.target.files[0])
     },
-
+    ensureNameUnique () {
+      this.uploadNameErrors = []
+      if (this.uploadName === '') {
+        return this.uploadNameErrors.push('Upload name is required')
+      }
+      for (let dtSrc of this.$store.state.dataSources) {
+        if (dtSrc.name === this.uploadName) {
+          this.uploadNameErrors.push('This Name Exists')
+          return false
+        }
+      }
+    },
     confirmSubmit () {
       this.confirmUpload = true
     },
     checkUploadProgress () {
-      const orgId = this.$store.state.orgUnit.OrgId
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/uploadProgress/' + orgId + '/' + clientId).then((uploadProgress) => {
+      let database = this.toTitleCase(this.uploadName)
+      axios.get(backendServer + '/uploadProgress/' + database + '/' + clientId).then((uploadProgress) => {
         if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false) {
           this.$store.state.uploadRunning = false
           this.uploadPrepaProgr = false
@@ -348,6 +368,7 @@ export default {
           this.uploadPercent = uploadProgress.data.percent
         }
         if (uploadProgress.data.status === 'Done' || uploadProgress.data.status >= 100) {
+          this.addDataSource('upload')
           clearInterval(this.UploadProgressTimer)
           // resetting reco level
           this.$store.state.recoLevel = 2
@@ -363,6 +384,7 @@ export default {
     submitCSV () {
       let formData = new FormData()
       formData.append('file', this.file)
+      formData.append('csvName', this.uploadName)
       formData.append('facility', this.facility)
       formData.append('code', this.code)
       formData.append('lat', this.lat)
@@ -374,12 +396,17 @@ export default {
       formData.append('level5', this.level5)
       formData.append('level6', this.level6)
       formData.append('level7', this.level7)
-      formData.append('orgid', this.$store.state.orgUnit.OrgId)
-      formData.append('orgname', this.$store.state.orgUnit.OrgName)
       formData.append('clientId', this.$store.state.clientId)
       this.confirmUpload = false
       this.$store.state.uploadRunning = true
       this.uploadPrepaProgr = true
+
+      // preparing data for adding data source
+      this.host = ''
+      this.sourceType = 'upload'
+      this.username = ''
+      this.password = ''
+      this.name = this.uploadName
       axios.post(backendServer + '/uploadCSV',
         formData,
         {
@@ -443,10 +470,16 @@ export default {
       this.dialog = false
     },
     closeUploadWindow () {
-      eventBus.$emit('remoteServerSaved')
+      eventBus.$emit('dataSourceSaved')
     }
   },
   computed: {
+    uploadNameErrorsss () {
+      const errors = []
+      if (!this.$v.uploadName.$dirty) return errors
+      !this.$v.uploadName.required && errors.push('Upload Name is required')
+      return errors
+    },
     facilityErrors () {
       const errors = []
       if (!this.$v.facility.$dirty) return errors
@@ -554,6 +587,7 @@ export default {
 }
 </script>
 
+<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .jbtn-file {
   cursor: pointer;

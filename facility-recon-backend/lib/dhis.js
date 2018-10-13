@@ -1,14 +1,15 @@
-require('./init');
-const winston = require('winston');
-const request = require('request');
-const async = require('async');
-const URI = require('urijs');
-const http = require('http');
-const https = require('https');
-const url = require('url');
-const isJSON = require('is-json');
-const redis = require('redis');
-const config = require('./config');
+require('./init')
+const winston = require('winston')
+const request = require('request')
+const async = require('async')
+const URI = require('urijs')
+const http = require('http')
+const https = require('https')
+const url = require('url')
+const isJSON = require('is-json')
+const redis = require('redis')
+const mixin = require('./mixin')()
+const config = require('./config')
 
 const redisClient = redis.createClient();
 
@@ -36,7 +37,7 @@ module.exports = function () {
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
           port: dhis2URL.port,
-          path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${toTitleCase(name)}`,
+          path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
           headers: {
             Authorization: auth,
           },
@@ -57,7 +58,7 @@ module.exports = function () {
       const req = (dhis2URL.protocol == 'https:' ? https : http).request({
         hostname: dhis2URL.hostname,
         port: dhis2URL.port,
-        path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${toTitleCase(name)}`,
+        path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
         headers: {
           Authorization: auth,
         },
@@ -206,7 +207,7 @@ function processOrgUnit(metadata, hasKey) {
   async.each(metadata.organisationUnits, (org, nxtOrg) => {
     const name = credentials.name;
     const clientId = credentials.clientId;
-    const database = toTitleCase(name);
+    const database = mixin.toTitleCase(name);
 
     // winston.info(`Processing (${i}/${max}) ${org.id}`);
     const fhir = {
@@ -228,12 +229,17 @@ function processOrgUnit(metadata, hasKey) {
       lastUpdated: org.lastUpdated,
     };
     const path = org.path.split('/');
-    const level = metadata.organisationUnitLevels.find(x => x.level == path.length - 1);
-    fhir.meta.tag = [{
-      system: 'http://test.geoalign.datim.org/organistionUnitLevels',
-      code: level.id,
-      display: level.name,
-    }];
+    let level
+    if (metadata.hasOwnProperty('organisationUnitLevels')) {
+      level = metadata.organisationUnitLevels.find(x => x.level == path.length - 1);
+    }
+    if (level) {
+      fhir.meta.tag = [{
+        system: 'http://test.geoalign.datim.org/organistionUnitLevels',
+        code: level.id,
+        display: level.name,
+      }];
+    }
     fhir.name = org.name;
     fhir.alias = [org.shortName];
     if (metadata.organisationUnits.find(x => x.parent && x.parent.id && x.parent.id == org.id)) {
@@ -337,7 +343,7 @@ function checkLoaderDataStore() {
     const req = (dhis2URL.protocol == 'https:' ? https : http).request({
       hostname: dhis2URL.hostname,
       port: dhis2URL.port,
-      path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${toTitleCase(name)}`,
+      path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
       headers: {
         Authorization: auth,
       },
@@ -366,7 +372,7 @@ function setLastUpdate(hasKey, lastUpdate) {
   const req = (dhis2URL.protocol == 'https:' ? https : http).request({
     hostname: dhis2URL.hostname,
     port: dhis2URL.port,
-    path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${toTitleCase(name)}`,
+    path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
     headers: {
       Authorization: auth,
       'Content-Type': 'application/json',
@@ -396,8 +402,4 @@ function setLastUpdate(hasKey, lastUpdate) {
   };
   req.write(JSON.stringify(payload));
   req.end();
-}
-
-function toTitleCase(str) {
-  return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('');
 }

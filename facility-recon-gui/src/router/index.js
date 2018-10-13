@@ -6,7 +6,7 @@ import FacilityReconScores from '@/components/FacilityReconScores'
 import FacilityRecoStatus from '@/components/FacilityRecoStatus'
 import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
 import FacilityReconDataSync from '@/components/DataSync/FacilityReconDataSync'
-import FacilityReconDataSources from '@/components/DataSources/FacilityReconDataSources'
+import FacilityReconDataSourcePair from '@/components/DataSources/FacilityReconDataSourcePair'
 
 Vue.use(Router)
 
@@ -27,9 +27,9 @@ export default new Router({
     component: FacilityReconDataSync
   },
   {
-    path: '/dataSources',
-    name: 'FacilityReconDataSources',
-    component: FacilityReconDataSources
+    path: '/dataSourcePair',
+    name: 'FacilityReconDataSourcePair',
+    component: FacilityReconDataSourcePair
   },
   {
     path: '/view',

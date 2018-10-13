@@ -19,29 +19,35 @@ if (mongoUser && mongoPasswd) {
 
 module.exports = function () {
   return {
-    addServer(fields, callback) {
-      let password = this.encrypt(fields.password)
+    addDataSource(fields, callback) {
+      let password = ''
+      if (fields.password) {
+        password = this.encrypt(fields.password)
+      }
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.SyncServers.findOne({
-          host: fields.host,
+        models.DataSources.findOne({
+          host: fields.name,
         }, (err, data) => {
           if (err) {
+            winston.error(err)
             winston.error('Unexpected error occured,please retry');
             return callback('Unexpected error occured,please retry', null);
           }
           if (!data) {
-            const syncServer = new models.SyncServers({
+            const syncServer = new models.DataSources({
               name: fields.name,
               host: fields.host,
               sourceType: fields.sourceType,
+              source: fields.source,
               username: fields.username,
               password: password,
             });
             syncServer.save((err, data) => {
               if (err) {
+                winston.error(err)
                 winston.error('Unexpected error occured,please retry')
                 return callback('Unexpected error occured,please retry', null)
               }
@@ -49,14 +55,16 @@ module.exports = function () {
 
             });
           } else {
-            models.SyncServers.findByIdAndUpdate(data.id, {
+            models.DataSources.findByIdAndUpdate(data.id, {
               name: fields.name,
               host: fields.host,
               sourceType: fields.sourceType,
+              source: fields.source,
               username: fields.username,
               password: password,
             }, (err, data) => {
               if (err) {
+                winston.error(err)
                 winston.error('Unexpected error occured,please retry');
                 return callback('Unexpected error occured,please retry');
               }
@@ -66,16 +74,17 @@ module.exports = function () {
         });
       })
     },
-    editServer(fields, callback) {
+    editDataSource(fields, callback) {
       let password = this.encrypt(fields.password)
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.SyncServers.findByIdAndUpdate(fields.id, {
+        models.DataSources.findByIdAndUpdate(fields.id, {
           name: fields.name,
           host: fields.host,
           sourceType: fields.sourceType,
+          source: fields.source,
           username: fields.username,
           password: password,
         }, (err, data) => {
@@ -88,12 +97,12 @@ module.exports = function () {
       })
     },
 
-    deleteServer(id, callback) {
+    deleteDataSource(id, callback) {
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.SyncServers.deleteOne({
+        models.DataSources.deleteOne({
           _id: id,
         }, (err, data) => {
           return callback(err, data);
@@ -101,12 +110,12 @@ module.exports = function () {
       })
     },
 
-    getServers(callback) {
+    getDataSources(callback) {
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.SyncServers.find({}).lean().exec({}, (err, data) => {
+        models.DataSources.find({}).lean().exec({}, (err, data) => {
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -115,15 +124,15 @@ module.exports = function () {
         });
       })
     },
-    addDataSource(sources, callback) {
+    addDataSourcePair(sources, callback) {
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSources.find({'status': 'active'}).lean().exec({}, (err, data) => {
+        models.DataSourcePair.find({'status': 'active'}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
-              models.DataSources.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
+              models.DataSourcePair.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
                 return nxtDt()
               })
             }, () => {
@@ -142,7 +151,7 @@ module.exports = function () {
       function add(sources, callback) {
         let source1 = JSON.parse(sources.source1)
         let source2 = JSON.parse(sources.source2)
-        models.DataSources.findOneAndUpdate({
+        models.DataSourcePair.findOneAndUpdate({
           'source1': source1._id,
           'source2': source2._id
         }, {
@@ -154,7 +163,7 @@ module.exports = function () {
             return callback(err,false)
           }
           if (!data) {
-            const dataSourcePair = new models.DataSources({
+            const dataSourcePair = new models.DataSourcePair({
               source1: source1._id,
               source2: source2._id,
               status: 'active'
@@ -166,22 +175,22 @@ module.exports = function () {
         })
       }
     },
-    resetDataSources(callback) {
+    resetDataSourcePair(callback) {
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSources.update({'status': 'active'},{'status': 'inactive'},{'multi': true},(err,data) => {
+        models.DataSourcePair.update({'status': 'active'}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
           return callback(err,data)
         })
       })
     },
-    getDataSources(callback) {
+    getDataSourcePair(callback) {
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSources.find({'status': 'active'}).lean().exec({},(err,data) => {
+        models.DataSourcePair.find({'status': 'active'}).lean().exec({}, (err, data) => {
           return callback(err, data)
         })
       })

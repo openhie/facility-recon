@@ -866,13 +866,10 @@ module.exports = function () {
         callback(err);
       });
     },
-    CSVTomCSD(filePath, headerMapping, orgid, clientId, callback) {
-      var uploadRequestId = `uploadProgress${orgid}${clientId}`;
+    CSVTomCSD(filePath, headerMapping, database, clientId, callback) {
+      var uploadRequestId = `uploadProgress${database}${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
-      var orgid = headerMapping.orgid;
-      const orgname = headerMapping.orgname;
-      const countryUUID = uuid5(orgid, `${namespace}000`);
 
       const promises = [];
       const processed = [];
@@ -934,10 +931,6 @@ module.exports = function () {
               let parentFound = false;
               let parentUUID = null;
               let parent = null;
-              if (levelNumber == 1) {
-                parent = orgname;
-                parentUUID = countryUUID;
-              }
 
               if (!facilityParent) {
                 facilityParent = name;
@@ -972,15 +965,6 @@ module.exports = function () {
               nxtLevel();
             }
           }, () => {
-            if (!processed.includes(countryUUID)) {
-              jurisdictions.push({
-                name: orgname,
-                parent: null,
-                uuid: countryUUID,
-                parentUUID: null,
-              });
-              processed.push(countryUUID);
-            }
             recordCount += jurisdictions.length
             this.buildJurisdiction(jurisdictions, saveBundle)
             const facilityName = data[headerMapping.facility].trim();
@@ -1008,7 +992,7 @@ module.exports = function () {
               recordCount = 0
               totalRows += tmpBundle.entry.length
               promises.push(new Promise((resolve, reject) => {
-                this.saveLocations(tmpBundle, orgid, () => {
+                this.saveLocations(tmpBundle, database, () => {
                   countRow += tmpBundle.entry.length
                   const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
                   const uploadReqPro = JSON.stringify({
@@ -1024,9 +1008,9 @@ module.exports = function () {
             }
           });
         }).on('end', () => {
-          this.saveLocations(saveBundle, orgid, () => {
+          this.saveLocations(saveBundle, database, () => {
             Promise.all(promises).then(() => {
-              var uploadRequestId = `uploadProgress${orgid}${clientId}`;
+              var uploadRequestId = `uploadProgress${database}${clientId}`;
               const uploadReqPro = JSON.stringify({
                 status: 'Done',
                 error: null,

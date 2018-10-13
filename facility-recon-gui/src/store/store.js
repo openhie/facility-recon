@@ -24,7 +24,7 @@ export const store = new Vuex.Store({
       OrgId: 'lZsCb6y0KDX',
       OrgName: 'Malawi'
     },
-    dataSources: {
+    dataSourcePair: {
       source1: {},
       source2: {}
     },
@@ -48,7 +48,7 @@ export const store = new Vuex.Store({
     levelArray: [],
     scoresProgressData: {},
     uploadProgressData: {},
-    syncServers: [],
+    dataSources: [],
     remoteDataSources: ['DHIS2', 'FHIR'],
     loadingServers: false,
     dynamicProgress: false

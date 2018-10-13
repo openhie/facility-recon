@@ -11,10 +11,10 @@
           </v-toolbar-title>
         </v-toolbar>
         <v-card-text>
-          Are you sure you want to delete {{server.host}}
+          Are you sure you want to delete {{server.name}} {{server.host}} <br> This will also delete the Database
         </v-card-text>
         <v-card-actions>
-          <v-btn color="success" @click="deleteServer">Yes</v-btn>
+          <v-btn color="success" @click="deleteDataSource">Yes</v-btn>
           <v-btn color="error" @click="deleteConfirm = false">Cancel</v-btn>
         </v-card-actions>
       </v-card>
@@ -33,7 +33,7 @@
         <v-card-text>
           <v-layout column>
             <v-flex xs1>
-              <v-text-field v-model="server.name" label="Name"></v-text-field>
+              <v-text-field v-model="server.name" label="Name" disabled></v-text-field>
             </v-flex>
             <v-flex xs1>
               <v-text-field v-model="server.host" label="Host"></v-text-field>
@@ -102,28 +102,30 @@
     <v-layout row wrap>
       <v-spacer></v-spacer>
       <v-flex>
-        <v-card color="white">
+        <v-card color="cyan lighten-5">
+          <v-card-title primary-title>
+            <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
+              Remote Servers
+            </v-toolbar>
+            <v-spacer></v-spacer>
+          </v-card-title>
           <v-card-actions>
-            <v-btn color="primary" @click="sync('full')">
+            <v-btn color="primary" @click="sync('full')" round>
               <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="primary lighten-1" @click="sync('update')">
+            <v-btn color="primary lighten-1" @click="sync('update')" round>
               <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="success" @click="editServer">
+            <v-btn color="success" @click="editDataSource" round>
               <v-icon left>edit</v-icon>Edit
             </v-btn>
-            <v-btn color="error" @click="deleteConfirm = true">
+            <v-btn color="error" @click="validateDelete" round>
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
-          <v-card-title primary-title>
-            Remote Servers
-            <v-spacer></v-spacer>
-          </v-card-title>
           <v-card-text>
-            <v-data-table :headers="syncServersHeader" :items="$store.state.syncServers" dark class="elevation-1" :loading='$store.state.loadingServers'>
+            <v-data-table :headers="syncServersHeader" :items="remoteServers" dark class="elevation-1" :loading='$store.state.loadingServers'>
               <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
               <template slot="items" slot-scope="props">
                 <v-radio-group v-model='server' style="height: 5px">
@@ -137,6 +139,30 @@
                 <td>{{props.item.username}}</td>
                 <td>*****</td>
                 <td>{{props.item.lastUpdate}}</td>
+              </template>
+            </v-data-table>
+          </v-card-text>
+          <v-card-title primary-title>
+            <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
+              Uploaded Sources
+            </v-toolbar>
+          </v-card-title>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="error" @click="deleteConfirm = true" round>
+              <v-icon left>delete</v-icon>Delete
+            </v-btn>
+          </v-card-actions>
+          <v-card-text>
+            <v-data-table :headers="uploadSourcesHeader" :items="uploadedSources" dark class="elevation-1" :loading='$store.state.loadingServers'>
+              <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
+              <template slot="items" slot-scope="props">
+                <v-radio-group v-model='server' style="height: 5px">
+                  <td>
+                    <v-radio :value="props.item" color="blue"></v-radio>
+                  </td>
+                </v-radio-group>
+                <td>{{props.item.name}}</td>
               </template>
             </v-data-table>
           </v-card-text>
@@ -171,6 +197,10 @@ export default {
         { text: 'Password', value: 'password' },
         { text: 'Last Sync', value: 'lastsync' }
       ],
+      uploadSourcesHeader: [
+        { sortable: false },
+        { text: 'CSV Name', value: 'name' }
+      ],
       selectedComponent: '',
       dataSources: [
         { text: 'Upload', value: 'upload' },
@@ -198,7 +228,16 @@ export default {
         this.selectedComponent = 'FacilityReconRemoteSources'
       }
     },
-    editServer (server) {
+    editDataSource (server) {
+      if (Object.keys(this.server).length === 0) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      if (this.server.source === 'upload') {
+        return
+      }
       this.editDialog = true
     },
     saveEdit () {
@@ -212,7 +251,7 @@ export default {
       formData.append('id', this.server._id)
       formData.append('clientId', clientId)
       this.editDialog = false
-      axios.post(backendServer + '/editServer', formData, {
+      axios.post(backendServer + '/editDataSource', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -220,13 +259,31 @@ export default {
         this.server.password = response.data.password
       })
     },
-    deleteServer () {
+    validateDelete () {
+      if (Object.keys(this.server).length === 0) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      this.deleteConfirm = true
+    },
+    deleteDataSource () {
       this.deleteConfirm = false
-      axios.get(backendServer + '/deleteServer/' + this.server._id).then((resp) => {
-        eventBus.$emit('getRemoteServers')
+      axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name).then((resp) => {
+        eventBus.$emit('getDataSources')
       })
     },
     sync (mode) {
+      if (Object.keys(this.server).length === 0) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      if (this.server.source === 'upload') {
+        return
+      }
       if (!mode) {
         mode = 'full'
       }
@@ -301,10 +358,11 @@ export default {
           this.syncPercent = syncProgress.data.percent
         }
         if (syncProgress.data.status === 'Done') {
+          this.syncStatus = 'Waiting for sync status'
           clearInterval(this.syncProgressTimer)
           this.syncProgrPercent = false
           this.$store.state.uploadRunning = false
-          eventBus.$emit('getRemoteServers')
+          eventBus.$emit('getDataSources')
         }
       }).catch((err) => {
         this.$store.state.dialogError = true
@@ -315,17 +373,40 @@ export default {
       })
     }
   },
+  computed: {
+    remoteServers () {
+      let servers = []
+      for (let sources of this.$store.state.dataSources) {
+        if (sources.source === 'syncServer') {
+          servers.push(sources)
+        }
+      }
+      return servers
+    },
+    uploadedSources () {
+      let upload = []
+      for (let sources of this.$store.state.dataSources) {
+        if (sources.source === 'upload') {
+          upload.push(sources)
+        }
+      }
+      return upload
+    }
+  },
   components: {
     'FacilityReconUpload': FacilityReconUpload,
     'FacilityReconRemoteSources': FacilityReconRemoteSources,
     'appSyncProgress': SyncProgress
   },
   created () {
-    eventBus.$on('remoteServerSaved', () => {
+    if (this.$store.state.dataSources.length === 0) {
+      eventBus.$emit('getDataSources')
+    }
+    eventBus.$on('dataSourceSaved', () => {
       this.addDataSource = false
       this.dataSource = ''
     })
-    eventBus.$on('remoteServerAddedSuccessfully', () => {
+    eventBus.$on('dataSourceAddedSuccessfully', () => {
       this.alertSuccess = true
       this.alertMsg = 'Server Added Successfully'
       setTimeout(() => {

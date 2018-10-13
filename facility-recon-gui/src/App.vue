@@ -7,10 +7,10 @@
           <img src="./assets/dhis2.png" />
         </v-btn>
         <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
-          <v-icon>sync</v-icon>Data Sync
+          <v-icon>sync</v-icon>Data Sync And Upload
         </v-btn>
-        <v-btn flat to="dataSources" v-if='!$store.state.denyAccess'>
-          <v-icon>bar_chart</v-icon> Data Sources
+        <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess'>
+          <v-icon>bar_chart</v-icon> Data Source Pair
         </v-btn>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
@@ -161,22 +161,22 @@ export default {
         }
       })
     },
-    getServers () {
+    getDataSources () {
       this.$store.state.loadingServers = true
-      this.$store.state.syncServers = []
-      axios.get(backendServer + '/getServers/').then((response) => {
+      this.$store.state.dataSources = []
+      axios.get(backendServer + '/getDataSources/').then((response) => {
         this.$store.state.loadingServers = false
-        this.$store.state.syncServers = response.data.servers
+        this.$store.state.dataSources = response.data.servers
       }).catch((err) => {
         this.$store.state.loadingServers = false
         console.log(err.response.error)
       })
     },
-    getDataSources () {
-      axios.get(backendServer + '/getDataSources/').then((response) => {
+    getDataSourcePair () {
+      axios.get(backendServer + '/getDataSourcePair/').then((response) => {
         if (response.data) {
-          this.$store.state.dataSources.source1.id = response.data.source1
-          this.$store.state.dataSources.source2.id = response.data.source2
+          this.$store.state.dataSourcePair.source1.id = response.data.source1
+          this.$store.state.dataSourcePair.source2.id = response.data.source2
         }
       })
     }
@@ -200,11 +200,11 @@ export default {
     this.$root.$on('recalculateScores', () => {
       this.getScores()
     })
-    eventBus.$on('getRemoteServers', () => {
-      this.getServers()
+    eventBus.$on('getDataSources', () => {
+      this.getDataSources()
     })
+    this.getDataSourcePair()
     this.getDataSources()
-    this.getServers()
   },
   name: 'App'
 }
