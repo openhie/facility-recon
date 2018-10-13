@@ -1,0 +1,4 @@
+dhis2App/index.html
+dhis2App/static
+facility-recon-gui/dist/static
+facility-recon-backend/lib/dbArchives/*
