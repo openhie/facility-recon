@@ -1,0 +1,61 @@
+---
+- name: create user
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+    - name: Create new user
+      user:
+        name: facility-recon
+
+
+    - name: Create .ssh folder
+      file:
+        path: ~facility-recon/.ssh
+        state: directory
+        owner: facility-recon
+        group: facility-recon
+        mode: 0700
+
+
+# copy over the public key for the new user
+    - name: Upload SSH key
+      copy:
+        src: $HOME/.ssh/authorized_keys
+        dest: ~facility-recon/.ssh/authorized_keys
+        owner: facility-recon
+        group: facility-recon
+        mode: 0700
+        remote_src: True
+
+
+# passwordless sudo and wheel
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+      
+    - name: Allow 'wheel' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+
+
+    - name: Add sudoers users to wheel group
+      user: 
+        name: facility-recon
+        groups: wheel 
+        append: yes
+        state: present
+        createhome: yes
