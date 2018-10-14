@@ -90,11 +90,11 @@ export default {
       source2: {},
       source1Headers: [
         { sortable: false },
-        { text: 'Source 1', value: 'source1', sortable: false }
+        { text: 'Source 1', value: 'headerSource1', sortable: false }
       ],
       source2Headers: [
         { sortable: false },
-        { text: 'Source 2', value: 'source2', sortable: false }
+        { text: 'Source 2', value: 'headerSource2', sortable: false }
       ]
     }
   },
@@ -117,12 +117,18 @@ export default {
       })
     },
     save () {
+      if (Object.keys(this.source1).length === 0 || Object.keys(this.source2).length === 0) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Saving Data Sources'
       let formData = new FormData()
       formData.append('source1', JSON.stringify(this.source1))
       formData.append('source2', JSON.stringify(this.source2))
-      axios.post(backendServer + '/addDataSource', formData, {
+      axios.post(backendServer + '/addDataSourcePair', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -149,6 +155,12 @@ export default {
     this.source2 = this.$store.state.dataSources.find((dataSource) => {
       return dataSource._id === this.$store.state.dataSourcePair.source2.id
     })
+    if (!this.source1) {
+      this.source1 = {}
+    }
+    if (!this.source2) {
+      this.source2 = {}
+    }
     if (this.$store.state.dataSources.length === 0) {
       eventBus.$emit('getDataSources')
     }

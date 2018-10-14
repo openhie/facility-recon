@@ -8,19 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ashaban/GOFR.git"
+    "url": "https://github.com/openhie/facility-recon.git"
   },
   "keywords": [
     "GOFR",
     "facility",
     "reconciliation"
   ],
-  "author": "Ally Shaban <allyshaban5@gmail.com>",
+  "author": "Digital Health <digitalhealth@intrahealth.org>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ashaban/GOFR/issues"
+    "url": "https://github.com/openhie/facility-recon/issues"
   },
-  "homepage": "https://github.com/ashaban/GOFR#readme",
+  "homepage": "https://github.com/openhie/facility-recon/blob/master/README.md",
   "dependencies": {
     "async": "^2.6.1",
     "body-parser": "^1.18.3",

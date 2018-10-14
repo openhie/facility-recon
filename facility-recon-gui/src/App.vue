@@ -10,7 +10,7 @@
           <v-icon>sync</v-icon>Data Sync And Upload
         </v-btn>
         <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess'>
-          <v-icon>bar_chart</v-icon> Data Source Pair
+          <v-icon>compare_arrows</v-icon> Data Source Pair
         </v-btn>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
@@ -22,7 +22,7 @@
           <v-icon>find_in_page</v-icon> Reconcile
         </v-btn>
         <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
-          <v-icon>bar_chart</v-icon> Reconciliation Status
+          <v-icon>dashboard</v-icon> Reconciliation Status
         </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
