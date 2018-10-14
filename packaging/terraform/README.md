@@ -13,7 +13,7 @@ curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "A
 curl --silent -X GET "https://api.digitalocean.com/v2/sizes" -H "Authorization: Bearer $DO_TOKEN" | jq '.sizes[].slug' > sizes.json
 ```
 * Adjust droplet config as you wish using info from the above.
-* Profit.
+* Profit!
 ```sh
 terraform init
 terraform apply

@@ -1,4 +1,4 @@
-# Ansible (CentOS only)
+# Ansible
 
 To use Ansible, your SSH public key should be in `.ssh/authorized_keys` on the remote host and you must also create an /etc/ansible/hosts or similar with the IP address or hostname of the remote host. An `ansible/hosts` file that has an entry for localhost and one server would be:
 
@@ -9,6 +9,25 @@ localhost ansible_connection=local
 [servers]
 172.16.174.137
 ```
+
+## SSH setup
+
+A example playbook is provided to show how to create a facility-recon user with sudo permissions using Ansible to be used with an instance like a digitalocean droplet. 
+
+* Create a droplet. Make sure to include a public ssh key before creation. You should be able to ssh as root if the public key was set correctly (this is the default of DO).
+
+> See the folder `terraform` for a working example to programmatically launch a server instance.
+
+* Run the playbook. It creates the user for facility-recon and gives it sudo access.
+```sh
+ansible-playbook -i /usr/local/etc/ansible/hosts user.yaml
+```
+
+* As necessary, add additional ssh keys to the user facility-recon:
+```
+ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
+```
+
 
 ## Installation
 
@@ -23,7 +42,7 @@ ansible-playbook -i /usr/local/etc/ansible/hosts install_centos.yaml
 ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
 ```
 
-### Troubeshooting
+### Troubleshooting
 
 * Check that all processes are running
 ```

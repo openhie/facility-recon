@@ -25,7 +25,7 @@
         mode: 0700
 
 
-# copy over the public key digital ocean put in for the new user
+# copy over the public key for the new user
     - name: Upload SSH key
       copy:
         src: $HOME/.ssh/authorized_keys
