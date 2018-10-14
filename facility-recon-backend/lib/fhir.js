@@ -4,14 +4,17 @@ const URI = require('urijs')
 const uuid4 = require('uuid/v4')
 const async = require('async')
 const winston = require('winston')
-const redis = require('redis')
-const redisClient = redis.createClient()
 const moment = require('moment')
 const mongoose = require('mongoose')
 const mcsd = require('./mcsd')()
 const mixin = require('./mixin')()
 const models = require('./models')
 const config = require('./config')
+
+var redis = require("redis"),
+  client = redis.createClient({
+    host: process.env.REDIS_HOST || '127.0.0.1'
+  });
 
 module.exports = function () {
   return {

@@ -7,11 +7,13 @@ const http = require('http')
 const https = require('https')
 const url = require('url')
 const isJSON = require('is-json')
-const redis = require('redis')
 const mixin = require('./mixin')()
 const config = require('./config')
 
-const redisClient = redis.createClient();
+var redis = require("redis"),
+  client = redis.createClient({
+    host: process.env.REDIS_HOST || '127.0.0.1'
+  });
 
 const thisRunTime = new Date().toISOString();
 const credentials = {

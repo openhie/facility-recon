@@ -10,15 +10,17 @@ const mongoose = require('mongoose');
 const fsFinder = require('fs-finder');
 const isJSON = require('is-json');
 const fs = require('fs-extra');
-const redis = require('redis');
-
-const redisClient = redis.createClient();
 const exec = require('child_process');
 const moment = require('moment');
 const cache = require('memory-cache');
 const tar = require('tar');
 const tmp = require('tmp');
 const config = require('./config');
+
+var redis = require("redis"),
+  client = redis.createClient({
+    host: process.env.REDIS_HOST || '127.0.0.1'
+  });
 
 module.exports = function () {
   return {

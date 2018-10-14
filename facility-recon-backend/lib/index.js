@@ -10,8 +10,6 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const cors = require('cors');
-const redis = require('redis');
-const redisClient = redis.createClient();
 const csv = require('fast-csv');
 const URI = require('urijs');
 const url = require('url');
@@ -24,6 +22,11 @@ const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();
 const scores = require('./scores')();
+
+var redis = require("redis"),
+  client = redis.createClient({
+    host: process.env.REDIS_HOST || '127.0.0.1'
+  });
 
 const app = express();
 const server = require('http').createServer(app);
