@@ -1,0 +1,40 @@
+version: "3.3"
+
+services:
+  mongo:
+    image: mongo:3.6
+    restart: unless-stopped
+    logging:
+      driver: none
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  hearth:
+    image: intrahealth/hearth:latest
+    environment:
+      - mongodb__url=mongodb://mongo/hearth-dev
+      - logger__level=error
+      - authentication__type=disabled
+      # - idGenerator=uuidv4 <- setting from jembi/health, is untested
+    ports:
+      - "3447:3447"
+    restart: unless-stopped
+
+  backend:
+    image: openhie/facility-recon-backend:latest
+    # failing. would need to be enabled
+    environment: 
+      - REDIS_HOST=redis
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  gui:
+    image: openhie/facility-recon-gui:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
