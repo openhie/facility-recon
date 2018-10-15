@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -ex
 
+# assuming a git pull already done
+# need to update packages and build. 
+npm install
+node build/build.js
+
 # automate tagging with the short commit hash
 docker build --no-cache -t openhie/facility-recon-gui:$(git rev-parse --short HEAD) .
 docker tag openhie/facility-recon-gui:$(git rev-parse --short HEAD) openhie/facility-recon-gui

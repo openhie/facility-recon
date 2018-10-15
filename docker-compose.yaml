@@ -4,8 +4,6 @@ services:
   mongo:
     image: mongo:3.6
     restart: unless-stopped
-    logging:
-      driver: none
 
   redis:
     image: redis

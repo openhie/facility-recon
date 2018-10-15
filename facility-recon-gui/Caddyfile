@@ -1,4 +1,5 @@
 :8080 {
+    root ./dist/
     log stdout
     errors stdout
     tls off
