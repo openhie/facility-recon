@@ -2,12 +2,13 @@
 
 The script can be run with these options:
  
+```
 Usage: node loadDHIS2Metadata.js [--help] [--config <FILE>] [--reset-time] [--full]
        --help            Display this message and exit.
        --config <FILE>   Load from given configuration file.
        --reset-time      Reset last exported time and exit.
        --full            Ignore the last exported time.
-
+```
 A sample configuration file is in loadDHIS2MetadataConfig.json:
  
 ```json
