@@ -9,18 +9,36 @@
     - name: "user"
       prompt: "Please enter the username (with sudo) -- NOT root user or it will fail"
       private: no
+  
+  vars:
+    executable: "/bin/node"
 
   tasks:
 
 
 # hearth
 
-  - name: install systemd template for hearth service
+  - name: install systemd template for hearth service (ubuntu)
     template:
       src: facility-recon-hearth.service.j2
       dest: /etc/systemd/system/facility-recon-hearth.service
       mode: 644
       force: yes
+    vars:
+      executable: "/usr/bin/npm"
+    when: ansible_distribution == 'Ubuntu'
+
+
+  - name: install systemd template for hearth service (centos)
+    template:
+      src: facility-recon-hearth.service.j2
+      dest: /etc/systemd/system/facility-recon-hearth.service
+      mode: 644
+      force: yes
+    vars:
+      executable: "/bin/npm"
+    when: ansible_distribution == 'CentOS'
+
 
 
   - name: run hearth
@@ -33,12 +51,26 @@
 
 # backend
 
-  - name: install systemd template for backend service
+  - name: install systemd template for backend service (ubuntu)
     template:
       src: facility-recon-backend.service.j2
       dest: /etc/systemd/system/facility-recon-backend.service
       mode: 644
       force: yes
+    vars:
+      executable: "/usr/bin/node"
+    when: ansible_distribution == 'Ubuntu'
+
+
+  - name: install systemd template for backend service (centos)
+    template:
+      src: facility-recon-backend.service.j2
+      dest: /etc/systemd/system/facility-recon-backend.service
+      mode: 644
+      force: yes
+    vars:
+      executable: "/bin/node"
+    when: ansible_distribution == 'CentOS'
 
 
   - name: run backend
@@ -47,3 +79,5 @@
       state: started
       enabled: yes
       daemon_reload: yes
+
+

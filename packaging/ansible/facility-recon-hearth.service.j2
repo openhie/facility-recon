@@ -8,7 +8,7 @@ Environment=authentication__type=disabled
 Type=simple
 User={{ user }}
 WorkingDirectory=/home/{{ user }}/hearth
-ExecStart=/bin/npm run dev:start
+ExecStart={{ executable }} run dev:start
 Restart=on-failure
 
 [Install]

@@ -1,5 +1,5 @@
 ---
-- name: create user
+- name: create facility-recon user
   hosts: all
   remote_user: "{{ user }}"
   become: true
@@ -25,18 +25,24 @@
         mode: 0700
 
 
-# copy over the public key for the new user
-    - name: Upload SSH key
+    - name: Ensure authorized_keys file exists and dont write over it
       copy:
-        src: $HOME/.ssh/authorized_keys
+        content: ""
         dest: ~facility-recon/.ssh/authorized_keys
+        force: no
         owner: facility-recon
         group: facility-recon
         mode: 0700
-        remote_src: True
 
 
-# passwordless sudo and wheel
+    - name: Set authorized key from ansible user
+      authorized_key:
+        user: facility-recon
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+        
+    # passwordless sudo and wheel
     - name: Make sure we have a 'wheel' group
       group:
         name: wheel

@@ -5,6 +5,7 @@ facility-recon-backend/lib/dbArchives/*
 
 # ansible
 *.retry
+.vagrant
 
 # macos
 *.DS_Store

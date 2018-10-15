@@ -1,12 +1,3 @@
-FROM node:carbon
+FROM abiosoft/caddy:latest
 
-# install dependencies
-ADD package-lock.json /src/
-ADD package.json /src/
-WORKDIR /src/
-RUN npm install
-
-# add app
-ADD . /src/
-
-CMD ["npm", "start"]
+COPY ./Caddyfile-docker /etc/Caddyfile

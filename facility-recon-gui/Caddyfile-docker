@@ -1,0 +1,8 @@
+:8080 {
+    git github.com/openhie/facility-recon
+    root facility-recon-gui
+    browse
+    log stdout
+    errors stdout
+    tls off
+}

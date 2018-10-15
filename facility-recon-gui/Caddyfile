@@ -1,0 +1,5 @@
+:8080 {
+    log stdout
+    errors stdout
+    tls off
+}
