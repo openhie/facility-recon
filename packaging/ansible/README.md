@@ -28,7 +28,6 @@ As necessary, add additional ssh keys to the user facility-recon:
 ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
 ```
 
-
 ## Installation
 
 Prerequisites: git, redis, mongo, nodejs, native build pkgs for node:
@@ -54,14 +53,24 @@ To run the GUI in standalone mode (not through DHIS2):
 ansible-playbook -i /usr/local/etc/ansible/hosts standalone.yaml
 ```
 
-### Troubleshooting
+## Upgrades
+
+Rerunning the playbook updates intrahealth/hearth, the backend, and frontend repos on the remote server. Rerunning the `services.yaml` playbook updates services.
+
+The `install.yaml` playbook uses:
+* `git pull` to get the latest updates to the master branch.
+* `npm install` to update packages.
+
+The gui is rebuilt in the `standalone.yaml` playbook when it is rerun.
+
+## Troubleshooting
 
 Check that all processes are running and see the latest logs for hearth and the backend
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```
 
-Basic status
+#### Basic status
 ```
 # on centos, use `mongod`
 systemctl status mongod.service
@@ -74,7 +83,7 @@ systemctl status facility-recon-hearth.service
 systemctl status facility-recon-gui.service
 ```
 
-Logs
+#### Logs
 ```
 journalctl -u facility-recon-backend.service -b
 journalctl -u facility-recon-hearth.service -b
@@ -87,7 +96,7 @@ journalctl -u mongodb.service -b
 journalctl -u redis.service -b
 ```
 
-Restart services
+#### Restart services
 ```
 systemctl restart facility-recon-backend.service
 systemctl restart facility-recon-hearth.service
@@ -95,7 +104,7 @@ systemctl restart facility-recon-hearth.service
 systemctl restart facility-recon-gui.service
 ```
 
-Restart databases
+#### Restart databases
 ```
 # on centos, use `mongod`
 systemctl restart mongod.service
