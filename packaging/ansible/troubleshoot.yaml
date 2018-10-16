@@ -12,12 +12,23 @@
 
   tasks:
 
-  # mongo is running under systemd
+  # mongo is running under systemd (ubuntu)
+  - name: run mongodb
+    service: 
+      name: mongodb
+      state: started
+      enabled: yes
+    when: ansible_distribution == 'Ubuntu'
+
+
+  # mongo is running under systemd (centos)
   - name: run mongodb
     service: 
       name: mongod
       state: started
       enabled: yes
+    when: ansible_distribution == 'CentOS'
+
 
   # redis is running under systemd
   - name: run redis
@@ -25,15 +36,6 @@
       name: redis
       state: started
       enabled: yes
-  
-  # mongo is enabled in systemctl
-  - name: mongo status is systemctl
-    command: systemctl cat mongod.service
-    register: hi
-
-
-  - debug:
-      msg: "{{ hi.stdout_lines }}"
 
 
   - name: run backend
@@ -41,15 +43,9 @@
       name: facility-recon-backend.service
       state: started
       enabled: yes
-  #   register: service1
 
 
-  # - name: Debug
-  #   debug:
-  #     var: service1
-
-
-  - name: hearth journalctl
+  - name: hearth journalctl since last reboot
     command: journalctl -u facility-recon-hearth.service -b
     register: hearth
 
@@ -58,7 +54,7 @@
       msg: "{{ hearth.stdout_lines }}"
 
 
-  - name: backend journalctl
+  - name: backend journalctl since last reboot
     command: journalctl -u facility-recon-backend.service -b
     register: backend
 

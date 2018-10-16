@@ -40,7 +40,6 @@
     when: ansible_distribution == 'CentOS'
 
 
-
   - name: run hearth
     service: 
       name: facility-recon-hearth.service

@@ -16,16 +16,14 @@ localhost ansible_connection=local
 
 A example playbook is provided to show how to create a facility-recon user with sudo permissions using Ansible to be used with an instance like a digitalocean droplet. 
 
-* Create a droplet. Make sure to include a public ssh key before creation. You should be able to ssh as root if the public key was set correctly (this is the default of DO).
+> Create a droplet. Make sure to include a public ssh key before creation. You should be able to ssh as root if the public key was set correctly (this is the default of DO). See the folder `terraform` for a working example to programmatically launch a server instance.
 
-> See the folder `terraform` for a working example to programmatically launch a server instance.
-
-* Create the facility-recon user and gives it sudo access.
+Create the facility-recon user and gives it sudo access:
 ```sh
 ansible-playbook -i /usr/local/etc/ansible/hosts user.yaml
 ```
 
-* As necessary, add additional ssh keys to the user facility-recon:
+As necessary, add additional ssh keys to the user facility-recon:
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
 ```
@@ -33,29 +31,37 @@ ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
 
 ## Installation
 
-```sh
-# prerequisites: git, redis, mongo, node, native build pkgs for node
+Prerequisites: git, redis, mongo, nodejs, native build pkgs for node:
+```sh 
 # for centos
 ansible-playbook -i /usr/local/etc/ansible/hosts prep_centos.yaml
 # for ubuntu
 ansible-playbook -i /usr/local/etc/ansible/hosts prep_ubuntu.yaml
 ```
 
+Install the services and load and start them in systemd:
 ```
-# prepare hearth, backend, frontend, and prepare the DHIS2 web application
+# prepare hearth, backend, frontend, and check for a prepared DHIS2 web application
 ansible-playbook -i /usr/local/etc/ansible/hosts install.yaml
 # install into systemd and begin the hearth and backend services
 ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
 ```
 
+## Standalone
+
+To run the GUI in standalone mode (not through DHIS2):
+```
+ansible-playbook -i /usr/local/etc/ansible/hosts standalone.yaml
+```
+
 ### Troubleshooting
 
-* Check that all processes are running
+Check that all processes are running and see the latest logs for hearth and the backend
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```
 
-* Basic status
+Basic status
 ```
 # on centos, use `mongod`
 systemctl status mongod.service
@@ -64,12 +70,16 @@ systemctl status mongodb.service
 systemctl status redis.service
 systemctl status facility-recon-backend.service
 systemctl status facility-recon-hearth.service
+# standalone
+systemctl status facility-recon-gui.service
 ```
 
-* Logs
+Logs
 ```
 journalctl -u facility-recon-backend.service -b
 journalctl -u facility-recon-hearth.service -b
+# standalone
+journalctl -u facility-recon-gui.service -b
 # on centos, use `mongod`
 journalctl -u mongod.service -b
 # on ubuntu,use `mongodb`
@@ -77,13 +87,15 @@ journalctl -u mongodb.service -b
 journalctl -u redis.service -b
 ```
 
-* Restart services
+Restart services
 ```
 systemctl restart facility-recon-backend.service
 systemctl restart facility-recon-hearth.service
+# standalone
+systemctl restart facility-recon-gui.service
 ```
 
-* Restart databases
+Restart databases
 ```
 # on centos, use `mongod`
 systemctl restart mongod.service
