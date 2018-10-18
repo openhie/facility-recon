@@ -30,9 +30,3 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-
-  gui:
-    image: openhie/facility-recon-gui:latest
-    ports:
-      - "8080:8080"
-    restart: unless-stopped

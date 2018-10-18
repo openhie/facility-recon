@@ -132,7 +132,7 @@ module.exports = function () {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.MetaData.findOne({}, (err, data) => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
           if (data && data.lastUpdated) {
             return callback(data.lastUpdated)
           } else {
@@ -159,9 +159,9 @@ function setLastUpdated(lastUpdated, database) {
   let db = mongoose.connection
   db.on("error", console.error.bind(console, "connection error:"))
   db.once("open", function callback() {
-    models.MetaData.findOne({}, (err, data) => {
+    models.MetaDataSchema.findOne({}, (err, data) => {
       if (!data) {
-        const MetaData = new models.MetaData({
+        const MetaData = new models.MetaDataSchema({
           lastUpdated: lastUpdated
         });
         MetaData.save((err, data) => {
@@ -173,7 +173,7 @@ function setLastUpdated(lastUpdated, database) {
           }
         })
       } else {
-        models.MetaData.findByIdAndUpdate(data.id, {
+        models.MetaDataSchema.findByIdAndUpdate(data.id, {
           lastUpdated: lastUpdated
         }, (err, data) => {
           if (err) {

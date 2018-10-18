@@ -1,0 +1,67 @@
+---
+- name: create facility-recon user
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+    - name: Create new user
+      user:
+        name: facility-recon
+
+
+    - name: Create .ssh folder
+      file:
+        path: ~facility-recon/.ssh
+        state: directory
+        owner: facility-recon
+        group: facility-recon
+        mode: 0700
+
+
+    - name: Ensure authorized_keys file exists and dont write over it
+      copy:
+        content: ""
+        dest: ~facility-recon/.ssh/authorized_keys
+        force: no
+        owner: facility-recon
+        group: facility-recon
+        mode: 0700
+
+
+    - name: Set authorized key from ansible user
+      authorized_key:
+        user: facility-recon
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+        
+    # passwordless sudo and wheel
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+      
+    - name: Allow 'wheel' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+
+
+    - name: Add sudoers users to wheel group
+      user: 
+        name: facility-recon
+        groups: wheel 
+        append: yes
+        state: present
+        createhome: yes

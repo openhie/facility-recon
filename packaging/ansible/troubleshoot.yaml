@@ -1,0 +1,63 @@
+---
+- name: Preparation for facility reconciliation
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+
+  # mongo is running under systemd (ubuntu)
+  - name: run mongodb
+    service: 
+      name: mongodb
+      state: started
+      enabled: yes
+    when: ansible_distribution == 'Ubuntu'
+
+
+  # mongo is running under systemd (centos)
+  - name: run mongodb
+    service: 
+      name: mongod
+      state: started
+      enabled: yes
+    when: ansible_distribution == 'CentOS'
+
+
+  # redis is running under systemd
+  - name: run redis
+    service:
+      name: redis
+      state: started
+      enabled: yes
+
+
+  - name: run backend
+    service: 
+      name: facility-recon-backend.service
+      state: started
+      enabled: yes
+
+
+  - name: hearth journalctl since last reboot
+    command: journalctl -u facility-recon-hearth.service -b
+    register: hearth
+
+
+  - debug:
+      msg: "{{ hearth.stdout_lines }}"
+
+
+  - name: backend journalctl since last reboot
+    command: journalctl -u facility-recon-backend.service -b
+    register: backend
+
+
+  - debug:
+      msg: "{{ backend.stdout_lines }}"

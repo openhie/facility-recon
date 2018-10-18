@@ -1,0 +1,97 @@
+---
+- name: Preparation for facility reconciliation
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+
+
+  - name: Run the equivalent of "apt-get update"
+    apt:
+      update_cache: yes
+
+
+  - name: Ensure git
+    apt:
+      name: git
+      state: present
+
+
+  - name: Install redis packages
+    apt: 
+      name: redis-server
+      state: present
+
+
+  # redis is running under systemd
+  - name: Start redis
+    service:
+      name: redis
+      state: started
+      enabled: yes
+
+
+# deb subdomain
+  - name: Download nodesource script for node v8
+    get_url:
+      url: https://deb.nodesource.com/setup_8.x
+      dest: $HOME/nodesource.sh
+      mode: 0644
+      # overwrite
+      force: yes
+
+
+  - name: Install nodesource for node 8
+    command: bash $HOME/nodesource.sh
+    register: hello
+
+
+  - debug:
+      msg: "{{ hello.stdout_lines }}"
+
+
+  - name: Install nodejs
+    apt: 
+      name: nodejs
+      state: present
+
+
+  - name: Ensure npm is latest
+    npm: 
+      name: npm
+      state: latest
+      global: yes
+
+
+# diff for ubuntu
+  - name: Ensure tools for native builds
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - gcc
+      - g++
+      - make
+
+
+  - name: Install mongodb
+    apt: 
+      name: mongodb
+      state: present
+
+
+  # service is called mongodb on ubuntu
+  # mongo is running under systemd
+  - name: Run mongodb
+    service: 
+      name: mongodb
+      state: started
+      enabled: yes
+

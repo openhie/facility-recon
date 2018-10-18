@@ -408,14 +408,14 @@ export default {
     })
     eventBus.$on('dataSourceAddedSuccessfully', () => {
       this.alertSuccess = true
-      this.alertMsg = 'Server Added Successfully'
+      this.alertMsg = 'Data Source Added Successfully'
       setTimeout(() => {
         this.alertSuccess = false
       }, 3000)
     })
     eventBus.$on('remoteServerFailedAdd', () => {
       this.alertError = true
-      this.alertMsg = 'Server Failed To Be Added'
+      this.alertMsg = 'Data Source Failed To Be Added'
     })
   }
 }

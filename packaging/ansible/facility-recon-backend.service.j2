@@ -1,0 +1,14 @@
+[Unit]
+Description=facility-recon backend
+Documentation=https://example.com
+After=network.target
+
+[Service]
+Type=simple
+User={{ user }}
+WorkingDirectory=/home/{{ user }}/facility-recon/facility-recon-backend
+ExecStart={{ executable }} lib/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -18,7 +18,9 @@
     "databaseUser": "",
     "databasePassword": "",
     "databaseHost": "localhost",
-    "databasePort": "27017"
+    "databasePort": "27017",
+    "fakeOrgId": "eac583d2-d1ba-11e8-a8d5-f2801f1b9fd1",
+    "fakeOrgName": "Taifafeki"
   },
   "CSD":{
     "url":"http://localhost:8984/CSD",

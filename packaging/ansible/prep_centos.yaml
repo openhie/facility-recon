@@ -21,15 +21,16 @@
   - name: install enterprise packages for enterprise linux
     yum: 
       name: epel-release
-      state: installed
+      state: present
 
 
   - name: install redis packages
     yum: 
       name: redis
-      state: installed
+      state: present
 
 
+  # redis is running under systemd
   - name: start redis
     service:
       name: redis
@@ -37,25 +38,22 @@
       enabled: yes
 
 
-  - name: Download nodesource script for node v8
-    get_url:
-      url: https://rpm.nodesource.com/setup_8.x
-      dest: $HOME/nodesource.sh
-      mode: 0644
+ 
 
-
-  - name: Install nodesource and node 8
-    command: bash $HOME/nodesource.sh
-    register: hello
-
-
-  - debug: msg="{{ hello.stdout_lines }}"
-
-
-  - name: Ensure node
-    yum: 
-      name: nodejs
+  - name: Ensure npm is latest
+    npm: 
+      name: npm
       state: present
+      global: yes
+
+
+  - name: Ensure native tools for native builds
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - gcc-c++
+      - make
 
 
 # this ties the version to 3.6
@@ -74,10 +72,14 @@
     yum:
       name: mongodb-org
       state: present
+      # update_cache: yes
+      # disable_plugin: fastestmirror
 
 
+  # mongo is running under systemd
   - name: run mongodb
     service: 
       name: mongod
       state: started
       enabled: yes
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=facility-recon hearth
+Documentation=https://example.com
+After=network.target
+
+[Service]
+Environment=authentication__type=disabled
+Type=simple
+User={{ user }}
+WorkingDirectory=/home/{{ user }}/hearth
+ExecStart={{ executable }} run dev:start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

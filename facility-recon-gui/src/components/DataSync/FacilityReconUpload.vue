@@ -93,15 +93,15 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <template v-if='$store.state.totalDATIMLevels <= 1'><br><br><br>
+    <template v-if='$store.state.totalSource2Levels <= 1'><br><br><br>
       <v-alert type="info" :value="true">
         <b>No Data found in GeoAlign ...</b>
       </v-alert>
     </template>
-    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalDATIMLevels > 1'>
+    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalSource2Levels > 1'>
       <v-stepper v-model="e1">
         <v-stepper-header>
-          <v-stepper-step step="1" :complete="e1 > 1">Upload MoH CSV</v-stepper-step>
+          <v-stepper-step step="1" :complete="e1 > 1">Upload CSV</v-stepper-step>
           <v-divider></v-divider>
           <v-stepper-step step="2" :complete="e1 > 2">Map Headers</v-stepper-step>
           <v-btn icon @click.native="closeUploadWindow()">
@@ -111,7 +111,7 @@
         <v-stepper-items>
           <v-stepper-content step="1">
             <v-card class="mb-5" height="200px">
-              <v-card-title>Upload MoH CSV (utf-8 only)</v-card-title>
+              <v-card-title>Upload CSV (utf-8 only)</v-card-title>
               <v-card-text>
                 <v-text-field
                   label="Unique Name"
@@ -155,7 +155,7 @@
                 <v-flex xs6>
                   <v-select :items="filteredItemLong" v-model="long" label="Select" single-line clearable></v-select>
                 </v-flex>
-                <template v-if='$store.state.totalDATIMLevels-1 > 1'>
+                <template v-if='$store.state.totalSource2Levels-1 > 1'>
                   <v-flex xs6>
                     <v-subheader>Level 1</v-subheader>
                   </v-flex>
@@ -163,7 +163,7 @@
                     <v-select :items="filteredItemLevel1" v-model="level1" @blur="$v.level1.$touch()" @change="$v.level1.$touch()" :error-messages="level1Errors" required label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 2'>
+                <template v-if='$store.state.totalSource2Levels-1 > 2'>
                   <v-flex xs6>
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
@@ -171,7 +171,7 @@
                     <v-select :items="filteredItemLevel2" v-model="level2" label="Select" required single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 3'>
+                <template v-if='$store.state.totalSource2Levels-1 > 3'>
                   <v-flex xs6>
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
@@ -179,7 +179,7 @@
                     <v-select :items="filteredItemLevel3" v-model="level3" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 4'>
+                <template v-if='$store.state.totalSource2Levels-1 > 4'>
                   <v-flex xs6>
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
@@ -187,7 +187,7 @@
                     <v-select :items="filteredItemLevel4" v-model="level4" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 5'>
+                <template v-if='$store.state.totalSource2Levels-1 > 5'>
                   <v-flex xs6>
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
@@ -195,7 +195,7 @@
                     <v-select :items="filteredItemLevel5" v-model="level5" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 6'>
+                <template v-if='$store.state.totalSource2Levels-1 > 6'>
                   <v-flex xs6>
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
@@ -203,7 +203,7 @@
                     <v-select :items="filteredItemLevel6" v-model="level6" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalDATIMLevels-1 > 7'>
+                <template v-if='$store.state.totalSource2Levels-1 > 7'>
                   <v-flex xs6>
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
@@ -336,8 +336,7 @@ export default {
     },
     checkUploadProgress () {
       const clientId = this.$store.state.clientId
-      let database = this.toTitleCase(this.uploadName)
-      axios.get(backendServer + '/uploadProgress/' + database + '/' + clientId).then((uploadProgress) => {
+      axios.get(backendServer + '/uploadProgress/' + clientId).then((uploadProgress) => {
         if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false) {
           this.$store.state.uploadRunning = false
           this.uploadPrepaProgr = false

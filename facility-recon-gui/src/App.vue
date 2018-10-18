@@ -3,14 +3,11 @@
     <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-toolbar-items>
-        <v-btn flat :href="dhisLink" v-if='dhisLink'>
-          <img src="./assets/dhis2.png" />
-        </v-btn>
         <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
           <v-icon>sync</v-icon>Data Sync And Upload
         </v-btn>
         <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess'>
-          <v-icon>bar_chart</v-icon> Data Source Pair
+          <v-icon>compare_arrows</v-icon> Data Source Pair
         </v-btn>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
@@ -22,12 +19,12 @@
           <v-icon>find_in_page</v-icon> Reconcile
         </v-btn>
         <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
-          <v-icon>bar_chart</v-icon> Reconciliation Status
+          <v-icon>dashboard</v-icon> Reconciliation Status
         </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>
-        {{$store.state.orgUnit.OrgName}}
+        
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
@@ -75,12 +72,13 @@ import axios from 'axios'
 import { scoresMixin } from './mixins/scoresMixin'
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
+import { generalMixin } from './mixins/generalMixin'
 const config = require('../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
 export default {
-  mixins: [scoresMixin],
+  mixins: [scoresMixin, generalMixin],
   data () {
     return {
       initializingApp: false,
@@ -88,34 +86,21 @@ export default {
       title: 'Facility Reconciliation'
     }
   },
-  computed: {
-    dhisLink () {
-      if (isProduction) {
-        return window.location.protocol + '//' + window.location.hostname
-      } else {
-        return false
-      }
-    }
-  },
   methods: {
-    getOrgHierarchy () {
-      var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/hierarchy/datim', { params: orgUnit }).then((hierarchy) => {
-        this.$store.state.datimHierarchy = hierarchy
-      })
-
-      axios.get(backendServer + '/hierarchy/moh/', { params: orgUnit }).then((hierarchy) => {
-        this.$store.state.mohHierarchy = hierarchy
-      })
-    },
     renderInitialPage () {
-      var OrgId = this.$store.state.orgUnit.OrgId
-      axios.get(backendServer + '/uploadAvailable/' + OrgId).then((results) => {
-        this.getTotalLevels()
+      let source1 = this.$store.state.dataSourcePair.source1.name
+      let source2 = this.$store.state.dataSourcePair.source2.name
+      if (!source1 || !source2) {
+        this.$router.push({ name: 'FacilityReconScores' })
+        return
+      }
+      source1 = this.toTitleCase(source1)
+      source2 = this.toTitleCase(source2)
+      axios.get(backendServer + '/uploadAvailable/' + source1 + '/' + source2).then((results) => {
         if (results.data.dataUploaded) {
           this.$router.push({ name: 'FacilityReconScores' })
         } else {
-          this.$router.push({ name: 'FacilityReconUpload' })
+          this.$router.push({ name: 'FacilityReconDataSync' })
         }
       }).catch((err) => {
         console.log(err)
@@ -124,11 +109,20 @@ export default {
     },
     getTotalLevels () {
       this.getRecoStatus()
-      var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/countLevels/' + orgUnit.OrgId).then((levels) => {
+      let source1 = this.$store.state.dataSourcePair.source1.name
+      let source2 = this.$store.state.dataSourcePair.source2.name
+      if (!source1 || !source2) {
+        this.$store.state.totalSource1Levels = 5
+        this.$store.state.totalSource2Levels = 5
         this.initializingApp = false
-        this.$store.state.totalMOHLevels = levels.data.totalMOHLevels
-        this.$store.state.totalDATIMLevels = levels.data.totalDATIMLevels
+        return
+      }
+      source1 = this.toTitleCase(source1)
+      source2 = this.toTitleCase(source2)
+      axios.get(backendServer + '/countLevels/' + source1 + '/' + source2).then((levels) => {
+        this.initializingApp = false
+        this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
+        this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
         this.getScores()
       })
     },
@@ -142,31 +136,13 @@ export default {
         console.log(err.response.data.error)
       })
     },
-    getOrganisationUnit () {
-      var href = location.href.split('api').shift()
-      axios.get(href + 'api/me').then((userData) => {
-        var orgUnitsIDs = userData.data.organisationUnits
-        if (orgUnitsIDs.length > 0) {
-          this.$store.state.orgUnit.OrgId = orgUnitsIDs.shift().id
-          axios.get(href + 'api/organisationUnits/' + this.$store.state.orgUnit.OrgId).then((orgUnits) => {
-            this.$store.state.orgUnit.OrgName = orgUnits.data.displayName
-            if (this.$store.state.orgUnit.OrgName === 'Global') {
-              this.$store.state.denyAccess = true
-              this.initializingApp = false
-            } else {
-              this.renderInitialPage()
-              this.$store.state.denyAccess = false
-            }
-          })
-        }
-      })
-    },
     getDataSources () {
       this.$store.state.loadingServers = true
       this.$store.state.dataSources = []
       axios.get(backendServer + '/getDataSources/').then((response) => {
         this.$store.state.loadingServers = false
         this.$store.state.dataSources = response.data.servers
+        this.getDataSourcePair()
       }).catch((err) => {
         this.$store.state.loadingServers = false
         console.log(err.response.error)
@@ -175,27 +151,32 @@ export default {
     getDataSourcePair () {
       axios.get(backendServer + '/getDataSourcePair/').then((response) => {
         if (response.data) {
-          this.$store.state.dataSourcePair.source1.id = response.data.source1
-          this.$store.state.dataSourcePair.source2.id = response.data.source2
+          let source1 = this.$store.state.dataSources.find((dataSources) => {
+            return dataSources._id === response.data.source1
+          })
+          let source2 = this.$store.state.dataSources.find((dataSources) => {
+            return dataSources._id === response.data.source2
+          })
+          if (source1) {
+            this.$store.state.dataSourcePair.source1.id = source1._id
+            this.$store.state.dataSourcePair.source1.name = source1.name
+          }
+          if (source2) {
+            this.$store.state.dataSourcePair.source2.id = source2._id
+            this.$store.state.dataSourcePair.source2.name = source2.name
+          }
         }
+        this.getTotalLevels()
+        this.renderInitialPage()
       })
     }
   },
   created () {
     this.$store.state.clientId = uuid.v4()
     this.initializingApp = true
-    if (isProduction) {
-      this.getOrganisationUnit()
-    } else {
-      this.renderInitialPage()
-      this.$store.state.denyAccess = false
-    }
-    this.$root.$on('reloadTree', () => {
-      this.$store.state.mohHierarchy = ''
-      this.$store.state.datimHierarchy = ''
-    })
+    this.$store.state.denyAccess = false
     this.$root.$on('refreshApp', () => {
-      this.getTotalLevels()
+      this.getDataSources()
     })
     this.$root.$on('recalculateScores', () => {
       this.getScores()
@@ -203,7 +184,6 @@ export default {
     eventBus.$on('getDataSources', () => {
       this.getDataSources()
     })
-    this.getDataSourcePair()
     this.getDataSources()
   },
   name: 'App'

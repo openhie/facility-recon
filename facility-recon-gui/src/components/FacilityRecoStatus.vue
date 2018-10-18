@@ -36,18 +36,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_up</v-icon>
-                  <b>MOH Matched</b>
+                  <b>Source 1 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.totalAllMapped}}/{{$store.state.mohTotalAllRecords}}</b>
+                    <b>{{$store.state.totalAllMapped}}/{{$store.state.source1TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentMapped" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMapped" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentMapped }}%</b>
+                        <b>{{ source1PercentMapped }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -60,18 +60,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_up</v-icon>
-                  <b>MOH Not Mapped</b>
+                  <b>Source 1 Not Mapped</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.mohTotalAllNotMapped}}/{{$store.state.mohTotalAllRecords}}</b>
+                    <b>{{$store.state.source1TotalAllNotMapped}}/{{$store.state.source1TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMapped" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNotMapped" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentNotMapped }}%</b>
+                        <b>{{ source1PercentNotMapped }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -84,18 +84,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_down</v-icon>
-                  <b>MOH No Match</b>
+                  <b>Source 1 No Match</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.totalAllNoMatch}}/{{$store.state.mohTotalAllRecords}}</b>
+                    <b>{{$store.state.totalAllNoMatch}}/{{$store.state.source1TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatch" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNoMatch" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentNoMatch }}%</b>
+                        <b>{{ source1PercentNoMatch }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -108,18 +108,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>notification_important</v-icon>
-                  <b>MOH Flagged</b>
+                  <b>Source 1 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.totalAllFlagged}}/{{$store.state.mohTotalAllRecords}}</b>
+                    <b>{{$store.state.totalAllFlagged}}/{{$store.state.source1TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentFlagged" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentFlagged }}%</b>
+                        <b>{{ source1PercentFlagged }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -132,18 +132,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_up</v-icon>
-                  <b>DATIM Matched</b>
+                  <b>Source 2 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.totalAllMapped}}/{{$store.state.datimTotalAllRecords}}</b>
+                    <b>{{$store.state.totalAllMapped}}/{{$store.state.source2TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentMapped" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentMapped" color="yellow">
                       <font color="white">
-                        <b>{{ datimPercentMapped }}%</b>
+                        <b>{{ source2PercentMapped }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -156,18 +156,18 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>notification_important</v-icon>
-                  <b>DATIM Flagged</b>
+                  <b>Source 2 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
-                    <b>{{$store.state.totalAllFlagged}}/{{$store.state.datimTotalAllRecords}}</b>
+                    <b>{{$store.state.totalAllFlagged}}/{{$store.state.source2TotalAllRecords}}</b>
                   </center>
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="datimPercentFlagged" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentFlagged" color="yellow">
                       <font color="white">
-                        <b>{{ datimPercentFlagged }}%</b>
+                        <b>{{ source2PercentFlagged }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -181,7 +181,7 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_up</v-icon>
-                  <b>MOH Matched</b>
+                  <b>Source 1 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -190,9 +190,9 @@
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentMappedLevel" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMappedLevel" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentMappedLevel }}%</b>
+                        <b>{{ source1PercentMappedLevel }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -205,7 +205,7 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_down</v-icon>
-                  <b>MOH Not Mapped</b>
+                  <b>Source 1 Not Mapped</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -214,9 +214,9 @@
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNotMappedLevel" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNotMappedLevel" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentNotMappedLevel }}%</b>
+                        <b>{{ source1PercentNotMappedLevel }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -229,7 +229,7 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>thumb_down</v-icon>
-                  <b>MOH No Match</b>
+                  <b>Source 1 No Match</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -238,9 +238,9 @@
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentNoMatchLevel" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNoMatchLevel" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentNoMatchLevel }}%</b>
+                        <b>{{ source1PercentNoMatchLevel }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -253,7 +253,7 @@
               <v-layout column>
                 <v-flex xs1>
                   <v-icon light>notification_important</v-icon>
-                  <b>MOH Flagged</b>
+                  <b>Source 1 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -262,9 +262,9 @@
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="mohPercentFlagged" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentFlagged" color="yellow">
                       <font color="white">
-                        <b>{{ mohPercentFlagged }}%</b>
+                        <b>{{ source1PercentFlagged }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -301,11 +301,11 @@
             <v-icon color="white" right>thumb_up</v-icon>
           </v-tab>
           <v-tab key="notMapped">
-            MOH Not Mapped ({{totalNotMapped}})
+            Source 1 Not Mapped ({{totalNotMapped}})
             <v-icon color="white" right>thumb_down</v-icon>
           </v-tab>
           <v-tab key="nomatch">
-            MOH NO MATCH ({{totalNoMatch}})
+            Source 1 NO MATCH ({{totalNoMatch}})
             <v-icon color="white" right>thumb_down</v-icon>
           </v-tab>
           <v-tab key="flagged">
@@ -315,36 +315,36 @@
           <v-tab-item key="match">
             <v-data-table :headers="matchedHeaders" :items="mappingData.mapped" :search="searchMatched" class="elevation-1">
               <template slot="items" slot-scope="props">
-                <td>{{props.item.mohName}}</td>
-                <td>{{props.item.mohId}}</td>
-                <td>{{props.item.datimName}}</td>
-                <td>{{props.item.datimId}}</td>
+                <td>{{props.item.source1Name}}</td>
+                <td>{{props.item.source1Id}}</td>
+                <td>{{props.item.source2Name}}</td>
+                <td>{{props.item.source2Id}}</td>
               </template>
             </v-data-table>
           </v-tab-item>
           <v-tab-item key="notMapped">
             <v-data-table :headers="notMappedHeaders" :items="mappingData.notMapped" :search="searchMatched" class="elevation-1">
               <template slot="items" slot-scope="props">
-                <td>{{props.item.mohName}}</td>
-                <td>{{props.item.mohId}}</td>
+                <td>{{props.item.source1Name}}</td>
+                <td>{{props.item.source1Id}}</td>
               </template>
             </v-data-table>
           </v-tab-item>
           <v-tab-item key="nomatch">
             <v-data-table :headers="noMatchHeaders" :items="mappingData.noMatch" :search="searchMatched" class="elevation-1">
               <template slot="items" slot-scope="props">
-                <td>{{props.item.mohName}}</td>
-                <td>{{props.item.mohId}}</td>
+                <td>{{props.item.source1Name}}</td>
+                <td>{{props.item.source1Id}}</td>
               </template>
             </v-data-table>
           </v-tab-item>
           <v-tab-item key="flagged">
             <v-data-table :headers="flaggedHeaders" :items="mappingData.flagged" :search="searchMatched" class="elevation-1">
               <template slot="items" slot-scope="props">
-                <td>{{props.item.mohName}}</td>
-                <td>{{props.item.mohId}}</td>
-                <td>{{props.item.datimName}}</td>
-                <td>{{props.item.datimId}}</td>
+                <td>{{props.item.source1Name}}</td>
+                <td>{{props.item.source1Id}}</td>
+                <td>{{props.item.source2Name}}</td>
+                <td>{{props.item.source2Id}}</td>
               </template>
             </v-data-table>
           </v-tab-item>
@@ -366,24 +366,24 @@ export default {
   data () {
     return {
       matchedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' },
-        { text: 'DATIM Location', value: 'datimName' },
-        { text: 'DATIM ID', value: 'datimId' }
+        { text: 'Source 1 Location', value: 'source1Name' },
+        { text: 'Source 1 ID', value: 'source1Id' },
+        { text: 'Source 2 Location', value: 'source2Name' },
+        { text: 'Source 2 ID', value: 'source2Id' }
       ],
       noMatchHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' }
+        { text: 'Source 1 Location', value: 'source1Name' },
+        { text: 'Source 1 ID', value: 'source1Id' }
       ],
       notMappedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' }
+        { text: 'Source 1 Location', value: 'source1Name' },
+        { text: 'Source 1 ID', value: 'source1Id' }
       ],
       flaggedHeaders: [
-        { text: 'MOH Location', value: 'mohName' },
-        { text: 'MOH ID', value: 'mohId' },
-        { text: 'DATIM Location', value: 'datimName' },
-        { text: 'DATIM ID', value: 'datimId' }
+        { text: 'Source 1 Location', value: 'source1Name' },
+        { text: 'Source 1 ID', value: 'source1Id' },
+        { text: 'Source 2 Location', value: 'source2Name' },
+        { text: 'Source 2 ID', value: 'source2Id' }
       ],
       searchMatched: '',
       mappingData: {},
@@ -396,9 +396,8 @@ export default {
   },
   methods: {
     checkMappingStatusProgress () {
-      const orgId = this.$store.state.orgUnit.OrgId
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/mappingStatusProgress/' + orgId + '/' + clientId).then((mappingStatusProgress) => {
+      axios.get(backendServer + '/mappingStatusProgress/' + clientId).then((mappingStatusProgress) => {
         if (mappingStatusProgress.data === null || mappingStatusProgress.data === undefined || mappingStatusProgress.data === false) {
           clearInterval(this.mappingStatusProgressTimer)
           return
@@ -420,14 +419,16 @@ export default {
       })
     },
     mappingStatus () {
-      var orgUnit = this.$store.state.orgUnit
+      if (!this.source1 || !this.source2) {
+        return
+      }
       this.mappingData = {}
       const clientId = this.$store.state.clientId
-      let totalDATIMLevels = this.$store.state.totalDATIMLevels
-      let totalMOHLevels = this.$store.state.totalMOHLevels
+      let totalSource2Levels = this.$store.state.totalSource2Levels
+      let totalSource1Levels = this.$store.state.totalSource1Levels
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
-      axios.get(backendServer + '/mappingStatus/' + orgUnit.OrgId + '/' + this.recoLevel + '/' + totalDATIMLevels + '/' + totalMOHLevels + '/' + clientId).then((mappingStatus) => {
+      axios.get(backendServer + '/mappingStatus/' + this.source1 + '/' + this.source2 + '/' + this.recoLevel + '/' + totalSource2Levels + '/' + totalSource1Levels + '/' + clientId).then((mappingStatus) => {
         this.mappingData = mappingStatus.data
       })
       this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)
@@ -437,7 +438,7 @@ export default {
       this.mappingStatus()
     },
     markRecoDone () {
-      axios.get(backendServer + '/markRecoDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+      axios.get(backendServer + '/markRecoDone/' + this.source1 + '/' + this.source2).then((status) => {
         if (status.data.status) {
           this.$store.state.recoStatus.status = status.data.status
         }
@@ -446,7 +447,7 @@ export default {
       })
     },
     markRecoUnDone () {
-      axios.get(backendServer + '/markRecoUnDone/' + this.$store.state.orgUnit.OrgId).then((status) => {
+      axios.get(backendServer + '/markRecoUnDone/' + this.source1 + '/' + this.source2).then((status) => {
         if (status.data.status) {
           this.$store.state.recoStatus.status = status.data.status
         }
@@ -456,74 +457,88 @@ export default {
     }
   },
   computed: {
-    mohPercentMapped () {
-      if (this.$store.state.mohTotalAllRecords === 0) {
+    source1 () {
+      let source = this.$store.state.dataSourcePair.source1.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
+    },
+    source2 () {
+      let source = this.$store.state.dataSourcePair.source2.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
+    },
+    source1PercentMapped () {
+      if (this.$store.state.source1TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
       }
     },
-    mohPercentMappedLevel () {
+    source1PercentMappedLevel () {
       if (this.totalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.totalMapped * 100 / this.totalRecords).toFixed(2))
       }
     },
-    mohPercentNoMatch () {
-      if (this.$store.state.mohTotalAllRecords === 0) {
+    source1PercentNoMatch () {
+      if (this.$store.state.source1TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.totalAllNoMatch * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.totalAllNoMatch * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
       }
     },
-    mohPercentNoMatchLevel () {
+    source1PercentNoMatchLevel () {
       if (this.totalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.totalNoMatch * 100 / this.totalRecords).toFixed(2))
       }
     },
-    mohPercentFlagged () {
-      if (this.$store.state.mohTotalAllRecords === 0) {
+    source1PercentFlagged () {
+      if (this.$store.state.source1TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
       }
     },
-    mohPercentFlaggedLevel () {
+    source1PercentFlaggedLevel () {
       if (this.totalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.totalFlagged * 100 / this.totalRecords).toFixed(2))
       }
     },
-    mohPercentNotMapped () {
-      if (this.$store.state.mohTotalAllRecords === 0) {
+    source1PercentNotMapped () {
+      if (this.$store.state.source1TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.mohTotalAllNotMapped * 100 / this.$store.state.mohTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.source1TotalAllNotMapped * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
       }
     },
-    mohPercentNotMappedLevel () {
+    source1PercentNotMappedLevel () {
       if (this.totalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.totalNotMapped * 100 / this.totalRecords).toFixed(2))
       }
     },
-    datimPercentFlagged () {
-      if (this.$store.state.datimTotalAllRecords === 0) {
+    source2PercentFlagged () {
+      if (this.$store.state.source2TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.totalAllFlagged * 100 / this.$store.state.source2TotalAllRecords).toFixed(2))
       }
     },
-    datimPercentMapped () {
-      if (this.$store.state.datimTotalAllRecords === 0) {
+    source2PercentMapped () {
+      if (this.$store.state.source2TotalAllRecords === 0) {
         return 0
       } else {
-        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.datimTotalAllRecords).toFixed(2))
+        return parseFloat((this.$store.state.totalAllMapped * 100 / this.$store.state.source2TotalAllRecords).toFixed(2))
       }
     },
     totalMapped () {
@@ -560,7 +575,7 @@ export default {
   },
   created () {
     this.mappingStatus()
-    for (var k = 1; k < this.$store.state.totalMOHLevels; k++) {
+    for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {
       this.locationLevels.push({
         text: 'Level ' + k,
         value: k + 1

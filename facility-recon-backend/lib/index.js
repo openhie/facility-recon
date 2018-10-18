@@ -45,6 +45,8 @@ app.use(bodyParser.json());
 https.globalAgent.maxSockets = 32;
 http.globalAgent.maxSockets = 32;
 
+const topOrgId = config.getConf('mCSD:fakeOrgId')
+const topOrgName = config.getConf('mCSD:fakeOrgName')
 // app.use(app.oauth.errorHandler());
 /* app.oauth = oauthserver({
   model: oAuthModel,
@@ -116,12 +118,12 @@ if (cluster.isMaster) {
   }
 
   app.get('/doubleMapping/:db', (req, res) => {
-    winston.info('Received a request to check MOH Locations that are double mapped')
-    let mohDB = req.params.db
-    let mappingDB = "MOHDATIM" + req.params.db
+    winston.info('Received a request to check Source1 Locations that are double mapped')
+    let source1DB = req.params.db
+    let mappingDB = config.getConf('mapping:dbPrefix') + req.params.db
     async.parallel({
-      mohData: function (callback) {
-        mcsd.getLocations(mohDB, (data) => {
+      source1Data: function (callback) {
+        mcsd.getLocations(source1DB, (data) => {
           return callback(false, data)
         })
       },
@@ -132,20 +134,20 @@ if (cluster.isMaster) {
       }
     }, (err, results) => {
       let dupplicated = []
-      let url = 'http://localhost:3447/' + mohDB + '/fhir/Location/'
-      async.each(results.mohData.entry, (mohEntry, nxtMoh) => {
-        mohid = mohEntry.resource.id
+      let url = 'http://localhost:3447/' + source1DB + '/fhir/Location/'
+      async.each(results.source1Data.entry, (source1Entry, nxtSource1) => {
+        source1id = source1Entry.resource.id
         let checkDup = []
         async.each(results.mappingData.entry, (mappingEntry, nxtMap) => {
           var isMapped = mappingEntry.resource.identifier.find((ident) => {
-            return ident.system === 'http://geoalign.datim.org/MOH' && ident.value === url + mohid
+            return ident.system === 'http://geoalign.source2.org/Source1' && ident.value === url + source1id
           })
           if (isMapped) {
             checkDup.push({
-              mohName: mohEntry.resource.name,
-              mohID: mohEntry.resource.id,
-              datimName: mappingEntry.resource.name,
-              datimID: mappingEntry.resource.id
+              source1Name: source1Entry.resource.name,
+              source1ID: source1Entry.resource.id,
+              source2Name: mappingEntry.resource.name,
+              source2ID: mappingEntry.resource.id
             })
           }
           return nxtMap()
@@ -153,65 +155,53 @@ if (cluster.isMaster) {
           if (checkDup.length > 1) {
             dupplicated.push(checkDup)
           }
-          return nxtMoh()
+          return nxtSource1()
         })
       }, () => {
-        winston.info('Found ' + dupplicated.length + ' MOH Locations with Double Matching')
+        winston.info('Found ' + dupplicated.length + ' Source1 Locations with Double Matching')
         res.send(dupplicated)
       })
     })
   })
 
-  app.get('/countLevels/:orgid', (req, res) => {
-    if (!req.params.orgid) {
-      winston.error({
-        error: 'Missing Orgid'
-      });
+  app.get('/countLevels/:source1/:source2', (req, res) => {
+    winston.info(`Received a request to get total levels`);
+    let source1 = req.params.source1
+    let source2 = req.params.source2
+    async.parallel({
+      Source1Levels: function (callback) {
+        mcsd.countLevels(source1, topOrgId, (err, source1TotalLevels) => {
+          winston.info(`Received total source1 levels of ${source1TotalLevels}`);
+          return callback(err, source1TotalLevels)
+        })
+      },
+      Source2Levels: function (callback) {
+        mcsd.countLevels(source2, topOrgId, (err, source2TotalLevels) => {
+          winston.info(`Received total source2 levels of ${source2TotalLevels}`);
+          return callback(err, source2TotalLevels)
+        })
+      }
+    }, (err, results) => {
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
-        error: 'Missing Orgid'
-      });
-    } else {
-      const orgid = req.params.orgid;
-      const namespace = config.getConf('UUID:namespace');
-      const mohTopId = uuid5(orgid, `${namespace}000`);
-      winston.info(`Getting total levels for ${orgid}`);
-      const db = config.getConf('mCSD:database');
-
-      async.parallel({
-        MOHLevels: function (callback) {
-          mcsd.countLevels('MOH', orgid, mohTopId, (err, mohTotalLevels) => {
-            winston.info(`Received total MOH levels of ${mohTotalLevels} for ${orgid}`);
-            return callback(err, mohTotalLevels)
-          })
-        },
-        DATIMLevels: function (callback) {
-          mcsd.countLevels('DATIM', db, orgid, (err, datimTotalLevels) => {
-            winston.info(`Received total DATIM levels of ${datimTotalLevels} for ${orgid}`);
-            return callback(err, datimTotalLevels)
-          })
-        }
-      }, (err, results) => {
-        res.set('Access-Control-Allow-Origin', '*');
-        if (err) {
-          winston.error(err);
-          res.status(401).json({
-            error: err
-          });
-        } else {
-          const recoLevel = 2;
-          res.status(200).json({
-            totalMOHLevels: results.MOHLevels,
-            totalDATIMLevels: results.DATIMLevels,
-            recoLevel
-          });
-        }
-      })
-    }
+      if (err) {
+        winston.error(err);
+        res.status(401).json({
+          error: err
+        });
+      } else {
+        const recoLevel = 2;
+        res.status(200).json({
+          totalSource1Levels: results.Source1Levels,
+          totalSource2Levels: results.Source2Levels,
+          recoLevel
+        });
+      }
+    })
   });
 
-  app.get('/uploadAvailable/:orgid', (req, res) => {
-    if (!req.params.orgid) {
+  app.get('/uploadAvailable/:source1/:source2', (req, res) => {
+
+    if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Orgid'
       });
@@ -220,16 +210,34 @@ if (cluster.isMaster) {
         error: 'Missing Orgid'
       });
     } else {
-      const orgid = req.params.orgid;
-      winston.info(`Checking if data uploaded ${orgid}`);
-      mcsd.getLocations(orgid, (mohData) => {
-        if (mohData.hasOwnProperty('entry') && mohData.entry.length > 0) {
-          res.set('Access-Control-Allow-Origin', '*');
+      const source1 = req.params.source1;
+      const source2 = req.params.source2;
+      winston.info(`Checking if data available for ${source1} and ${source2}`);
+      async.parallel({
+        source1Availability: function (callback) {
+          mcsd.getLocations(source1, (source1Data) => {
+            if (source1Data.hasOwnProperty('entry') && source1Data.entry.length > 0) {
+              return callback(false, true)
+            } else {
+              return callback(false, false)
+            }
+          })
+        },
+        source2Availability: function (callback) {
+          mcsd.getLocations(source2, (source2Data) => {
+            if (source2Data.hasOwnProperty('entry') && source2Data.entry.length > 0) {
+              return callback(false, true)
+            } else {
+              return callback(false, false)
+            }
+          })
+        }
+      },(error,results) => {
+        if (results.source1Availability && results.source2Availability) {
           res.status(200).json({
             dataUploaded: true
           });
         } else {
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             dataUploaded: false
           });
@@ -323,54 +331,35 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/hierarchy/:source/:id/:start/:count', (req, res) => {
-    if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
+  app.get('/hierarchy', (req, res) => {
+    let source = req.query.source
+    let start = req.query.start
+    let count = req.query.count
+    let id = req.query.id
+    if (!id) {
+      id = topOrgId
+    }
+    if (!source) {
       winston.error({
-        error: 'Missing Orgid or source'
+        error: 'Missing Source'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or source'
+        error: 'Missing Source'
       });
     } else {
-      const topOrgId = req.query.OrgId;
-      const count = req.params.count
-      const start = req.params.start
-      const id = req.params.id
-      const source = req.params.source.toUpperCase();
-      if (source == 'DATIM') {
-        var database = config.getConf('mCSD:database');
-      } else if (source == 'MOH') {
-        var database = topOrgId;
-      }
-      winston.info(`Fetching ${source} Locations For ${topOrgId}`);
-      if (source == 'MOH') {
-        var database = topOrgId;
-        var locationReceived = new Promise((resolve, reject) => {
-          mcsd.getLocations(database, (mcsdData) => {
-            mcsd.getBuildings(mcsdData, (buildings) => {
-              resolve({
-                buildings,
-                mcsdData
-              })
-              winston.info(`Done Fetching ${source} Locations`);
-            });
-          })
+      winston.info(`Fetching Locations For ${source}`);
+      var locationReceived = new Promise((resolve, reject) => {
+        mcsd.getLocations(source, (mcsdData) => {
+          mcsd.getBuildings(mcsdData, (buildings) => {
+            resolve({
+              buildings,
+              mcsdData
+            })
+            winston.info(`Done Fetching ${source} Locations`);
+          });
         })
-      } else if (source == 'DATIM') {
-        var database = config.getConf('mCSD:database');
-        var locationReceived = new Promise((resolve, reject) => {
-          mcsd.getLocationChildren(database, topOrgId, (mcsdData) => {
-            mcsd.getBuildings(mcsdData, (buildings) => {
-              resolve({
-                buildings,
-                mcsdData
-              })
-              winston.info(`Done Fetching ${source} Locations`);
-            });
-          })
-        })
-      }
+      })
 
       locationReceived.then((data) => {
         winston.info(`Creating ${source} Grid`);
@@ -389,46 +378,29 @@ if (cluster.isMaster) {
   });
 
   app.get('/getTree/:source', (req, res) => {
-    if (!req.query.OrgId || !req.query.OrgName || !req.params.source) {
+    if (!req.params.source) {
       winston.error({
-        error: 'Missing Orgid or source',
+        error: 'Missing Data Source',
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or source',
+        error: 'Missing Data Source',
       });
     } else {
-      const orgid = req.query.OrgId;
-      const source = req.params.source.toUpperCase();
-      if (source == 'DATIM') var database = config.getConf('mCSD:database');
-      else if (source == 'MOH') var database = orgid;
+      const source = req.params.source
 
-      winston.info(`Fetching ${source} Locations For ${orgid}`);
-      if (source == 'MOH') {
-        var database = orgid;
-        const namespace = config.getConf('UUID:namespace');
-        var id = uuid5(orgid, `${namespace}000`);
-        var locationReceived = new Promise((resolve, reject) => {
-          mcsd.getLocations(database, (mcsdData) => {
-            winston.info(`Done Fetching ${source} Locations`);
-            resolve(mcsdData);
-          });
+      winston.info(`Fetching Locations For ${source}`);
+      var locationReceived = new Promise((resolve, reject) => {
+        mcsd.getLocations(source, (mcsdData) => {
+          winston.info(`Done Fetching Locations For ${source}`);
+          resolve(mcsdData);
         });
-      } else if (source == 'DATIM') {
-        var id = orgid;
-        var database = config.getConf('mCSD:database');
-        var locationReceived = new Promise((resolve, reject) => {
-          mcsd.getLocationChildren(database, id, (mcsdData) => {
-            winston.info(`Done Fetching ${source} Locations`);
-            resolve(mcsdData);
-          });
-        });
-      }
+      });
 
       locationReceived.then((mcsdData) => {
         winston.info(`Creating ${source} Tree`);
-        mcsd.createTree(mcsdData, source, database, orgid, (tree) => {
-          winston.info(`Done Creating ${source} Tree`);
+        mcsd.createTree(mcsdData, topOrgId, (tree) => {
+          winston.info(`Done Creating Tree for ${source}`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(tree);
         });
@@ -438,106 +410,99 @@ if (cluster.isMaster) {
     }
   });
 
-  app.get('/mappingStatus/:orgid/:level/:totalDATIMLevels/:totalMOHLevels/:clientId', (req, res) => {
+  app.get('/mappingStatus/:source1/:source2/:level/:totalSource2Levels/:totalSource1Levels/:clientId', (req, res) => {
     winston.info('Getting mapping status');
-    const orgid = req.params.orgid;
-    const mohDB = orgid;
-    const datimTopId = orgid;
-    const datimDB = config.getConf('mCSD:database');
+    const source1DB = req.params.source1
+    const source2DB = req.params.source2
     const recoLevel = req.params.level;
-    const totalDATIMLevels = req.params.totalDATIMLevels;
-    const totalMOHLevels = req.params.totalMOHLevels;
-    const namespace = config.getConf('UUID:namespace');
-    const mohTopId = uuid5(orgid, `${namespace}000`);
+    const totalSource2Levels = req.params.totalSource2Levels;
+    const totalSource1Levels = req.params.totalSource1Levels;
     const clientId = req.params.clientId;
 
-    let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+    let statusRequestId = `mappingStatus${clientId}`
     statusResData = JSON.stringify({
-      status: '1/2 - Loading DATIM and MOH Data',
+      status: '1/2 - Loading Source2 and Source1 Data',
       error: null,
       percent: null
     })
     redisClient.set(statusRequestId, statusResData)
 
-    const datimLocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
-        mcsdDatimAll = mcsdDATIM;
+    const source2LocationReceived = new Promise((resolve, reject) => {
+      mcsd.getLocations(source2DB, (mcsdSource2) => {
+        mcsdSource2All = mcsdSource2;
         let level
-        if (recoLevel === totalMOHLevels) {
-          level = totalDATIMLevels
+        if (recoLevel === totalSource1Levels) {
+          level = totalSource2Levels
         } else {
           level = recoLevel
         }
-        if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
-          level = levelMaps[orgid][recoLevel];
+        if (levelMaps[source2DB] && levelMaps[source2DB][recoLevel]) {
+          level = levelMaps[source2DB][recoLevel];
         }
-        mcsd.filterLocations(mcsdDATIM, datimTopId, level, (mcsdDatimLevel) => {
-          resolve(mcsdDatimLevel);
+        mcsd.filterLocations(mcsdSource2, topOrgId, level, (mcsdSource2Level) => {
+          resolve(mcsdSource2Level);
         });
       });
     });
-    const mohLocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocations(mohDB, (mcsdMOH) => {
-        mcsd.filterLocations(mcsdMOH, mohTopId, recoLevel, (mcsdMohLevel) => {
-          resolve(mcsdMohLevel);
+    const source1LocationReceived = new Promise((resolve, reject) => {
+      mcsd.getLocations(source1DB, (mcsdSource1) => {
+        mcsd.filterLocations(mcsdSource1, topOrgId, recoLevel, (mcsdSource1Level) => {
+          resolve(mcsdSource1Level);
         });
       });
     });
-    const mappingDB = config.getConf('mapping:dbPrefix') + orgid;
+    const mappingDB = source1DB + source2DB
     const mappingLocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
+      mcsd.getLocations(mappingDB, (mcsdMapped) => {
         resolve(mcsdMapped);
       });
     });
-    Promise.all([datimLocationReceived, mohLocationReceived, mappingLocationReceived]).then((locations) => {
-      var datimLocations = locations[0]
-      var mohLocations = locations[1]
+    Promise.all([source2LocationReceived, source1LocationReceived, mappingLocationReceived]).then((locations) => {
+      var source2Locations = locations[0]
+      var source1Locations = locations[1]
       var mappedLocations = locations[2]
-      scores.getMappingStatus(mohLocations, datimLocations, mappedLocations, datimTopId, clientId, (mappingStatus) => {
+      scores.getMappingStatus(source1Locations, source2Locations, mappedLocations, source1DB, clientId, (mappingStatus) => {
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).json(mappingStatus)
       })
     })
   })
 
-  app.get('/reconcile/:orgid/:totalLevels/:totalDATIMLevels/:recoLevel/:clientId', (req, res) => {
-    if (!req.params.orgid || !req.params.recoLevel) {
+  app.get('/reconcile/:source1/:source2/:totalSource1Levels/:totalSource2Levels/:recoLevel/:clientId', (req, res) => {
+    if (!req.params.source1 || !req.params.source2 || !req.params.recoLevel) {
       winston.error({
-        error: 'Missing Orgid or reconciliation Level'
+        error: 'Missing source1 or source2 or reconciliation Level'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or reconciliation Level'
+        error: 'Missing source1 or source2 or reconciliation Level'
       });
     } else {
       winston.info('Getting scores');
       const orgid = req.params.orgid;
       const recoLevel = req.params.recoLevel;
-      const totalLevels = req.params.totalLevels;
-      const totalDATIMLevels = req.params.totalDATIMLevels;
+      const totalSource1Levels = req.params.totalSource1Levels;
+      const totalSource2Levels = req.params.totalSource2Levels;
+      const source1 = req.params.source1;
+      const source2 = req.params.source2;
       const clientId = req.params.clientId;
-      const datimDB = config.getConf('mCSD:database');
-      const mohDB = orgid;
-      const namespace = config.getConf('UUID:namespace');
-      const mohTopId = uuid5(orgid, `${namespace}000`);
-      const datimTopId = orgid;
-      let mcsdDatimAll = null;
-      let mcsdMohAll = null;
+      let mcsdSource2All = null;
+      let mcsdSource1All = null;
 
-      let scoreRequestId = `scoreResults${datimTopId}${clientId}`
+      let scoreRequestId = `scoreResults${clientId}`
       scoreResData = JSON.stringify({
-        status: '1/3 - Loading DATIM and MOH Data',
+        status: '1/3 - Loading Source2 and Source1 Data',
         error: null,
         percent: null
       })
       redisClient.set(scoreRequestId, scoreResData)
       async.parallel({
-        datimLocations: function (callback) {
-          mcsd.getLocationChildren(datimDB, datimTopId, (mcsdDATIM) => {
-            mcsdDatimAll = mcsdDATIM;
+        source2Locations: function (callback) {
+          mcsd.getLocations(source2, (mcsdSource2) => {
+            mcsdSource2All = mcsdSource2;
             let level
-            if (recoLevel === totalLevels) {
-              level = totalDATIMLevels
+            if (recoLevel === totalSource1Levels) {
+              level = totalSource2Levels
             } else {
               level = recoLevel
             }
@@ -545,66 +510,86 @@ if (cluster.isMaster) {
             if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
               level = levelMaps[orgid][recoLevel];
             }
-            mcsd.filterLocations(mcsdDATIM, datimTopId, level, (mcsdDatimLevel) => {
-              return callback(false, mcsdDatimLevel)
+            mcsd.filterLocations(mcsdSource2, topOrgId, level, (mcsdSource2Level) => {
+              return callback(false, mcsdSource2Level)
             });
           });
         },
-        mohLoations: function (callback) {
-          mcsd.getLocations(mohDB, (mcsdMOH) => {
-            mcsdMohAll = mcsdMOH;
-            mcsd.filterLocations(mcsdMOH, mohTopId, recoLevel, (mcsdMohLevel) => {
-              return callback(false, mcsdMohLevel);
+        source1Loations: function (callback) {
+          mcsd.getLocations(source1, (mcsdSource1) => {
+            mcsdSource1All = mcsdSource1;
+            mcsd.filterLocations(mcsdSource1, topOrgId, recoLevel, (mcsdSource1Level) => {
+              return callback(false, mcsdSource1Level);
             });
           });
         },
         mappingData: function (callback) {
-          const mappingDB = config.getConf('mapping:dbPrefix') + orgid;
+          const mappingDB = source1 + source2
           mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
             return callback(false, mcsdMapped);
           });
         }
       }, (error, results) => {
-        if (recoLevel == totalLevels) {
-          scores.getBuildingsScores(results.mohLoations, results.datimLocations, results.mappingData, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
+        if (recoLevel == totalSource1Levels) {
+          scores.getBuildingsScores(
+            results.source1Loations,
+            results.source2Locations,
+            results.mappingData,
+            mcsdSource2All,
+            mcsdSource1All,
+            source1,
+            source2,
+            recoLevel,
+            totalSource1Levels,
+            clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+            recoStatus(source1, source2, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
               scoreResData = JSON.stringify({
                 status: 'Done',
                 error: null,
                 percent: 100
               })
               redisClient.set(scoreRequestId, scoreResData)
-              var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
+              var source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
                 recoLevel,
-                datimTotalRecords: results.datimLocations.entry.length,
-                datimTotalAllRecords: mcsdDatimAll.entry.length,
+                source2TotalRecords: results.source2Locations.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
-                mohTotalAllNotMapped: mohTotalAllNotMapped,
-                mohTotalAllRecords: mcsdMohAll.entry.length - 1
+                source1TotalAllNotMapped: source1TotalAllNotMapped,
+                source1TotalAllRecords: mcsdSource1All.entry.length - 1
               });
               winston.info('Score results sent back');
             })
           });
         } else {
-          scores.getJurisdictionScore(results.mohLoations, results.datimLocations, results.mappingData, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, (scoreResults) => {
+          scores.getJurisdictionScore(
+            results.source1Loations, 
+            results.source2Locations, 
+            results.mappingData, 
+            mcsdSource2All, 
+            mcsdSource1All, 
+            source1,
+            source2, 
+            recoLevel, 
+            totalSource1Levels, 
+            clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(orgid, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
-              var mohTotalAllNotMapped = (mcsdMohAll.entry.length - 1) - totalAllMapped
+            recoStatus(source1, source2, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+              var source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
                 recoLevel,
-                datimTotalRecords: results.datimLocations.entry.length,
-                datimTotalAllRecords: mcsdDatimAll.entry.length,
+                source2TotalRecords: results.source2Locations.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
-                mohTotalAllNotMapped: mohTotalAllNotMapped,
-                mohTotalAllRecords: mcsdMohAll.entry.length - 1
+                source1TotalAllNotMapped: source1TotalAllNotMapped,
+                source1TotalAllRecords: mcsdSource1All.entry.length - 1
               });
               winston.info('Score results sent back');
             })
@@ -613,9 +598,9 @@ if (cluster.isMaster) {
       })
     }
 
-    function recoStatus(orgid, callback) {
+    function recoStatus(source1, source2, callback) {
       //getting total Mapped
-      var database = config.getConf('mapping:dbPrefix') + orgid;
+      var database = source1 + source2;
       var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .toString();
       const options = {
@@ -624,7 +609,7 @@ if (cluster.isMaster) {
       var totalAllMapped = 0
       var totalAllNoMatch = 0
       var totalAllFlagged = 0
-      var mohTotalAllNotMapped = 0
+      var source1TotalAllNotMapped = 0
       const noMatchCode = config.getConf('mapping:noMatchCode');
       const flagCode = config.getConf('mapping:flagCode');
       setTimeout(() => {
@@ -632,7 +617,7 @@ if (cluster.isMaster) {
           if (!body.hasOwnProperty('entry') || body.length === 0) {
             totalAllNoMatch = 0
             totalAllMapped = 0
-            return callback(totalAllMapped, mohTotalAllNotMapped, totalAllNoMatch, totalAllFlagged)
+            return callback(totalAllMapped, source1TotalAllNotMapped, totalAllNoMatch, totalAllFlagged)
           }
           async.each(body.entry, (entry, nxtEntry) => {
             if (entry.resource.hasOwnProperty('tag')) {
@@ -664,9 +649,9 @@ if (cluster.isMaster) {
 
   });
 
-  app.get('/getUnmatched/:orgid/:source/:recoLevel', (req, res) => {
-    winston.info(`Getting DATIM Unmatched Orgs for ${req.params.orgid}`);
-    if (!req.params.orgid || !req.params.source) {
+  app.get('/getUnmatched/:source1/:source2/:recoLevel', (req, res) => {
+    winston.info(`Getting Source2 Unmatched Orgs for ${req.params.source1}`);
+    if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Orgid or Source'
       });
@@ -677,16 +662,16 @@ if (cluster.isMaster) {
       return;
     }
     const orgid = req.params.orgid;
-    const source = req.params.source.toUpperCase();
+    const source1 = req.params.source1
+    const source2 = req.params.source2
     let recoLevel = req.params.recoLevel;
     if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
       recoLevel = levelMaps[orgid][recoLevel];
     }
-    const datimDB = config.getConf('mCSD:database');
-    mcsd.getLocationChildren(datimDB, orgid, (locations) => {
-      mcsd.filterLocations(locations, orgid, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(locations, mcsdLevel, orgid, (unmatched) => {
-          winston.info(`sending back DATIM unmatched Orgs for ${req.params.orgid}`);
+    mcsd.getLocations(source2, (locations) => {
+      mcsd.filterLocations(locations, topOrgId, recoLevel, (mcsdLevel) => {
+        scores.getUnmatched(locations, mcsdLevel, source1, source2, (unmatched) => {
+          winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(unmatched);
         });
@@ -694,41 +679,42 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/match/:type/:orgid', (req, res) => {
+  app.post('/match/:type', (req, res) => {
     winston.info('Received data for matching');
-    if (!req.params.orgid) {
-      winston.error({
-        error: 'Missing Orgid'
-      });
-      res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
-        error: 'Missing Orgid'
-      });
-      return;
-    }
-    const orgid = req.params.orgid;
     const type = req.params.type;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      let mohId = fields.mohId;
-      const datimId = fields.datimId;
-      const recoLevel = fields.recoLevel;
-      const totalLevels = fields.totalLevels;
-      if (!mohId || !datimId) {
+      if (!fields.source1DB || !fields.source2DB) {
         winston.error({
-          error: 'Missing either MOHID or DATIMID or both'
+          error: 'Missing Source1 or Source2'
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing either MOHID or DATIMID or both'
+          error: 'Missing Source1 or Source2'
+        });
+        return;
+      }
+      let source1Id = fields.source1Id;
+      let source1DB = fields.source1DB
+      let source2DB = fields.source2DB
+      const source2Id = fields.source2Id;
+      const recoLevel = fields.recoLevel;
+      const totalLevels = fields.totalLevels;
+      if (!source1Id || !source2Id) {
+        winston.error({
+          error: 'Missing either Source1ID or Source2ID or both'
+        });
+        res.set('Access-Control-Allow-Origin', '*');
+        res.status(401).json({
+          error: 'Missing either Source1ID or Source2ID or both'
         });
         return;
       }
       if (recoLevel == totalLevels) {
         const namespace = config.getConf('UUID:namespace');
-        mohId = uuid5(mohId, `${namespace}100`);
+        source1Id = uuid5(source1Id, `${namespace}100`);
       }
-      mcsd.saveMatch(mohId, datimId, orgid, recoLevel, totalLevels, type, (err) => {
+      mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
@@ -742,39 +728,40 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/acceptFlag/:orgid', (req, res) => {
+  app.post('/acceptFlag/:source1/:source2', (req, res) => {
     winston.info('Received data for marking flag as a match');
-    if (!req.params.orgid) {
+    if (!req.params.source1 || !req.params.source2) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Source1 or Source2'
       });
       return;
     }
-    const orgid = req.params.orgid;
+    const source1 = req.params.source1;
+    const source2 = req.params.source2;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const datimId = fields.datimId;
+      const source2Id = fields.source2Id;
       const recoLevel = fields.recoLevel;
       const totalLevels = fields.totalLevels;
-      if (!datimId) {
+      if (!source2Id) {
         winston.error({
-          error: 'Missing DATIMID'
+          error: 'Missing Source2ID'
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing DATIMID'
+          error: 'Missing Source2ID'
         });
         return;
       }
       if (recoLevel == totalLevels) {
         const namespace = config.getConf('UUID:namespace');
-        mohId = uuid5(orgid, `${namespace}100`);
+        source1Id = uuid5(orgid, `${namespace}100`);
       }
-      mcsd.acceptFlag(datimId, orgid, (err) => {
+      mcsd.acceptFlag(source2Id, source1, source2, (err) => {
         winston.info('Done marking flag as a match');
         res.set('Access-Control-Allow-Origin', '*');
         if (err) res.status(401).send({
@@ -785,39 +772,40 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/noMatch/:orgid', (req, res) => {
+  app.post('/noMatch/:source1/:source2', (req, res) => {
     winston.info('Received data for matching');
-    if (!req.params.orgid) {
+    if (!req.params.source1 || !req.params.source2) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Source1 or Source2'
       });
       return;
     }
-    const orgid = req.params.orgid;
+    const source1 = req.params.source1;
+    const source2 = req.params.source2;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      let mohId = fields.mohId;
+      let source1Id = fields.source1Id;
       const recoLevel = fields.recoLevel;
       const totalLevels = fields.totalLevels;
-      if (!mohId) {
+      if (!source1Id) {
         winston.error({
-          error: 'Missing either MOHID'
+          error: 'Missing either Source1ID'
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing either MOHID'
+          error: 'Missing either Source1ID'
         });
         return;
       }
       if (recoLevel == totalLevels) {
         const namespace = config.getConf('UUID:namespace');
-        mohId = uuid5(mohId, `${namespace}100`);
+        source1Id = uuid5(source1Id, `${namespace}100`);
       }
-      mcsd.saveNoMatch(mohId, orgid, recoLevel, totalLevels, (err) => {
+      mcsd.saveNoMatch(source1Id, source1, source2, recoLevel, totalLevels, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
         if (err) res.status(401).send({
@@ -828,64 +816,68 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/breakMatch/:orgid', (req, res) => {
-    if (!req.params.orgid) {
+  app.post('/breakMatch/:source1/:source2', (req, res) => {
+    if (!req.params.source1) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Source1'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Source1'
       });
       return;
     }
+    let source1 = req.params.source1
+    let source2 = req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info(`Received break match request for ${fields.datimId}`);
-      const datimId = fields.datimId;
-      const database = config.getConf('mapping:dbPrefix') + req.params.orgid;
-      mcsd.breakMatch(datimId, database, req.params.orgid, (err, results) => {
-        winston.info(`break match done for ${fields.datimId}`);
+      winston.info(`Received break match request for ${fields.source2Id}`);
+      const source2Id = fields.source2Id;
+      const database = source1 + source2;
+      mcsd.breakMatch(source2Id, database, source1, (err, results) => {
+        winston.info(`break match done for ${fields.source2Id}`);
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).send(err);
       });
     });
   });
 
-  app.post('/breakNoMatch/:orgid', (req, res) => {
-    if (!req.params.orgid) {
+  app.post('/breakNoMatch/:source1/:source2', (req, res) => {
+    if (!req.params.source1 || !req.params.source2) {
       winston.error({
-        error: 'Missing Orgid'
+        error: 'Missing Source1'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid'
+        error: 'Missing Source1'
       });
       return;
     }
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info(`Received break no match request for ${fields.mohId}`);
-      var mohId = fields.mohId;
-      if (!mohId) {
+      winston.info(`Received break no match request for ${fields.source1Id}`);
+      var source1Id = fields.source1Id;
+      if (!source1Id) {
         winston.error({
-          'error': 'Missing MOH ID'
+          'error': 'Missing Source1 ID'
         })
         res.set('Access-Control-Allow-Origin', '*');
         res.status(401).json({
-          error: 'Missing MOH ID'
+          error: 'Missing Source1 ID'
         });
         return
       }
+      let source1 = req.params.source1
+      let source2 = req.params.source2
       const recoLevel = fields.recoLevel;
       const totalLevels = fields.totalLevels;
-      const database = config.getConf('mapping:dbPrefix') + req.params.orgid;
+      const mappingDB = source1 + source2;
       if (recoLevel == totalLevels) {
         const namespace = config.getConf('UUID:namespace');
-        mohId = uuid5(mohId, `${namespace}100`);
+        source1Id = uuid5(source1Id, `${namespace}100`);
       }
-      mcsd.breakNoMatch(mohId, database, (err) => {
-        winston.info(`break no match done for ${fields.mohId}`);
+      mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
+        winston.info(`break no match done for ${fields.source1Id}`);
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).send(err);
       });
@@ -1107,16 +1099,15 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/uploadProgress/:database/:clientId', (req, res) => {
-    const database = req.params.database
+  app.get('/uploadProgress/:clientId', (req, res) => {
     const clientId = req.params.clientId
-    redisClient.get(`uploadProgress${database}${clientId}`, (error, results) => {
+    redisClient.get(`uploadProgress${clientId}`, (error, results) => {
       results = JSON.parse(results)
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        var uploadRequestId = `uploadProgress${database}${clientId}`
+        var uploadRequestId = `uploadProgress${clientId}`
         let uploadReqPro = JSON.stringify({
           status: null,
           error: null,
@@ -1127,16 +1118,15 @@ if (cluster.isMaster) {
     })
   });
 
-  app.get('/mappingStatusProgress/:orgid/:clientId', (req, res) => {
-    const orgid = req.params.orgid
+  app.get('/mappingStatusProgress/:clientId', (req, res) => {
     const clientId = req.params.clientId
-    redisClient.get(`mappingStatus${orgid}${clientId}`, (error, results) => {
+    redisClient.get(`mappingStatus${clientId}`, (error, results) => {
       results = JSON.parse(results)
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        var statusRequestId = `mappingStatus${orgid}${clientId}`
+        var statusRequestId = `mappingStatus${clientId}`
         let statusResData = JSON.stringify({
           status: null,
           error: null,
@@ -1147,16 +1137,15 @@ if (cluster.isMaster) {
     })
   });
 
-  app.get('/scoreProgress/:orgid/:clientId', (req, res) => {
-    const orgid = req.params.orgid
+  app.get('/scoreProgress/:clientId', (req, res) => {
     const clientId = req.params.clientId
-    redisClient.get(`scoreResults${orgid}${clientId}`, (error, results) => {
+    redisClient.get(`scoreResults${clientId}`, (error, results) => {
       results = JSON.parse(results)
       res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
-        const scoreRequestId = `scoreResults${orgid}${clientId}`
+        const scoreRequestId = `scoreResults${clientId}`
         let uploadReqPro = JSON.stringify({
           status: null,
           error: null,
@@ -1332,7 +1321,7 @@ if (cluster.isMaster) {
   app.post('/uploadCSV', (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info(`Received MOH Data with fields Mapping ${JSON.stringify(fields)}`);
+      winston.info(`Received Source1 Data with fields Mapping ${JSON.stringify(fields)}`);
       if (!fields.csvName) {
         winston.error({
           error: 'Missing CSV Name'
@@ -1346,7 +1335,7 @@ if (cluster.isMaster) {
       const database = mixin.toTitleCase(fields.csvName);
       const expectedLevels = config.getConf('levels');
       const clientId = fields.clientId
-      var uploadRequestId = `uploadProgress${database}${clientId}`
+      var uploadRequestId = `uploadProgress${clientId}`
       let uploadReqPro = JSON.stringify({
         status: 'Request received by server',
         error: null,
