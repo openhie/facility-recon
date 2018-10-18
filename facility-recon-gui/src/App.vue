@@ -165,9 +165,9 @@ export default {
             this.$store.state.dataSourcePair.source2.id = source2._id
             this.$store.state.dataSourcePair.source2.name = source2.name
           }
-          this.getTotalLevels()
-          this.renderInitialPage()
         }
+        this.getTotalLevels()
+        this.renderInitialPage()
       })
     }
   },

@@ -14,7 +14,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">Source 1 Data Tree</h3>
               </v-card-title>
-              <template v-if="source1Tree.length == 0">
+              <template v-if="loadingSource1Tree">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -31,7 +31,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">Source2 Data Tree</h3>
               </v-card-title>
-              <template v-if="source2Tree.length == 0">
+              <template v-if="loadingSource2Tree">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -48,7 +48,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">MoH Data Grid</h3>
               </v-card-title>
-              <template v-if="!source1Grid">
+              <template v-if="loadingSource1Grid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -73,7 +73,7 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">Source 2 Data Grid</h3>
               </v-card-title>
-              <template v-if="!source2Grid">
+              <template v-if="loadingSource2Grid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
@@ -153,14 +153,18 @@ export default {
       loadingSource2: false,
       totalSource1Records: 0,
       totalSource2Records: 0,
-      source2Grid: '',
-      source1Grid: '',
+      source2Grid: [],
+      source1Grid: [],
       source1Tree: [],
       source2Tree: [],
       source1Start: 1,
       source2Start: 1,
       source1Count: 10,
       source2Count: 10,
+      loadingSource1Tree: false,
+      loadingSource2Tree: false,
+      loadingSource1Grid: false,
+      loadingSource2Grid: false,
       currentSource2Pagination: {},
       currentSource1Pagination: {},
       source1SelNodeId: false,
@@ -173,41 +177,45 @@ export default {
       if (!id) {
         id = ''
       }
+      this.loadingSource1Grid = true
       let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}`
       axios.get(backendServer + path).then((hierarchy) => {
-        const { sortBy, descending } = this.source1Pagination
-        if (this.source1Pagination.sortBy) {
-          hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
-            const sortA = a[sortBy]
-            const sortB = b[sortBy]
+        this.loadingSource1Grid = false
+        if (hierarchy.data) {
+          const { sortBy, descending } = this.source1Pagination
+          if (this.source1Pagination.sortBy) {
+            hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
+              const sortA = a[sortBy]
+              const sortB = b[sortBy]
 
-            if (descending) {
-              if (sortA < sortB) return 1
-              if (sortA > sortB) return -1
-              return 0
-            } else {
-              if (sortA < sortB) return -1
-              if (sortA > sortB) return 1
-              return 0
-            }
-          })
-        }
-        this.source1Grid = hierarchy.data.grid
-        this.totalSource1Records = hierarchy.data.total
+              if (descending) {
+                if (sortA < sortB) return 1
+                if (sortA > sortB) return -1
+                return 0
+              } else {
+                if (sortA < sortB) return -1
+                if (sortA > sortB) return 1
+                return 0
+              }
+            })
+          }
+          this.source1Grid = hierarchy.data.grid
+          this.totalSource1Records = hierarchy.data.total
 
-        // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
-        this.currentSource1Pagination = Object.assign({}, this.source1Pagination)
-        if (!this.currentSource1Pagination.hasOwnProperty('descending')) {
-          this.currentSource1Pagination.descending = false
-        }
-        if (!this.currentSource1Pagination.hasOwnProperty('page')) {
-          this.currentSource1Pagination.page = 1
-        }
-        if (!this.currentSource1Pagination.hasOwnProperty('sortBy')) {
-          this.currentSource1Pagination.sortBy = 'facility'
-        }
-        if (!this.currentSource1Pagination.hasOwnProperty('totalItems')) {
-          this.currentSource1Pagination.totalItems = hierarchy.data.total
+          // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
+          this.currentSource1Pagination = Object.assign({}, this.source1Pagination)
+          if (!this.currentSource1Pagination.hasOwnProperty('descending')) {
+            this.currentSource1Pagination.descending = false
+          }
+          if (!this.currentSource1Pagination.hasOwnProperty('page')) {
+            this.currentSource1Pagination.page = 1
+          }
+          if (!this.currentSource1Pagination.hasOwnProperty('sortBy')) {
+            this.currentSource1Pagination.sortBy = 'facility'
+          }
+          if (!this.currentSource1Pagination.hasOwnProperty('totalItems')) {
+            this.currentSource1Pagination.totalItems = hierarchy.data.total
+          }
         }
         this.loadingSource1 = false
       })
@@ -217,53 +225,64 @@ export default {
         id = ''
       }
       this.loadingSource2 = true
+      this.loadingSource2Grid = true
       let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}`
       axios.get(backendServer + path).then((hierarchy) => {
-        const { sortBy, descending } = this.source2Pagination
-        if (this.source2Pagination.sortBy) {
-          hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
-            const sortA = a[sortBy]
-            const sortB = b[sortBy]
+        this.loadingSource2Grid = false
+        if (hierarchy.data) {
+          const { sortBy, descending } = this.source2Pagination
+          if (this.source2Pagination.sortBy) {
+            hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
+              const sortA = a[sortBy]
+              const sortB = b[sortBy]
 
-            if (descending) {
-              if (sortA < sortB) return 1
-              if (sortA > sortB) return -1
-              return 0
-            } else {
-              if (sortA < sortB) return -1
-              if (sortA > sortB) return 1
-              return 0
-            }
-          })
-        }
-        this.source2Grid = hierarchy.data.grid
-        this.totalSource2Records = hierarchy.data.total
-        this.source2Pagination.totalItems = hierarchy.data.total
+              if (descending) {
+                if (sortA < sortB) return 1
+                if (sortA > sortB) return -1
+                return 0
+              } else {
+                if (sortA < sortB) return -1
+                if (sortA > sortB) return 1
+                return 0
+              }
+            })
+          }
+          this.source2Grid = hierarchy.data.grid
+          this.totalSource2Records = hierarchy.data.total
+          this.source2Pagination.totalItems = hierarchy.data.total
 
-        // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
-        this.currentSource2Pagination = Object.assign({}, this.source2Pagination)
-        if (!this.currentSource2Pagination.hasOwnProperty('descending')) {
-          this.currentSource2Pagination.descending = false
-        }
-        if (!this.currentSource2Pagination.hasOwnProperty('page')) {
-          this.currentSource2Pagination.page = 1
-        }
-        if (!this.currentSource2Pagination.hasOwnProperty('sortBy')) {
-          this.currentSource2Pagination.sortBy = 'facility'
-        }
-        if (!this.currentSource2Pagination.hasOwnProperty('totalItems')) {
-          this.currentSource2Pagination.totalItems = hierarchy.data.total
+          // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
+          this.currentSource2Pagination = Object.assign({}, this.source2Pagination)
+          if (!this.currentSource2Pagination.hasOwnProperty('descending')) {
+            this.currentSource2Pagination.descending = false
+          }
+          if (!this.currentSource2Pagination.hasOwnProperty('page')) {
+            this.currentSource2Pagination.page = 1
+          }
+          if (!this.currentSource2Pagination.hasOwnProperty('sortBy')) {
+            this.currentSource2Pagination.sortBy = 'facility'
+          }
+          if (!this.currentSource2Pagination.hasOwnProperty('totalItems')) {
+            this.currentSource2Pagination.totalItems = hierarchy.data.total
+          }
         }
         this.loadingSource2 = false
       })
     },
     getTree () {
+      this.loadingSource1Tree = true
       axios.get(backendServer + '/getTree/' + this.source2).then((hierarchy) => {
-        this.source2Tree = hierarchy.data
+        this.loadingSource1Tree = false
+        if (hierarchy.data) {
+          this.source2Tree = hierarchy.data
+        }
       })
-
+      this.loadingSource2Tree = true
       axios.get(backendServer + '/getTree/' + this.source1).then((hierarchy) => {
-        this.source1Tree = hierarchy.data
+        this.loadingSource2Tree = false
+        if (hierarchy.data) {
+          this.source1Tree = hierarchy.data
+        }
       })
     },
     source1NodeSelected (node) {
