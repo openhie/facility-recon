@@ -12,107 +12,102 @@ const mcsd = require('./mcsd')();
 
 module.exports = function () {
   return {
-    getJurisdictionScore(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
-      const scoreRequestId = `scoreResults${datimTopId}${clientId}`
+    getJurisdictionScore(mcsdSource1, mcsdSource2, mcsdMapped, mcsdSource2All, mcsdSource1All, source1DB, source2DB, recoLevel, totalLevels, clientId, callback) {
+      const scoreRequestId = `scoreResults${clientId}`
       const scoreResults = [];
-      const mapped = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       const maxSuggestions = config.getConf('matchResults:maxSuggestions');
-      if (mcsdDATIM.total == 0) {
-        winston.error('No DATIM data found for this orgunit');
+      if (mcsdSource2.total == 0) {
+        winston.error('No Source2 data found for this orgunit');
         return callback();
       }
-      if (mcsdMOH.total == 0) {
-        winston.error('No MOH data found');
+      if (mcsdSource1.total == 0) {
+        winston.error('No Source1 data found');
         return callback();
       }
       let count = 0;
       var ignore = []
-      var datimParentNames = {}
-      var datimMappedParentIds = {}
+      var source2ParentNames = {}
+      var source2MappedParentIds = {}
       winston.info('Populating parents')
-      var totalRecords = mcsdDATIM.entry.length
-      for (entry of mcsdDATIM.entry) {
+      
+      var totalRecords = mcsdSource2.entry.length
+      for (entry of mcsdSource2.entry) {
         if (entry.resource.hasOwnProperty('partOf')) {
-          datimParentNames[entry.resource.id] = [];
-          datimMappedParentIds[entry.resource.id] = [];
+          source2ParentNames[entry.resource.id] = [];
+          source2MappedParentIds[entry.resource.id] = [];
           var entityParent = entry.resource.partOf.reference;
-          mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
-            // lets make sure that we use the mapped parent for comparing against MOH
+          mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
+            // lets make sure that we use the mapped parent for comparing against Source1
             async.each(parents, (parent, parentCallback) => {
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
                   mapped.resource.identifier.find((identifier) => {
-                    if (identifier.system == 'http://geoalign.datim.org/MOH') {
-                      const mohParId = identifier.value.split('/').pop();
-                      datimMappedParentIds[entry.resource.id].push(mohParId);
+                    if (identifier.system == 'https://digitalhealth.intrahealth.org/source1') {
+                      const source1ParId = identifier.value.split('/').pop();
+                      source2MappedParentIds[entry.resource.id].push(source1ParId);
                     }
                   });
-                  datimParentNames[entry.resource.id].push(parent.text);
+                  source2ParentNames[entry.resource.id].push(parent.text);
                 } else {
-                  if (parent.id == datimTopId) {
-                    datimMappedParentIds[entry.resource.id].push(mohTopId);
-                  } else {
-                    datimMappedParentIds[entry.resource.id].push(parent.id);
-                  }
-                  datimParentNames[entry.resource.id].push(parent.text);
+                  source2MappedParentIds[entry.resource.id].push(parent.id);
+                  source2ParentNames[entry.resource.id].push(parent.text);
                 }
                 parentCallback()
               });
             }, () => {
               count++
               let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
-              const scoreRequestId = `scoreResults${datimTopId}${clientId}`
+              const scoreRequestId = `scoreResults${clientId}`
               scoreResData = JSON.stringify({
-                status: '2/3 - Scanning DATIM Location Parents',
+                status: '2/3 - Scanning Source2 Location Parents',
                 error: null,
                 percent: percent
               })
               redisClient.set(scoreRequestId, scoreResData)
-              if (count === mcsdDATIM.entry.length) {
+              if (count === mcsdSource2.entry.length) {
                 winston.info('Done populating parents')
               }
             })
           });
         }
       }
-      mcsdDatimAll = {}
+      mcsdSource2All = {}
       winston.info('Calculating scores now')
       count = 0
-      var totalRecords = mcsdMOH.entry.length
-      async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
-        const database = config.getConf('mapping:dbPrefix') + datimTopId;
-        // check if this MOH Orgid is mapped
-        const mohId = mohEntry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url'))
-          .segment(datimTopId)
+      var totalRecords = mcsdSource1.entry.length
+      async.eachSeries(mcsdSource1.entry, (source1Entry, source1Callback) => {
+        // check if this Source1 Orgid is mapped
+        const source1Id = source1Entry.resource.id;
+        const source1Identifier = URI(config.getConf('mCSD:url'))
+          .segment(source1DB)
           .segment('fhir')
           .segment('Location')
-          .segment(mohId)
+          .segment(source1Id)
           .toString();
         var matchBroken = false
-        if (mohEntry.resource.hasOwnProperty('tag')) {
-          var matchBrokenTag = mohEntry.resource.tag.find((tag) => {
+        if (source1Entry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = source1Entry.resource.tag.find((tag) => {
             return tag.code == matchBrokenCode
           })
           if (matchBrokenTag) {
             matchBroken = true
           }
         }
-        this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
-          // if this MOH Org is already mapped
+        this.matchStatus(mcsdMapped, source1Identifier, (match) => {
+          // if this Source1 Org is already mapped
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             var entityParent = null;
-            if (mohEntry.resource.hasOwnProperty('partOf')) {
-              entityParent = mohEntry.resource.partOf.reference;
+            if (source1Entry.resource.hasOwnProperty('partOf')) {
+              entityParent = source1Entry.resource.partOf.reference;
             }
-            mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'names', (mohParents) => {
+            mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'names', (source1Parents) => {
               const thisRanking = {};
-              thisRanking.moh = {
-                name: mohEntry.resource.name,
-                parents: mohParents,
-                id: mohEntry.resource.id,
+              thisRanking.source1 = {
+                name: source1Entry.resource.name,
+                parents: source1Parents,
+                id: source1Entry.resource.id,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
@@ -120,9 +115,9 @@ module.exports = function () {
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
               }
-              // in case this is marked as no match then process next MOH
+              // in case this is marked as no match then process next Source1
               if (noMatch) {
-                thisRanking.moh.tag = 'noMatch';
+                thisRanking.source1.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++;
                 let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
@@ -132,7 +127,7 @@ module.exports = function () {
                   percent: percent
                 })
                 redisClient.set(scoreRequestId, scoreResData)
-                return mohCallback();
+                return source1Callback();
               }
               // if no macth then this is already marked as a match
 
@@ -140,16 +135,16 @@ module.exports = function () {
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
                 if (flag) {
-                  thisRanking.moh.tag = 'flagged';
+                  thisRanking.source1.tag = 'flagged';
                 }
               }
-              var matchInDatim = mcsdDATIM.entry.find((entry) => {
+              var matchInSource2 = mcsdSource2.entry.find((entry) => {
                 return entry.resource.id == match.resource.id
               })
-              if (matchInDatim) {
+              if (matchInSource2) {
                 thisRanking.exactMatch = {
-                  name: matchInDatim.resource.name,
-                  parents: datimParentNames[match.resource.id],
+                  name: matchInSource2.resource.name,
+                  parents: source2ParentNames[match.resource.id],
                   id: match.resource.id,
                 };
               }
@@ -162,24 +157,23 @@ module.exports = function () {
                 percent: percent
               })
               redisClient.set(scoreRequestId, scoreResData)
-              return mohCallback();
+              return source1Callback();
             });
           } else { // if not mapped
-            const mohName = mohEntry.resource.name;
-            let mohParents = [];
-            const mohParentNames = [];
-            const mohParentIds = [];
-            if (mohEntry.resource.hasOwnProperty('partOf')) {
-              var entityParent = mohEntry.resource.partOf.reference;
-              var mohParentReceived = new Promise((resolve, reject) => {
-                mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (parents) => {
-                  // mcsd.getLocationParentsFromDB('MOH',mohDB,entityParent,mohTopId,"all",(parents)=>{
-                  mohParents = parents;
+            const source1Name = source1Entry.resource.name;
+            let source1Parents = [];
+            const source1ParentNames = [];
+            const source1ParentIds = [];
+            if (source1Entry.resource.hasOwnProperty('partOf')) {
+              var entityParent = source1Entry.resource.partOf.reference;
+              var source1ParentReceived = new Promise((resolve, reject) => {
+                mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'all', (parents) => {
+                  source1Parents = parents;
                   async.eachSeries(parents, (parent, nxtParent) => {
-                    mohParentNames.push(
+                    source1ParentNames.push(
                       parent.text,
                     );
-                    mohParentIds.push(
+                    source1ParentIds.push(
                       parent.id,
                     );
                     return nxtParent();
@@ -189,65 +183,64 @@ module.exports = function () {
                 });
               });
             } else {
-              var mohParentReceived = Promise.resolve([]);
+              var source1ParentReceived = Promise.resolve([]);
             }
 
-            mohParentReceived.then(() => {
+            source1ParentReceived.then(() => {
               const thisRanking = {};
-              thisRanking.moh = {
-                name: mohName,
-                parents: mohParentNames,
-                id: mohEntry.resource.id,
+              thisRanking.source1 = {
+                name: source1Name,
+                parents: source1ParentNames,
+                id: source1Entry.resource.id,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
-              const datimPromises = [];
-              var datimFiltered = mcsdDATIM.entry.filter((entry) => {
-                return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
+              const source2Promises = [];
+              var source2Filtered = mcsdSource2.entry.filter((entry) => {
+                return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
               })
-              async.each(datimFiltered, (datimEntry, datimCallback) => {
-                const id = datimEntry.resource.id;
-                const database = config.getConf('mapping:dbPrefix') + datimTopId;
+              async.each(source2Filtered, (source2Entry, source2Callback) => {
+                const id = source2Entry.resource.id;
                 var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
                 })
                 if (ignoreThis) {
-                  return datimCallback()
+                  return source2Callback()
                 }
                 // check if this is already mapped
                 this.matchStatus(mcsdMapped, id, (mapped) => {
                   if (mapped) {
-                    ignore.push(datimEntry.resource.id)
-                    return datimCallback();
+                    ignore.push(source2Entry.resource.id)
+                    return source2Callback();
                   }
-                  const datimName = datimEntry.resource.name;
-                  const datimId = datimEntry.resource.id
+                  const source2Name = source2Entry.resource.name;
+                  const source2Id = source2Entry.resource.id
 
-                  lev = levenshtein.get(datimName.toLowerCase(), mohName.toLowerCase());
+                  lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                   if (lev == 0 && !matchBroken) {
-                    ignore.push(datimEntry.resource.id)
+                    ignore.push(source2Entry.resource.id)
                     thisRanking.exactMatch = {
-                      name: datimName,
-                      parents: datimParentNames[datimId],
-                      id: datimEntry.resource.id,
+                      name: source2Name,
+                      parents: source2ParentNames[source2Id],
+                      id: source2Entry.resource.id,
                     };
                     thisRanking.potentialMatches = {};
-                    mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
 
                     });
-                    // we will need to break here and start processing nxt MOH
-                    return datimCallback();
+                    // we will need to break here and start processing nxt Source1
+                    return source2Callback();
                   }
                   if (lev == 0 && matchBroken) {
                     if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                       thisRanking.potentialMatches['0'] = []
                     }
                     thisRanking.potentialMatches['0'].push({
-                      name: datimName,
-                      parents: datimParentNames[datimId],
-                      id: datimEntry.resource.id,
+                      name: source2Name,
+                      parents: source2ParentNames[source2Id],
+                      id: source2Entry.resource.id,
                     })
-                    return datimCallback();
+                    return source2Callback();
                   }
                   if (Object.keys(thisRanking.exactMatch).length == 0) {
                     if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
@@ -255,9 +248,9 @@ module.exports = function () {
                         thisRanking.potentialMatches[lev] = [];
                       }
                       thisRanking.potentialMatches[lev].push({
-                        name: datimName,
-                        parents: datimParentNames[datimId],
-                        id: datimEntry.resource.id,
+                        name: source2Name,
+                        parents: source2ParentNames[source2Id],
+                        id: source2Entry.resource.id,
                       });
                     } else {
                       const existingLev = Object.keys(thisRanking.potentialMatches);
@@ -266,14 +259,14 @@ module.exports = function () {
                         delete thisRanking.potentialMatches[max];
                         thisRanking.potentialMatches[lev] = [];
                         thisRanking.potentialMatches[lev].push({
-                          name: datimName,
-                          parents: datimParentNames[datimId],
-                          id: datimEntry.resource.id,
+                          name: source2Name,
+                          parents: source2ParentNames[source2Id],
+                          id: source2Entry.resource.id,
                         });
                       }
                     }
                   }
-                  return datimCallback();
+                  return source2Callback();
                 });
               }, () => {
                 scoreResults.push(thisRanking);
@@ -285,7 +278,7 @@ module.exports = function () {
                   percent: percent
                 })
                 redisClient.set(scoreRequestId, scoreResData)
-                return mohCallback();
+                return source1Callback();
               });
             }).catch((err) => {
               winston.error(err);
@@ -303,133 +296,131 @@ module.exports = function () {
       });
     },
 
-    getBuildingsScores(mcsdMOH, mcsdDATIM, mcsdMapped, mcsdDatimAll, mcsdMohAll, mohDB, datimDB, mohTopId, datimTopId, recoLevel, totalLevels, clientId, callback) {
-      const scoreRequestId = `scoreResults${datimTopId}${clientId}`
+    getBuildingsScores(mcsdSource1, mcsdSource2, mcsdMapped, mcsdSource2All, mcsdSource1All, source1DB, source2DB, recoLevel, totalLevels, clientId, callback) {
+      const scoreRequestId = `scoreResults${clientId}`
       var scoreResults = [];
-      var mapped = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       var maxSuggestions = config.getConf('matchResults:maxSuggestions');
-      if (mcsdDATIM.total == 0) {
-        winston.error('No DATIM data found for this orgunit');
+      if (mcsdSource2.total == 0) {
+        winston.error('No Source2 data found for this orgunit');
         return callback();
       }
-      if (mcsdMOH.total == 0) {
-        winston.error('No MOH data found');
+      if (mcsdSource1.total == 0) {
+        winston.error('No Source1 data found');
         return callback();
       }
-      var counter = 0;
       var ignore = []
-      var promises = [];
       var count = 0;
-      var mohPromises = [];
-      var datimParentNames = {}
-      var datimMappedParentIds = {}
-      const datimLevelMappingStatus = {}
+      var source2ParentNames = {}
+      var source2MappedParentIds = {}
+      const source2LevelMappingStatus = {}
       var count = 0
       winston.info('Populating parents')
-      var totalRecords = mcsdDATIM.entry.length
-      for (entry of mcsdDATIM.entry) {
-        datimLevelMappingStatus[entry.resource.id] = []
+      var totalRecords = mcsdSource2.entry.length
+      for (entry of mcsdSource2.entry) {
+        source2LevelMappingStatus[entry.resource.id] = []
         this.matchStatus(mcsdMapped, entry.resource.id, (mapped) => {
           if (mapped) {
-            datimLevelMappingStatus[entry.resource.id] = true
+            source2LevelMappingStatus[entry.resource.id] = true
           } else {
-            datimLevelMappingStatus[entry.resource.id] = false
+            source2LevelMappingStatus[entry.resource.id] = false
           }
         })
         if (entry.resource.hasOwnProperty('partOf')) {
-          datimParentNames[entry.resource.id] = [];
-          datimMappedParentIds[entry.resource.id] = [];
+          source2ParentNames[entry.resource.id] = [];
+          source2MappedParentIds[entry.resource.id] = [];
           var entityParent = entry.resource.partOf.reference;
-          mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'all', (parents) => {
-            // lets make sure that we use the mapped parent for comparing against MOH
+          mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
+            // lets make sure that we use the mapped parent for comparing against Source1
             async.each(parents, (parent, parentCallback) => {
               this.matchStatus(mcsdMapped, parent.id, (mapped) => {
                 if (mapped) {
                   const mappedPar = mapped.resource.identifier.find((identifier) => {
-                    if (identifier.system == 'http://geoalign.datim.org/MOH') {
-                      const mohParId = identifier.value.split('/').pop();
-                      datimMappedParentIds[entry.resource.id].push(mohParId);
+                    if (identifier.system == 'https://digitalhealth.intrahealth.org/source1') {
+                      const source1ParId = identifier.value.split('/').pop();
+                      source2MappedParentIds[entry.resource.id].push(source1ParId);
                     }
                   });
-                  datimParentNames[entry.resource.id].push(parent.text);
+                  source2ParentNames[entry.resource.id].push(parent.text);
                 } else {
-                  datimMappedParentIds[entry.resource.id].push(parent.id);
-                  datimParentNames[entry.resource.id].push(parent.text);
+                  source2MappedParentIds[entry.resource.id].push(parent.id);
+                  source2ParentNames[entry.resource.id].push(parent.text);
                 }
                 parentCallback()
               })
             }, () => {
               count++
-              const scoreRequestId = `scoreResults${datimTopId}${clientId}`
+              const scoreRequestId = `scoreResults${clientId}`
               let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
               scoreResData = JSON.stringify({
-                status: '2/3 - Scanning DATIM Location Parents',
+                status: '2/3 - Scanning Source2 Location Parents',
                 error: null,
                 percent: percent
               })
               redisClient.set(scoreRequestId, scoreResData)
-              if (count === mcsdDATIM.entry.length) {
+              if (count === mcsdSource2.entry.length) {
                 winston.info('Done populating parents')
               }
             })
           })
         }
       }
-      //clear mcsdDatimAll
-      mcsdDatimAll = {}
+      //clear mcsdSource2All
+      mcsdSource2All = {}
       winston.info('Calculating scores now')
       count = 0
-      var totalRecords = mcsdMOH.entry.length
-      async.eachSeries(mcsdMOH.entry, (mohEntry, mohCallback) => {
-        const database = config.getConf('mapping:dbPrefix') + datimTopId;
-        // check if this MOH Orgid is mapped
-        const mohId = mohEntry.resource.id;
-        const mohIdentifiers = mohEntry.resource.identifier;
-        let mohLatitude = null;
-        let mohLongitude = null;
-        if (mohEntry.resource.hasOwnProperty('position')) {
-          mohLatitude = mohEntry.resource.position.latitude;
-          mohLongitude = mohEntry.resource.position.longitude;
+      var totalRecords = mcsdSource1.entry.length
+      async.eachSeries(mcsdSource1.entry, (source1Entry, source1Callback) => {
+        // check if this Source1 Orgid is mapped
+        const source1Id = source1Entry.resource.id;
+        const source1Identifiers = source1Entry.resource.identifier;
+        let source1Latitude = null;
+        let source1Longitude = null;
+        if (source1Entry.resource.hasOwnProperty('position')) {
+          source1Latitude = source1Entry.resource.position.latitude;
+          source1Longitude = source1Entry.resource.position.longitude;
         }
-        const mohIdentifier = URI(config.getConf('mCSD:url'))
-          .segment(datimTopId)
+        const source1Identifier = URI(config.getConf('mCSD:url'))
+          .segment(source1DB)
           .segment('fhir')
           .segment('Location')
-          .segment(mohId)
+          .segment(source1Id)
           .toString();
 
         var matchBroken = false
-        if (mohEntry.resource.hasOwnProperty('tag')) {
-          var matchBrokenTag = mohEntry.resource.tag.find((tag) => {
+        if (source1Entry.resource.hasOwnProperty('tag')) {
+          var matchBrokenTag = source1Entry.resource.tag.find((tag) => {
             return tag.code == matchBrokenCode
           })
           if (matchBrokenTag) {
             matchBroken = true
           }
         }
-        this.matchStatus(mcsdMapped, mohIdentifier, (match) => {
-          // if this MOH Org is already mapped
+        if (source1Entry.resource.id === 'ddc431f1-d583-5b2f-8af3-95612a1cd441')
+        winston.error(source1Entry.resource.id)
+        this.matchStatus(mcsdMapped, source1Identifier, (match) => {
+          // if this Source1 Org is already mapped
           const thisRanking = {};
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             var entityParent = null;
-            if (mohEntry.resource.hasOwnProperty('partOf')) {
-              entityParent = mohEntry.resource.partOf.reference;
+            if (source1Entry.resource.hasOwnProperty('partOf')) {
+              entityParent = source1Entry.resource.partOf.reference;
             }
-            mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'names', (mohParents) => {
-              const ident = mohEntry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
-
-              let mohBuildingId = null;
+            mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'names', (source1Parents) => {
+              const ident = source1Entry.resource.identifier.find((identifier) => {
+                return identifier.system == 'https://digitalhealth.intrahealth.org/source1'
+              })
+              let source1BuildingId = null;
               if (ident) {
-                mohBuildingId = ident.value;
+                source1BuildingId = ident.value;
               }
-              thisRanking.moh = {
-                name: mohEntry.resource.name,
-                parents: mohParents,
-                lat: mohLatitude,
-                long: mohLongitude,
-                id: mohBuildingId,
+              thisRanking.source1 = {
+                name: source1Entry.resource.name,
+                parents: source1Parents,
+                lat: source1Latitude,
+                long: source1Longitude,
+                id: source1BuildingId,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
@@ -437,9 +428,9 @@ module.exports = function () {
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
               }
-              // in case this is marked as no match then process next MOH
+              // in case this is marked as no match then process next Source1
               if (noMatch) {
-                thisRanking.moh.tag = 'noMatch';
+                thisRanking.source1.tag = 'noMatch';
                 scoreResults.push(thisRanking);
                 count++
                 let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
@@ -449,25 +440,26 @@ module.exports = function () {
                   percent: percent
                 })
                 redisClient.set(scoreRequestId, scoreResData)
-                return mohCallback();
+                return source1Callback();
               }
 
-              //if this is flagged then process next MOH
+              //if this is flagged then process next Source1
               const flagCode = config.getConf('mapping:flagCode');
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
+                winston.error(flag)
                 if (flag) {
-                  thisRanking.moh.tag = 'flagged';
+                  thisRanking.source1.tag = 'flagged';
                 }
               }
 
-              var matchInDatim = mcsdDATIM.entry.find((entry) => {
+              var matchInSource2 = mcsdSource2.entry.find((entry) => {
                 return entry.resource.id == match.resource.id
               })
-              if (matchInDatim) {
+              if (matchInSource2) {
                 thisRanking.exactMatch = {
-                  name: matchInDatim.resource.name,
-                  parents: datimParentNames[match.resource.id],
+                  name: matchInSource2.resource.name,
+                  parents: source2ParentNames[match.resource.id],
                   id: match.resource.id,
                 };
               }
@@ -480,23 +472,22 @@ module.exports = function () {
                 percent: percent
               })
               redisClient.set(scoreRequestId, scoreResData)
-              return mohCallback();
+              return source1Callback();
             });
           } else { // if not mapped
-            const mohName = mohEntry.resource.name;
-            let mohParents = [];
-            const mohParentNames = [];
-            const mohParentIds = [];
-            if (mohEntry.resource.hasOwnProperty('partOf')) {
-              var entityParent = mohEntry.resource.partOf.reference;
-              var mohParentReceived = new Promise((resolve, reject) => {
-                mcsd.getLocationParentsFromData(entityParent, mcsdMohAll, 'all', (parents) => {
-                  mohParents = parents;
+            const source1Name = source1Entry.resource.name;
+            const source1ParentNames = [];
+            const source1ParentIds = [];
+            if (source1Entry.resource.hasOwnProperty('partOf')) {
+              var entityParent = source1Entry.resource.partOf.reference;
+              var source1ParentReceived = new Promise((resolve, reject) => {
+                mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'all', (parents) => {
+                  source1Parents = parents;
                   async.eachSeries(parents, (parent, nxtParent) => {
-                    mohParentNames.push(
+                    source1ParentNames.push(
                       parent.text,
                     );
-                    mohParentIds.push(
+                    source1ParentIds.push(
                       parent.id
                     )
                     return nxtParent();
@@ -506,150 +497,150 @@ module.exports = function () {
                 });
               });
             } else {
-              var mohParentReceived = Promise.resolve([]);
+              var source1ParentReceived = Promise.resolve([]);
             }
-            mohParentReceived.then(() => {
+            source1ParentReceived.then(() => {
               const thisRanking = {};
-              let mohBuildingId = null;
-              const ident = mohEntry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
+              let source1BuildingId = null;
+              const ident = source1Entry.resource.identifier.find((identifier) => {
+                return identifier.system == 'https://digitalhealth.intrahealth.org/source1'
+              })
               if (ident) {
-                mohBuildingId = ident.value;
+                source1BuildingId = ident.value;
               }
-              thisRanking.moh = {
-                name: mohName,
-                parents: mohParentNames,
-                lat: mohLatitude,
-                long: mohLongitude,
-                id: mohBuildingId,
+              thisRanking.source1 = {
+                name: source1Name,
+                parents: source1ParentNames,
+                lat: source1Latitude,
+                long: source1Longitude,
+                id: source1BuildingId,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
-              const datimPromises = [];
-              var datimFiltered = mcsdDATIM.entry.filter((entry) => {
-                // in case there are different levels of parents (only DATIM can have more levels due to import)
-                return datimMappedParentIds[entry.resource.id].includes(mohParentIds[0])
+              var source2Filtered = mcsdSource2.entry.filter((entry) => {
+                // in case there are different levels of parents (only Source2 can have more levels due to import)
+                return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
               })
-              async.eachSeries(datimFiltered, (datimEntry, datimCallback) => {
+              async.eachSeries(source2Filtered, (source2Entry, source2Callback) => {
                 if (Object.keys(thisRanking.exactMatch).length > 0) {
-                  return datimCallback()
+                  return source2Callback()
                 }
-                const database = config.getConf('mapping:dbPrefix') + datimTopId;
-                const id = datimEntry.resource.id;
-                const datimIdentifiers = datimEntry.resource.identifier;
-                //if this datim is already mapped then skip it
+                const id = source2Entry.resource.id;
+                const source2Identifiers = source2Entry.resource.identifier;
+                //if this source2 is already mapped then skip it
                 var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
                 })
                 if (ignoreThis) {
-                  return datimCallback()
+                  return source2Callback()
                 }
                 //if this is already mapped then ignore
-                if (datimLevelMappingStatus[id]) {
-                  return datimCallback();
+                if (source2LevelMappingStatus[id]) {
+                  return source2Callback();
                 }
 
-                const datimName = datimEntry.resource.name;
-                let datimLatitude = null;
-                let datimLongitude = null;
-                if (datimEntry.resource.hasOwnProperty('position')) {
-                  datimLatitude = datimEntry.resource.position.latitude;
-                  datimLongitude = datimEntry.resource.position.longitude;
+                const source2Name = source2Entry.resource.name;
+                let source2Latitude = null;
+                let source2Longitude = null;
+                if (source2Entry.resource.hasOwnProperty('position')) {
+                  source2Latitude = source2Entry.resource.position.latitude;
+                  source2Longitude = source2Entry.resource.position.longitude;
                 }
-                if (datimLatitude && datimLongitude) {
+                if (source2Latitude && source2Longitude) {
                   var dist = geodist({
-                    datimLatitude,
-                    datimLongitude
+                    source2Latitude,
+                    source2Longitude
                   }, {
-                    mohLatitude,
-                    mohLongitude
+                    source1Latitude,
+                    source1Longitude
                   }, {
                     exact: false,
                     unit: 'miles'
                   });
                 }
-                datimIdPromises = [];
+                source2IdPromises = [];
                 // check if IDS are the same and mark as exact match
-                const matchingIdent = datimIdentifiers.find(datIdent => mohIdentifiers.find(mohIdent => datIdent.value == mohIdent.value));
+                const matchingIdent = source2Identifiers.find(datIdent => source1Identifiers.find(source1Ident => datIdent.value == source1Ident.value));
                 if (matchingIdent && !matchBroken) {
-                  ignore.push(datimEntry.resource.id)
+                  ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
-                    name: datimName,
-                    parents: datimParentNames[datimEntry.resource.id],
-                    lat: datimLatitude,
-                    long: datimLongitude,
+                    name: source2Name,
+                    parents: source2ParentNames[source2Entry.resource.id],
+                    lat: source2Latitude,
+                    long: source2Longitude,
                     geoDistance: dist,
-                    id: datimEntry.resource.id,
+                    id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
 
                   });
-                  return datimCallback();
+                  return source2Callback();
                 } else if (matchingIdent && matchBroken) {
                   if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                     thisRanking.potentialMatches['0'] = []
                   }
                   thisRanking.potentialMatches['0'].push({
-                    name: datimName,
-                    parents: datimParentNames[datimEntry.resource.id],
-                    lat: datimLatitude,
-                    long: datimLongitude,
+                    name: source2Name,
+                    parents: source2ParentNames[source2Entry.resource.id],
+                    lat: source2Latitude,
+                    long: source2Longitude,
                     geoDistance: dist,
-                    id: datimEntry.resource.id
+                    id: source2Entry.resource.id
                   })
-                  return datimCallback();
+                  return source2Callback();
                 }
 
                 if (!matchBroken) {
                   const dictionary = config.getConf("dictionary")
                   for (let abbr in dictionary) {
-                    const replaced = mohName.replace(abbr, dictionary[abbr])
-                    if (replaced.toLowerCase() === datimName.toLowerCase()) {
-                      ignore.push(datimEntry.resource.id)
+                    const replaced = source1Name.replace(abbr, dictionary[abbr])
+                    if (replaced.toLowerCase() === source2Name.toLowerCase()) {
+                      ignore.push(source2Entry.resource.id)
                       thisRanking.exactMatch = {
-                        name: datimName,
-                        parents: datimParentNames[datimEntry.resource.id],
-                        lat: datimLatitude,
-                        long: datimLongitude,
+                        name: source2Name,
+                        parents: source2ParentNames[source2Entry.resource.id],
+                        lat: source2Latitude,
+                        long: source2Longitude,
                         geoDistance: dist,
-                        id: datimEntry.resource.id,
+                        id: source2Entry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {});
-                      return datimCallback();
+                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {});
+                      return source2Callback();
                     }
                   }
                 }
 
-                lev = levenshtein.get(datimName.toLowerCase(), mohName.toLowerCase());
+                lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                 if (lev == 0 && !matchBroken) {
-                  ignore.push(datimEntry.resource.id)
+                  ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
-                    name: datimName,
-                    parents: datimParentNames[datimEntry.resource.id],
-                    lat: datimLatitude,
-                    long: datimLongitude,
+                    name: source2Name,
+                    parents: source2ParentNames[source2Entry.resource.id],
+                    lat: source2Latitude,
+                    long: source2Longitude,
                     geoDistance: dist,
-                    id: datimEntry.resource.id,
+                    id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(mohId, datimEntry.resource.id, datimTopId, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
 
                   });
-                  return datimCallback();
+                  return source2Callback();
                 } else if (lev == 0 && matchBroken) {
                   if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                     thisRanking.potentialMatches['0'] = []
                   }
                   thisRanking.potentialMatches['0'].push({
-                    name: datimName,
-                    parents: datimParentNames[datimEntry.resource.id],
-                    lat: datimLatitude,
-                    long: datimLongitude,
+                    name: source2Name,
+                    parents: source2ParentNames[source2Entry.resource.id],
+                    lat: source2Latitude,
+                    long: source2Longitude,
                     geoDistance: dist,
-                    id: datimEntry.resource.id,
+                    id: source2Entry.resource.id,
                   })
-                  return datimCallback();
+                  return source2Callback();
                 }
                 if (Object.keys(thisRanking.exactMatch).length == 0) {
                   if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
@@ -657,12 +648,12 @@ module.exports = function () {
                       thisRanking.potentialMatches[lev] = [];
                     }
                     thisRanking.potentialMatches[lev].push({
-                      name: datimName,
-                      parents: datimParentNames[datimEntry.resource.id],
-                      lat: datimLatitude,
-                      long: datimLongitude,
+                      name: source2Name,
+                      parents: source2ParentNames[source2Entry.resource.id],
+                      lat: source2Latitude,
+                      long: source2Longitude,
                       geoDistance: dist,
-                      id: datimEntry.resource.id,
+                      id: source2Entry.resource.id,
                     });
                   } else {
                     const existingLev = Object.keys(thisRanking.potentialMatches);
@@ -671,17 +662,17 @@ module.exports = function () {
                       delete thisRanking.potentialMatches[max];
                       thisRanking.potentialMatches[lev] = [];
                       thisRanking.potentialMatches[lev].push({
-                        name: datimName,
-                        parents: datimParentNames[datimEntry.resource.id],
-                        lat: datimLatitude,
-                        long: datimLongitude,
+                        name: source2Name,
+                        parents: source2ParentNames[source2Entry.resource.id],
+                        lat: source2Latitude,
+                        long: source2Longitude,
                         geoDistance: dist,
-                        id: datimEntry.resource.id,
+                        id: source2Entry.resource.id,
                       });
                     }
                   }
                 }
-                return datimCallback();
+                return source2Callback();
               }, () => {
                 scoreResults.push(thisRanking);
                 count++;
@@ -692,7 +683,7 @@ module.exports = function () {
                   percent: percent
                 })
                 redisClient.set(scoreRequestId, scoreResData)
-                return mohCallback();
+                return source1Callback();
               });
             }).catch((err) => {
               winston.error(err);
@@ -716,29 +707,33 @@ module.exports = function () {
       const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
-    getUnmatched(mcsdDatimAll, mcsdDatim, topOrgId, callback) {
-      const database = config.getConf('mapping:dbPrefix') + topOrgId;
+    getUnmatched(mcsdSource2All, mcsdSource2, source1, source2, callback) {
+      const database = source1 + source2;
       const unmatched = [];
-      mcsd.getLocations(database, (locations) => {
+      mcsd.getLocations(database, (mappedLocations) => {
         let parentCache = {}
-        async.each(mcsdDatim.entry, (datimEntry, datimCallback) => {
-          if (locations.entry.find(entry => entry.resource.id === datimEntry.resource.id) === undefined) {
-            const name = datimEntry.resource.name;
-            const id = datimEntry.resource.id;
+        async.each(mcsdSource2.entry, (source2Entry, source2Callback) => {
+
+          let matched = mappedLocations.entry.find((entry) => {
+            return entry.resource.id === source2Entry.resource.id && entry.resource.identifier.length === 2
+          })
+          if (!matched) {
+            const name = source2Entry.resource.name;
+            const id = source2Entry.resource.id;
             let entityParent = null;
-            if (datimEntry.resource.hasOwnProperty('partOf')) {
-              entityParent = datimEntry.resource.partOf.reference;
+            if (source2Entry.resource.hasOwnProperty('partOf')) {
+              entityParent = source2Entry.resource.partOf.reference;
             }
             if (!parentCache[entityParent]) {
               parentCache[entityParent] = []
-              mcsd.getLocationParentsFromData(entityParent, mcsdDatimAll, 'names', (datimParents) => {
-                parentCache[entityParent] = datimParents
+              mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'names', (source2Parents) => {
+                parentCache[entityParent] = source2Parents
                 unmatched.push({
                   id,
                   name,
                   parents: parentCache[entityParent]
                 });
-                return datimCallback();
+                return source2Callback();
               });
             } else {
               unmatched.push({
@@ -746,17 +741,17 @@ module.exports = function () {
                 name,
                 parents: parentCache[entityParent]
               });
-              return datimCallback();
+              return source2Callback();
             }
           } else {
-            return datimCallback();
+            return source2Callback();
           }
         }, () => {
           callback(unmatched);
         });
       })
     },
-    getMappingStatus(mohLocations, datimLocations, mappedLocations, datimTopId, clientId, callback) {
+    getMappingStatus(source1Locations, source2Locations, mappedLocations, source1DB, clientId, callback) {
       const noMatchCode = config.getConf('mapping:noMatchCode');
       const flagCode = config.getConf('mapping:flagCode');
       var mappingStatus = {}
@@ -765,23 +760,23 @@ module.exports = function () {
       mappingStatus.flagged = []
       mappingStatus.noMatch = []
       let count = 0
-      async.each(mohLocations.entry, (entry, mohCallback) => {
-        const ident = entry.resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
-        let mohUploadedId = null;
+      async.each(source1Locations.entry, (entry, source1Callback) => {
+        const ident = entry.resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
+        let source1UploadedId = null;
         if (ident) {
-          mohUploadedId = ident.value;
+          source1UploadedId = ident.value;
         }
-        const mohId = entry.resource.id;
-        const mohIdentifier = URI(config.getConf('mCSD:url'))
-          .segment(datimTopId)
+        const source1Id = entry.resource.id;
+        const source1Identifier = URI(config.getConf('mCSD:url'))
+          .segment(source1DB)
           .segment('fhir')
           .segment('Location')
-          .segment(mohId)
+          .segment(source1Id)
           .toString()
-        this.matchStatus(mappedLocations, mohIdentifier, (mapped) => {
+        this.matchStatus(mappedLocations, source1Identifier, (mapped) => {
           if (mapped) {
-            var datimEntry = datimLocations.entry.find((datimEntry) => {
-              return datimEntry.resource.id === mapped.resource.id
+            var source2Entry = source2Locations.entry.find((source2Entry) => {
+              return source2Entry.resource.id === mapped.resource.id
             })
             let nomatch, flagged
             if (mapped.resource.hasOwnProperty('tag')) {
@@ -796,53 +791,53 @@ module.exports = function () {
             }
             if (flagged) {
               mappingStatus.flagged.push({
-                mohName: entry.resource.name,
-                mohId: mohUploadedId,
-                datimName: datimEntry.resource.name,
-                datimId: datimEntry.resource.id
+                source1Name: entry.resource.name,
+                source1Id: source1UploadedId,
+                source2Name: source2Entry.resource.name,
+                source2Id: source2Entry.resource.id
               })
             } else if (nomatch) {
               mappingStatus.noMatch.push({
-                mohName: entry.resource.name,
-                mohId: mohUploadedId
+                source1Name: entry.resource.name,
+                source1Id: source1UploadedId
               })
             } else {
               mappingStatus.mapped.push({
-                mohName: entry.resource.name,
-                mohId: mohUploadedId,
-                datimName: datimEntry.resource.name,
-                datimId: datimEntry.resource.id
+                source1Name: entry.resource.name,
+                source1Id: source1UploadedId,
+                source2Name: source2Entry.resource.name,
+                source2Id: source2Entry.resource.id
               })
             }
             count++
-            let statusRequestId = `mappingStatus${datimTopId}${clientId}`
-            let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
+            let statusRequestId = `mappingStatus${clientId}`
+            let percent = parseFloat((count * 100 / source1Locations.entry.length).toFixed(2))
             statusResData = JSON.stringify({
-              status: '2/2 - Loading DATIM and MOH Data',
+              status: '2/2 - Loading Source2 and Source1 Data',
               error: null,
               percent: percent
             })
             redisClient.set(statusRequestId, statusResData)
-            mohCallback()
+            source1Callback()
           } else {
             mappingStatus.notMapped.push({
-              mohName: entry.resource.name,
-              mohId: mohUploadedId
+              source1Name: entry.resource.name,
+              source1Id: source1UploadedId
             })
             count++
-            let statusRequestId = `mappingStatus${datimTopId}${clientId}`
-            let percent = parseFloat((count * 100 / mohLocations.entry.length).toFixed(2))
+            let statusRequestId = `mappingStatus${clientId}`
+            let percent = parseFloat((count * 100 / source1Locations.entry.length).toFixed(2))
             statusResData = JSON.stringify({
-              status: '2/2 - Loading DATIM and MOH Data',
+              status: '2/2 - Loading Source2 and Source1 Data',
               error: null,
               percent: percent
             })
             redisClient.set(statusRequestId, statusResData)
-            mohCallback()
+            source1Callback()
           }
         })
       }, () => {
-        let statusRequestId = `mappingStatus${datimTopId}${clientId}`
+        let statusRequestId = `mappingStatus${clientId}`
         statusResData = JSON.stringify({
           status: 'Done',
           error: null,

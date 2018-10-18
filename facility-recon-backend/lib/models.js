@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-let datasources = new mongoose.Schema({
+let DataSources = new mongoose.Schema({
   name: {
     type: String,
     required: true
@@ -24,7 +24,7 @@ let datasources = new mongoose.Schema({
   },
 })
 
-let datasourcepair = new mongoose.Schema({
+let DataSourcePair = new mongoose.Schema({
   source1: {
     type: String
   },
@@ -36,16 +36,16 @@ let datasourcepair = new mongoose.Schema({
   }
 })
 
-let metadata = new mongoose.Schema({
+let MetaData = new mongoose.Schema({
   lastUpdated: {
     type: String
   }
 })
-let DataSources = mongoose.model('DataSources', datasources)
-let DataSourcePair = mongoose.model('DataSourcePair', datasourcepair)
-let MetaData = mongoose.model('MetaData', metadata)
+let DataSourcesSchema = mongoose.model('DataSources', DataSources)
+let DataSourcePairSchema = mongoose.model('DataSourcePair', DataSourcePair)
+let MetaDataSchema = mongoose.model('MetaData', MetaData)
 module.exports = {
-  DataSources,
-  DataSourcePair,
-  MetaData
+  DataSourcesSchema,
+  DataSourcePairSchema,
+  MetaDataSchema
 }

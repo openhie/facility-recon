@@ -464,19 +464,12 @@ module.exports = function () {
       });
     },
 
-    countLevels(source, db, topOrgId, callback) {
+    countLevels(db, topOrgId, callback) {
       function constructURL(id, callback) {
-        if (source == 'MOH') {
-          var url = `${URI(config.getConf('mCSD:url'))
+        var url = `${URI(config.getConf('mCSD:url'))
           .segment(db)
           .segment('fhir')
           .segment('Location')}?partof=Location/${id.toString()}`;
-        } else if (source == 'DATIM') {
-          var url = `${URI(config.getConf('mCSD:url'))
-          .segment(db)
-          .segment('fhir')
-          .segment('Location')}?partof=Location/${id.toString()}`;
-        }
         return callback(url)
       }
 
@@ -547,25 +540,23 @@ module.exports = function () {
         });
       }
     },
-    saveMatch(mohId, datimId, topOrgId, recoLevel, totalLevels, type, callback) {
-      const database = config.getConf('mCSD:database');
+    saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, callback) {
       const flagCode = config.getConf('mapping:flagCode');
-      const namespace = config.getConf('UUID:namespace');
-      const mohSystem = 'http://geoalign.datim.org/MOH';
-      const datimSystem = 'http://geoalign.datim.org/DATIM';
+      const source1System = 'https://digitalhealth.intrahealth.org/source1';
+      const source2System = 'https://digitalhealth.intrahealth.org/source2';
       // check if its already mapped and inore
-      const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+      const mappingDB = source1DB + source2DB
 
       const me = this;
       async.parallel({
-          datimMapped(callback) {
-            const datimIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(database)
+          source2Mapped(callback) {
+            const source2Identifier = URI(config.getConf('mCSD:url'))
+              .segment(source2DB)
               .segment('fhir')
               .segment('Location')
-              .segment(datimId)
+              .segment(source2Id)
               .toString();
-            me.getLocationByIdentifier(mappingDB, datimIdentifier, (mapped) => {
+            me.getLocationByIdentifier(mappingDB, source2Identifier, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
@@ -573,14 +564,14 @@ module.exports = function () {
               return callback(null, null);
             });
           },
-          mohMapped(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(topOrgId)
+          source1Mapped(callback) {
+            const source1Identifier = URI(config.getConf('mCSD:url'))
+              .segment(source1DB)
               .segment('fhir')
               .segment('Location')
-              .segment(mohId)
+              .segment(source1Id)
               .toString();
-            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
+            me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error('Attempting to map already mapped location');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
@@ -590,14 +581,14 @@ module.exports = function () {
           },
         },
         (err, res) => {
-          if (res.mohMapped !== null) {
-            return callback(res.mohMapped);
+          if (res.source1Mapped !== null) {
+            return callback(res.source1Mapped);
           }
-          if (res.datimMapped !== null) {
-            return callback(res.datimMapped);
+          if (res.source2Mapped !== null) {
+            return callback(res.source2Mapped);
           }
 
-          me.getLocationByID(database, datimId, false, (mcsd) => {
+          me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
             const fhir = {};
             fhir.entry = [];
             fhir.type = 'document';
@@ -605,21 +596,21 @@ module.exports = function () {
             const resource = {};
             resource.resourceType = 'Location';
             resource.name = mcsd.entry[0].resource.name;
-            resource.id = datimId;
+            resource.id = source2Id;
             resource.identifier = [];
-            const datimURL = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-              .segment(datimId)
+            const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
+              .segment(source2Id)
               .toString();
-            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
-              .segment(mohId)
+            const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+              .segment(source1Id)
               .toString();
             resource.identifier.push({
-              system: datimSystem,
-              value: datimURL,
+              system: source2System,
+              value: source2URL,
             });
             resource.identifier.push({
-              system: mohSystem,
-              value: mohURL,
+              system: source1System,
+              value: source1URL,
             });
 
             if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
@@ -630,7 +621,7 @@ module.exports = function () {
             }
             if (recoLevel == totalLevels) {
               var typeCode = 'bu';
-              var typeCode = 'building';
+              var typeName = 'building';
             } else {
               var typeCode = 'jdn';
               var typeName = 'Jurisdiction';
@@ -645,7 +636,7 @@ module.exports = function () {
             if (type == 'flag') {
               resource.tag = [];
               resource.tag.push({
-                system: mohSystem,
+                system: source1System,
                 code: flagCode,
                 display: 'To be reviewed',
               });
@@ -654,7 +645,7 @@ module.exports = function () {
               resource,
             });
             fhir.entry = fhir.entry.concat(entry);
-            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+            const mappingDB = source1DB + source2DB;
             me.saveLocations(fhir, mappingDB, (err, res) => {
               if (err) {
                 winston.error(err);
@@ -664,9 +655,9 @@ module.exports = function () {
           });
         });
     },
-    acceptFlag(datimId, topOrgId, callback) {
-      const database = config.getConf('mapping:dbPrefix') + topOrgId;
-      this.getLocationByID(database, datimId, false, (flagged) => {
+    acceptFlag(source2Id, source1DB, source2DB, callback) {
+      const database = source1DB + source2DB
+      this.getLocationByID(database, source2Id, false, (flagged) => {
         delete flagged.resourceType;
         delete flagged.id;
         delete flagged.meta;
@@ -684,7 +675,7 @@ module.exports = function () {
 
         // deleting existing location
         const url_prefix = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        const url = URI(url_prefix).segment(datimId).toString();
+        const url = URI(url_prefix).segment(source2Id).toString();
         const options = {
           url,
         };
@@ -704,22 +695,21 @@ module.exports = function () {
         });
       });
     },
-    saveNoMatch(mohId, topOrgId, recoLevel, totalLevels, callback) {
-      const database = topOrgId;
-      const mohSystem = 'http://geoalign.datim.org/MOH';
+    saveNoMatch(source1Id, source1DB, source2DB, recoLevel, totalLevels, callback) {
+      const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const noMatchCode = config.getConf('mapping:noMatchCode');
 
       const me = this;
       async.parallel({
-          mohMapped(callback) {
-            const mohIdentifier = URI(config.getConf('mCSD:url'))
-              .segment(topOrgId)
+          source1Mapped(callback) {
+            const source1Identifier = URI(config.getConf('mCSD:url'))
+              .segment(source1DB)
               .segment('fhir')
               .segment('Location')
-              .segment(mohId)
+              .segment(source1Id)
               .toString();
-            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
-            me.getLocationByIdentifier(mappingDB, mohIdentifier, (mapped) => {
+            const mappingDB = source1DB + source2DB
+            me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error('Attempting to mark an already mapped location as no match');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
@@ -729,10 +719,10 @@ module.exports = function () {
           },
         },
         (err, res) => {
-          if (res.mohMapped !== null) {
-            return callback(res.mohMapped);
+          if (res.source1Mapped !== null) {
+            return callback(res.source1Mapped);
           }
-          me.getLocationByID(database, mohId, false, (mcsd) => {
+          me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
             const fhir = {};
             fhir.entry = [];
             fhir.type = 'document';
@@ -740,7 +730,7 @@ module.exports = function () {
             const resource = {};
             resource.resourceType = 'Location';
             resource.name = mcsd.entry[0].resource.name;
-            resource.id = mohId;
+            resource.id = source1Id;
 
             if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
               resource.partOf = {
@@ -750,7 +740,7 @@ module.exports = function () {
             }
             if (recoLevel == totalLevels) {
               var typeCode = 'bu';
-              var typeCode = 'building';
+              var typeName = 'building';
             } else {
               var typeCode = 'jdn';
               var typeName = 'Jurisdiction';
@@ -763,17 +753,17 @@ module.exports = function () {
               }],
             };
             resource.identifier = [];
-            const mohURL = URI(config.getConf('mCSD:url')).segment(topOrgId).segment('fhir').segment('Location')
-              .segment(mohId)
+            const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+              .segment(source1Id)
               .toString();
             resource.identifier.push({
-              system: mohSystem,
-              value: mohURL,
+              system: source1System,
+              value: source1URL,
             });
 
             resource.tag = [];
             resource.tag.push({
-              system: mohSystem,
+              system: source1System,
               code: noMatchCode,
               display: 'No Match',
             });
@@ -781,7 +771,8 @@ module.exports = function () {
               resource,
             });
             fhir.entry = fhir.entry.concat(entry);
-            const mappingDB = config.getConf('mapping:dbPrefix') + topOrgId;
+            const mappingDB = source1DB + source2DB
+            winston.error(fhir)
             me.saveLocations(fhir, mappingDB, (err, res) => {
               if (err) {
                 winston.error(err);
@@ -791,16 +782,16 @@ module.exports = function () {
           });
         });
     },
-    breakMatch(id, database, topOrgId, callback) {
+    breakMatch(id, mappingDB, source1DB, callback) {
       const url_prefix = URI(config.getConf('mCSD:url'))
-        .segment(database)
+        .segment(mappingDB)
         .segment('fhir')
         .segment('Location')
       const url = URI(url_prefix).segment(id).toString()
       const options = {
         url,
       };
-      this.getLocationByID(database, id, false, (location) => {
+      this.getLocationByID(mappingDB, id, false, (location) => {
         if (location.entry.length === 0) {
           return callback(true, null);
         }
@@ -811,10 +802,10 @@ module.exports = function () {
           }
           callback(err, null);
         });
-        const identifier = location.entry[0].resource.identifier.find(identifier => identifier.system == 'http://geoalign.datim.org/MOH');
+        const identifier = location.entry[0].resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
         if (identifier) {
           const id = identifier.value.split('/').pop();
-          this.getLocationByID(topOrgId, id, false, (location) => {
+          this.getLocationByID(source1DB, id, false, (location) => {
             delete location.resourceType;
             delete location.id;
             delete location.meta;
@@ -834,22 +825,22 @@ module.exports = function () {
                 if (!location.entry[0].resource.hasOwnProperty('tag')) {
                   location.entry[0].resource.tag = [];
                 }
-                const mohSystem = 'http://geoalign.datim.org/MOH';
+                const source1System = 'https://digitalhealth.intrahealth.org/source1';
                 location.entry[0].resource.tag.push({
-                  system: mohSystem,
+                  system: source1System,
                   code: matchBrokenCode,
                   display: 'Match Broken',
                 });
-                this.saveLocations(location, topOrgId, (err, res) => {});
+                this.saveLocations(location, source1DB, (err, res) => {});
               }
             });
           });
         }
       });
     },
-    breakNoMatch(id, database, callback) {
+    breakNoMatch(id, mappingDB, callback) {
       const url_prefix = URI(config.getConf('mCSD:url'))
-        .segment(database)
+        .segment(mappingDB)
         .segment('fhir')
         .segment('Location')
       const url = URI(url_prefix)
@@ -867,9 +858,12 @@ module.exports = function () {
       });
     },
     CSVTomCSD(filePath, headerMapping, database, clientId, callback) {
-      var uploadRequestId = `uploadProgress${database}${clientId}`;
+      let uploadRequestId = `uploadProgress${clientId}`;
       const namespace = config.getConf('UUID:namespace');
       const levels = config.getConf('levels');
+      let topOrgId = config.getConf('mCSD:fakeOrgId')
+      let orgname = config.getConf('mCSD:fakeOrgName')
+      const countryUUID = topOrgId
 
       const promises = [];
       const processed = [];
@@ -915,10 +909,11 @@ module.exports = function () {
             ) {
               const name = data[headerMapping[level]].trim();
               const levelNumber = level.replace('level', '');
-              let megedParents = ''
+              let mergedParents = ''
+
               // merge parents of this location
               for (var k = levelNumber - 1; k >= 1; k--) {
-                megedParents += data[headerMapping['level' + k]]
+                mergedParents += data[headerMapping['level' + k]]
               }
               if (levelNumber.toString().length < 2) {
                 var namespaceMod = `${namespace}00${levelNumber}`;
@@ -926,7 +921,7 @@ module.exports = function () {
                 var namespaceMod = `${namespace}0${levelNumber}`;
               }
 
-              const UUID = uuid5(name + megedParents, namespaceMod);
+              const UUID = uuid5(name + mergedParents, namespaceMod);
               const topLevels = Array.apply(null, {
                 length: levelNumber
               }).map(Function.call, Number);
@@ -936,6 +931,10 @@ module.exports = function () {
               let parentFound = false;
               let parentUUID = null;
               let parent = null;
+              if (levelNumber == 1) {
+                parent = orgname;
+                parentUUID = countryUUID;
+              }
 
               if (!facilityParent) {
                 facilityParent = name;
@@ -974,6 +973,15 @@ module.exports = function () {
               nxtLevel();
             }
           }, () => {
+            if (!processed.includes(countryUUID)) {
+              jurisdictions.push({
+                name: orgname,
+                parent: null,
+                uuid: countryUUID,
+                parentUUID: null,
+              });
+              processed.push(countryUUID);
+            }
             recordCount += jurisdictions.length
             this.buildJurisdiction(jurisdictions, saveBundle)
             const facilityName = data[headerMapping.facility].trim();
@@ -1019,7 +1027,7 @@ module.exports = function () {
         }).on('end', () => {
           this.saveLocations(saveBundle, database, () => {
             Promise.all(promises).then(() => {
-              var uploadRequestId = `uploadProgress${database}${clientId}`;
+              var uploadRequestId = `uploadProgress${clientId}`;
               const uploadReqPro = JSON.stringify({
                 status: 'Done',
                 error: null,
@@ -1042,7 +1050,7 @@ module.exports = function () {
         resource.id = jurisdiction.uuid
         resource.identifier = []
         resource.identifier.push({
-          system: 'http://geoalign.datim.org/MOH',
+          system: 'https://digitalhealth.intrahealth.org/source1',
           value: jurisdiction.uuid,
         })
         if (jurisdiction.parentUUID) {
@@ -1077,7 +1085,7 @@ module.exports = function () {
       resource.id = building.uuid
       resource.identifier = []
       resource.identifier.push({
-        system: 'http://geoalign.datim.org/MOH',
+        system: 'https://digitalhealth.intrahealth.org/source1',
         value: building.id,
       })
       resource.partOf = {
@@ -1179,7 +1187,7 @@ module.exports = function () {
       })
     },
 
-    createTree(mcsd, source, database, topOrg, callback) {
+    createTree(mcsd, topOrg, callback) {
       const tree = [];
       const lookup = [];
       const addLater = {};
@@ -1229,14 +1237,18 @@ module.exports = function () {
           }
         };
         runSort(tree);
-
-        callback(tree);
+        if (tree.hasOwnProperty(0)) {
+          //return children of fake topOrgId,skip the fake topOrgId
+          return callback(tree[0].children);
+        } else {
+          return callback(tree)
+        }
       });
     },
     cleanArchives(db, callback) {
       const maxArchives = config.getConf('dbArchives:maxArchives');
       const filter = function (stat, path) {
-        if (path.includes(db) && !path.includes('MOHDATIM')) {
+        if (path.includes(db) && !path.includes(config.getConf('mapping:dbPrefix'))) {
           return true;
         }
         return false;
@@ -1273,7 +1285,7 @@ module.exports = function () {
                 }
               });
               const dl = fileDelete.split(db);
-              fileDelete = `${dl[0]}MOHDATIM_${db}${dl[1]}`;
+              fileDelete = `${dl[0]}${config.getConf('mapping:dbPrefix')}_${db}${dl[1]}`;
               fs.unlink(fileDelete, (err) => {
                 if (err) {
                   winston.error(err);
@@ -1299,8 +1311,8 @@ module.exports = function () {
         db,
       });
       dbList.push({
-        name: `MOHDATIM_${name}`,
-        db: `MOHDATIM${db}`,
+        name: `${config.getConf('mapping:dbPrefix')}_${name}`,
+        db: `${config.getConf('mapping:dbPrefix')}${db}`,
       });
       const error = false;
       async.eachSeries(dbList, (list, nxtList) => {
@@ -1351,8 +1363,8 @@ module.exports = function () {
           winston.info('Restoring now ....');
           const dbList = [];
           dbList.push({
-            archive: `MOHDATIM_${db}_${archive}.tar`,
-            db: `MOHDATIM${db}`,
+            archive: `${config.getConf('mapping:dbPrefix')}${db}_${archive}.tar`,
+            db: `${config.getConf('mapping:dbPrefix')}${db}`,
           });
           dbList.push({
             archive: `${db}_${archive}.tar`,
@@ -1389,7 +1401,7 @@ module.exports = function () {
     deleteDB(db, callback) {
       const dbList = [];
       dbList.push(db);
-      dbList.push(`MOHDATIM${db}`);
+      dbList.push(`${config.getConf('mapping:dbPrefix')}${db}`);
       let error = null;
       async.eachSeries(dbList, (db, nxtList) => {
         mongoose.connect(`mongodb://localhost/${db}`);
@@ -1411,7 +1423,7 @@ module.exports = function () {
     },
     getArchives(db, callback) {
       const filter = function (stat, path) {
-        if (path.includes(db) && !path.includes('MOHDATIM')) {
+        if (path.includes(db) && !path.includes(config.getConf('mapping:dbPrefix'))) {
           return true;
         }
         return false;

@@ -12,15 +12,15 @@
           <v-flex xs6>
             <v-card>
               <v-card-title primary-title>
-                <h3 class="headline mb-0">MOH Data Tree</h3>
+                <h3 class="headline mb-0">Source 1 Data Tree</h3>
               </v-card-title>
-              <template v-if="mohTree.length == 0">
+              <template v-if="source1Tree.length == 0">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-text>
                   <p>
-                    <liquor-tree @node:selected="mohNodeSelected" :data="mohTree" :options="{}" ref="mohTree" />
+                    <liquor-tree @node:selected="source1NodeSelected" :data="source1Tree" :options="{}" ref="source1Tree" />
                   </p>
                 </v-card-text>
               </template>
@@ -29,15 +29,15 @@
           <v-flex xs6>
             <v-card>
               <v-card-title primary-title>
-                <h3 class="headline mb-0">DATIM Data Tree</h3>
+                <h3 class="headline mb-0">Source2 Data Tree</h3>
               </v-card-title>
-              <template v-if="datimTree.length == 0">
+              <template v-if="source2Tree.length == 0">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-text>
                   <p>
-                    <liquor-tree @node:selected="datimNodeSelected" :data="datimTree" :options="{}" ref="datimTree" />
+                    <liquor-tree @node:selected="source2NodeSelected" :data="source2Tree" :options="{}" ref="source2Tree" />
                   </p>
                 </v-card-text>
               </template>
@@ -48,22 +48,22 @@
               <v-card-title primary-title>
                 <h3 class="headline mb-0">MoH Data Grid</h3>
               </v-card-title>
-              <template v-if="!mohGrid">
+              <template v-if="!source1Grid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-title>
-                  <v-text-field v-model="searchMOH" append-icon="search" label="Search" single-line hide-details></v-text-field>
+                  <v-text-field v-model="searchSource1" append-icon="search" label="Search" single-line hide-details></v-text-field>
                 </v-card-title>
                 <v-card-text>
-                  <v-data-table :headers="mohGridHeader" :items="mohGrid" :search="searchMOH" :pagination.sync="mohPagination" :total-items="totalMohRecords" :loading="loadingMoh" hide-actions class="elevation-1">
+                  <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in mohGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
                 <div class="text-xs-center pt-2">
-                  <v-pagination v-model="mohPagination.page" :length="mohPages"></v-pagination>
+                  <v-pagination v-model="source1Pagination.page" :length="source1Pages"></v-pagination>
                 </div>
               </template>
             </v-card>
@@ -71,24 +71,24 @@
           <v-flex xs6>
             <v-card>
               <v-card-title primary-title>
-                <h3 class="headline mb-0">DATIM Data Grid</h3>
+                <h3 class="headline mb-0">Source 2 Data Grid</h3>
               </v-card-title>
-              <template v-if="!datimGrid">
+              <template v-if="!source2Grid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
               </template>
               <template v-else>
                 <v-card-title>
-                  <v-text-field v-model="searchDATIM" append-icon="search" label="Search" single-line hide-details></v-text-field>
+                  <v-text-field v-model="searchSource2" append-icon="search" label="Search" single-line hide-details></v-text-field>
                 </v-card-title>
                 <v-card-text>
-                  <v-data-table :headers="datimGridHeader" :items="datimGrid" :search="searchDATIM" :pagination.sync="datimPagination" :total-items="totalDatimRecords" :loading="loadingDatim" hide-actions class="elevation-1">
+                  <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in datimGridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
                 <div class="text-xs-center pt-2">
-                  <v-pagination v-model="datimPagination.page" :length="datimPages"></v-pagination>
+                  <v-pagination v-model="source2Pagination.page" :length="source2Pages"></v-pagination>
                 </div>
               </template>
             </v-card>
@@ -111,11 +111,13 @@
 <script scoped>
 import LiquorTree from 'liquor-tree'
 import axios from 'axios'
+import { scoresMixin } from '../mixins/scoresMixin'
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 
 export default {
+  mixins: [scoresMixin],
   data () {
     return {
       headerText: {
@@ -141,40 +143,40 @@ export default {
         { text: 'Latitude', value: 'latitude' },
         { text: 'Longitude', value: 'longitude' }
       ],
-      searchMOH: '',
-      searchDATIM: '',
-      filterMOH: { text: '', level: '' },
-      filterDATIM: { text: '', level: '' },
-      datimPagination: { rowsPerPage: 20 },
-      mohPagination: { rowsPerPage: 20 },
-      loadingMoh: false,
-      loadingDatim: false,
-      totalMohRecords: 0,
-      totalDatimRecords: 0,
-      datimGrid: '',
-      mohGrid: '',
-      mohTree: [],
-      datimTree: [],
-      mohStart: 1,
-      datimStart: 1,
-      mohCount: 10,
-      datimCount: 10,
-      currentDatimPagination: {},
-      currentMohPagination: {},
-      mohSelNodeId: false,
-      datimSelNodeId: false
+      searchSource1: '',
+      searchSource2: '',
+      filterSource1: { text: '', level: '' },
+      filterSource2: { text: '', level: '' },
+      source2Pagination: { rowsPerPage: 20 },
+      source1Pagination: { rowsPerPage: 20 },
+      loadingSource1: false,
+      loadingSource2: false,
+      totalSource1Records: 0,
+      totalSource2Records: 0,
+      source2Grid: '',
+      source1Grid: '',
+      source1Tree: [],
+      source2Tree: [],
+      source1Start: 1,
+      source2Start: 1,
+      source1Count: 10,
+      source2Count: 10,
+      currentSource2Pagination: {},
+      currentSource1Pagination: {},
+      source1SelNodeId: false,
+      source2SelNodeId: false
     }
   },
   methods: {
-    getMohGrid (id) {
-      this.loadingMoh = true
-      var orgUnit = this.$store.state.orgUnit
+    getSource1Grid (id) {
+      this.loadingSource1 = true
       if (!id) {
-        id = orgUnit.OrgId
+        id = ''
       }
-      axios.get(backendServer + '/hierarchy/moh/' + id + '/' + this.mohStart + '/' + this.mohCount, { params: orgUnit }).then((hierarchy) => {
-        const { sortBy, descending } = this.mohPagination
-        if (this.mohPagination.sortBy) {
+      let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}`
+      axios.get(backendServer + path).then((hierarchy) => {
+        const { sortBy, descending } = this.source1Pagination
+        if (this.source1Pagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
             const sortA = a[sortBy]
             const sortB = b[sortBy]
@@ -190,36 +192,35 @@ export default {
             }
           })
         }
-        this.mohGrid = hierarchy.data.grid
-        this.totalMohRecords = hierarchy.data.total
+        this.source1Grid = hierarchy.data.grid
+        this.totalSource1Records = hierarchy.data.total
 
-        // set these values to stop reloading data due to watcher see that the var datimPagination has changed
-        this.currentMohPagination = Object.assign({}, this.mohPagination)
-        if (!this.currentMohPagination.hasOwnProperty('descending')) {
-          this.currentMohPagination.descending = false
+        // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
+        this.currentSource1Pagination = Object.assign({}, this.source1Pagination)
+        if (!this.currentSource1Pagination.hasOwnProperty('descending')) {
+          this.currentSource1Pagination.descending = false
         }
-        if (!this.currentMohPagination.hasOwnProperty('page')) {
-          this.currentMohPagination.page = 1
+        if (!this.currentSource1Pagination.hasOwnProperty('page')) {
+          this.currentSource1Pagination.page = 1
         }
-        if (!this.currentMohPagination.hasOwnProperty('sortBy')) {
-          this.currentMohPagination.sortBy = 'facility'
+        if (!this.currentSource1Pagination.hasOwnProperty('sortBy')) {
+          this.currentSource1Pagination.sortBy = 'facility'
         }
-        if (!this.currentMohPagination.hasOwnProperty('totalItems')) {
-          this.currentMohPagination.totalItems = hierarchy.data.total
+        if (!this.currentSource1Pagination.hasOwnProperty('totalItems')) {
+          this.currentSource1Pagination.totalItems = hierarchy.data.total
         }
-        this.loadingMoh = false
+        this.loadingSource1 = false
       })
     },
-    getDatimGrid (id) {
-      this.loadingDatim = true
-      let orgUnit = this.$store.state.orgUnit
+    getSource2Grid (id) {
       if (!id) {
-        id = orgUnit.OrgId
+        id = ''
       }
-      axios.get(backendServer + '/hierarchy/datim/' + id + '/' + this.datimStart + '/' + this.datimCount, { params: orgUnit }).then((hierarchy) => {
-        // const { sortBy, descending, page, rowsPerPage } = this.datimPagination
-        const { sortBy, descending } = this.datimPagination
-        if (this.datimPagination.sortBy) {
+      this.loadingSource2 = true
+      let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}`
+      axios.get(backendServer + path).then((hierarchy) => {
+        const { sortBy, descending } = this.source2Pagination
+        if (this.source2Pagination.sortBy) {
           hierarchy.data.tree = hierarchy.data.grid.sort((a, b) => {
             const sortA = a[sortBy]
             const sortB = b[sortBy]
@@ -235,56 +236,55 @@ export default {
             }
           })
         }
-        this.datimGrid = hierarchy.data.grid
-        this.totalDatimRecords = hierarchy.data.total
-        this.datimPagination.totalItems = hierarchy.data.total
+        this.source2Grid = hierarchy.data.grid
+        this.totalSource2Records = hierarchy.data.total
+        this.source2Pagination.totalItems = hierarchy.data.total
 
-        // set these values to stop reloading data due to watcher see that the var datimPagination has changed
-        this.currentDatimPagination = Object.assign({}, this.datimPagination)
-        if (!this.currentDatimPagination.hasOwnProperty('descending')) {
-          this.currentDatimPagination.descending = false
+        // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
+        this.currentSource2Pagination = Object.assign({}, this.source2Pagination)
+        if (!this.currentSource2Pagination.hasOwnProperty('descending')) {
+          this.currentSource2Pagination.descending = false
         }
-        if (!this.currentDatimPagination.hasOwnProperty('page')) {
-          this.currentDatimPagination.page = 1
+        if (!this.currentSource2Pagination.hasOwnProperty('page')) {
+          this.currentSource2Pagination.page = 1
         }
-        if (!this.currentDatimPagination.hasOwnProperty('sortBy')) {
-          this.currentDatimPagination.sortBy = 'facility'
+        if (!this.currentSource2Pagination.hasOwnProperty('sortBy')) {
+          this.currentSource2Pagination.sortBy = 'facility'
         }
-        if (!this.currentDatimPagination.hasOwnProperty('totalItems')) {
-          this.currentDatimPagination.totalItems = hierarchy.data.total
+        if (!this.currentSource2Pagination.hasOwnProperty('totalItems')) {
+          this.currentSource2Pagination.totalItems = hierarchy.data.total
         }
-        this.loadingDatim = false
+        this.loadingSource2 = false
       })
     },
     getTree () {
-      var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/getTree/datim', { params: orgUnit }).then((hierarchy) => {
-        this.datimTree = hierarchy.data
+      axios.get(backendServer + '/getTree/' + this.source2).then((hierarchy) => {
+        this.source2Tree = hierarchy.data
       })
 
-      axios.get(backendServer + '/getTree/moh/', { params: orgUnit }).then((hierarchy) => {
-        this.mohTree = hierarchy.data
+      axios.get(backendServer + '/getTree/' + this.source1).then((hierarchy) => {
+        this.source1Tree = hierarchy.data
       })
     },
-    mohNodeSelected (node) {
-      this.mohSelNodeId = node.id
-      this.getMohGrid(node.id)
+    source1NodeSelected (node) {
+      this.source1SelNodeId = node.id
+      this.getSource1Grid(node.id)
     },
-    datimNodeSelected (node) {
-      this.datimSelNodeId = node.id
-      this.getDatimGrid(node.id)
+    source2NodeSelected (node) {
+      this.source2SelNodeId = node.id
+      this.getSource2Grid(node.id)
     }
   },
   computed: {
-    datimGridHeader () {
+    source2GridHeader () {
       let header = []
       let gridWithAllHeaders = {}
-      if (this.datimGrid && this.datimGrid.length > 0) {
-        for (var grid in this.datimGrid) {
-          if (gridWithAllHeaders.length > 0 && this.datimGrid[grid].length > Object.keys(gridWithAllHeaders).length) {
-            gridWithAllHeaders = this.datimGrid[grid]
+      if (this.source2Grid && this.source2Grid.length > 0) {
+        for (var grid in this.source2Grid) {
+          if (gridWithAllHeaders.length > 0 && this.source2Grid[grid].length > Object.keys(gridWithAllHeaders).length) {
+            gridWithAllHeaders = this.source2Grid[grid]
           } else if (Object.keys(gridWithAllHeaders).length === 0) {
-            gridWithAllHeaders = this.datimGrid[grid]
+            gridWithAllHeaders = this.source2Grid[grid]
           }
         }
       }
@@ -296,20 +296,20 @@ export default {
       }
       return header
     },
-    mohGridHeader () {
+    source1GridHeader () {
       let header = []
       let gridWithAllHeaders = {}
-      if (this.mohGrid && this.mohGrid.length > 0) {
-        for (var grid in this.mohGrid) {
-          if (gridWithAllHeaders.length > 0 && this.mohGrid[grid].length > Object.keys(gridWithAllHeaders).length) {
-            gridWithAllHeaders = this.mohGrid[grid]
+      if (this.source1Grid && this.source1Grid.length > 0) {
+        for (var grid in this.source1Grid) {
+          if (gridWithAllHeaders.length > 0 && this.source1Grid[grid].length > Object.keys(gridWithAllHeaders).length) {
+            gridWithAllHeaders = this.source1Grid[grid]
           } else if (Object.keys(gridWithAllHeaders).length === 0) {
-            gridWithAllHeaders = this.mohGrid[grid]
+            gridWithAllHeaders = this.source1Grid[grid]
           }
         }
       }
-      if (this.mohGrid && this.mohGrid.length > 0) {
-        for (const key in this.mohGrid[0]) {
+      if (this.source1Grid && this.source1Grid.length > 0) {
+        for (const key in this.source1Grid[0]) {
           if (this.headerText[key]) {
             header.push({ text: this.headerText[key], value: key })
           }
@@ -317,54 +317,68 @@ export default {
       }
       return header
     },
-    datimPages () {
-      if (this.datimPagination.rowsPerPage == null || this.datimPagination.totalItems == null) {
+    source2Pages () {
+      if (this.source2Pagination.rowsPerPage == null || this.source2Pagination.totalItems == null) {
         return 0
       }
-      return Math.ceil(this.datimPagination.totalItems / this.datimCount)
+      return Math.ceil(this.source2Pagination.totalItems / this.source2Count)
     },
-    mohPages () {
-      if (this.mohPagination.rowsPerPage == null || this.mohPagination.totalItems == null) {
+    source1Pages () {
+      if (this.source1Pagination.rowsPerPage == null || this.source1Pagination.totalItems == null) {
         return 0
       }
-      return Math.ceil(this.mohPagination.totalItems / this.mohCount)
+      return Math.ceil(this.source1Pagination.totalItems / this.source1Count)
+    },
+    source1 () {
+      let source = this.$store.state.dataSourcePair.source1.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
+    },
+    source2 () {
+      let source = this.$store.state.dataSourcePair.source2.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
     }
   },
   watch: {
-    mohPagination: {
+    source1Pagination: {
       handler () {
         // if nothing has changed then dont send server request
-        if (this.currentMohPagination.sortBy === this.mohPagination.sortBy &&
-          this.currentMohPagination.descending === this.mohPagination.descending &&
-          this.currentMohPagination.page === this.mohPagination.page
+        if (this.currentSource1Pagination.sortBy === this.source1Pagination.sortBy &&
+          this.currentSource1Pagination.descending === this.source1Pagination.descending &&
+          this.currentSource1Pagination.page === this.source1Pagination.page
         ) {
           return
         }
-        let page = this.mohPagination.page - 1
-        this.mohStart = page * this.mohCount + 1
-        this.getMohGrid(this.mohSelNodeId)
+        let page = this.source1Pagination.page - 1
+        this.source1Start = page * this.source1Count + 1
+        this.getSource1Grid(this.source1SelNodeId)
       },
       deep: true
     },
-    datimPagination: {
+    source2Pagination: {
       handler () {
         // if nothing has changed then dont send server request
-        if (this.currentDatimPagination.sortBy === this.datimPagination.sortBy &&
-          this.currentDatimPagination.descending === this.datimPagination.descending &&
-          this.currentDatimPagination.page === this.datimPagination.page
+        if (this.currentSource2Pagination.sortBy === this.source2Pagination.sortBy &&
+          this.currentSource2Pagination.descending === this.source2Pagination.descending &&
+          this.currentSource2Pagination.page === this.source2Pagination.page
         ) {
           return
         }
-        let page = this.datimPagination.page - 1
-        this.datimStart = page * this.datimCount + 1
-        this.getDatimGrid(this.datimSelNodeId)
+        let page = this.source2Pagination.page - 1
+        this.source2Start = page * this.source2Count + 1
+        this.getSource2Grid(this.source2SelNodeId)
       },
       deep: true
     }
   },
   mounted () {
-    this.getMohGrid()
-    this.getDatimGrid()
+    this.getSource1Grid(false)
+    this.getSource2Grid(false)
     this.getTree()
   },
   components: {

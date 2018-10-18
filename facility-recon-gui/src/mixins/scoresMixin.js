@@ -1,8 +1,10 @@
 import axios from 'axios'
+import {generalMixin} from './generalMixin'
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = (isProduction ? config.build.backend : config.dev.backend)
 export const scoresMixin = {
+  mixins: [generalMixin],
   data () {
     return {
       scoreProgressTitle: 'Waiting for progress status',
@@ -14,9 +16,8 @@ export const scoresMixin = {
   },
   methods: {
     checkScoreProgress () {
-      const orgId = this.$store.state.orgUnit.OrgId
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/scoreProgress/' + orgId + '/' + clientId).then((scoreProgress) => {
+      axios.get(backendServer + '/scoreProgress/' + clientId).then((scoreProgress) => {
         if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false) {
           clearInterval(this.scoreProgressTimer)
           return
@@ -38,29 +39,32 @@ export const scoresMixin = {
       })
     },
     getScores () {
+      if (!this.source1 || !this.source2) {
+        return
+      }
       this.scoreDialog = true
       this.scoreProgressTitle = 'Waiting for progress status'
       this.progressType = 'indeterminate'
-      this.$store.state.mohUnMatched = null
-      this.$store.state.datimUnMatched = null
+      this.$store.state.source1UnMatched = null
+      this.$store.state.source2UnMatched = null
       this.$store.state.matchedContent = []
       this.$store.state.noMatchContent = []
       this.$store.state.flagged = []
-      this.$store.state.mohTotalAllRecords = 0
+      this.$store.state.source1TotalAllRecords = 0
       this.$store.state.totalAllMapped = 0
       this.$store.state.totalAllFlagged = 0
       this.$store.state.totalAllNoMatch = 0
-      this.$store.state.datimTotalRecords = 0
+      this.$store.state.source2TotalRecords = 0
       this.$store.state.scoreResults = []
-      let orgid = this.$store.state.orgUnit.OrgId
       let recoLevel = this.$store.state.recoLevel
-      let totalLevels = this.$store.state.totalMOHLevels
-      let totalDATIMLevels = this.$store.state.totalDATIMLevels
+      let totalSource1Levels = this.$store.state.totalSource1Levels
+      let totalSource2Levels = this.$store.state.totalSource2Levels
       const clientId = this.$store.state.clientId
-      let topTree = this.$store.state.mohParents.slice(0, this.$store.state.mohParents.length)
+      let topTree = this.$store.state.source1Parents.slice(0, this.$store.state.source1Parents.length)
+
       // generating levels
       this.$store.state.levelArray = []
-      for (var k = 1; k < this.$store.state.totalMOHLevels; k++) {
+      for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {
         if (k + 1 > this.$store.state.recoLevel) {
           continue
         }
@@ -69,79 +73,101 @@ export const scoresMixin = {
           value: k + 1
         })
       }
-      axios.get(backendServer + '/reconcile/' + orgid + '/' + totalLevels + '/' + totalDATIMLevels + '/' + recoLevel + '/' + clientId).then((scores) => {
+      axios.get(backendServer + '/reconcile/' + this.source1 + '/' + this.source2 + '/' + totalSource1Levels + '/' + totalSource2Levels + '/' + recoLevel + '/' + clientId).then((scores) => {
         this.getDatimUnmached()
-        this.$store.state.mohUnMatched = []
+        this.$store.state.source1UnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
         this.$store.state.flagged = []
         this.$store.state.scoreResults = scores.data.scoreResults
-        this.$store.state.datimTotalRecords = scores.data.datimTotalRecords
-        this.$store.state.datimTotalAllRecords = scores.data.datimTotalAllRecords
+        this.$store.state.source2TotalRecords = scores.data.source2TotalRecords
+        this.$store.state.source2TotalAllRecords = scores.data.source2TotalAllRecords
         this.$store.state.totalAllMapped = scores.data.totalAllMapped
         this.$store.state.totalAllFlagged = scores.data.totalAllFlagged
         this.$store.state.totalAllNoMatch = scores.data.totalAllNoMatch
-        this.$store.state.mohTotalAllNotMapped = scores.data.mohTotalAllNotMapped
-        this.$store.state.mohTotalAllRecords = scores.data.mohTotalAllRecords
+        this.$store.state.source1TotalAllNotMapped = scores.data.source1TotalAllNotMapped
+        this.$store.state.source1TotalAllRecords = scores.data.source1TotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
-          if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'flagged') {
+          if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'flagged') {
             this.$store.state.flagged.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents,
-              datimName: scoreResult.exactMatch.name,
-              datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents
+              source1Name: scoreResult.source1.name,
+              source1Id: scoreResult.source1.id,
+              source1Parents: scoreResult.source1.parents,
+              source2Name: scoreResult.exactMatch.name,
+              source2Id: scoreResult.exactMatch.id,
+              source2Parents: scoreResult.exactMatch.parents
             })
-          } else if (scoreResult.moh.hasOwnProperty('tag') && scoreResult.moh.tag === 'noMatch') {
-            let parents = scoreResult.moh.parents
+          } else if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'noMatch') {
+            let parents = scoreResult.source1.parents
             this.$store.state.noMatchContent.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
+              source1Name: scoreResult.source1.name,
+              source1Id: scoreResult.source1.id,
               parents: parents
             })
           } else if (Object.keys(scoreResult.exactMatch).length > 0) {
             this.$store.state.matchedContent.push({
-              mohName: scoreResult.moh.name,
-              mohId: scoreResult.moh.id,
-              mohParents: scoreResult.moh.parents,
-              datimName: scoreResult.exactMatch.name,
-              datimId: scoreResult.exactMatch.id,
-              datimParents: scoreResult.exactMatch.parents
+              source1Name: scoreResult.source1.name,
+              source1Id: scoreResult.source1.id,
+              source1Parents: scoreResult.source1.parents,
+              source2Name: scoreResult.exactMatch.name,
+              source2Id: scoreResult.exactMatch.id,
+              source2Parents: scoreResult.exactMatch.parents
             })
           } else {
             let addTree = topTree
-            for (let i = scoreResult.moh.parents.length - 1; i >= 0; i--) {
-              if (!addTree[scoreResult.moh.parents[i]]) {
-                addTree[scoreResult.moh.parents[i]] = {}
+            for (let i = scoreResult.source1.parents.length - 1; i >= 0; i--) {
+              if (!addTree[scoreResult.source1.parents[i]]) {
+                addTree[scoreResult.source1.parents[i]] = {}
               }
-              addTree = addTree[scoreResult.moh.parents[i]]
+              addTree = addTree[scoreResult.source1.parents[i]]
             }
-            this.$store.state.mohUnMatched.push({
-              name: scoreResult.moh.name,
-              id: scoreResult.moh.id,
-              parents: scoreResult.moh.parents
+            this.$store.state.source1UnMatched.push({
+              name: scoreResult.source1.name,
+              id: scoreResult.source1.id,
+              parents: scoreResult.source1.parents
             })
           }
         }
-        this.$store.state.mohParents = topTree
+        this.$store.state.source1Parents = topTree
       })
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
     getDatimUnmached () {
-      let orgid = this.$store.state.orgUnit.OrgId
-      let recoLevel = this.$store.state.recoLevel
-      let totalMOHLevels = this.$store.state.totalMOHLevels
-      let totalDATIMLevels = this.$store.state.totalDATIMLevels
-      let level
-      if (recoLevel === totalMOHLevels) {
-        level = totalDATIMLevels
-      } else {
-        level = recoLevel
+      if (!this.source1 || !this.source2) {
+        return
       }
-      axios.get(backendServer + '/getUnmatched/' + orgid + '/datim/' + level).then((unmatched) => {
-        this.$store.state.datimUnMatched = unmatched.data
+      let recoLevel = this.$store.state.recoLevel
+      let totalSource1Levels = this.$store.state.totalSource1Levels
+      let totalSource2Levels = this.$store.state.totalSource2Levels
+      let level = recoLevel
+      if (recoLevel === totalSource1Levels) {
+        level = totalSource2Levels
+      }
+      axios.get(backendServer + '/getUnmatched/' + this.source1 + '/' + this.source2 + '/' + level).then((unmatched) => {
+        this.$store.state.source2UnMatched = unmatched.data
       })
+    }
+  },
+  computed: {
+    source1 () {
+      let source = this.$store.state.dataSourcePair.source1.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
+    },
+    source2 () {
+      let source = this.$store.state.dataSourcePair.source2.name
+      if (source) {
+        source = this.toTitleCase(source)
+      }
+      return source
+    },
+    source1Name () {
+      return this.$store.state.dataSourcePair.source1.name
+    },
+    source2Name () {
+      return this.$store.state.dataSourcePair.source2.name
     }
   },
   created () {
