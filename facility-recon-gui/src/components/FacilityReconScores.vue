@@ -998,7 +998,9 @@ export default {
         this.$store.state.source1UnMatched !== null &&
         this.$store.state.source1UnMatched.length === 0 &&
         this.$store.state.flagged !== null &&
-        this.$store.state.flagged.length === 0
+        this.$store.state.flagged.length === 0 &&
+        this.$store.state.matchedContent !== null &&
+        this.$store.state.matchedContent.length !== 0
       ) {
         return 'yes'
       } else {

@@ -133,10 +133,7 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
-        this.$store.state.dataSourcePair.source1.name = this.source1.name
-        this.$store.state.dataSourcePair.source1.id = this.source1._id
-        this.$store.state.dataSourcePair.source2.name = this.source2.name
-        this.$store.state.dataSourcePair.source2.id = this.source2._id
+        eventBus.$emit('getDataSourcePair')
         this.alertSuccess = true
         this.alertMsg = 'Data Source Pair Saved Successfully'
         this.$store.state.dynamicProgress = false

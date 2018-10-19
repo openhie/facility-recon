@@ -554,7 +554,7 @@ if (cluster.isMaster) {
                 scoreResults,
                 recoLevel,
                 source2TotalRecords: results.source2Locations.entry.length,
-                source2TotalAllRecords: mcsdSource2All.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length-1,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
@@ -583,7 +583,7 @@ if (cluster.isMaster) {
                 scoreResults,
                 recoLevel,
                 source2TotalRecords: results.source2Locations.entry.length,
-                source2TotalAllRecords: mcsdSource2All.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length-1,
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
@@ -600,11 +600,6 @@ if (cluster.isMaster) {
     function recoStatus(source1, source2, callback) {
       //getting total Mapped
       var database = source1 + source2;
-      var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
-        .toString();
-      const options = {
-        url,
-      };
       var totalAllMapped = 0
       var totalAllNoMatch = 0
       var totalAllFlagged = 0
@@ -639,8 +634,6 @@ if (cluster.isMaster) {
           }, () => {
             totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
             return callback(totalAllMapped, totalAllNoMatch, totalAllFlagged)
-            //res.set('Access-Control-Allow-Origin', '*');
-            //res.status(200).json({totalAllMapped,totalAllNoMatch,totalAllFlagged})
           })
         })
       }, 1000)
@@ -1282,6 +1275,7 @@ if (cluster.isMaster) {
             error: 'Unexpected error occured while saving'
           })
         } else {
+          winston.info('Data source pair saved successfully')
           res.status(200).send()
         }
       })
@@ -1289,6 +1283,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/resetDataSourcePair', (req,res) => {
+    winston.info('Received a request to reset data source pair')
     mongo.resetDataSourcePair((error, response) => {
       if (error) {
         winston.error(error)
@@ -1296,6 +1291,7 @@ if (cluster.isMaster) {
           error: 'Unexpected error occured while saving'
         })
       } else {
+        winston.info('Data source pair reseted successfully')
         res.status(200).send()
       }
     })

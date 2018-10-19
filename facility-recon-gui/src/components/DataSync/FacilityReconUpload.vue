@@ -371,7 +371,6 @@ export default {
           clearInterval(this.UploadProgressTimer)
           // resetting reco level
           this.$store.state.recoLevel = 2
-          this.$root.$emit('refreshApp')
           this.percentDialog = false
           this.dialog = true
           this.$store.state.uploadRunning = false

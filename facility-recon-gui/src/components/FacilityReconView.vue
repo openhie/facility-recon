@@ -46,7 +46,7 @@
           <v-flex xs6>
             <v-card>
               <v-card-title primary-title>
-                <h3 class="headline mb-0">MoH Data Grid</h3>
+                <h3 class="headline mb-0">Source 1 Data Grid</h3>
               </v-card-title>
               <template v-if="loadingSource1Grid">
                 <v-progress-linear :indeterminate="true"></v-progress-linear>
@@ -58,7 +58,7 @@
                 <v-card-text>
                   <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -83,7 +83,7 @@
                 <v-card-text>
                   <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
                     <template slot="items" slot-scope="props">
-                      <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;">{{props.item[header.value]}}</td>
+                      <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">{{props.item[header.value]}}</td>
                     </template>
                   </v-data-table>
                 </v-card-text>
@@ -201,7 +201,7 @@ export default {
           }
           this.source1Grid = hierarchy.data.grid
           this.totalSource1Records = hierarchy.data.total
-
+          this.source1Pagination.totalItems = hierarchy.data.total
           // set these values to stop reloading data due to watcher see that the var source2Pagination has changed
           this.currentSource1Pagination = Object.assign({}, this.source1Pagination)
           if (!this.currentSource1Pagination.hasOwnProperty('descending')) {
@@ -270,16 +270,16 @@ export default {
       })
     },
     getTree () {
-      this.loadingSource1Tree = true
+      this.loadingSource2Tree = true
       axios.get(backendServer + '/getTree/' + this.source2).then((hierarchy) => {
-        this.loadingSource1Tree = false
+        this.loadingSource2Tree = false
         if (hierarchy.data) {
           this.source2Tree = hierarchy.data
         }
       })
-      this.loadingSource2Tree = true
+      this.loadingSource1Tree = true
       axios.get(backendServer + '/getTree/' + this.source1).then((hierarchy) => {
-        this.loadingSource2Tree = false
+        this.loadingSource1Tree = false
         if (hierarchy.data) {
           this.source1Tree = hierarchy.data
         }

@@ -67,6 +67,7 @@
 </template>
 <script>
 import axios from 'axios'
+import { eventBus } from '../main'
 const config = require('../../config')
 const isProduction = process.env.NODE_ENV === 'production'
 const backendServer = isProduction ? config.build.backend : config.dev.backend
@@ -117,7 +118,7 @@ export default {
           })
           .then(() => {
             this.restoreDialog = false
-            this.$root.$emit('refreshApp')
+            eventBus.$emit('refreshApp')
             this.getArchives()
             this.selectedArchive = ''
           })

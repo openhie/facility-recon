@@ -108,7 +108,6 @@ export default {
       })
     },
     getTotalLevels () {
-      this.getRecoStatus()
       let source1 = this.$store.state.dataSourcePair.source1.name
       let source2 = this.$store.state.dataSourcePair.source2.name
       if (!source1 || !source2) {
@@ -124,6 +123,7 @@ export default {
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
         this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
         this.getScores()
+        this.getRecoStatus()
       })
     },
     getRecoStatus () {
@@ -175,7 +175,7 @@ export default {
     this.$store.state.clientId = uuid.v4()
     this.initializingApp = true
     this.$store.state.denyAccess = false
-    this.$root.$on('refreshApp', () => {
+    eventBus.$on('refreshApp', () => {
       this.getDataSources()
     })
     this.$root.$on('recalculateScores', () => {
@@ -183,6 +183,9 @@ export default {
     })
     eventBus.$on('getDataSources', () => {
       this.getDataSources()
+    })
+    eventBus.$on('getDataSourcePair', () => {
+      this.getDataSourcePair()
     })
     this.getDataSources()
   },
