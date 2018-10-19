@@ -12,7 +12,9 @@ const isJSON = require('is-json');
 const fs = require('fs-extra');
 const redis = require('redis');
 
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1'
+});
 const exec = require('child_process');
 const moment = require('moment');
 const cache = require('memory-cache');
