@@ -1,8 +1,6 @@
 import axios from 'axios'
 import {generalMixin} from './generalMixin'
-const config = require('../../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = process.env.BACKEND_SERVER
 export const scoresMixin = {
   mixins: [generalMixin],
   data () {
@@ -140,7 +138,7 @@ export const scoresMixin = {
       })
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
-    getSource2Unmached() {
+    getSource2Unmached () {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
       if (!source1 || !source2) {

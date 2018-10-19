@@ -521,9 +521,7 @@ import axios from 'axios'
 import LiquorTree from 'liquor-tree'
 import { scoresMixin } from '../mixins/scoresMixin'
 
-const config = require('../../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = isProduction ? config.build.backend : config.dev.backend
+const backendServer = process.env.BACKEND_SERVER
 
 export default {
   mixins: [scoresMixin],
@@ -675,8 +673,8 @@ export default {
       let formData = new FormData()
       formData.append('source1Id', this.selectedSource1Id)
       formData.append('source2Id', source2Id)
-      formData.append('source1DB', this.source1)
-      formData.append('source2DB', this.source2)
+      formData.append('source1DB', this.getSource1())
+      formData.append('source2DB', this.getSource2())
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       axios
@@ -759,7 +757,7 @@ export default {
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       axios
-        .post(backendServer + '/acceptFlag/' + this.source1 + '/' + this.source2, formData, {
+        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2(), formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -777,7 +775,7 @@ export default {
       let formData = new FormData()
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.source1 + '/' + this.source2, formData, {
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -810,7 +808,7 @@ export default {
       let formData = new FormData()
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.source1 + '/' + this.source2, formData, {
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -845,7 +843,7 @@ export default {
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       axios
-        .post(backendServer + '/breakNoMatch/' + this.source1 + '/' + this.source2, formData, {
+        .post(backendServer + '/breakNoMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -874,7 +872,7 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + '/noMatch/' + this.source1 + '/' + this.source2, formData, {
+        .post(backendServer + '/noMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

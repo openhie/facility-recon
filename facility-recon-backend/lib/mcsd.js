@@ -804,7 +804,9 @@ module.exports = function () {
           }
           callback(err, null);
         });
-        const identifier = location.entry[0].resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
+        const identifier = location.entry[0].resource.identifier.find((identifier) => {
+          return identifier.system == 'https://digitalhealth.intrahealth.org/source1'
+        })
         if (identifier) {
           const id = identifier.value.split('/').pop();
           this.getLocationByID(source1DB, id, false, (location) => {

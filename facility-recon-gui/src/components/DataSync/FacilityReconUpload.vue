@@ -228,9 +228,7 @@ import { dataSourcesMixin } from './dataSourcesMixin'
 import { generalMixin } from '../../mixins/generalMixin'
 import { required } from 'vuelidate/lib/validators'
 import { eventBus } from '../../main'
-const config = require('../../../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = process.env.BACKEND_SERVER
 
 export default {
   mixins: [dataSourcesMixin, generalMixin],

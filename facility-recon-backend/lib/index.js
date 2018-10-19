@@ -1376,7 +1376,6 @@ if (cluster.isMaster) {
           res.status(200).end();
         }
         winston.info('CSV File Passed Validation');
-        redisClient.set(uploadRequestId, uploadReqPro)
         winston.info(`Uploading data for ${database} now`)
         let uploadReqPro = JSON.stringify({
           status: '3/3 Uploading of DB started',

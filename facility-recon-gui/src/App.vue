@@ -73,10 +73,9 @@ import { scoresMixin } from './mixins/scoresMixin'
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
 import { generalMixin } from './mixins/generalMixin'
-const config = require('../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = process.env.BACKEND_SERVER
 
+console.log(backendServer)
 export default {
   mixins: [scoresMixin, generalMixin],
   data () {

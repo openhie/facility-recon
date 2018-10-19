@@ -179,9 +179,7 @@ import FacilityReconRemoteSources from './FacilityReconRemoteSources'
 import SyncProgress from './SyncProgress'
 import { eventBus } from '../../main'
 import axios from 'axios'
-const config = require('../../../config')
-const isProduction = process.env.NODE_ENV === 'production'
-const backendServer = (isProduction ? config.build.backend : config.dev.backend)
+const backendServer = process.env.BACKEND_SERVER
 export default {
   data () {
     return {
