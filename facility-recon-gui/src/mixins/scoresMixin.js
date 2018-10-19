@@ -39,7 +39,9 @@ export const scoresMixin = {
       })
     },
     getScores () {
-      if (!this.source1 || !this.source2) {
+      let source1 = this.getSource1()
+      let source2 = this.getSource2()
+      if (!source1 || !source2) {
         return
       }
       this.scoreDialog = true
@@ -73,7 +75,7 @@ export const scoresMixin = {
           value: k + 1
         })
       }
-      axios.get(backendServer + '/reconcile/' + this.source1 + '/' + this.source2 + '/' + totalSource1Levels + '/' + totalSource2Levels + '/' + recoLevel + '/' + clientId).then((scores) => {
+      axios.get(backendServer + '/reconcile/' + source1 + '/' + source2 + '/' + totalSource1Levels + '/' + totalSource2Levels + '/' + recoLevel + '/' + clientId).then((scores) => {
         this.getDatimUnmached()
         this.$store.state.source1UnMatched = []
         this.$store.state.matchedContent = []
@@ -133,7 +135,9 @@ export const scoresMixin = {
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
     getDatimUnmached () {
-      if (!this.source1 || !this.source2) {
+      let source1 = this.getSource1()
+      let source2 = this.getSource2()
+      if (!source1 || !source2) {
         return
       }
       let recoLevel = this.$store.state.recoLevel
@@ -143,30 +147,28 @@ export const scoresMixin = {
       if (recoLevel === totalSource1Levels) {
         level = totalSource2Levels
       }
-      axios.get(backendServer + '/getUnmatched/' + this.source1 + '/' + this.source2 + '/' + level).then((unmatched) => {
+      axios.get(backendServer + '/getUnmatched/' + source1 + '/' + source2 + '/' + level).then((unmatched) => {
         this.$store.state.source2UnMatched = unmatched.data
       })
-    }
-  },
-  computed: {
-    source1 () {
+    },
+    getSource1 () {
       let source = this.$store.state.dataSourcePair.source1.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
-    source2 () {
+    getSource2 () {
       let source = this.$store.state.dataSourcePair.source2.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
-    source1Name () {
+    getSource1Name () {
       return this.$store.state.dataSourcePair.source1.name
     },
-    source2Name () {
+    getSource2Name () {
       return this.$store.state.dataSourcePair.source2.name
     }
   },

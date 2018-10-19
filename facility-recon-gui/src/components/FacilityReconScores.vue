@@ -591,6 +591,9 @@ export default {
       setListener()
     },
     levelChanged (level) {
+      if (this.$store.state.recoLevel === level) {
+        return
+      }
       this.$store.state.recoLevel = level
       this.getScores()
       if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
