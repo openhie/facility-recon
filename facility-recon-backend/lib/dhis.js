@@ -7,11 +7,12 @@ const http = require('http')
 const https = require('https')
 const url = require('url')
 const isJSON = require('is-json')
-const redis = require('redis')
 const mixin = require('./mixin')()
 const config = require('./config')
-
-const redisClient = redis.createClient();
+const redis = require('redis')
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1'
+});
 
 const thisRunTime = new Date().toISOString();
 const credentials = {
@@ -235,7 +236,7 @@ function processOrgUnit(metadata, hasKey) {
     }
     if (level) {
       fhir.meta.tag = [{
-        system: 'http://test.geoalign.datim.org/organistionUnitLevels',
+        system: 'https://digitalhealth.intrahealth.org/organistionUnitLevels',
         code: level.id,
         display: level.name,
       }];

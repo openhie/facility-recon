@@ -11,7 +11,9 @@ export const scoresMixin = {
       scoreDialog: false,
       scoreProgressPercent: null,
       progressType: '',
-      scoreProgressTimer: false
+      scoreProgressTimer: false,
+      loadingSource2Unmatched: false,
+      loadingSource1Unmatched: false
     }
   },
   methods: {
@@ -41,14 +43,9 @@ export const scoresMixin = {
     getScores () {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
-      if (!source1 || !source2) {
-        return
-      }
-      this.scoreDialog = true
-      this.scoreProgressTitle = 'Waiting for progress status'
-      this.progressType = 'indeterminate'
-      this.$store.state.source1UnMatched = null
-      this.$store.state.source2UnMatched = null
+
+      this.$store.state.source1UnMatched = []
+      this.$store.state.source2UnMatched = []
       this.$store.state.matchedContent = []
       this.$store.state.noMatchContent = []
       this.$store.state.flagged = []
@@ -58,6 +55,14 @@ export const scoresMixin = {
       this.$store.state.totalAllNoMatch = 0
       this.$store.state.source2TotalRecords = 0
       this.$store.state.scoreResults = []
+      if (!source1 || !source2) {
+        return
+      }
+      this.loadingSource1Unmatched = true
+      this.loadingSource2Unmatched = true
+      this.scoreDialog = true
+      this.scoreProgressTitle = 'Waiting for progress status'
+      this.progressType = 'indeterminate'
       let recoLevel = this.$store.state.recoLevel
       let totalSource1Levels = this.$store.state.totalSource1Levels
       let totalSource2Levels = this.$store.state.totalSource2Levels
@@ -76,7 +81,8 @@ export const scoresMixin = {
         })
       }
       axios.get(backendServer + '/reconcile/' + source1 + '/' + source2 + '/' + totalSource1Levels + '/' + totalSource2Levels + '/' + recoLevel + '/' + clientId).then((scores) => {
-        this.getDatimUnmached()
+        this.loadingSource1Unmatched = false
+        this.getSource2Unmached()
         this.$store.state.source1UnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
@@ -134,7 +140,7 @@ export const scoresMixin = {
       })
       this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
     },
-    getDatimUnmached () {
+    getSource2Unmached() {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
       if (!source1 || !source2) {
@@ -148,6 +154,7 @@ export const scoresMixin = {
         level = totalSource2Levels
       }
       axios.get(backendServer + '/getUnmatched/' + source1 + '/' + source2 + '/' + level).then((unmatched) => {
+        this.loadingSource2Unmatched = false
         this.$store.state.source2UnMatched = unmatched.data
       })
     },

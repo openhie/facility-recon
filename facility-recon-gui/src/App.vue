@@ -114,6 +114,9 @@ export default {
         this.$store.state.totalSource1Levels = 5
         this.$store.state.totalSource2Levels = 5
         this.initializingApp = false
+        this.getScores()
+        this.$store.state.recoLevel = 2
+        this.getRecoStatus()
         return
       }
       source1 = this.toTitleCase(source1)
@@ -123,6 +126,7 @@ export default {
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
         this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
         this.getScores()
+        this.$store.state.recoLevel = 2
         this.getRecoStatus()
       })
     },
@@ -165,6 +169,9 @@ export default {
             this.$store.state.dataSourcePair.source2.id = source2._id
             this.$store.state.dataSourcePair.source2.name = source2.name
           }
+        } else {
+          this.$store.state.dataSourcePair.source1 = {}
+          this.$store.state.dataSourcePair.source2 = {}
         }
         this.renderInitialPage()
         this.getTotalLevels()

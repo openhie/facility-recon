@@ -891,7 +891,7 @@ module.exports = function () {
             countRow++
             const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
             const uploadReqPro = JSON.stringify({
-              status: '5/5 Writing Uploaded data into server',
+              status: '3/3 Writing Uploaded data into server',
               error: null,
               percent,
             });
@@ -1015,7 +1015,7 @@ module.exports = function () {
                   countRow += tmpBundle.entry.length
                   const percent = parseFloat((countRow * 100 / totalRows).toFixed(2));
                   const uploadReqPro = JSON.stringify({
-                    status: '5/5 Writing Uploaded data into server',
+                    status: '3/3 Writing Uploaded data into server',
                     error: null,
                     percent,
                   });

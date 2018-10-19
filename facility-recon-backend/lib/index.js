@@ -139,7 +139,7 @@ if (cluster.isMaster) {
         let checkDup = []
         async.each(results.mappingData.entry, (mappingEntry, nxtMap) => {
           var isMapped = mappingEntry.resource.identifier.find((ident) => {
-            return ident.system === 'http://geoalign.source2.org/Source1' && ident.value === url + source1id
+            return ident.system === 'https://digitalhealth.intrahealth.org/source1' && ident.value === url + source1id
           })
           if (isMapped) {
             checkDup.push({
@@ -1357,7 +1357,7 @@ if (cluster.isMaster) {
       const fileName = Object.keys(files)[0];
       winston.info('validating CSV File');
       uploadReqPro = JSON.stringify({
-        status: '2/5 Validating CSV Data',
+        status: '2/3 Validating CSV Data',
         error: null,
         percent: null
       })
@@ -1376,63 +1376,23 @@ if (cluster.isMaster) {
           res.status(200).end();
         }
         winston.info('CSV File Passed Validation');
-        //archive existing DB first
+        redisClient.set(uploadRequestId, uploadReqPro)
+        winston.info(`Uploading data for ${database} now`)
         let uploadReqPro = JSON.stringify({
-          status: '3/5 Archiving Old DB',
+          status: '3/3 Uploading of DB started',
           error: null,
           percent: null
         })
         redisClient.set(uploadRequestId, uploadReqPro)
-        mcsd.archiveDB(database, (err) => {
-          if (err) {
-            let uploadReqPro = JSON.stringify({
-              status: '3/5 Archiving Old DB',
-              error: 'An error occured while archiving Database,retry',
-              percent: null
-            })
-            redisClient.set(uploadRequestId, uploadReqPro)
-            winston.error('An error occured while Archiving existing DB,Upload of new dataset was stopped')
-            return
-          }
-          //ensure old archives are deleted
+        mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
+          winston.info(`Data upload for ${database} is done`)
           let uploadReqPro = JSON.stringify({
-            status: '4/5 Deleting Old DB',
+            status: 'Done',
             error: null,
-            percent: null
+            percent: 100
           })
           redisClient.set(uploadRequestId, uploadReqPro)
-          mcsd.cleanArchives(database, () => {})
-          //delete existing db
-          winston.info('Deleting DB ' + database)
-          mcsd.deleteDB(database, (err) => {
-            if (!err) {
-              winston.info(`Uploading data for ${database} now`)
-              let uploadReqPro = JSON.stringify({
-                status: '5/5 Uploading of DB started',
-                error: null,
-                percent: null
-              })
-              redisClient.set(uploadRequestId, uploadReqPro)
-              mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
-                winston.info(`Data upload for ${database} is done`)
-                let uploadReqPro = JSON.stringify({
-                  status: 'Done',
-                  error: null,
-                  percent: 100
-                })
-                redisClient.set(uploadRequestId, uploadReqPro)
-              });
-            } else {
-              winston.error('An error occured while dropping existing DB,Upload of new dataset was stopped')
-              let uploadReqPro = JSON.stringify({
-                status: '3/4 Deleting Old DB',
-                error: 'An error occured while dropping existing Database,retry',
-                percent: null
-              })
-              redisClient.set(uploadRequestId, uploadReqPro)
-            }
-          })
-        })
+        });
       });
     });
     function validateCSV(filePath, headerMapping, callback) {

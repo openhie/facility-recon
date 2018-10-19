@@ -65,11 +65,23 @@
             </template>
           </v-card-title>
           <v-card-text>
-            <v-data-table :headers="potentialHeaders" :items="allPotentialMatches" :search="searchPotential" :pagination.sync="pagination" class="elevation-1">
+            <v-data-table 
+              :headers="potentialHeaders" 
+              :items="allPotentialMatches" 
+              :search="searchPotential" 
+              :pagination.sync="pagination" 
+              class="elevation-1"
+            >
               <template slot="headers" slot-scope="props">
                 <tr>
                   <template v-for='header in potentialHeaders'>
-                    <th :key='header.text' align='left' v-if="header.text == 'Score'" class="column sortable active" @click="changeSort(header.value)">
+                    <th 
+                      :key='header.text' 
+                      align='left' 
+                      v-if="header.text == 'Score'" 
+                      class="column sortable active" 
+                      @click="changeSort(header.value)"
+                    >
                       <v-icon small v-if="sort_arrow == 'up'">arrow_upward</v-icon>
                       <v-icon small v-else>arrow_downward</v-icon>
                       {{header.text}}
@@ -148,7 +160,16 @@
       <v-layout row wrap>
         <v-spacer></v-spacer>
         <v-flex xs1 sm2 md2 right>
-          <v-select :items="$store.state.levelArray" v-model="$store.state.recoLevel" :item-value='$store.state.levelArray.value' :item-name='$store.state.levelArray.text' label="Level" class="input-group--focused" height='1' single-line @change="levelChanged">
+          <v-select :items="$store.state.levelArray"
+            v-model="$store.state.recoLevel" 
+            :item-value='$store.state.levelArray.value' 
+            :item-name='$store.state.levelArray.text' 
+            label="Level" 
+            class="input-group--focused" 
+            height='1' 
+            single-line 
+            @change="levelChanged"
+          >
           </v-select>
         </v-flex>
         <v-flex xs1 sm2 md2>
@@ -257,7 +278,7 @@
               <v-spacer></v-spacer>
               <v-text-field v-model="searchUnmatchedSource1" append-icon="search" label="Search" single-line hide-details></v-text-field>
             </v-card-title>
-            <template v-if='$store.state.source1UnMatched !== null'>
+            <template v-if='!loadingSource1Unmatched'>
               <liquor-tree :data="source1Tree" ref="source1Tree" :key="source1TreeUpdate" />
               <v-data-table :headers="source1GridHeaders" :items="source1Grid" :search="searchUnmatchedSource1" light class="elevation-1">
                 <template slot="items" slot-scope="props">
@@ -281,7 +302,7 @@
               <v-spacer></v-spacer>
               <v-text-field v-model="searchUnmatchedSource2" append-icon="search" label="Search" single-line hide-details></v-text-field>
             </v-card-title>
-            <template v-if='$store.state.source2UnMatched !== null'>
+            <template v-if='!loadingSource2Unmatched'>
               <v-data-table :headers="source1UnmatchedHeaders" :items="$store.state.source2UnMatched" :search="searchUnmatchedSource2" light class="elevation-1">
                 <template slot="items" slot-scope="props">
                   <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | removeCountry | joinParents}}</td>
@@ -483,7 +504,7 @@
       </v-layout>
       <v-layout>
         <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
-          <v-btn color="primary" round @click='levelChanged(++$store.state.recoLevel)'>
+          <v-btn color="primary" round @click='levelChanged($store.state.recoLevel+1)'>
             <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
         </v-flex>
         <v-flex xs1 sm4 md2 v-if="lastLevelDone == 'yes'">

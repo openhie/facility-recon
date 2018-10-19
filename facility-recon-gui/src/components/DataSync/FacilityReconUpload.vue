@@ -95,7 +95,7 @@
     </v-dialog>
     <template v-if='$store.state.totalSource2Levels <= 1'><br><br><br>
       <v-alert type="info" :value="true">
-        <b>No Data found in GeoAlign ...</b>
+        <b>No Data found in on source 2 ...</b>
       </v-alert>
     </template>
     <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalSource2Levels > 1'>
@@ -244,7 +244,7 @@ export default {
       percentDialog: false,
       uploadPrepaProgr: false,
       UploadProgressTimer: '',
-      uploadStatus: '1/5 Uploading CSV to the server',
+      uploadStatus: '1/3 Uploading CSV to the server',
       uploadPercent: null,
       uploadName: '',
       uploadNameErrors: [],

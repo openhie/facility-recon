@@ -5,7 +5,9 @@ const uuid4 = require('uuid/v4')
 const async = require('async')
 const winston = require('winston')
 const redis = require('redis')
-const redisClient = redis.createClient()
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1'
+});
 const moment = require('moment')
 const mongoose = require('mongoose')
 const mcsd = require('./mcsd')()
