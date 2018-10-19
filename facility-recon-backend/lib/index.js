@@ -11,7 +11,9 @@ const https = require('https');
 const http = require('http');
 const cors = require('cors');
 const redis = require('redis')
-const redisClient = redis.createClient()
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1'
+});
 const csv = require('fast-csv');
 const URI = require('urijs');
 const async = require('async')

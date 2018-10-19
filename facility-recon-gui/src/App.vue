@@ -43,7 +43,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="initializingApp" transition="scale-transition" hide-overlay persistent width="300">
+      <v-dialog v-model="initializingApp" transition="scale-transition" persistent width="300">
         <v-card color="primary" dark>
           <v-card-text>
             Initializing App

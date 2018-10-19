@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="dynamicProgress" transition="scale-transition" hide-overlay persistent width="300">
+    <v-dialog v-model="dynamicProgress" transition="scale-transition" persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{progressTitle}}

@@ -4,7 +4,9 @@ const request = require('request');
 const URI = require('urijs');
 const levenshtein = require('fast-levenshtein');
 const redis = require('redis')
-const redisClient = redis.createClient()
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || '127.0.0.1'
+});
 const geodist = require('geodist');
 const _ = require('underscore');
 const config = require('./config');
