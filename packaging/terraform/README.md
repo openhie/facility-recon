@@ -1,7 +1,7 @@
 # terraform
 
 * Create an account on DO and upload a public SSH key and note your API token.
-* Export a `DO_TOKEN` variable with your API token.
+* Export a `DIGITALOCEAN_TOKEN` variable with your API token.
 * Get the hash fingerprint that DO generated for your SSH key (this is a DO thing).
 ```sh
 curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $DO_TOKEN" "https://api.digitalocean.com/v2/account/keys"

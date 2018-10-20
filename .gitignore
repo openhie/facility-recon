@@ -9,3 +9,8 @@ facility-recon-backend/lib/dbArchives/*
 
 # macos
 *.DS_Store
+
+# terraform
+*.terraform*
+terraform.tfstate
+terraform.tfstate.backup

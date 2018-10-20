@@ -48,6 +48,8 @@ ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
 
 ## Standalone
 
+For now, the GUI must be built with the knowledge of the IP address of the backend server it is meant to run on or on a bare server to use localhost. This is because the GUI has a node process-set enviroment variable. Static sites cannot interpret dynamic variables and only a node process can interpret the process.env.BACKEND_VAR at runtime. So, the backend must be statically built with the GUI, it is not detected at runtime.
+
 To run the GUI in standalone mode (not through DHIS2):
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts standalone.yaml
@@ -55,7 +57,7 @@ ansible-playbook -i /usr/local/etc/ansible/hosts standalone.yaml
 
 ## Upgrades
 
-Rerunning the playbook updates intrahealth/hearth, the backend, and frontend repos on the remote server. Rerunning the `services.yaml` playbook updates services.
+Rerunning the `install` playbook updates intrahealth/hearth, the backend, and frontend repos on the remote server. Rerunning the `services.yaml` playbook updates services. Services are restarted (not just reloaded).
 
 The `install.yaml` playbook uses:
 * `git pull` to get the latest updates to the master branch.
@@ -65,7 +67,7 @@ The gui is rebuilt in the `standalone.yaml` playbook when it is rerun.
 
 ## Troubleshooting
 
-Check that all processes are running and see the latest logs for hearth and the backend
+Check that all processes are running and see the latest logs for hearth and the backend:
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```
@@ -113,3 +115,20 @@ systemctl restart mongodb.service
 systemctl restart redis.service
 ```
 
+### Networking
+
+Ensure processes are listening on the correct ports:
+See https://serverfault.com/questions/725262/what-causes-the-connection-refused-message
+```
+# gui: 8080, backend: 3000, hearth: 3447, mongo: 27017, redis: 6379
+sudo netstat -tnlp | grep :8080
+sudo netstat -tnlp | grep :3000
+sudo netstat -tnlp | grep :3447
+sudo netstat -tnlp | grep :27017
+sudo netstat -tnlp | grep :6379
+```
+
+Check for firewall blocks. Rerun the gui and:
+```
+sudo tcpdump -n icmp 
+```

@@ -26,6 +26,7 @@ services:
     image: openhie/facility-recon-backend:latest
     # failing. would need to be enabled
     environment: 
+    # need env for mongo as it talks directly to it
       - REDIS_HOST=redis
     ports:
       - "3000:3000"
@@ -33,6 +34,8 @@ services:
 
   gui:
     image: openhie/facility-recon-gui:latest
+    environment: 
+      - BACKEND_SERVER=backend
     ports:
       - "8080:8080"
     restart: unless-stopped

@@ -43,7 +43,8 @@
   - name: run hearth
     service: 
       name: facility-recon-hearth.service
-      state: started
+      # https://docs.ansible.com/ansible/2.7/modules/systemd_module.html
+      state: restarted
       enabled: yes
       daemon_reload: yes
 
@@ -75,7 +76,7 @@
   - name: run backend
     service: 
       name: facility-recon-backend.service
-      state: started
+      state: restarted
       enabled: yes
       daemon_reload: yes
 

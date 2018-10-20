@@ -12,40 +12,55 @@
 
   tasks:
 
-  - name: Install http-server node.js package globally.
-    npm:
-      name: http-server
-      global: yes
-    # need sudo for global packages 
-    become: true
+  # - name: Install http-server node.js package globally.
+  #   npm:
+  #     name: http-server
+  #     global: yes
+  #   # need sudo for global packages 
+  #   become: true
 
 
-  - name: Install/update packages based on package.json for gui
-    npm:
-      path: $HOME/facility-recon/facility-recon-gui
-      state: latest
+  # - name: Install systemd template for gui service
+  #   template:
+  #     src: facility-recon-gui.service.j2
+  #     dest: /etc/systemd/system/facility-recon-gui.service
+  #     mode: 644
+  #     force: yes
+  #   vars:
+  #     executable: "/usr/bin/http-server"
+  #   # need sudo for global packages 
+  #   become: true
 
 
-  - name: Build static site for facility-recon-gui
-    shell: cd $HOME/facility-recon/facility-recon-gui && node build/build.js
 
-
-  - name: Install systemd template for gui service
+  - name: Install systemd template for gui service (ubuntu)
     template:
       src: facility-recon-gui.service.j2
       dest: /etc/systemd/system/facility-recon-gui.service
       mode: 644
       force: yes
     vars:
-      executable: "/usr/bin/http-server"
-    # need sudo for global packages 
+      executable: "/usr/bin/npm"
+    when: ansible_distribution == 'Ubuntu'
+    become: true
+
+
+  - name: Install systemd template for gui service (centos)
+    template:
+      src: facility-recon-gui.service.j2
+      dest: /etc/systemd/system/facility-recon-gui.service
+      mode: 644
+      force: yes
+    vars:
+      executable: "/bin/npm"
+    when: ansible_distribution == 'CentOS'
     become: true
 
 
   - name: run gui
     service: 
       name: facility-recon-gui.service
-      state: started
+      state: restarted
       enabled: yes
       daemon_reload: yes
     become: true

@@ -53,8 +53,8 @@
     register: hello
 
 
-  - debug:
-      msg: "{{ hello.stdout_lines }}"
+  # - debug:
+  #     msg: "{{ hello.stdout_lines }}"
 
 
   - name: Install nodejs

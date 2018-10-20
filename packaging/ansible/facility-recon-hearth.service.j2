@@ -5,6 +5,7 @@ After=network.target
 
 [Service]
 Environment=authentication__type=disabled
+Environment=logger__level="error"
 Type=simple
 User={{ user }}
 WorkingDirectory=/home/{{ user }}/hearth
