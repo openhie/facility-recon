@@ -149,7 +149,7 @@
           </v-card-title>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="error" @click="deleteConfirm = true" round>
+            <v-btn color="error" @click="validateDelete" round>
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
@@ -269,6 +269,7 @@ export default {
     deleteDataSource () {
       this.deleteConfirm = false
       axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name).then((resp) => {
+        this.server = {}
         eventBus.$emit('getDataSources')
       })
     },

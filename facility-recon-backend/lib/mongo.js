@@ -2,8 +2,9 @@ require('./init');
 const winston = require('winston')
 const crypto = require('crypto')
 const models = require('./models')
-const mongoose = require('mongoose')
+
 const async = require('async')
+const mixin = require('./mixin')()
 const config = require('./config')
 
 const database = config.getConf('mCSD:database')
@@ -20,6 +21,7 @@ if (mongoUser && mongoPasswd) {
 module.exports = function () {
   return {
     addDataSource(fields, callback) {
+      const mongoose = require('mongoose')
       let password = ''
       if (fields.password) {
         password = this.encrypt(fields.password)
@@ -75,6 +77,7 @@ module.exports = function () {
       })
     },
     editDataSource(fields, callback) {
+      const mongoose = require('mongoose')
       let password = this.encrypt(fields.password)
       mongoose.connect(uri);
       let db = mongoose.connection
@@ -97,20 +100,66 @@ module.exports = function () {
       })
     },
 
-    deleteDataSource(id, callback) {
+    deleteDataSource(id, name, callback) {
+      let deleteDB = []
+      const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcesSchema.deleteOne({
-          _id: id,
-        }, (err, data) => {
-          return callback(err, data);
-        });
+        mongoose.connection.db.admin().command({listDatabases:1},(error, results) => {
+          async.eachSeries(results.databases, (database,nxtDB) => {
+            let dbName1 = database.name
+            if (dbName1.includes(name)) {
+              dbName1 = dbName1.replace(name,'')
+              if (dbName1) {
+                var searchName = new RegExp(["^", dbName1, "$"].join(""), "i");
+                models.DataSourcesSchema.find({name: searchName}).lean().exec({}, (err,data) => {
+                  if (data.hasOwnProperty(0)) {
+                    let dbName2 = mixin.toTitleCase(data[0].name)
+                    if (dbName1 === dbName2) {
+                      deleteDB.push(database.name)
+                      return nxtDB()
+                      /*this.deleteDB(database.name, (error) => {
+                        return nxtDB()
+                      })*/
+                    } else {
+                      return nxtDB()
+                    }
+                  } else {
+                    return nxtDB()
+                  }
+                })
+              } else {
+                return nxtDB()
+              }
+            } else {
+              return nxtDB()
+            }
+          }, () => {
+            async.eachSeries(deleteDB,(db,nxtDB) => {
+              this.deleteDB(db, (error) => {
+                return nxtDB()
+              })
+            },() => {
+              mongoose.connect(uri);
+              let db = mongoose.connection
+              db.on("error", console.error.bind(console, "connection error:"))
+              db.once("open", () => {
+                models.DataSourcesSchema.deleteOne({
+                  _id: id
+                }, (err, data) => {
+                  return callback(err, data);
+                });
+              })
+            })
+          })
+        })
       })
     },
 
     getDataSources(callback) {
+      const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
@@ -125,6 +174,7 @@ module.exports = function () {
       })
     },
     addDataSourcePair(sources, callback) {
+      const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
@@ -176,6 +226,7 @@ module.exports = function () {
       }
     },
     resetDataSourcePair(callback) {
+      const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
@@ -186,6 +237,7 @@ module.exports = function () {
       })
     },
     getDataSourcePair(callback) {
+      const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
@@ -194,6 +246,23 @@ module.exports = function () {
           return callback(err, data)
         })
       })
+    },
+    deleteDB(db, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(`mongodb://localhost/${db}`);
+      mongoose.connection.once('open', () => {
+        mongoose.connection.db.dropDatabase((err) => {
+          mongoose.connection.close()
+          if (err) {
+            winston.error(err);
+            error = err;
+            throw err;
+          } else {
+            winston.info(`${db} Dropped`);
+          }
+          return callback()
+        });
+      });
     },
     encrypt(text) {
       let algorithm = config.getConf('encryption:algorithm');

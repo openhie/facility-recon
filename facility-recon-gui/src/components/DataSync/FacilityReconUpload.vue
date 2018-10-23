@@ -93,12 +93,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <template v-if='$store.state.totalSource2Levels <= 1'><br><br><br>
-      <v-alert type="info" :value="true">
-        <b>No Data found in on source 2 ...</b>
-      </v-alert>
-    </template>
-    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess && $store.state.totalSource2Levels > 1'>
+    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess'>
       <v-stepper v-model="e1">
         <v-stepper-header>
           <v-stepper-step step="1" :complete="e1 > 1">Upload CSV</v-stepper-step>
@@ -413,7 +408,7 @@ export default {
             this.fileUploadPercentage = parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total))
             if (this.fileUploadPercentage === 100) {
               this.fileUploadPercentage = ''
-              this.uploadStatus = '2/5 Validating CSV Data'
+              this.uploadStatus = '2/3 Validating CSV Data'
             }
           }.bind(this)
         }

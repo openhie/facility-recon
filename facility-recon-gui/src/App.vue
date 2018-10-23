@@ -75,7 +75,6 @@ import { uuid } from 'vue-uuid'
 import { generalMixin } from './mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 
-console.log(backendServer)
 export default {
   mixins: [scoresMixin, generalMixin],
   data () {
@@ -90,7 +89,7 @@ export default {
       let source1 = this.$store.state.dataSourcePair.source1.name
       let source2 = this.$store.state.dataSourcePair.source2.name
       if (!source1 || !source2) {
-        this.$router.push({ name: 'FacilityReconScores' })
+        this.$router.push({ name: 'FacilityReconDataSync' })
         return
       }
       source1 = this.toTitleCase(source1)
@@ -103,7 +102,7 @@ export default {
         }
       }).catch((err) => {
         console.log(err)
-        this.$router.push({ name: 'FacilityReconScores' })
+        this.$router.push({ name: 'FacilityReconDataSync' })
       })
     },
     getTotalLevels () {
@@ -163,10 +162,14 @@ export default {
           if (source1) {
             this.$store.state.dataSourcePair.source1.id = source1._id
             this.$store.state.dataSourcePair.source1.name = source1.name
+          } else {
+            this.$store.state.dataSourcePair.source1 = {}
           }
           if (source2) {
             this.$store.state.dataSourcePair.source2.id = source2._id
             this.$store.state.dataSourcePair.source2.name = source2.name
+          } else {
+            this.$store.state.dataSourcePair.source2 = {}
           }
         } else {
           this.$store.state.dataSourcePair.source1 = {}

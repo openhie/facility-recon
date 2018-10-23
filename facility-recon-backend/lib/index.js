@@ -1193,16 +1193,16 @@ if (cluster.isMaster) {
 
   app.get('/deleteDataSource/:_id/:name', (req, res) => {
     const id = req.params._id;
+    const name = mixin.toTitleCase(req.params.name)
     winston.info('Received request to delete data source with id ' + id)
-    mongo.deleteDataSource(id, (err, response) => {
+    mongo.deleteDataSource(id, name, (err, response) => {
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured while deleting data source,please retry',
         });
       } else {
-        winston.error(req.params.name)
         let database = mixin.toTitleCase(req.params.name)
-        mcsd.deleteDB(database,(error) => {
+        mongo.deleteDB(database,(error) => {
           if (error) {
             winston.error(error)
             res.status(500).json({
