@@ -107,7 +107,7 @@ module.exports = function () {
               const thisRanking = {};
               thisRanking.source1 = {
                 name: source1Entry.resource.name,
-                parents: source1Parents,
+                parents: source1Parents.slice(0, source1Parents.length-1),
                 id: source1Entry.resource.id,
               };
               thisRanking.potentialMatches = {};
@@ -145,7 +145,7 @@ module.exports = function () {
               if (matchInSource2) {
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
-                  parents: source2ParentNames[match.resource.id],
+                  parents: source2ParentNames[match.resource.id].slice(0, source2ParentNames[match.resource.id].length-1),
                   id: match.resource.id,
                 };
               }
@@ -191,12 +191,11 @@ module.exports = function () {
               const thisRanking = {};
               thisRanking.source1 = {
                 name: source1Name,
-                parents: source1ParentNames,
+                parents: source1ParentNames.slice(0, source1Parents.length - 1),
                 id: source1Entry.resource.id,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
-              const source2Promises = [];
               var source2Filtered = mcsdSource2.entry.filter((entry) => {
                 return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
               })
@@ -222,7 +221,7 @@ module.exports = function () {
                     ignore.push(source2Entry.resource.id)
                     thisRanking.exactMatch = {
                       name: source2Name,
-                      parents: source2ParentNames[source2Id],
+                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length-1),
                       id: source2Entry.resource.id,
                     };
                     thisRanking.potentialMatches = {};
@@ -238,7 +237,7 @@ module.exports = function () {
                     }
                     thisRanking.potentialMatches['0'].push({
                       name: source2Name,
-                      parents: source2ParentNames[source2Id],
+                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
                       id: source2Entry.resource.id,
                     })
                     return source2Callback();
@@ -250,7 +249,7 @@ module.exports = function () {
                       }
                       thisRanking.potentialMatches[lev].push({
                         name: source2Name,
-                        parents: source2ParentNames[source2Id],
+                        parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length-1),
                         id: source2Entry.resource.id,
                       });
                     } else {
@@ -261,7 +260,7 @@ module.exports = function () {
                         thisRanking.potentialMatches[lev] = [];
                         thisRanking.potentialMatches[lev].push({
                           name: source2Name,
-                          parents: source2ParentNames[source2Id],
+                          parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
                           id: source2Entry.resource.id,
                         });
                       }
@@ -418,7 +417,7 @@ module.exports = function () {
               }
               thisRanking.source1 = {
                 name: source1Entry.resource.name,
-                parents: source1Parents,
+                parents: source1Parents.slice(0, source1Parents.length - 1),
                 lat: source1Latitude,
                 long: source1Longitude,
                 id: source1BuildingId,
@@ -511,7 +510,7 @@ module.exports = function () {
               }
               thisRanking.source1 = {
                 name: source1Name,
-                parents: source1ParentNames,
+                parents: source1ParentNames.slice(0, source1Parents.length - 1),
                 lat: source1Latitude,
                 long: source1Longitude,
                 id: source1BuildingId,
@@ -566,7 +565,7 @@ module.exports = function () {
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id],
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -583,7 +582,7 @@ module.exports = function () {
                   }
                   thisRanking.potentialMatches['0'].push({
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id],
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -600,7 +599,7 @@ module.exports = function () {
                       ignore.push(source2Entry.resource.id)
                       thisRanking.exactMatch = {
                         name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id],
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                         lat: source2Latitude,
                         long: source2Longitude,
                         geoDistance: dist,
@@ -618,7 +617,7 @@ module.exports = function () {
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id],
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -635,7 +634,7 @@ module.exports = function () {
                   }
                   thisRanking.potentialMatches['0'].push({
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id],
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -650,7 +649,7 @@ module.exports = function () {
                     }
                     thisRanking.potentialMatches[lev].push({
                       name: source2Name,
-                      parents: source2ParentNames[source2Entry.resource.id],
+                      parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                       lat: source2Latitude,
                       long: source2Longitude,
                       geoDistance: dist,
@@ -664,7 +663,7 @@ module.exports = function () {
                       thisRanking.potentialMatches[lev] = [];
                       thisRanking.potentialMatches[lev].push({
                         name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id],
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
                         lat: source2Latitude,
                         long: source2Longitude,
                         geoDistance: dist,
