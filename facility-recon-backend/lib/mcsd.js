@@ -544,6 +544,7 @@ module.exports = function () {
     },
     saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, callback) {
       const flagCode = config.getConf('mapping:flagCode');
+      const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
       // check if its already mapped and inore
@@ -622,10 +623,12 @@ module.exports = function () {
             });
 
             if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-              resource.partOf = {
-                display: mcsd.entry[0].resource.partOf.display,
-                reference: mcsd.entry[0].resource.partOf.reference,
-              };
+              if (!mcsd.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
+                resource.partOf = {
+                  display: mcsd.entry[0].resource.partOf.display,
+                  reference: mcsd.entry[0].resource.partOf.reference,
+                };
+              }
             }
             if (recoLevel == totalLevels) {
               var typeCode = 'bu';
@@ -1092,7 +1095,7 @@ module.exports = function () {
       resource.status = 'active'
       resource.mode = 'instance'
       resource.name = building.name
-      resource.id = building.uuid
+      resource.id = building.id
       resource.identifier = []
       resource.identifier.push({
         system: 'https://digitalhealth.intrahealth.org/source1',

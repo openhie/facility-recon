@@ -4,7 +4,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 // const oauthserver = require('node-oauth2-server')
 // const oAuthModel = require('./oauth/model')()
-const uuid5 = require('uuid/v5');
 const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
@@ -14,8 +13,8 @@ const redis = require('redis');
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
 });
+const json2csv = require('json2csv').parse;
 const csv = require('fast-csv');
-const URI = require('urijs');
 const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
@@ -640,16 +639,67 @@ if (cluster.isMaster) {
     }
 
   });
+  app.get('/getMatched/:source1/:source2/:type', (req, res) => {
+    winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
+    if (!req.params.source1 || !req.params.source2) {
+      winston.error({
+        error: 'Missing Source1 or Source2'
+      });
+      res.set('Access-Control-Allow-Origin', '*');
+      res.status(401).json({
+        error: 'Missing Source1 or Source2'
+      });
+      return;
+    }
+    let source1 = req.params.source1
+    let source2 = req.params.source2
+    let type = req.params.type
+    let database = source1 + source2
+    let matched = []
+    let fields = ['source 1 name','source 1 ID','source 2 name','source 2 ID']
+    mcsd.getLocations(database, (mappedmCSD) => {
+      if (type === 'FHIR') {
+        return res.status(200).json(mappedmCSD)
+      }
+      async.each(mappedmCSD.entry, (entry,nxtmCSD) => {
+        let source1ID = entry.resource.identifier.find((id) => {
+          return id.system === 'https://digitalhealth.intrahealth.org/source1'
+        })
+        if (source1ID) {
+          source1ID = source1ID.value.split('/').pop()
+        } else {
+          source1ID = ''
+        }
+        matched.push({
+          'source 1 name' : entry.resource.alias,
+          'source 1 ID' : source1ID,
+          'source 2 name' : entry.resource.name,
+          'source 2 ID' : entry.resource.id
+        })
+        return nxtmCSD()
+      },() => {
+        let csv
+        try {
+          csv = json2csv(matched, {
+            fields
+          });
+        } catch (err) {
+          winston.error(err);
+        }
+        return res.status(200).send(csv)
+      })
+    })
+  })
 
   app.get('/getUnmatched/:source1/:source2/:recoLevel', (req, res) => {
     winston.info(`Getting Source2 Unmatched Orgs for ${req.params.source1}`);
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
-        error: 'Missing Orgid or Source'
+        error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
       res.status(401).json({
-        error: 'Missing Orgid or Source'
+        error: 'Missing Source1 or Source2'
       });
       return;
     }
@@ -702,10 +752,6 @@ if (cluster.isMaster) {
         });
         return;
       }
-      if (recoLevel == totalLevels) {
-        const namespace = config.getConf('UUID:namespace');
-        source1Id = uuid5(source1Id, `${namespace}100`);
-      }
       mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
@@ -749,10 +795,6 @@ if (cluster.isMaster) {
         });
         return;
       }
-      if (recoLevel == totalLevels) {
-        const namespace = config.getConf('UUID:namespace');
-        source1Id = uuid5(orgid, `${namespace}100`);
-      }
       mcsd.acceptFlag(source2Id, source1, source2, (err) => {
         winston.info('Done marking flag as a match');
         res.set('Access-Control-Allow-Origin', '*');
@@ -792,10 +834,6 @@ if (cluster.isMaster) {
           error: 'Missing either Source1ID'
         });
         return;
-      }
-      if (recoLevel == totalLevels) {
-        const namespace = config.getConf('UUID:namespace');
-        source1Id = uuid5(source1Id, `${namespace}100`);
       }
       mcsd.saveNoMatch(source1Id, source1, source2, recoLevel, totalLevels, (err) => {
         winston.info('Done matching');
@@ -861,13 +899,7 @@ if (cluster.isMaster) {
       }
       let source1 = req.params.source1
       let source2 = req.params.source2
-      const recoLevel = fields.recoLevel;
-      const totalLevels = fields.totalLevels;
       const mappingDB = source1 + source2;
-      if (recoLevel == totalLevels) {
-        const namespace = config.getConf('UUID:namespace');
-        source1Id = uuid5(source1Id, `${namespace}100`);
-      }
       mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
         winston.info(`break no match done for ${fields.source1Id}`);
         res.set('Access-Control-Allow-Origin', '*');
