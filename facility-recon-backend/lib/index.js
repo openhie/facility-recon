@@ -524,7 +524,7 @@ if (cluster.isMaster) {
         },
         mappingData: function (callback) {
           const mappingDB = source1 + source2
-          mcsd.getLocationByID(mappingDB, false, false, (mcsdMapped) => {
+          mcsd.getLocations(mappingDB, (mcsdMapped) => {
             return callback(false, mcsdMapped);
           });
         }

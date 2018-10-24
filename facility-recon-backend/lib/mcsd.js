@@ -581,6 +581,11 @@ module.exports = function () {
               return callback(null, null);
             });
           },
+          source1mCSD(callback) {
+            me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+              return callback(null,mcsd)
+            })
+          }
         },
         (err, res) => {
           if (res.source1Mapped !== null) {
@@ -597,7 +602,8 @@ module.exports = function () {
             const entry = [];
             const resource = {};
             resource.resourceType = 'Location';
-            resource.name = mcsd.entry[0].resource.name;
+            resource.name = mcsd.entry[0].resource.name; // take source 2 name
+            resource.alias = res.source1mCSD.entry[0].resource.name // take source1 name
             resource.id = source2Id;
             resource.identifier = [];
             const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
