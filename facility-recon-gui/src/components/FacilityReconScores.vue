@@ -158,6 +158,24 @@
         </v-card>
       </v-dialog>
       <v-layout row wrap>
+        <v-btn color="success" round @click='csvExport'>
+          <v-icon left>file_copy</v-icon>
+          <v-progress-circular
+            v-if='loadingCSV'
+            indeterminate
+            color="red"
+          ></v-progress-circular>
+          CSV Export
+        </v-btn>
+        <v-btn color="success" round @click='fhirExport'>
+          <v-icon left>file_copy</v-icon>
+          <v-progress-circular
+            v-if='loadingFHIR'
+            indeterminate
+            color="red"
+          ></v-progress-circular>
+          FHIR Export
+        </v-btn>
         <v-spacer></v-spacer>
         <v-flex xs1 sm2 md2 right>
           <v-select :items="$store.state.levelArray"
@@ -562,7 +580,9 @@ export default {
         { text: 'Source 1 ID', value: 'source1Id' },
         { text: 'Source 2 Location', value: 'source2Name' },
         { text: 'Source 2 ID', value: 'source2Id' }
-      ]
+      ],
+      loadingCSV: false,
+      loadingFHIR: false
     }
   },
   filters: {
@@ -908,6 +928,58 @@ export default {
     back () {
       this.searchPotential = ''
       this.dialog = false
+    },
+    csvExport () {
+      this.loadingCSV = true
+      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV').then((matchResponse) => {
+        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV').then((unmatchResponse) => {
+          this.loadingCSV = false
+          // matched CSV
+          const matchedData = encodeURI('data:text/csv;charset=utf-8,' + matchResponse.data)
+          const link = document.createElement('a')
+          link.setAttribute('href', matchedData)
+          link.setAttribute('download', `matched${this.getSource1()}${this.getSource2()}.csv`)
+          link.click()
+
+          // unmatched source1 CSV
+          const unmatchedSource1Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource1CSV)
+          link.setAttribute('href', unmatchedSource1Data)
+          link.setAttribute('download', `unmatched${this.getSource1()}.csv`)
+          link.click()
+
+          // unmatched source2 CSV
+          const unmatchedSource2Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource2CSV)
+          link.setAttribute('href', unmatchedSource2Data)
+          link.setAttribute('download', `unmatched${this.getSource2()}.csv`)
+          link.click()
+        })
+      })
+    },
+    fhirExport () {
+      this.loadingFHIR = true
+      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR').then((matchResponse) => {
+        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR').then((unmatchResponse) => {
+          this.loadingFHIR = false
+          // matched CSV
+          const matchedData = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(matchResponse.data))
+          const link = document.createElement('a')
+          link.setAttribute('href', matchedData)
+          link.setAttribute('download', `matched${this.getSource1()}${this.getSource2()}.json`)
+          link.click()
+
+          // unmatched source1 CSV
+          const unmatchedSource1Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource1mCSD))
+          link.setAttribute('href', unmatchedSource1Data)
+          link.setAttribute('download', `unmatched${this.getSource1()}.json`)
+          link.click()
+
+          // unmatched source2 CSV
+          const unmatchedSource2Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource2mCSD))
+          link.setAttribute('href', unmatchedSource2Data)
+          link.setAttribute('download', `unmatched${this.getSource2()}.json`)
+          link.click()
+        })
+      })
     }
   },
   computed: {

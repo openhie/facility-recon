@@ -707,47 +707,61 @@ module.exports = function () {
       const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
-    getUnmatched(mcsdSource2All, mcsdSource2, source1, source2, callback) {
+    getUnmatched(mcsdAll, mcsdFiltered, source1, source2, getmCSD, callback) {
       const database = source1 + source2;
-      const unmatched = [];
+      const unmatched = []
+      const fakeOrgId = config.getConf('mCSD:fakeOrgId')
+
+      let mcsdUnmatched = {
+        "resourceType": "Bundle",
+        "type": "document",
+        "entry": []
+      };
       mcsd.getLocations(database, (mappedLocations) => {
         let parentCache = {}
-        async.each(mcsdSource2.entry, (source2Entry, source2Callback) => {
-
+        async.each(mcsdFiltered.entry, (filteredEntry, filteredCallback) => {
+          if (filteredEntry.resource.id === fakeOrgId) {
+            return filteredCallback()
+          }
           let matched = mappedLocations.entry.find((entry) => {
-            return entry.resource.id === source2Entry.resource.id && entry.resource.identifier.length === 2
+            return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
           })
           if (!matched) {
-            const name = source2Entry.resource.name;
-            const id = source2Entry.resource.id;
+            if (getmCSD) {
+              mcsdUnmatched.entry.push(filteredEntry)
+            }
+            const name = filteredEntry.resource.name;
+            const id = filteredEntry.resource.id;
             let entityParent = null;
-            if (source2Entry.resource.hasOwnProperty('partOf')) {
-              entityParent = source2Entry.resource.partOf.reference;
+            if (filteredEntry.resource.hasOwnProperty('partOf')) {
+              entityParent = filteredEntry.resource.partOf.reference;
             }
             if (!parentCache[entityParent]) {
               parentCache[entityParent] = []
-              mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'names', (source2Parents) => {
-                parentCache[entityParent] = source2Parents
+              mcsd.getLocationParentsFromData(entityParent, mcsdAll, 'names', (parents) => {
+                parentCache[entityParent] = parents
                 unmatched.push({
                   id,
                   name,
-                  parents: parentCache[entityParent]
+                  parents: parentCache[entityParent],
+                  parentString: parentCache[entityParent].join('->')
                 });
-                return source2Callback();
+                return filteredCallback();
               });
             } else {
               unmatched.push({
                 id,
                 name,
-                parents: parentCache[entityParent]
+                parents: parentCache[entityParent],
+                parentString: parentCache[entityParent].join('->')
               });
-              return source2Callback();
+              return filteredCallback();
             }
           } else {
-            return source2Callback();
+            return filteredCallback();
           }
         }, () => {
-          callback(unmatched);
+          callback(unmatched, mcsdUnmatched);
         });
       })
     },

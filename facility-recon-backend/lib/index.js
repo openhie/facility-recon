@@ -639,7 +639,7 @@ if (cluster.isMaster) {
     }
 
   });
-  app.get('/getMatched/:source1/:source2/:type', (req, res) => {
+  app.get('/matchedLocations/:source1/:source2/:type', (req, res) => {
     winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
@@ -657,11 +657,18 @@ if (cluster.isMaster) {
     let database = source1 + source2
     let matched = []
     let fields = ['source 1 name','source 1 ID','source 2 name','source 2 ID']
-    mcsd.getLocations(database, (mappedmCSD) => {
+    mcsd.getLocations(database, (mapped) => {
       if (type === 'FHIR') {
+        winston.info('Sending back matched locations in FHIR specification')
+        let mappedmCSD = {
+          "resourceType": "Bundle",
+          "type": "document",
+          "entry": []
+        }
+        mappedmCSD.entry = mappedmCSD.entry.concat(mapped.entry)
         return res.status(200).json(mappedmCSD)
       }
-      async.each(mappedmCSD.entry, (entry,nxtmCSD) => {
+      async.each(mapped.entry, (entry,nxtmCSD) => {
         let source1ID = entry.resource.identifier.find((id) => {
           return id.system === 'https://digitalhealth.intrahealth.org/source1'
         })
@@ -678,6 +685,7 @@ if (cluster.isMaster) {
         })
         return nxtmCSD()
       },() => {
+        winston.info('Sending back matched locations in CSV format')
         let csv
         try {
           csv = json2csv(matched, {
@@ -687,6 +695,70 @@ if (cluster.isMaster) {
           winston.error(err);
         }
         return res.status(200).send(csv)
+      })
+    })
+  })
+
+  app.get('/unmatchedLocations/:source1/:source2/:type', (req, res) => {
+    let source1 = req.params.source1
+    let source2 = req.params.source2
+    let type = req.params.type
+    let fields = ["id", "name", "parentString"]
+    async.parallel({
+      source1mCSD: function (callback) {
+        mcsd.getLocations (source1, (mcsd) => {
+          return callback (null,mcsd)
+        })
+      },
+      source2mCSD: function (callback) {
+        mcsd.getLocations(source2, (mcsd) => {
+          return callback(null, mcsd)
+        })
+      },
+    }, (error,response) => {
+      async.parallel({
+        source1Unmatched: function (callback) {
+          scores.getUnmatched(response.source1mCSD, response.source1mCSD, source1, source2, true, (unmatched, mcsdUnmatched) => {
+            return callback(null, {
+              unmatched,
+              mcsdUnmatched
+            })
+          })
+        },
+        source2Unmatched: function (callback) {
+          scores.getUnmatched(response.source2mCSD, response.source2mCSD, source1, source2, true, (unmatched, mcsdUnmatched) => {
+            return callback(null, {
+              unmatched,
+              mcsdUnmatched
+            })
+          })
+        }
+      },(error, response) => {
+        if (type === 'FHIR') {
+          return res.status(200).json({
+            unmatchedSource1mCSD: response.source1Unmatched.mcsdUnmatched,
+            unmatchedSource2mCSD: response.source2Unmatched.mcsdUnmatched
+          })
+        }
+        let unmatchedSource1CSV, unmatchedSource2CSV
+        try {
+          unmatchedSource1CSV = json2csv(response.source2Unmatched.unmatched, {
+            fields
+          });
+        } catch (err) {
+          winston.error(err);
+        }
+        try {
+          unmatchedSource2CSV = json2csv(response.source2Unmatched.unmatched, {
+            fields
+          });
+        } catch (err) {
+          winston.error(err);
+        }
+        return res.status(200).send({
+          unmatchedSource1CSV,
+          unmatchedSource2CSV
+        })
       })
     })
   })
@@ -703,16 +775,15 @@ if (cluster.isMaster) {
       });
       return;
     }
-    const orgid = req.params.orgid;
     const source1 = req.params.source1
     const source2 = req.params.source2
     let recoLevel = req.params.recoLevel;
-    if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
+    if (levelMaps[source2] && levelMaps[source2][recoLevel]) {
       recoLevel = levelMaps[orgid][recoLevel];
     }
     mcsd.getLocations(source2, (locations) => {
       mcsd.filterLocations(locations, topOrgId, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(locations, mcsdLevel, source1, source2, (unmatched) => {
+        scores.getUnmatched(locations, mcsdLevel, source1, source2, false, (unmatched) => {
           winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(unmatched);
