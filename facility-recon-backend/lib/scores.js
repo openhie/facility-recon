@@ -739,7 +739,7 @@ module.exports = function () {
             if (!parentCache[entityParent]) {
               parentCache[entityParent] = []
               mcsd.getLocationParentsFromData(entityParent, mcsdAll, 'names', (parents) => {
-                parentCache[entityParent] = parents
+                parentCache[entityParent] = parents.slice(0,parents.length-1)
                 unmatched.push({
                   id,
                   name,

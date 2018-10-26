@@ -130,13 +130,33 @@
                   <v-subheader>Facility*</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemFacility" v-model="facility" @blur="$v.facility.$touch()" @change="$v.facility.$touch()" :error-messages="facilityErrors" label="Select" required single-line clearable></v-select>
+                  <v-select 
+                    :items="filteredItemFacility" 
+                    v-model="facility" 
+                    @blur="$v.facility.$touch()" 
+                    @change="$v.facility.$touch()" 
+                    :error-messages="facilityErrors" 
+                    label="Select" 
+                    required 
+                    single-line 
+                    clearable
+                  ></v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Code</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemCode" v-model="code" @blur="$v.code.$touch()" @change="$v.code.$touch()" :error-messages="codeErrors" label="Select" required single-line clearable></v-select>
+                  <v-select 
+                    :items="filteredItemCode" 
+                    v-model="code" 
+                    @blur="$v.code.$touch()" 
+                    @change="$v.code.$touch()" 
+                    :error-messages="codeErrors" 
+                    label="Select" 
+                    required 
+                    single-line 
+                    clearable
+                  ></v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Latitude</v-subheader>
@@ -150,23 +170,43 @@
                 <v-flex xs6>
                   <v-select :items="filteredItemLong" v-model="long" label="Select" single-line clearable></v-select>
                 </v-flex>
-                <template v-if='$store.state.totalSource2Levels-1 > 1'>
+                <template>
                   <v-flex xs6>
                     <v-subheader>Level 1</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel1" v-model="level1" @blur="$v.level1.$touch()" @change="$v.level1.$touch()" :error-messages="level1Errors" required label="Select" single-line clearable></v-select>
+                    <v-select 
+                      :items="filteredItemLevel1" 
+                      v-model="level1" 
+                      @blur="$v.level1.$touch()" 
+                      @change="$v.level1.$touch()" 
+                      :error-messages="level1Errors" 
+                      required 
+                      label="Select" 
+                      single-line
+                      clearable
+                    ></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 2'>
+                <template>
                   <v-flex xs6>
                     <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel2" v-model="level2" label="Select" required single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel2"
+                      v-model="level2"
+                      @blur="$v.level2.$touch()"
+                      @change="$v.level2.$touch()"
+                      :error-messages="level2Errors"
+                      required
+                      label="Select"
+                      single-line
+                      clearable
+                    ></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 3'>
+                <template v-if='showLevel3'>
                   <v-flex xs6>
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
@@ -174,7 +214,7 @@
                     <v-select :items="filteredItemLevel3" v-model="level3" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 4'>
+                <template v-if='showLevel4'>
                   <v-flex xs6>
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
@@ -182,7 +222,7 @@
                     <v-select :items="filteredItemLevel4" v-model="level4" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 5'>
+                <template v-if='showLevel5'>
                   <v-flex xs6>
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
@@ -190,7 +230,7 @@
                     <v-select :items="filteredItemLevel5" v-model="level5" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 6'>
+                <template v-if='showLevel6'>
                   <v-flex xs6>
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
@@ -198,7 +238,7 @@
                     <v-select :items="filteredItemLevel6" v-model="level6" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
-                <template v-if='$store.state.totalSource2Levels-1 > 7'>
+                <template v-if='showLevel7'>
                   <v-flex xs6>
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
@@ -206,6 +246,13 @@
                     <v-select :items="filteredItemLevel7" v-model="level7" label="Select" single-line clearable></v-select>
                   </v-flex>
                 </template>
+                <v-layout row wrap>
+                  <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <v-btn v-if='!showLevel7' color="success" slot="activator" icon @click="showMoreLevel"><v-icon>add</v-icon></v-btn>
+                    <span>Add More Level</span>
+                  </v-tooltip>
+                </v-layout>
               </v-layout>
             </v-container>
             <v-btn color="primary" @click.native="confirmUpload = true" :disabled="$v.$invalid">Upload</v-btn>
@@ -258,6 +305,11 @@ export default {
       level5: null,
       level6: null,
       level7: null,
+      showLevel3: false,
+      showLevel4: false,
+      showLevel5: false,
+      showLevel6: false,
+      showLevel7: false,
       uploadedHeaders: [
       ],
       mappedHeaders: [],
@@ -275,6 +327,9 @@ export default {
       required: required
     },
     level1: {
+      required: required
+    },
+    level2: {
       required: required
     },
     uploadName: {
@@ -462,6 +517,27 @@ export default {
     },
     closeUploadWindow () {
       eventBus.$emit('dataSourceSaved')
+    },
+    showMoreLevel () {
+      if (!this.showLevel3) {
+        this.showLevel3 = true
+        return
+      }
+      if (!this.showLevel4) {
+        this.showLevel4 = true
+        return
+      }
+      if (!this.showLevel5) {
+        this.showLevel5 = true
+        return
+      }
+      if (!this.showLevel6) {
+        this.showLevel6 = true
+        return
+      }
+      if (!this.showLevel7) {
+        this.showLevel7 = true
+      }
     }
   },
   computed: {
@@ -499,6 +575,12 @@ export default {
       const errors = []
       if (!this.$v.level1.$dirty) return errors
       !this.$v.level1.required && errors.push('Level 1 is required')
+      return errors
+    },
+    level2Errors () {
+      const errors = []
+      if (!this.$v.level2.$dirty) return errors
+      !this.$v.level2.required && errors.push('Level 2 is required')
       return errors
     },
     filteredItemFacility () {

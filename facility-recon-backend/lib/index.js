@@ -742,7 +742,7 @@ if (cluster.isMaster) {
         }
         let unmatchedSource1CSV, unmatchedSource2CSV
         try {
-          unmatchedSource1CSV = json2csv(response.source2Unmatched.unmatched, {
+          unmatchedSource1CSV = json2csv(response.source1Unmatched.unmatched, {
             fields
           });
         } catch (err) {
