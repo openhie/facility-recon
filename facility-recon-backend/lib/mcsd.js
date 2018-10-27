@@ -511,8 +511,8 @@ module.exports = function () {
         },
         json: mCSD,
       };
+      winston.error(JSON.stringify(mCSD))
       request.post(options, (err, res, body) => {
-        winston.error(JSON.stringify(body))
         if (err) {
           winston.error(err);
           return callback(err);

@@ -45,5 +45,12 @@ function setConf(key, value) {
   nconf.set(key, value);
 }
 
+setConf("DB_HOST", process.env.DB_HOST || "localhost")
+setConf("DB_NAME", process.env.DB_NAME || "GOFR")
+setConf("DB_USER", process.env.DB_USER || "")
+setConf("DB_PASSWORD", process.env.DB_PASSWORD || "")
+setConf("DB_PORT", process.env.DB_PORT || "27017")
+setConf("REDIS_HOST", process.env.REDIS_HOST || "127.0.0.1")
+
 exports.getConf = getConf;
 exports.setConf = setConf;

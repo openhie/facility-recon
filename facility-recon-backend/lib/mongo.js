@@ -13,13 +13,11 @@ const models = require('./models')
 const mixin = require('./mixin')()
 const config = require('./config')
 
-require('dotenv').config({path: __dirname + '/.env'})
-
-const database = process.env.DB_NAME
-const mongoUser = process.env.DB_USER
-const mongoPasswd = process.env.DB_PASSWORD
-const mongoHost = process.env.DB_HOST
-const mongoPort = process.env.DB_PORT
+const database = config.getConf("DB_NAME")
+const mongoUser = config.getConf("DB_USER")
+const mongoPasswd = config.getConf("DB_PASSWORD")
+const mongoHost = config.getConf("DB_HOST")
+const mongoPort = config.getConf("DB_PORT")
 if (mongoUser && mongoPasswd) {
   var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
 } else {
@@ -283,7 +281,7 @@ module.exports = function () {
           winston.info('Restoring now ....');
           const dbList = [];
           dbList.push({
-            archive: `${config.getConf('mapping:dbPrefix')}${db}_${archive}.tar`,
+            archive: `${conficonfig.getConf('mapping:dbPrefix')}${db}_${archive}.tar`,
             db: `${config.getConf('mapping:dbPrefix')}${db}`,
           });
           dbList.push({
