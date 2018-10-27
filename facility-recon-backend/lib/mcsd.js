@@ -6,20 +6,13 @@ const uuid4 = require('uuid/v4');
 const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
-const mongoose = require('mongoose');
-const fsFinder = require('fs-finder');
 const isJSON = require('is-json');
-const fs = require('fs-extra');
 const redis = require('redis');
 
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
 });
-const exec = require('child_process');
-const moment = require('moment');
 const cache = require('memory-cache');
-const tar = require('tar');
-const tmp = require('tmp');
 const config = require('./config');
 
 module.exports = function () {
@@ -519,6 +512,7 @@ module.exports = function () {
         json: mCSD,
       };
       request.post(options, (err, res, body) => {
+        winston.error(JSON.stringify(body))
         if (err) {
           winston.error(err);
           return callback(err);
@@ -1116,6 +1110,7 @@ module.exports = function () {
         longitude: building.long,
         latitude: building.lat,
       }
+      winston.error(resource)
       bundle.entry.push({
         resource,
         request: {

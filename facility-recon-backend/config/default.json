@@ -3,29 +3,10 @@
     "hostname": "0.0.0.0",
     "port": 3000
   },
-  "mongodb": {
-    "host":"localhost",
-    "port":"27017",
-    "database":"gofr",
-    "user":"",
-    "password":""
-  },
   "mCSD":{
     "url":"http://localhost:3447",
-    "username": "",
-    "password": "",
-    "database": "GeoAlign",
-    "databaseUser": "",
-    "databasePassword": "",
-    "databaseHost": "localhost",
-    "databasePort": "27017",
     "fakeOrgId": "eac583d2-d1ba-11e8-a8d5-f2801f1b9fd1",
     "fakeOrgName": "Taifafeki"
-  },
-  "CSD":{
-    "url":"http://localhost:8984/CSD",
-    "username":"",
-    "password":""
   },
   "dbArchives":{
     "maxArchives":2

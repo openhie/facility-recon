@@ -1,13 +1,19 @@
-require('./init');
+require('./init')
 const winston = require('winston')
 const crypto = require('crypto')
-const models = require('./models')
-
+const fsFinder = require('fs-finder')
+const fs = require('fs-extra')
+const tar = require('tar')
+const tmp = require('tmp')
+const exec = require('child_process')
+const moment = require('moment')
 const async = require('async')
+
+const models = require('./models')
 const mixin = require('./mixin')()
 const config = require('./config')
 
-require('dotenv').config()
+require('dotenv').config({path: __dirname + '/.env'})
 
 const database = process.env.DB_NAME
 const mongoUser = process.env.DB_USER

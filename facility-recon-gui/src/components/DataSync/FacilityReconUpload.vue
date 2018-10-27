@@ -68,7 +68,7 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" transition="scale-transition" hide-overlay persistent width="300">
+    <v-dialog v-model="uploadPrepaProgr" transition="scale-transition" persistent width="300">
       <v-card color="primary" dark>
         <v-card-text>
           {{uploadStatus}}
@@ -77,7 +77,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" transition="scale-transition" hide-overlay persistent width="270">
+    <v-dialog v-model="percentDialog" transition="scale-transition" persistent width="270">
       <v-card color="white" dark>
         <v-card-text>
           <center>

@@ -129,8 +129,9 @@ export default {
       })
     },
     getRecoStatus () {
-      var orgUnit = this.$store.state.orgUnit
-      axios.get(backendServer + '/recoStatus/' + orgUnit.OrgId).then((status) => {
+      let source1 = this.toTitleCase(this.$store.state.dataSourcePair.source1.name)
+      let source2 = this.toTitleCase(this.$store.state.dataSourcePair.source2.name)
+      axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2).then((status) => {
         if (status.data.status) {
           this.$store.state.recoStatus.status = status.data.status
         }

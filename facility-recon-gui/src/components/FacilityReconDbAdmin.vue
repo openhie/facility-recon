@@ -49,7 +49,7 @@
                           <v-radio :value="props.item" color="red"></v-radio>
                         </td>
                       </v-radio-group>
-                      <td>{{$store.state.orgUnit.OrgName}}-{{props.item}}</td>
+                      <td>{{props.item}}</td>
                     </tr>
                   </template>
                 </v-data-table>

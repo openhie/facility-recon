@@ -1121,13 +1121,14 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/recoStatus/:orgid', (req, res) => {
-    const mongoUser = config.getConf('mCSD:databaseUser')
-    const mongoPasswd = config.getConf('mCSD:databasePassword')
-    const mongoHost = config.getConf('mCSD:databaseHost')
-    const mongoPort = config.getConf('mCSD:databasePort')
-    const orgid = req.params.orgid
-    const database = config.getConf('mapping:dbPrefix') + orgid
+  app.get('/recoStatus/:source1/:source2', (req, res) => {
+    const mongoUser = process.env.DB_USER
+    const mongoPasswd = process.env.DB_PASSWORD
+    const mongoHost = process.env.DB_HOST
+    const mongoPort = process.env.DB_PORT
+    const source1 = req.params.source1
+    const source2 = req.params.source2
+    const database = source1 + source2
     if (mongoUser && mongoPasswd) {
       var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`
     } else {

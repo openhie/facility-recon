@@ -20,6 +20,7 @@ export const store = new Vuex.Store({
     source2Hierarchy: '',
     source1Hierarchy: '',
     uploadRunning: false,
+    // this variable (orgUnit) is depracated and will soon be removed
     orgUnit: {
       OrgId: 'lZsCb6y0KDX',
       OrgName: 'Malawi'
