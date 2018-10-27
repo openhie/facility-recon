@@ -256,7 +256,7 @@ if (cluster.isMaster) {
     } else {
       const orgid = req.params.orgid;
       winston.info(`Getting archived DB for ${orgid}`);
-      mcsd.getArchives(orgid, (err, archives) => {
+      mongo.getArchives(orgid, (err, archives) => {
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
           winston.error({
@@ -286,7 +286,7 @@ if (cluster.isMaster) {
       winston.info(`Restoring archive DB for ${orgid}`);
       const form = new formidable.IncomingForm();
       form.parse(req, (err, fields, files) => {
-        mcsd.restoreDB(fields.archive, orgid, (err) => {
+        mongo.restoreDB(fields.archive, orgid, (err) => {
           res.set('Access-Control-Allow-Origin', '*');
           if (err) {
             winston.error(err)
