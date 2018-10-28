@@ -3,6 +3,8 @@ version: "3.3"
 services:
   mongo:
     image: mongo:3.6
+    ports:
+      - "27017:27017"
     restart: unless-stopped
 
   redis:
@@ -15,7 +17,7 @@ services:
     image: intrahealth/hearth:latest
     environment:
       - mongodb__url=mongodb://mongo/hearth-dev
-      - logger__level=error
+      - logger__level=warning
       - authentication__type=disabled
       # - idGenerator=uuidv4 <- setting from jembi/health, is untested
     ports:
@@ -24,10 +26,9 @@ services:
 
   backend:
     image: openhie/facility-recon-backend:latest
-    # failing. would need to be enabled
     environment: 
-    # need env for mongo as it talks directly to it
       - REDIS_HOST=redis
+      - DB_HOST=mongo
     ports:
       - "3000:3000"
     restart: unless-stopped
