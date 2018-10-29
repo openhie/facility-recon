@@ -1122,10 +1122,11 @@ if (cluster.isMaster) {
   })
 
   app.get('/recoStatus/:source1/:source2', (req, res) => {
-    const mongoUser = process.env.DB_USER
-    const mongoPasswd = process.env.DB_PASSWORD
-    const mongoHost = process.env.DB_HOST
-    const mongoPort = process.env.DB_PORT
+    const mongoUser = config.getConf("DB_USER")
+    const mongoPasswd = config.getConf("DB_PASSWORD")
+    const mongoHost = config.getConf("DB_HOST")
+    const mongoPort = config.getConf("DB_PORT")
+
     const source1 = req.params.source1
     const source2 = req.params.source2
     const database = source1 + source2

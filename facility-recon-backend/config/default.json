@@ -4,7 +4,6 @@
     "port": 3000
   },
   "mCSD":{
-    "url":"http://localhost:3447",
     "fakeOrgId": "eac583d2-d1ba-11e8-a8d5-f2801f1b9fd1",
     "fakeOrgName": "Taifafeki"
   },
