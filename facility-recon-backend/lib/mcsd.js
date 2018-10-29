@@ -198,8 +198,6 @@ module.exports = function () {
 
       function getPar(entityParent, callback) {
         if (entityParent == null || entityParent == false || entityParent == undefined) {
-          winston.error(`Error ${entityParent}`);
-          winston.error(JSON.stringify(mcsdEntry));
           return callback(parents);
         }
 
@@ -511,7 +509,6 @@ module.exports = function () {
         },
         json: mCSD,
       };
-      winston.error(JSON.stringify(mCSD))
       request.post(options, (err, res, body) => {
         if (err) {
           winston.error(err);
@@ -777,7 +774,6 @@ module.exports = function () {
             });
             fhir.entry = fhir.entry.concat(entry);
             const mappingDB = source1DB + source2DB
-            winston.error(fhir)
             me.saveLocations(fhir, mappingDB, (err, res) => {
               if (err) {
                 winston.error(err);
@@ -1110,7 +1106,6 @@ module.exports = function () {
         longitude: building.long,
         latitude: building.lat,
       }
-      winston.error(resource)
       bundle.entry.push({
         resource,
         request: {
