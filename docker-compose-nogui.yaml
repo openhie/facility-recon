@@ -27,9 +27,9 @@ services:
   backend:
     image: openhie/facility-recon-backend:latest
     environment: 
-      - HEARTH_URL=http://hearth:3447
-      - REDIS_HOST=redis
-      - DB_HOST=mongo
+      - HEARTH_URL=http://hearth:3447 
+      - REDIS_HOST=redis 
+      - DB_HOST=mongo 
     ports:
       - "3000:3000"
     restart: unless-stopped

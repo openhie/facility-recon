@@ -1,1 +1,1 @@
-# Guide de l'utilisateur de l'outil de rapprochement des installations
+# Guide de démarrage rapide pour l'outil de rapprochement des installations
