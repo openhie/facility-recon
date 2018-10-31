@@ -6,8 +6,8 @@ After=network.target
 [Service]
 Type=simple
 User={{ user }}
-WorkingDirectory=/home/{{ user }}/facility-recon/facility-recon-gui
-ExecStart={{ executable }} start
+WorkingDirectory=/home/{{ user }}/facility-recon/facility-recon-gui/dist
+ExecStart={{ executable }} 
 Restart=on-failure
 
 [Install]
