@@ -20,79 +20,37 @@
 
 
 # use static ip since site is static and vars cannot be dynamically interpreted
+  # - replace:
+  #     path: $HOME/facility-recon/facility-recon-gui/config/index.js
+  #     regexp: 'http://localhost:3000'
+  #     # single quote
+  #     replace: 'http://{{ ansible_default_ipv4.address }}:3000'
+  #     backup: no
+
+
+  # - replace:
+  #     path: $HOME/facility-recon/facility-recon-gui/config/index.js
+  #     # single quote      
+  #     regexp: 'https://test.geoalign.datim.org/facrecon'
+  #     replace: 'http://{{ ansible_default_ipv4.address }}:3000'
+  #     backup: no
+
+
+  # - replace:
+  #     path: $HOME/facility-recon/facility-recon-gui/config/dev.env.js
+  #     regexp: 'http://localhost:3000'
+  #     replace: 'http://{{ ansible_default_ipv4.address }}:3000'
+  #     backup: no
+
+
+# only this file needs to be changed.
   - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/App.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
+      path: $HOME/facility-recon/facility-recon-gui/config/prod.env.js
+      regexp: 'http://localhost:3000'
+      replace: 'http://{{ ansible_default_ipv4.address }}:3000'
       backup: no
 
 
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/DataSources/FacilityReconDataSourcePair.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/DataSync/dataSourcesMixin.js
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/DataSync/FacilityReconDataSync.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/DataSync/FacilityReconUpload.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/FacilityReconDbAdmin.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/FacilityReconScores.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/FacilityReconView.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/components/FacilityRecoStatus.vue
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address | quote }}"'
-      backup: no
-
-
-  - replace:
-      path: $HOME/facility-recon/facility-recon-gui/src/mixins/scoresMixin.js
-      regexp: 'process.env.BACKEND_SERVER'
-      replace: '"{{ ansible_default_ipv4.address | quote }}"'
-      backup: no
-
-
-
-  # need env to build static files correctly: BACKEND_SERVER={{ ansible_default_ipv4.address }}
-  # if for dhis on a separate system this needs to be reconfigured because it assumes the same server
   - name: Build static site for facility-recon-gui
     shell: cd $HOME/facility-recon/facility-recon-gui && node build/build.js
 
