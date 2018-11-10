@@ -61,3 +61,56 @@
 
   - debug:
       msg: "{{ backend.stdout_lines }}"
+
+
+# status output
+
+  - name: status mongo
+    command: systemctl status mongod.service
+    register: statusm
+    when: ansible_distribution == 'CentOS'
+
+
+  - debug:
+      msg: "{{ statusm.stdout_lines }}"
+    when: ansible_distribution == 'CentOS'
+
+
+  - name: status mongo
+    command: systemctl status mongodb.service
+    register: statusm
+    when: ansible_distribution == 'Ubuntu'
+
+
+  - debug:
+      msg: "{{ statusm.stdout_lines }}"
+    when: ansible_distribution == 'Ubuntu'
+
+
+  - name: status redis
+    command: systemctl status redis.service
+    register: statusr
+
+
+  - debug:
+      msg: "{{ statusr.stdout_lines }}"
+
+
+  - name: status hearth
+    command: systemctl status facility-recon-hearth.service
+    register: statush
+
+
+  - debug:
+      msg: "{{ statush.stdout_lines }}"
+
+
+  - name: status backend
+    command: systemctl status facility-recon-backend.service
+    register: statusb
+
+    
+  - debug:
+      msg: "{{ statusb.stdout_lines }}"
+
+

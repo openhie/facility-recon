@@ -48,7 +48,7 @@ ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
 
 ## Standalone
 
-> Note that the GUI must be built with the knowledge of the IP address of the backend server it is meant to run on. This is because the GUI has a node process-set enviroment variable. Static sites cannot interpret dynamic variables and only a node process can interpret the process.env.BACKEND_SERVER at runtime. So, the GUI must be statically built with the backend IP or domain, it is not detected at runtime. The static IP address of the host is replaced in the 10 files that reference the backend.
+> Note that the GUI must be built with the knowledge of the IP address of the backend server. Static sites cannot interpret dynamic variables. So, the GUI must be statically built with the backend IP or domain, it is not detected at runtime. The static IP address of the host is replaced in the ansible script.
 
 To run the GUI in standalone mode (not through DHIS2):
 ```
@@ -67,7 +67,7 @@ The gui is rebuilt in the `standalone.yaml` playbook when it is rerun.
 
 ## Troubleshooting
 
-Check that all processes are running and see the latest logs for hearth and the backend:
+Check that all processes are running and see the latest status for hearth and the backend:
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```

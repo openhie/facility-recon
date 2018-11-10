@@ -1,4 +1,4 @@
-name = "stuff1"
+name = "stuff"
 image = "ubuntu-18-04-x64"
 region = "nyc1"
 size = "4gb"

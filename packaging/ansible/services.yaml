@@ -16,6 +16,21 @@
   tasks:
 
 
+# enable cpu and memory accounting by systemd
+
+  - replace:
+      path: /etc/systemd/system.conf
+      regexp: '#DefaultMemoryAccounting=no'
+      replace: 'DefaultMemoryAccounting=yes'
+      backup: no
+
+  - replace:
+      path: /etc/systemd/system.conf
+      regexp: '#DefaultCPUAccounting=no'
+      replace: 'DefaultCPUAccounting=yes'
+      backup: no
+
+
 # hearth
 
   - name: install systemd template for hearth service (ubuntu)
