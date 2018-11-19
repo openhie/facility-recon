@@ -9,6 +9,8 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   state: {
+    token: '',
+    role: '',
     recoStatus: {
       'status': 'on-progress'
     },

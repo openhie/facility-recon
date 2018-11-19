@@ -2,7 +2,7 @@
   <v-app>
     <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
-      <v-toolbar-items>
+      <v-toolbar-items v-if="$store.state.token">
         <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
           <v-icon>sync</v-icon>Data Sync And Upload
         </v-btn>
@@ -20,6 +20,9 @@
         </v-btn>
         <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
           <v-icon>dashboard</v-icon> Reconciliation Status
+        </v-btn>
+        <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
+          <v-icon>perm_identity</v-icon> Add User
         </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>

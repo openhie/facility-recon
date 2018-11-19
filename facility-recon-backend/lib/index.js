@@ -8,6 +8,8 @@ const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
 const http = require('http');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const redis = require('redis');
 const redisClient = redis.createClient({
@@ -18,6 +20,7 @@ const csv = require('fast-csv');
 const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
+const models = require('./models')
 const mixin = require('./mixin')()
 const mongo = require('./mongo')();
 const config = require('./config');
@@ -70,7 +73,52 @@ app.post('/oauth/registerUser', (req, res) => {
 
 if (cluster.isMaster) {
   var workers = {};
-
+  const database = config.getConf("DB_NAME")
+  const mongoUser = config.getConf("DB_USER")
+  const mongoPasswd = config.getConf("DB_PASSWORD")
+  const mongoHost = config.getConf("DB_HOST")
+  const mongoPort = config.getConf("DB_PORT")
+  if (mongoUser && mongoPasswd) {
+    var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+  } else {
+    var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+  }
+  mongoose.connect(uri);
+  let db = mongoose.connection
+  db.on("error", console.error.bind(console, "connection error:"))
+  db.once("open", () => {
+    models.UsersSchema.find({ userName: "root@gofr.org" }).lean().exec((err, data) => {
+      if (data.length == 0) {
+        winston.info("Default user not found, adding now ...")
+        let roles = [{
+            "name": "Admin"
+          },
+          {
+            "name": "Data Manager"
+          }
+        ]
+        models.RolesSchema.collection.insertMany(roles, (err, data) => {
+          models.RolesSchema.find({name: "Admin"}, (err, data) => {
+            let User = new models.UsersSchema({
+              firstName: "Root",
+              surname: "Root",
+              userName: "root@gofr.org",
+              role: data[0]._id,
+              password: bcrypt.hashSync("gofr", 8)
+            })
+            User.save((err, data) => {
+              if (err) {
+                winston.error(err)
+                winston.error('Unexpected error occured,please retry')
+              } else {
+                winston.info('Admin User added successfully')
+              }
+            })
+          })
+        })
+      }
+    })
+  })
   var numWorkers = require('os').cpus().length;
   console.log('Master cluster setting up ' + numWorkers + ' workers...');
 
@@ -158,6 +206,141 @@ if (cluster.isMaster) {
       }, () => {
         winston.info('Found ' + dupplicated.length + ' Source1 Locations with Double Matching')
         res.send(dupplicated)
+      })
+    })
+  })
+
+  app.post('/authenticate', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info('Authenticating user ' + fields.username)
+      const database = config.getConf("DB_NAME")
+      const mongoUser = config.getConf("DB_USER")
+      const mongoPasswd = config.getConf("DB_PASSWORD")
+      const mongoHost = config.getConf("DB_HOST")
+      const mongoPort = config.getConf("DB_PORT")
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.UsersSchema.find({
+          userName: fields.username
+        }).lean().exec((err, data) => {
+          if (data.length === 1) {
+            let passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
+            if (passwordMatch) {
+              let token = jwt.sign({
+                id: data[0]._id.toString()
+              }, config.getConf('auth:secret'), {
+                expiresIn: 86400 // expires in 24 hours
+              })
+              // get role name
+              models.RolesSchema.find({
+                _id: data[0].role
+              }).lean().exec((err, roles) => {
+                let role = null
+                if (roles.length === 1) {
+                  role = roles[0].name
+                }
+                winston.info('Successfully Authenticated user ' + fields.username)
+                res.status(200).json({
+                  token,
+                  role
+                })
+              })
+            } else {
+              winston.info('Failed Authenticating user ' + fields.username)
+              res.status(200).json({
+                token: null,
+                role: null
+              })
+            }
+          } else {
+            winston.info('Failed Authenticating user ' + fields.username)
+            res.status(200).json({
+              token: null,
+              role: null
+            })
+          }
+        })
+      })
+    })
+  })
+
+  app.post('/addUser', (req, res) => {
+    winston.info("Received a request to add a new user")
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      const database = config.getConf("DB_NAME")
+      const mongoUser = config.getConf("DB_USER")
+      const mongoPasswd = config.getConf("DB_PASSWORD")
+      const mongoHost = config.getConf("DB_HOST")
+      const mongoPort = config.getConf("DB_PORT")
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        let User = new models.UsersSchema({
+          _id: new mongoose.Types.ObjectId(),
+          role: fields.role,
+          firstName: fields.firstname,
+          otherName: fields.othername,
+          surname: fields.surname,
+          password: bcrypt.hashSync(fields.password, 8),
+          userName: fields.username
+        })
+        User.save((err, data) => {
+          if (err) {
+            winston.error(err)
+            winston.error('Unexpected error occured,please retry')
+            res.status(401).send()
+          } else {
+            winston.info('User added successfully')
+            res.status(200).send()
+          }
+        })
+      })
+    })
+  })
+
+  app.get('/getRoles/:id?', (req, res) => {
+    const database = config.getConf("DB_NAME")
+    const mongoUser = config.getConf("DB_USER")
+    const mongoPasswd = config.getConf("DB_PASSWORD")
+    const mongoHost = config.getConf("DB_HOST")
+    const mongoPort = config.getConf("DB_PORT")
+
+    if (mongoUser && mongoPasswd) {
+      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    } else {
+      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    }
+    mongoose.connect(uri);
+    let db = mongoose.connection
+    db.on("error", console.error.bind(console, "connection error:"))
+    db.once("open", () => {
+      let idFilter
+      if (req.params.id) {
+        idFilter = {
+          _id: req.params.id
+        }
+      } else {
+        idFilter = {}
+      }
+      models.RolesSchema.find(idFilter).lean().exec((err, roles) => {
+        res.status(200).json(roles)
       })
     })
   })

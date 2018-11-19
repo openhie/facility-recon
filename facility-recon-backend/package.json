@@ -23,6 +23,7 @@
   "homepage": "https://github.com/openhie/facility-recon/blob/master/README.md",
   "dependencies": {
     "async": "^2.6.1",
+    "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "crypto": "^1.0.1",
@@ -36,6 +37,7 @@
     "geodist": "^0.2.1",
     "is-json": "^2.0.1",
     "json2csv": "^4.2.1",
+    "jsonwebtoken": "^8.4.0",
     "jszip": "^3.1.5",
     "memory-cache": "^0.2.0",
     "moment": "^2.22.2",
