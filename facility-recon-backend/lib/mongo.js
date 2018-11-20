@@ -53,6 +53,7 @@ module.exports = function () {
               source: fields.source,
               username: fields.username,
               password: password,
+              userID: fields.userID
             });
             syncServer.save((err, data) => {
               if (err) {
@@ -223,7 +224,8 @@ module.exports = function () {
             const dataSourcePair = new models.DataSourcePairSchema({
               source1: source1._id,
               source2: source2._id,
-              status: 'active'
+              status: 'active',
+              userID: sources.userID
             })
             dataSourcePair.save()
             return callback(false,true)

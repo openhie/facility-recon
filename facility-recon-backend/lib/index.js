@@ -266,13 +266,14 @@ if (cluster.isMaster) {
         models.UsersSchema.find({
           userName: fields.username
         }).lean().exec((err, data) => {
+          let userID = data[0]._id.toString()
           if (data.length === 1) {
             let passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
             if (passwordMatch) {
               let token = jwt.sign({
                 id: data[0]._id.toString()
               }, config.getConf('auth:secret'), {
-                expiresIn: 10800 // expires in 24 hours
+                expiresIn: 10800 // expires in 3 hours
               })
               // get role name
               models.RolesSchema.find({
@@ -285,21 +286,24 @@ if (cluster.isMaster) {
                 winston.info('Successfully Authenticated user ' + fields.username)
                 res.status(200).json({
                   token,
-                  role
+                  role,
+                  userID
                 })
               })
             } else {
               winston.info('Failed Authenticating user ' + fields.username)
               res.status(200).json({
                 token: null,
-                role: null
+                role: null,
+                userID: null
               })
             }
           } else {
             winston.info('Failed Authenticating user ' + fields.username)
             res.status(200).json({
               token: null,
-              role: null
+              role: null,
+              userID: null
             })
           }
         })
@@ -1552,7 +1556,8 @@ if (cluster.isMaster) {
       } else {
         async.eachOfSeries(servers, (server, key, nxtServer) => {
           if (server.sourceType === 'FHIR') {
-            fhir.getLastUpdate(server.name, (lastUpdate) => {
+            let database = mixin.toTitleCase(server.name)
+            fhir.getLastUpdate(database, (lastUpdate) => {
               if (lastUpdate) {
                 servers[key]["lastUpdate"] = lastUpdate
               }
@@ -1565,7 +1570,8 @@ if (cluster.isMaster) {
             }
             const auth = `Basic ${Buffer.from(`${server.username}:${password}`).toString('base64')}`
             const dhis2URL = url.parse(server.host)
-            dhis.getLastUpdate(server.name, dhis2URL, auth, (lastUpdate) => {
+            let database = mixin.toTitleCase(server.name)
+            dhis.getLastUpdate(database, dhis2URL, auth, (lastUpdate) => {
               if (lastUpdate) {
                 lastUpdate = lastUpdate.split('.').shift()
                 servers[key]["lastUpdate"] = lastUpdate

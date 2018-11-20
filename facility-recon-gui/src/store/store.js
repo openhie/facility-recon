@@ -12,8 +12,12 @@ export const store = new Vuex.Store({
   // Tanzania mdXu6iCbn2G
   // Global ybg3MO3hcf4
   state: {
-    token: '',
-    role: '',
+    auth: {
+      username: '',
+      userID: '',
+      role: '',
+      token: ''
+    },
     recoStatus: {
       'status': 'on-progress'
     },
@@ -63,7 +67,7 @@ export const store = new Vuex.Store({
 })
 
 axios.interceptors.request.use((config) => {
-  let token = store.state.token
+  let token = store.state.auth.token
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`
   }
@@ -77,7 +81,7 @@ axios.interceptors.response.use((response) => {
 }, function (error) {
   let status = error.response.status
   if (status === 401) {
-    store.state.token = ''
+    store.state.auth.token = ''
     VueCookies.remove('token')
     router.push('login')
   }

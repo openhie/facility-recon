@@ -125,6 +125,7 @@ export default {
       let formData = new FormData()
       formData.append('source1', JSON.stringify(this.source1))
       formData.append('source2', JSON.stringify(this.source2))
+      formData.append('userID', this.$store.state.auth.userID)
       axios.post(backendServer + '/addDataSourcePair', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'

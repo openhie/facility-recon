@@ -5,7 +5,7 @@
 import VueCookies from 'vue-cookies'
 export default {
   mounted () {
-    this.$store.state.token = ''
+    this.$store.state.auth.token = ''
     VueCookies.remove('token')
     this.$router.push('login')
   }

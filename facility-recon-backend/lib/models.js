@@ -62,6 +62,11 @@ let DataSources = new mongoose.Schema({
   password: {
     type: String
   },
+  userID: {
+    type: Schema.Types.ObjectId,
+    ref: 'Users',
+    required: true
+  }
 })
 
 let DataSourcePair = new mongoose.Schema({
@@ -73,6 +78,11 @@ let DataSourcePair = new mongoose.Schema({
   },
   status: {
     type: String
+  },
+  userID: {
+    type: Schema.Types.ObjectId,
+    ref: 'Users',
+    required: true
   }
 })
 

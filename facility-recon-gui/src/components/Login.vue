@@ -90,10 +90,13 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((authResp) => {
-        this.$store.state.token = authResp.data.token
+        this.$store.state.auth.token = authResp.data.token
+        this.$store.state.auth.username = this.username
+        this.$store.state.auth.userID = authResp.data.userID
+        this.$store.state.auth.role = authResp.data.role
         VueCookies.config('30d')
-        VueCookies.set('token', this.$store.state.token, 'infinity')
-        this.$store.state.role = authResp.data.role
+        VueCookies.set('token', this.$store.state.auth.token, 'infinity')
+        this.$store.state.auth.role = authResp.data.role
         if (authResp.data.token) {
           this.$store.state.clientId = uuid.v4()
           this.$store.state.initializingApp = true

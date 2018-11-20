@@ -118,10 +118,10 @@ module.exports = function () {
       })
     },
     getLastUpdate(database,callback) {
-      const mongoUser = config.getConf('mCSD:databaseUser');
-      const mongoPasswd = config.getConf('mCSD:databasePassword');
-      const mongoHost = config.getConf('mCSD:databaseHost');
-      const mongoPort = config.getConf('mCSD:databasePort');
+      const mongoUser = config.getConf("DB_USER")
+      const mongoPasswd = config.getConf("DB_PASSWORD")
+      const mongoHost = config.getConf("DB_HOST")
+      const mongoPort = config.getConf("DB_PORT")
       if (mongoUser && mongoPasswd) {
         var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
       } else {

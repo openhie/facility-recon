@@ -2,7 +2,7 @@
   <v-app>
     <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
-      <v-toolbar-items v-if="$store.state.token">
+      <v-toolbar-items v-if="$store.state.auth.token">
         <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
           <v-icon>sync</v-icon>Data Sync And Upload
         </v-btn>
@@ -191,7 +191,7 @@ export default {
   created () {
     VueCookies.get('token')
     if (VueCookies.get('token')) {
-      this.$store.state.token = VueCookies.get('token')
+      this.$store.state.auth.token = VueCookies.get('token')
       axios.get(backendServer + '/isTokenActive/').then((response) => {
         // will come here only if the token is active
         this.$store.state.clientId = uuid.v4()

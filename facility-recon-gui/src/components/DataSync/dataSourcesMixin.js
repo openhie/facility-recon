@@ -22,6 +22,7 @@ export const dataSourcesMixin = {
       formData.append('password', this.password)
       formData.append('name', this.name)
       formData.append('clientId', clientId)
+      formData.append('userID', this.$store.state.auth.userID)
 
       var serverExists = this.$store.state.dataSources.find((dataSource) => {
         return dataSource.host === this.host
