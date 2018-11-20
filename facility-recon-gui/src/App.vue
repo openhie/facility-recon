@@ -24,10 +24,13 @@
         <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
           <v-icon>perm_identity</v-icon> Add User
         </v-btn>
+        <v-btn flat to="logout" v-if='!$store.state.denyAccess'>
+          <v-icon>logout</v-icon> Logout
+        </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
       <v-toolbar-items>
-        
+
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
@@ -54,7 +57,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="initializingApp" persistent width="300">
+      <v-dialog v-model="$store.state.initializingApp" persistent width="300">
         <v-card color="primary" dark>
           <v-card-text>
             Initializing App
@@ -76,13 +79,13 @@ import { scoresMixin } from './mixins/scoresMixin'
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
 import { generalMixin } from './mixins/generalMixin'
+import VueCookies from 'vue-cookies'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
   mixins: [scoresMixin, generalMixin],
   data () {
     return {
-      initializingApp: false,
       fixed: false,
       title: 'Facility Reconciliation'
     }
@@ -114,7 +117,7 @@ export default {
       if (!source1 || !source2) {
         this.$store.state.totalSource1Levels = 5
         this.$store.state.totalSource2Levels = 5
-        this.initializingApp = false
+        this.$store.state.initializingApp = false
         this.getScores()
         this.$store.state.recoLevel = 2
         this.getRecoStatus()
@@ -123,7 +126,7 @@ export default {
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
       axios.get(backendServer + '/countLevels/' + source1 + '/' + source2).then((levels) => {
-        this.initializingApp = false
+        this.$store.state.initializingApp = false
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
         this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
         this.getScores()
@@ -151,6 +154,7 @@ export default {
         this.getDataSourcePair()
       }).catch((err) => {
         this.$store.state.loadingServers = false
+        console.log(JSON.stringify(err))
         console.log(err.response.error)
       })
     },
@@ -185,9 +189,17 @@ export default {
     }
   },
   created () {
-    this.$store.state.clientId = uuid.v4()
-    this.initializingApp = true
-    this.$store.state.denyAccess = false
+    VueCookies.get('token')
+    if (VueCookies.get('token')) {
+      this.$store.state.token = VueCookies.get('token')
+      axios.get(backendServer + '/isTokenActive/').then((response) => {
+        // will come here only if the token is active
+        this.$store.state.clientId = uuid.v4()
+        this.$store.state.initializingApp = true
+        this.$store.state.denyAccess = false
+        this.getDataSources()
+      })
+    }
     eventBus.$on('refreshApp', () => {
       this.getDataSources()
     })
@@ -200,7 +212,6 @@ export default {
     eventBus.$on('getDataSourcePair', () => {
       this.getDataSourcePair()
     })
-    this.getDataSources()
   },
   name: 'App'
 }

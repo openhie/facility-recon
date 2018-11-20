@@ -32,6 +32,40 @@ const scores = require('./scores')();
 const app = express();
 const server = require('http').createServer(app);
 
+let jwtValidator = function(req, res, next) {
+  if (req.method == "OPTIONS" || req.path == "/authenticate/") {
+    return next()
+  }
+  if (!req.headers.authorization || req.headers.authorization.split(' ').length !== 2) {
+    winston.error("Token is missing")
+    res.set('Access-Control-Allow-Origin', '*')
+    res.set('WWW-Authenticate', 'Bearer realm="Token is required"')
+    res.set('charset', 'utf - 8')
+    res.status(401).json({error: 'Token is missing'})
+  } else {
+    tokenArray = req.headers.authorization.split(' ')
+    let token = req.headers.authorization = tokenArray[1]
+    jwt.verify(token, config.getConf('auth:secret'), (err, decoded) => {
+      if(err) {
+        winston.warn("Token expired")
+        res.set('Access-Control-Allow-Origin', '*')
+        res.set('WWW-Authenticate', 'Bearer realm="Token expired"')
+        res.set('charset', 'utf - 8')
+        res.status(401).json({error: 'Token expired'})
+      } else {
+        winston.info("token is valid")
+        if(req.path == "/isTokenActive/") {
+          res.set('Access-Control-Allow-Origin', '*')
+          res.status(200).send(true)
+        } else {
+          return next()
+        }
+      }
+    })
+  }
+}
+
+app.use(jwtValidator)
 app.use(cors({
   origin: true,
   credentials: true
@@ -238,7 +272,7 @@ if (cluster.isMaster) {
               let token = jwt.sign({
                 id: data[0]._id.toString()
               }, config.getConf('auth:secret'), {
-                expiresIn: 86400 // expires in 24 hours
+                expiresIn: 10800 // expires in 24 hours
               })
               // get role name
               models.RolesSchema.find({
@@ -316,6 +350,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/getRoles/:id?', (req, res) => {
+    winston.info("Received a request to get roles")
     const database = config.getConf("DB_NAME")
     const mongoUser = config.getConf("DB_USER")
     const mongoPasswd = config.getConf("DB_PASSWORD")
@@ -333,13 +368,12 @@ if (cluster.isMaster) {
     db.once("open", () => {
       let idFilter
       if (req.params.id) {
-        idFilter = {
-          _id: req.params.id
-        }
+        idFilter = {_id: req.params.id}
       } else {
         idFilter = {}
       }
       models.RolesSchema.find(idFilter).lean().exec((err, roles) => {
+        winston.info(`sending back a list of ${roles.length} roles`)
         res.status(200).json(roles)
       })
     })

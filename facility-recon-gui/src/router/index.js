@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import FacilityReconUpload from '@/components/DataSync/FacilityReconUpload'
 import Login from '@/components/Login.vue'
+import Logout from '@/components/Logout.vue'
 import AddUser from '@/components/AddUser.vue'
 import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
@@ -10,6 +11,7 @@ import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
 import FacilityReconDataSync from '@/components/DataSync/FacilityReconDataSync'
 import FacilityReconDataSourcePair from '@/components/DataSources/FacilityReconDataSourcePair'
 import {store} from '../store/store.js'
+import VueCookies from 'vue-cookies'
 
 Vue.use(Router)
 
@@ -25,9 +27,14 @@ let router = new Router({
     component: AddUser
   },
   {
-    path: '/Login',
+    path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    component: Logout
   },
   {
     path: '/upload',
@@ -68,7 +75,7 @@ let router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (!store.state.token) {
+  if (!store.state.token && !VueCookies.get('token')) {
     if (to.path !== '/Login') {
       next({
         path: '/Login'
