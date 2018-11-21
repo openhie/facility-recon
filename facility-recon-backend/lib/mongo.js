@@ -166,13 +166,13 @@ module.exports = function () {
       })
     },
 
-    getDataSources(callback) {
+    getDataSources(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcesSchema.find({}).lean().exec({}, (err, data) => {
+        models.DataSourcesSchema.find({userID: userID}).lean().exec({}, (err, data) => {
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -187,7 +187,7 @@ module.exports = function () {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcePairSchema.find({'status': 'active'}).lean().exec({}, (err, data) => {
+        models.DataSourcePairSchema.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
               models.DataSourcePairSchema.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
@@ -211,7 +211,8 @@ module.exports = function () {
         let source2 = JSON.parse(sources.source2)
         models.DataSourcePairSchema.findOneAndUpdate({
           'source1': source1._id,
-          'source2': source2._id
+          'source2': source2._id,
+          'userID': sources.userID
         }, {
           source1: source1._id,
           source2: source2._id,
@@ -234,24 +235,24 @@ module.exports = function () {
         })
       }
     },
-    resetDataSourcePair(callback) {
+    resetDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcePairSchema.update({'status': 'active'}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
+        models.DataSourcePairSchema.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
           return callback(err,data)
         })
       })
     },
-    getDataSourcePair(callback) {
+    getDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcePairSchema.find({'status': 'active'}).lean().exec({}, (err, data) => {
+        models.DataSourcePairSchema.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
           return callback(err, data)
         })
       })

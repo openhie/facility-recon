@@ -1499,7 +1499,7 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info('Received a request to edit a data source');
-      mongo.editServer(fields, (err, response) => {
+      mongo.editDataSource(fields, (err, response) => {
         if (err) {
           res.set('Access-Control-Allow-Origin', '*');
           res.status(500).json({
@@ -1545,9 +1545,9 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/getDataSources', (req, res) => {
+  app.get('/getDataSources/:userID', (req, res) => {
     winston.info('received request to get data sources');
-    mongo.getDataSources((err, servers) => {
+    mongo.getDataSources(req.params.userID, (err, servers) => {
       if (err) {
         res.set('Access-Control-Allow-Origin', '*');
         res.status(500).json({
@@ -1592,7 +1592,7 @@ if (cluster.isMaster) {
     })
   })
 
-  app.post('/addDataSourcePair', (req,res) => {
+  app.post('/addDataSourcePair', (req, res) => {
     winston.info('Received a request to save data source pairs')
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
@@ -1610,9 +1610,9 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/resetDataSourcePair', (req,res) => {
+  app.get('/resetDataSourcePair/:userID', (req,res) => {
     winston.info('Received a request to reset data source pair')
-    mongo.resetDataSourcePair((error, response) => {
+    mongo.resetDataSourcePair(req.params.userID, (error, response) => {
       if (error) {
         winston.error(error)
         res.status(401).json({
@@ -1625,8 +1625,8 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getDataSourcePair', (req, res) => {
-    mongo.getDataSourcePair((err, sources) => {
+  app.get('/getDataSourcePair/:userID', (req, res) => {
+    mongo.getDataSourcePair(req.params.userID, (err, sources) => {
       if (err) {
         res.status(401).json({
           error: 'Unexpected error occured while saving'

@@ -75,7 +75,7 @@ let router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (!store.state.auth.token && !VueCookies.get('token')) {
+  if (!store.state.auth.token && (!VueCookies.get('token') || !VueCookies.get('userID'))) {
     if (to.path !== '/Login') {
       next({
         path: '/Login'

@@ -102,7 +102,8 @@ export default {
       this.source2 = {}
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Reseting Data Source Pairs'
-      axios.get(backendServer + '/resetDataSourcePair').then((response) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/resetDataSourcePair/' + userID).then((response) => {
         eventBus.$emit('getDataSourcePair')
         this.$store.state.dynamicProgress = false
         this.alertSuccess = true

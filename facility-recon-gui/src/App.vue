@@ -9,9 +9,6 @@
         <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess'>
           <v-icon>compare_arrows</v-icon> Data Source Pair
         </v-btn>
-        <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
-          <v-icon>archive</v-icon> Archived Uploads
-        </v-btn>
         <v-btn to="view" flat v-if='!$store.state.denyAccess'>
           <v-icon>list</v-icon>View
         </v-btn>
@@ -20,6 +17,9 @@
         </v-btn>
         <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
           <v-icon>dashboard</v-icon> Reconciliation Status
+        </v-btn>
+        <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
+          <v-icon>archive</v-icon> Archived Uploads
         </v-btn>
         <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
           <v-icon>perm_identity</v-icon> Add User
@@ -135,6 +135,9 @@ export default {
       })
     },
     getRecoStatus () {
+      if (Object.keys(this.$store.state.dataSourcePair.source1).length === 0 || Object.keys(this.$store.state.dataSourcePair.source2).length === 0) {
+        return
+      }
       let source1 = this.toTitleCase(this.$store.state.dataSourcePair.source1.name)
       let source2 = this.toTitleCase(this.$store.state.dataSourcePair.source2.name)
       axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2).then((status) => {
@@ -148,7 +151,8 @@ export default {
     getDataSources () {
       this.$store.state.loadingServers = true
       this.$store.state.dataSources = []
-      axios.get(backendServer + '/getDataSources/').then((response) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/getDataSources/' + userID).then((response) => {
         this.$store.state.loadingServers = false
         this.$store.state.dataSources = response.data.servers
         this.getDataSourcePair()
@@ -159,7 +163,8 @@ export default {
       })
     },
     getDataSourcePair () {
-      axios.get(backendServer + '/getDataSourcePair/').then((response) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/getDataSourcePair/' + userID).then((response) => {
         if (response.data) {
           let source1 = this.$store.state.dataSources.find((dataSources) => {
             return dataSources._id === response.data.source1
@@ -189,9 +194,9 @@ export default {
     }
   },
   created () {
-    VueCookies.get('token')
-    if (VueCookies.get('token')) {
+    if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
+      this.$store.state.auth.userID = VueCookies.get('userID')
       axios.get(backendServer + '/isTokenActive/').then((response) => {
         // will come here only if the token is active
         this.$store.state.clientId = uuid.v4()

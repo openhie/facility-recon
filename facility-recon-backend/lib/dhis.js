@@ -56,6 +56,10 @@ module.exports = function () {
     },
     getLastUpdate(name, dhis2URL, auth, callback) {
       winston.info('getting lastupdated time');
+      if (dhis2URL.port < 0 || dhis2URL.port >= 65536) {
+        winston.error("port number is out of range")
+        return callback(false)
+      }
       const req = (dhis2URL.protocol == 'https:' ? https : http).request({
         hostname: dhis2URL.hostname,
         port: dhis2URL.port,

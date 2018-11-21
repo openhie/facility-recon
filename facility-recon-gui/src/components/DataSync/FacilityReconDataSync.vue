@@ -243,6 +243,7 @@ export default {
       const clientId = this.$store.state.clientId
       formData.append('host', this.server.host)
       formData.append('sourceType', this.server.sourceType)
+      formData.append('source', this.server.source)
       formData.append('username', this.server.username)
       formData.append('password', this.server.password)
       formData.append('name', this.server.name)
