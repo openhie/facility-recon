@@ -172,7 +172,7 @@
                 </v-flex>
                 <template>
                   <v-flex xs6>
-                    <v-subheader>Level 1</v-subheader>
+                    <v-subheader>Level 1*</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select 
@@ -190,7 +190,7 @@
                 </template>
                 <template>
                   <v-flex xs6>
-                    <v-subheader>Level 2</v-subheader>
+                    <v-subheader>Level 2*</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select
@@ -443,6 +443,7 @@ export default {
       formData.append('level6', this.level6)
       formData.append('level7', this.level7)
       formData.append('clientId', this.$store.state.clientId)
+      formData.append('userID', this.$store.state.auth.userID)
       this.confirmUpload = false
       this.$store.state.uploadRunning = true
       this.uploadPrepaProgr = true

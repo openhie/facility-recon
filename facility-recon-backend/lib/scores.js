@@ -13,7 +13,20 @@ const mcsd = require('./mcsd')();
 
 module.exports = function () {
   return {
-    getJurisdictionScore(mcsdSource1, mcsdSource2, mcsdMapped, mcsdSource2All, mcsdSource1All, source1DB, source2DB, recoLevel, totalLevels, clientId, callback) {
+    getJurisdictionScore(
+      mcsdSource1, 
+      mcsdSource2, 
+      mcsdMapped, 
+      mcsdSource2All, 
+      mcsdSource1All, 
+      source1DB, 
+      source2DB, 
+      mappingDB,
+      recoLevel, 
+      totalLevels, 
+      clientId, 
+      callback
+    ) {
       const scoreRequestId = `scoreResults${clientId}`
       const scoreResults = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
@@ -225,8 +238,8 @@ module.exports = function () {
                       id: source2Entry.resource.id,
                     };
                     thisRanking.potentialMatches = {};
-                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
-
+                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
+                      
                     });
                     // we will need to break here and start processing nxt Source1
                     return source2Callback();
@@ -296,7 +309,20 @@ module.exports = function () {
       });
     },
 
-    getBuildingsScores(mcsdSource1, mcsdSource2, mcsdMapped, mcsdSource2All, mcsdSource1All, source1DB, source2DB, recoLevel, totalLevels, clientId, callback) {
+    getBuildingsScores(
+      mcsdSource1, 
+      mcsdSource2, 
+      mcsdMapped, 
+      mcsdSource2All, 
+      mcsdSource1All, 
+      source1DB, 
+      source2DB, 
+      mappingDB,
+      recoLevel, 
+      totalLevels, 
+      clientId, 
+      callback
+    ) {
       const scoreRequestId = `scoreResults${clientId}`
       var scoreResults = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
@@ -396,8 +422,6 @@ module.exports = function () {
             matchBroken = true
           }
         }
-        if (source1Entry.resource.id === 'ddc431f1-d583-5b2f-8af3-95612a1cd441')
-        winston.error(source1Entry.resource.id)
         this.matchStatus(mcsdMapped, source1Identifier, (match) => {
           // if this Source1 Org is already mapped
           const thisRanking = {};
@@ -447,7 +471,6 @@ module.exports = function () {
               const flagCode = config.getConf('mapping:flagCode');
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
-                winston.error(flag)
                 if (flag) {
                   thisRanking.source1.tag = 'flagged';
                 }
@@ -572,7 +595,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
 
                   });
                   return source2Callback();
@@ -606,7 +629,7 @@ module.exports = function () {
                         id: source2Entry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {});
+                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {});
                       return source2Callback();
                     }
                   }
@@ -624,7 +647,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
 
                   });
                   return source2Callback();
@@ -707,8 +730,7 @@ module.exports = function () {
       const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
-    getUnmatched(mcsdAll, mcsdFiltered, source1, source2, getmCSD, callback) {
-      const database = source1 + source2;
+    getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, callback) {
       const unmatched = []
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
 
@@ -717,7 +739,7 @@ module.exports = function () {
         "type": "document",
         "entry": []
       };
-      mcsd.getLocations(database, (mappedLocations) => {
+      mcsd.getLocations(mappingDB, (mappedLocations) => {
         let parentCache = {}
         async.each(mcsdFiltered.entry, (filteredEntry, filteredCallback) => {
           if (filteredEntry.resource.id === fakeOrgId) {

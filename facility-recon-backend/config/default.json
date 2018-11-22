@@ -13,12 +13,9 @@
   "UUID":{
     "namespace":"de2026e0-62ad-11e8-98ab-fb2f18c02"
   },
-  "oauth": {
-    "accessTokenLifetime": 3600,
-    "debug":true
-  },
   "auth": {
-    "secret": "3084e343-71bc-4247-86e4-ea210af89c28"
+    "secret": "3084e343-71bc-4247-86e4-ea210af89c28",
+    "tokenDuration": 1800
   },
   "logger": {
     "level": "info"

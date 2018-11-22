@@ -78,7 +78,10 @@ export const scoresMixin = {
           value: k + 1
         })
       }
-      axios.get(backendServer + '/reconcile/' + source1 + '/' + source2 + '/' + totalSource1Levels + '/' + totalSource2Levels + '/' + recoLevel + '/' + clientId).then((scores) => {
+      let userID = this.$store.state.auth.userID
+      let path = `source1=${source1}&source2=${source2}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}`
+      axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
         this.loadingSource1Unmatched = false
         this.getSource2Unmached()
         this.$store.state.source1UnMatched = []
@@ -141,6 +144,7 @@ export const scoresMixin = {
     getSource2Unmached () {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
+      let userID = this.$store.state.auth.userID
       if (!source1 || !source2) {
         return
       }
@@ -151,7 +155,7 @@ export const scoresMixin = {
       if (recoLevel === totalSource1Levels) {
         level = totalSource2Levels
       }
-      axios.get(backendServer + '/getUnmatched/' + source1 + '/' + source2 + '/' + level).then((unmatched) => {
+      axios.get(backendServer + '/getUnmatched/' + source1 + '/' + source2 + '/' + level + '/' + userID).then((unmatched) => {
         this.loadingSource2Unmatched = false
         this.$store.state.source2UnMatched = unmatched.data
       })

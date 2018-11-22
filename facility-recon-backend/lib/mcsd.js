@@ -533,13 +533,12 @@ module.exports = function () {
         });
       }
     },
-    saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, callback) {
+    saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, callback) {
       const flagCode = config.getConf('mapping:flagCode');
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
       // check if its already mapped and inore
-      const mappingDB = source1DB + source2DB
 
       const me = this;
       async.parallel({
@@ -586,7 +585,6 @@ module.exports = function () {
           if (res.source2Mapped !== null) {
             return callback(res.source2Mapped);
           }
-
           me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
             const fhir = {};
             fhir.entry = [];
@@ -647,7 +645,6 @@ module.exports = function () {
               resource,
             });
             fhir.entry = fhir.entry.concat(entry);
-            const mappingDB = source1DB + source2DB;
             me.saveLocations(fhir, mappingDB, (err, res) => {
               if (err) {
                 winston.error(err);
@@ -657,9 +654,8 @@ module.exports = function () {
           });
         });
     },
-    acceptFlag(source2Id, source1DB, source2DB, callback) {
-      const database = source1DB + source2DB
-      this.getLocationByID(database, source2Id, false, (flagged) => {
+    acceptFlag(source2Id, mappingDB, callback) {
+      this.getLocationByID(mappingDB, source2Id, false, (flagged) => {
         delete flagged.resourceType;
         delete flagged.id;
         delete flagged.meta;
@@ -676,7 +672,7 @@ module.exports = function () {
         flagged.type = 'document';
 
         // deleting existing location
-        const url_prefix = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+        const url_prefix = URI(config.getConf('mCSD:url')).segment(mappingDB).segment('fhir').segment('Location')
         const url = URI(url_prefix).segment(source2Id).toString();
         const options = {
           url,
@@ -688,7 +684,7 @@ module.exports = function () {
             return callback(err);
           }
           // saving new
-          this.saveLocations(flagged, database, (err, res) => {
+          this.saveLocations(flagged, mappingDB, (err, res) => {
             if (err) {
               winston.error(err);
             }
@@ -697,7 +693,7 @@ module.exports = function () {
         });
       });
     },
-    saveNoMatch(source1Id, source1DB, source2DB, recoLevel, totalLevels, callback) {
+    saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, callback) {
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const noMatchCode = config.getConf('mapping:noMatchCode');
 
@@ -710,7 +706,6 @@ module.exports = function () {
               .segment('Location')
               .segment(source1Id)
               .toString();
-            const mappingDB = source1DB + source2DB
             me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error('Attempting to mark an already mapped location as no match');
@@ -773,7 +768,6 @@ module.exports = function () {
               resource,
             });
             fhir.entry = fhir.entry.concat(entry);
-            const mappingDB = source1DB + source2DB
             me.saveLocations(fhir, mappingDB, (err, res) => {
               if (err) {
                 winston.error(err);

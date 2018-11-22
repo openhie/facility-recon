@@ -100,7 +100,8 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      axios.get(backendServer + '/uploadAvailable/' + source1 + '/' + source2).then((results) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/uploadAvailable/' + source1 + '/' + source2 + '/' + userID).then((results) => {
         if (results.data.dataUploaded) {
           this.$router.push({ name: 'FacilityReconScores' })
         } else {
@@ -125,7 +126,8 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      axios.get(backendServer + '/countLevels/' + source1 + '/' + source2).then((levels) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + userID).then((levels) => {
         this.$store.state.initializingApp = false
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
         this.$store.state.totalSource2Levels = levels.data.totalSource2Levels

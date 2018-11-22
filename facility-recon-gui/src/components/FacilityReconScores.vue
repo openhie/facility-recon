@@ -697,6 +697,7 @@ export default {
       formData.append('source2DB', this.getSource2())
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
+      formData.append('userID', this.$store.state.auth.userID)
       axios
         .post(backendServer + '/match/' + type, formData, {
           headers: {
@@ -774,10 +775,9 @@ export default {
       }
       let formData = new FormData()
       formData.append('source2Id', source2Id)
-      formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalSource1Levels)
+      let userID = this.$store.state.auth.userID
       axios
-        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2(), formData, {
+        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -790,12 +790,12 @@ export default {
     breakMatch (source2Id) {
       this.alert = true
       this.alertTitle = 'Information'
-      this.alertText =
-        'Scores for this Location may no be available unless you recalculate scores'
+      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
       let formData = new FormData()
+      let userID = this.$store.state.auth.userID
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -826,9 +826,10 @@ export default {
       this.alertTitle = 'Information'
       this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
       let formData = new FormData()
+      let userID = this.$store.state.auth.userID
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -862,8 +863,9 @@ export default {
       formData.append('source1Id', source1Id)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
+      let userID = this.$store.state.auth.userID
       axios
-        .post(backendServer + '/breakNoMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
+        .post(backendServer + '/breakNoMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -886,13 +888,14 @@ export default {
     noMatch () {
       this.$store.state.progressTitle = 'Saving as no match'
       this.$store.state.dynamicProgress = true
+      let userID = this.$store.state.auth.userID
       let formData = new FormData()
       formData.append('source1Id', this.selectedSource1Id)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + '/noMatch/' + this.getSource1() + '/' + this.getSource2(), formData, {
+        .post(backendServer + '/noMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -931,8 +934,9 @@ export default {
     },
     csvExport () {
       this.loadingCSV = true
-      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV').then((matchResponse) => {
-        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV').then((unmatchResponse) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV/' + userID).then((matchResponse) => {
+        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV/' + userID).then((unmatchResponse) => {
           this.loadingCSV = false
           // matched CSV
           const matchedData = encodeURI('data:text/csv;charset=utf-8,' + matchResponse.data)
@@ -957,8 +961,9 @@ export default {
     },
     fhirExport () {
       this.loadingFHIR = true
-      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR').then((matchResponse) => {
-        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR').then((unmatchResponse) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR/' + userID).then((matchResponse) => {
+        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR/' + userID).then((unmatchResponse) => {
           this.loadingFHIR = false
           // matched CSV
           const matchedData = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(matchResponse.data))

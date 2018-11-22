@@ -108,8 +108,10 @@ module.exports = function () {
       })
     },
 
-    deleteDataSource(id, name, callback) {
+    deleteDataSource(id, name, userID, callback) {
+      let requestedDB = name+userID
       let deleteDB = []
+      deleteDB.push(requestedDB)
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
@@ -118,26 +120,19 @@ module.exports = function () {
         mongoose.connection.db.admin().command({listDatabases:1},(error, results) => {
           async.eachSeries(results.databases, (database,nxtDB) => {
             let dbName1 = database.name
-            if (dbName1.includes(name)) {
-              dbName1 = dbName1.replace(name,'')
-              if (dbName1) {
-                var searchName = new RegExp(["^", dbName1, "$"].join(""), "i");
-                models.DataSourcesSchema.find({name: searchName}).lean().exec({}, (err,data) => {
-                  if (data.hasOwnProperty(0)) {
-                    let dbName2 = mixin.toTitleCase(data[0].name)
-                    if (dbName1 === dbName2) {
-                      deleteDB.push(database.name)
-                      return nxtDB()
-                      /*this.deleteDB(database.name, (error) => {
-                        return nxtDB()
-                      })*/
-                    } else {
-                      return nxtDB()
-                    }
-                  } else {
-                    return nxtDB()
-                  }
-                })
+            if (dbName1.includes(name) && dbName1.includes(userID)) {
+              dbName1 = dbName1.replace(name, '')
+              let splitedDB = dbName1.split(userID)
+              if (!splitedDB[0] == "" && !splitedDB[1] == "") {
+                return nxtDB()
+              }
+              dbName1 = dbName1.replace(userID, '')
+              let db = results.databases.find((db) => {
+                return db.name === dbName1 + userID
+              })
+              if (dbName1 && db) {
+                deleteDB.push(database.name)
+                return nxtDB()
               } else {
                 return nxtDB()
               }

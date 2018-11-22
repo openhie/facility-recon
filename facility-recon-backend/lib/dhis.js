@@ -20,17 +20,19 @@ const credentials = {
   username: '',
   password: '',
   name: '',
+  userID: ''
 };
 
 module.exports = function () {
   return {
-    sync(host, username, password, name, clientId, reset, full, dousers, doservices) {
+    sync(host, username, password, name, userID, clientId, reset, full, dousers, doservices) {
       const dhis2URL = url.parse(host);
       const auth = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
       credentials.dhis2URL = dhis2URL;
       credentials.clientId = clientId;
       credentials.auth = auth;
       credentials.name = name;
+      credentials.userID = userID;
 
       if (reset) {
         winston.info(`Attempting to reset time on ${host}\n`);
@@ -212,7 +214,7 @@ function processOrgUnit(metadata, hasKey) {
   async.each(metadata.organisationUnits, (org, nxtOrg) => {
     const name = credentials.name;
     const clientId = credentials.clientId;
-    const database = mixin.toTitleCase(name);
+    const database = mixin.toTitleCase(name) + credentials.userID;
 
     // winston.info(`Processing (${i}/${max}) ${org.id}`);
     const fhir = {

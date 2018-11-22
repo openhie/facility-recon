@@ -2,8 +2,6 @@ require('./init');
 const cluster = require('cluster');
 const express = require('express');
 const bodyParser = require('body-parser');
-// const oauthserver = require('node-oauth2-server')
-// const oAuthModel = require('./oauth/model')()
 const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
@@ -82,28 +80,6 @@ http.globalAgent.maxSockets = 32;
 
 const topOrgId = config.getConf('mCSD:fakeOrgId')
 const topOrgName = config.getConf('mCSD:fakeOrgName')
-// app.use(app.oauth.errorHandler());
-/* app.oauth = oauthserver({
-  model: oAuthModel,
-  grants: ['password'],
-  accessTokenLifetime:config.getConf('oauth:accessTokenLifetime'),
-  debug: config.getConf('oauth:debug')
-});
-
-// get access token
-// app.all('/oauth/token', app.oauth.grant());
-
-// register user
-app.post('/oauth/registerUser', (req, res) => {
-  oAuthModel.saveUsers(req.body.firstname, req.body.lastname, req.body.username, req.body.password, req.body.email, (err) => {
-    if (err) {
-      res.status(401).send(err);
-    } else {
-      res.send('User Created');
-    }
-  });
-});
-*/
 
 if (cluster.isMaster) {
   var workers = {};
@@ -270,10 +246,12 @@ if (cluster.isMaster) {
           if (data.length === 1) {
             let passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
             if (passwordMatch) {
+              let tokenDuration = config.getConf('auth:tokenDuration')
+              let secret = config.getConf('auth:secret')
               let token = jwt.sign({
                 id: data[0]._id.toString()
-              }, config.getConf('auth:secret'), {
-                expiresIn: 10800 // expires in 3 hours
+              }, secret, {
+                expiresIn: tokenDuration
               })
               // get role name
               models.RolesSchema.find({
@@ -343,7 +321,7 @@ if (cluster.isMaster) {
           if (err) {
             winston.error(err)
             winston.error('Unexpected error occured,please retry')
-            res.status(401).send()
+            res.status(400).send()
           } else {
             winston.info('User added successfully')
             res.status(200).send()
@@ -383,10 +361,11 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/countLevels/:source1/:source2', (req, res) => {
+  app.get('/countLevels/:source1/:source2/:userID', (req, res) => {
     winston.info(`Received a request to get total levels`);
-    let source1 = req.params.source1
-    let source2 = req.params.source2
+    let userID = req.params.userID
+    let source1 = req.params.source1 + userID
+    let source2 = req.params.source2 + userID
     async.parallel({
       Source1Levels: function (callback) {
         mcsd.countLevels(source1, topOrgId, (err, source1TotalLevels) => {
@@ -404,7 +383,7 @@ if (cluster.isMaster) {
       res.set('Access-Control-Allow-Origin', '*');
       if (err) {
         winston.error(err);
-        res.status(401).json({
+        res.status(400).json({
           error: err
         });
       } else {
@@ -418,19 +397,20 @@ if (cluster.isMaster) {
     })
   });
 
-  app.get('/uploadAvailable/:source1/:source2', (req, res) => {
+  app.get('/uploadAvailable/:source1/:source2/:userID', (req, res) => {
 
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Orgid'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Orgid'
       });
     } else {
-      const source1 = req.params.source1;
-      const source2 = req.params.source2;
+      let userID = req.params.userID
+      const source1 = req.params.source1 + userID;
+      const source2 = req.params.source2 + userID;
       winston.info(`Checking if data available for ${source1} and ${source2}`);
       async.parallel({
         source1Availability: function (callback) {
@@ -471,7 +451,7 @@ if (cluster.isMaster) {
         error: 'Missing Orgid'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Orgid'
       });
     } else {
@@ -499,7 +479,7 @@ if (cluster.isMaster) {
         error: 'Missing Orgid'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Orgid'
       });
     } else {
@@ -511,7 +491,7 @@ if (cluster.isMaster) {
           res.set('Access-Control-Allow-Origin', '*');
           if (err) {
             winston.error(err)
-            res.status(401).json({
+            res.status(400).json({
               error: 'Unexpected error occured while restoring the database,please retry'
             });
           }
@@ -531,13 +511,14 @@ if (cluster.isMaster) {
       const username = fields.username;
       const password = mongo.decrypt(fields.password);
       const name = fields.name;
+      const userID = fields.userID;
       const clientId = fields.clientId;
       const mode = fields.mode;
       let full = true;
       if (mode === 'update') {
         full = false;
       }
-      dhis.sync(host, username, password, name, clientId, false, full, false, true);
+      dhis.sync(host, username, password, name, userID, clientId, false, full, false, true);
     });
   });
 
@@ -546,7 +527,7 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info('Received a request to sync FHIR server ' + fields.host)
-      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.clientId)
+      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.userID, fields.clientId)
     })
   })
 
@@ -563,7 +544,7 @@ if (cluster.isMaster) {
         error: 'Missing Source'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source'
       });
     } else {
@@ -602,7 +583,7 @@ if (cluster.isMaster) {
         error: 'Missing Data Source',
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Data Source',
       });
     } else {
@@ -687,24 +668,25 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/reconcile/:source1/:source2/:totalSource1Levels/:totalSource2Levels/:recoLevel/:clientId', (req, res) => {
-    if (!req.params.source1 || !req.params.source2 || !req.params.recoLevel) {
+  app.get('/reconcile', (req, res) => {
+    let totalSource1Levels = req.query.totalSource1Levels
+    let totalSource2Levels = req.query.totalSource2Levels
+    let recoLevel = req.query.recoLevel
+    let clientId = req.query.clientId
+    let userID = req.query.userID
+    let source1 = req.query.source1
+    let source2 = req.query.source2
+    if (!source1 || !source2 || !recoLevel || !userID) {
       winston.error({
-        error: 'Missing source1 or source2 or reconciliation Level'
+        error: 'Missing source1 or source2 or reconciliation Level or userID'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
-        error: 'Missing source1 or source2 or reconciliation Level'
+      res.status(400).json({
+        error: 'Missing source1 or source2 or reconciliation Level or userID'
       });
     } else {
       winston.info('Getting scores');
-      const orgid = req.params.orgid;
-      const recoLevel = req.params.recoLevel;
-      const totalSource1Levels = req.params.totalSource1Levels;
-      const totalSource2Levels = req.params.totalSource2Levels;
-      const source1 = req.params.source1;
-      const source2 = req.params.source2;
-      const clientId = req.params.clientId;
+      const orgid = req.query.orgid;
       let mcsdSource2All = null;
       let mcsdSource1All = null;
 
@@ -717,7 +699,8 @@ if (cluster.isMaster) {
       redisClient.set(scoreRequestId, scoreResData)
       async.parallel({
         source2Locations: function (callback) {
-          mcsd.getLocations(source2, (mcsdSource2) => {
+          let dbSource2 = source2 + userID
+          mcsd.getLocations(dbSource2, (mcsdSource2) => {
             mcsdSource2All = mcsdSource2;
             let level
             if (recoLevel === totalSource1Levels) {
@@ -735,7 +718,8 @@ if (cluster.isMaster) {
           });
         },
         source1Loations: function (callback) {
-          mcsd.getLocations(source1, (mcsdSource1) => {
+          let dbSource1 = source1 + userID
+          mcsd.getLocations(dbSource1, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
             mcsd.filterLocations(mcsdSource1, topOrgId, recoLevel, (mcsdSource1Level) => {
               return callback(false, mcsdSource1Level);
@@ -743,12 +727,15 @@ if (cluster.isMaster) {
           });
         },
         mappingData: function (callback) {
-          const mappingDB = source1 + source2
+          const mappingDB = source1 + userID + source2
           mcsd.getLocations(mappingDB, (mcsdMapped) => {
             return callback(false, mcsdMapped);
           });
         }
       }, (error, results) => {
+        let source1DB = source1 + userID
+        let source2DB = source2 + userID
+        let mappingDB = source1 + userID + source2
         if (recoLevel == totalSource1Levels) {
           scores.getBuildingsScores(
             results.source1Loations,
@@ -756,13 +743,14 @@ if (cluster.isMaster) {
             results.mappingData,
             mcsdSource2All,
             mcsdSource1All,
-            source1,
-            source2,
+            source1DB,
+            source2DB,
+            mappingDB,
             recoLevel,
             totalSource1Levels,
             clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(source1, source2, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
               scoreResData = JSON.stringify({
                 status: 'Done',
                 error: null,
@@ -791,13 +779,14 @@ if (cluster.isMaster) {
             results.mappingData, 
             mcsdSource2All, 
             mcsdSource1All, 
-            source1,
-            source2, 
+            source1DB,
+            source2DB,
+            mappingDB,
             recoLevel, 
             totalSource1Levels, 
             clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(source1, source2, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
               var source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
@@ -817,9 +806,9 @@ if (cluster.isMaster) {
       })
     }
 
-    function recoStatus(source1, source2, callback) {
+    function recoStatus(source1, source2, userID, callback) {
       //getting total Mapped
-      var database = source1 + source2;
+      var database = source1 + userID + source2;
       var totalAllMapped = 0
       var totalAllNoMatch = 0
       var totalAllFlagged = 0
@@ -860,14 +849,14 @@ if (cluster.isMaster) {
     }
 
   });
-  app.get('/matchedLocations/:source1/:source2/:type', (req, res) => {
+  app.get('/matchedLocations/:source1/:source2/:type/:userID', (req, res) => {
     winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
       return;
@@ -875,10 +864,11 @@ if (cluster.isMaster) {
     let source1 = req.params.source1
     let source2 = req.params.source2
     let type = req.params.type
-    let database = source1 + source2
+    let userID = req.params.userID
+    let mappingDB = source1 + userID + source2
     let matched = []
     let fields = ['source 1 name','source 1 ID','source 2 name','source 2 ID']
-    mcsd.getLocations(database, (mapped) => {
+    mcsd.getLocations(mappingDB, (mapped) => {
       if (type === 'FHIR') {
         winston.info('Sending back matched locations in FHIR specification')
         let mappedmCSD = {
@@ -920,26 +910,28 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/unmatchedLocations/:source1/:source2/:type', (req, res) => {
-    let source1 = req.params.source1
-    let source2 = req.params.source2
+  app.get('/unmatchedLocations/:source1/:source2/:type/:userID', (req, res) => {
+    let source1DB = req.params.source1
+    let source2DB = req.params.source2
     let type = req.params.type
+    let userID = req.params.userID
     let fields = ["id", "name", "parentString"]
     async.parallel({
       source1mCSD: function (callback) {
-        mcsd.getLocations (source1, (mcsd) => {
+        mcsd.getLocations (source1DB, (mcsd) => {
           return callback (null,mcsd)
         })
       },
       source2mCSD: function (callback) {
-        mcsd.getLocations(source2, (mcsd) => {
+        mcsd.getLocations(source2DB, (mcsd) => {
           return callback(null, mcsd)
         })
       },
     }, (error,response) => {
+      let mappingDB = req.params.source1 + userID + req.params.source2
       async.parallel({
         source1Unmatched: function (callback) {
-          scores.getUnmatched(response.source1mCSD, response.source1mCSD, source1, source2, true, (unmatched, mcsdUnmatched) => {
+          scores.getUnmatched(response.source1mCSD, response.source1mCSD, mappingDB, true, (unmatched, mcsdUnmatched) => {
             return callback(null, {
               unmatched,
               mcsdUnmatched
@@ -947,7 +939,7 @@ if (cluster.isMaster) {
           })
         },
         source2Unmatched: function (callback) {
-          scores.getUnmatched(response.source2mCSD, response.source2mCSD, source1, source2, true, (unmatched, mcsdUnmatched) => {
+          scores.getUnmatched(response.source2mCSD, response.source2mCSD, mappingDB, true, (unmatched, mcsdUnmatched) => {
             return callback(null, {
               unmatched,
               mcsdUnmatched
@@ -984,27 +976,28 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getUnmatched/:source1/:source2/:recoLevel', (req, res) => {
+  app.get('/getUnmatched/:source1/:source2/:recoLevel/:userID', (req, res) => {
     winston.info(`Getting Source2 Unmatched Orgs for ${req.params.source1}`);
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
       return;
     }
-    const source1 = req.params.source1
-    const source2 = req.params.source2
+    let userID = req.params.userID
+    let source2DB = req.params.source2 + userID
+    let mappingDB = req.params.source1 + userID + req.params.source2
     let recoLevel = req.params.recoLevel;
-    if (levelMaps[source2] && levelMaps[source2][recoLevel]) {
+    if (levelMaps[source2DB] && levelMaps[source2D][recoLevel]) {
       recoLevel = levelMaps[orgid][recoLevel];
     }
-    mcsd.getLocations(source2, (locations) => {
+    mcsd.getLocations(source2DB, (locations) => {
       mcsd.filterLocations(locations, topOrgId, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(locations, mcsdLevel, source1, source2, false, (unmatched) => {
+        scores.getUnmatched(locations, mcsdLevel, mappingDB, false, (unmatched) => {
           winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(unmatched);
@@ -1023,32 +1016,35 @@ if (cluster.isMaster) {
           error: 'Missing Source1 or Source2'
         });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing Source1 or Source2'
         });
         return;
       }
       let source1Id = fields.source1Id;
-      let source1DB = fields.source1DB
-      let source2DB = fields.source2DB
       const source2Id = fields.source2Id;
       const recoLevel = fields.recoLevel;
       const totalLevels = fields.totalLevels;
+      const userID = fields.userID;
+      let source1DB = fields.source1DB + userID
+      let source2DB = fields.source2DB + userID
+      let mappingDB = fields.source1DB + userID + fields.source2DB
       if (!source1Id || !source2Id) {
         winston.error({
           error: 'Missing either Source1ID or Source2ID or both'
         });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing either Source1ID or Source2ID or both'
         });
         return;
       }
-      mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, recoLevel, totalLevels, type, (err) => {
+      mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
-          res.status(401).send({
+          winston.error(err)
+          res.status(400).send({
             error: err
           });
         } else {
@@ -1058,39 +1054,37 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/acceptFlag/:source1/:source2', (req, res) => {
+  app.post('/acceptFlag/:source1/:source2/:userID', (req, res) => {
     winston.info('Received data for marking flag as a match');
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
       return;
     }
-    const source1 = req.params.source1;
-    const source2 = req.params.source2;
+    const userID = req.params.userID;
+    let mappingDB = req.params.source1 + userID + req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       const source2Id = fields.source2Id;
-      const recoLevel = fields.recoLevel;
-      const totalLevels = fields.totalLevels;
       if (!source2Id) {
         winston.error({
           error: 'Missing Source2ID'
         });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing Source2ID'
         });
         return;
       }
-      mcsd.acceptFlag(source2Id, source1, source2, (err) => {
+      mcsd.acceptFlag(source2Id, mappingDB, (err) => {
         winston.info('Done marking flag as a match');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
+        if (err) res.status(400).send({
           error: err
         });
         else res.status(200).send();
@@ -1098,20 +1092,22 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/noMatch/:source1/:source2', (req, res) => {
+  app.post('/noMatch/:source1/:source2/:userID', (req, res) => {
     winston.info('Received data for matching');
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
       return;
     }
-    const source1 = req.params.source1;
-    const source2 = req.params.source2;
+    const userID = req.params.userID;
+    const source1DB = req.params.source1 + userID;
+    const source2DB = req.params.source2 + userID;
+    const mappingDB = req.params.source1 + userID + req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       let source1Id = fields.source1Id;
@@ -1122,15 +1118,15 @@ if (cluster.isMaster) {
           error: 'Missing either Source1ID'
         });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing either Source1ID'
         });
         return;
       }
-      mcsd.saveNoMatch(source1Id, source1, source2, recoLevel, totalLevels, (err) => {
+      mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, (err) => {
         winston.info('Done matching');
         res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(401).send({
+        if (err) res.status(400).send({
           error: err
         });
         else res.status(200).send();
@@ -1138,25 +1134,25 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/breakMatch/:source1/:source2', (req, res) => {
+  app.post('/breakMatch/:source1/:source2/:userID', (req, res) => {
     if (!req.params.source1) {
       winston.error({
         error: 'Missing Source1'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1'
       });
       return;
     }
-    let source1 = req.params.source1
-    let source2 = req.params.source2
+    const userID = req.params.userID;
+    const source1DB = req.params.source1 + userID;
+    const mappingDB = req.params.source1 + userID + req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info(`Received break match request for ${fields.source2Id}`);
       const source2Id = fields.source2Id;
-      const database = source1 + source2;
-      mcsd.breakMatch(source2Id, database, source1, (err, results) => {
+      mcsd.breakMatch(source2Id, mappingDB, source1DB, (err, results) => {
         winston.info(`break match done for ${fields.source2Id}`);
         res.set('Access-Control-Allow-Origin', '*');
         res.status(200).send(err);
@@ -1164,13 +1160,13 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/breakNoMatch/:source1/:source2', (req, res) => {
+  app.post('/breakNoMatch/:source1/:source2/:userID', (req, res) => {
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(401).json({
+      res.status(400).json({
         error: 'Missing Source1'
       });
       return;
@@ -1184,14 +1180,13 @@ if (cluster.isMaster) {
           'error': 'Missing Source1 ID'
         })
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing Source1 ID'
         });
         return
       }
-      let source1 = req.params.source1
-      let source2 = req.params.source2
-      const mappingDB = source1 + source2;
+      const userID = req.params.userID;
+      const mappingDB = req.params.source1 + userID + req.params.source2
       mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
         winston.info(`break no match done for ${fields.source1Id}`);
         res.set('Access-Control-Allow-Origin', '*');
@@ -1517,30 +1512,20 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/deleteDataSource/:_id/:name', (req, res) => {
+  app.get('/deleteDataSource/:_id/:name/:userID', (req, res) => {
     const id = req.params._id;
+    let userID = req.params.userID
     const name = mixin.toTitleCase(req.params.name)
     winston.info('Received request to delete data source with id ' + id)
-    mongo.deleteDataSource(id, name, (err, response) => {
+    mongo.deleteDataSource(id, name, userID, (err, response) => {
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured while deleting data source,please retry',
         });
       } else {
-        let database = mixin.toTitleCase(req.params.name)
-        mongo.deleteDB(database,(error) => {
-          if (error) {
-            winston.error(error)
-            res.status(500).json({
-              error: 'Unexpected error occured while deleting database',
-            });
-          } else {
-            winston.info('Data source with id ' + id + ' deleted')
-            res.status(200).json({
-              status: 'done',
-            });
-          }
-        })
+        res.status(200).json({
+          status: 'done',
+        });
       }
     });
   });
@@ -1599,7 +1584,7 @@ if (cluster.isMaster) {
       mongo.addDataSourcePair(fields, (error, results) => {
         if (error) {
           winston.error(error)
-          res.status(401).json({
+          res.status(400).json({
             error: 'Unexpected error occured while saving'
           })
         } else {
@@ -1615,7 +1600,7 @@ if (cluster.isMaster) {
     mongo.resetDataSourcePair(req.params.userID, (error, response) => {
       if (error) {
         winston.error(error)
-        res.status(401).json({
+        res.status(400).json({
           error: 'Unexpected error occured while saving'
         })
       } else {
@@ -1628,7 +1613,7 @@ if (cluster.isMaster) {
   app.get('/getDataSourcePair/:userID', (req, res) => {
     mongo.getDataSourcePair(req.params.userID, (err, sources) => {
       if (err) {
-        res.status(401).json({
+        res.status(400).json({
           error: 'Unexpected error occured while saving'
         })
       } else {
@@ -1650,12 +1635,12 @@ if (cluster.isMaster) {
           error: 'Missing CSV Name'
         });
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Missing CSV Name'
         });
         return;
       }
-      const database = mixin.toTitleCase(fields.csvName);
+      const database = mixin.toTitleCase(fields.csvName) + fields.userID;
       const expectedLevels = config.getConf('levels');
       const clientId = fields.clientId
       var uploadRequestId = `uploadProgress${clientId}`
@@ -1668,7 +1653,7 @@ if (cluster.isMaster) {
       if (!Array.isArray(expectedLevels)) {
         winston.error('Invalid config data for key Levels ');
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Un expected error occured while processing this request'
         });
         res.end();
@@ -1676,7 +1661,7 @@ if (cluster.isMaster) {
       }
       if (Object.keys(files).length == 0) {
         winston.error('No file submitted for reconciliation');
-        res.status(401).json({
+        res.status(400).json({
           error: 'Please submit CSV file for facility reconciliation'
         });
         res.end();
@@ -1694,7 +1679,7 @@ if (cluster.isMaster) {
         if (invalid.length > 0) {
           winston.error("Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),execution stopped");
           res.set('Access-Control-Allow-Origin', '*');
-          res.status(401).json({
+          res.status(400).json({
             error: invalid
           });
           res.end();

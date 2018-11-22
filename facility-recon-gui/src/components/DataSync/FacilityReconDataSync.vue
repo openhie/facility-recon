@@ -269,7 +269,8 @@ export default {
     },
     deleteDataSource () {
       this.deleteConfirm = false
-      axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name).then((resp) => {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name + '/' + userID).then((resp) => {
         this.server = {}
         eventBus.$emit('getDataSources')
       })
@@ -299,6 +300,7 @@ export default {
       formData.append('username', this.server.username)
       formData.append('password', this.server.password)
       formData.append('name', this.server.name)
+      formData.append('userID', this.$store.state.auth.userID)
       formData.append('clientId', clientId)
       formData.append('mode', mode)
       this.syncRunning = true
