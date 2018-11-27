@@ -18,6 +18,47 @@
       </v-card>
     </v-dialog>
     <v-layout column>
+      <v-dialog
+        v-model="helpDialog"
+        scrollable 
+        persistent :overlay="false"
+        max-width="700px"
+        transition="dialog-transition"
+      >
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              <v-icon>info</v-icon> About this page
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="helpDialog = false">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            This page let you visualize the mapping status for various levels
+            <v-list>
+              1. Right boxes shows reconciliation status for a selected level
+            </v-list>
+            <v-list>
+              2. Left boxes shows reconciliation status for a all levels
+            </v-list>
+            <v-list>
+              3. The search box let you search locations for a selected level only
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <v-flex xs1 text-xs-right>
+        <v-tooltip top>
+          <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+            <v-icon>help</v-icon>
+          </v-btn>
+          <span>Help</span>
+        </v-tooltip>
+      </v-flex>
+    </v-layout>
+    <v-layout column>
       <v-flex xs1>
         <v-layout row wrap>
           <v-flex xs6>
@@ -276,9 +317,8 @@
       </v-flex>
       <v-flex xs1>
         <v-layout row wrap>
-          <v-flex xs1 sm2 md2 right>
-            <v-select :items="locationLevels" v-model="recoLevel" :item-value='locationLevels.value' :item-name='locationLevels.text' label="Level" class="input-group--focused" height='1' full-width @change="levelChanged" single-line>
-            </v-select>
+          <v-flex xs3>
+            <v-text-field v-model="searchMatched" append-icon="search" label="Search" single-line hide-details></v-text-field>
           </v-flex>
           <v-spacer></v-spacer>
           <!--
@@ -288,8 +328,9 @@
           </v-flex>
           <v-spacer></v-spacer>
           -->
-          <v-flex xs3>
-            <v-text-field v-model="searchMatched" append-icon="search" label="Search" single-line hide-details></v-text-field>
+          <v-flex xs1 sm2 md2 right>
+            <v-select :items="locationLevels" v-model="recoLevel" :item-value='locationLevels.value' :item-name='locationLevels.text' label="Level" class="input-group--focused" height='1' full-width @change="levelChanged" single-line>
+            </v-select>
           </v-flex>
         </v-layout>
       </v-flex>
@@ -363,6 +404,7 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      helpDialog: false,
       matchedHeaders: [
         { text: 'Source 1 Location', value: 'source1Name' },
         { text: 'Source 1 ID', value: 'source1Id' },
@@ -424,9 +466,10 @@ export default {
       const clientId = this.$store.state.clientId
       let totalSource2Levels = this.$store.state.totalSource2Levels
       let totalSource1Levels = this.$store.state.totalSource1Levels
+      let userID = this.$store.state.auth.userID
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
-      axios.get(backendServer + '/mappingStatus/' + this.source1 + '/' + this.source2 + '/' + this.recoLevel + '/' + totalSource2Levels + '/' + totalSource1Levels + '/' + clientId).then((mappingStatus) => {
+      axios.get(backendServer + '/mappingStatus/' + this.source1 + '/' + this.source2 + '/' + this.recoLevel + '/' + totalSource2Levels + '/' + totalSource1Levels + '/' + clientId + '/' + userID).then((mappingStatus) => {
         this.mappingData = mappingStatus.data
       })
       this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)

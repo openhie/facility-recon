@@ -64,6 +64,34 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="helpDialog"
+      scrollable 
+      persistent :overlay="false"
+      max-width="700px"
+      transition="dialog-transition"
+    >
+      <v-card>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            <v-icon>info</v-icon> About this page
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="helpDialog = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          This page let you load data from various sources into the app for reconciliation
+          <v-list>1. Select to add remote source if you have a DHIS2 or FHIR server that you want to use its data on this app</v-list>
+          <v-list>2. Select Upload CSV if you have a CSV file and want to upload its data on the app</v-list>
+          <v-list>3. Use Force Full Sync to fetch all data from the remote server and update the app</v-list>
+          <v-list>4. Use Sync (Update) to pull updated records from the remote server and update the app</v-list>
+          <v-list>5. You may proceed to the 'Data Source Pair' page after you have added atleast two data sources</v-list>
+          <v-list>6. You may come back to this page and add more sources at any time</v-list>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-layout row wrap>
       <v-spacer></v-spacer>
       <v-flex xs2>
@@ -73,6 +101,14 @@
         <v-select :items="dataSources" v-model="dataSource" item-text='text' item-value='value' @change="sourceSelected" />
       </v-flex>
       <v-spacer></v-spacer>
+      <v-flex xs1 text-xs-right>
+        <v-tooltip top>
+          <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+            <v-icon>help</v-icon>
+          </v-btn>
+          <span>Help</span>
+        </v-tooltip>
+      </v-flex>
     </v-layout>
     <v-layout column>
       <v-flex xs6>
@@ -105,7 +141,7 @@
         <v-card color="cyan lighten-5">
           <v-card-title primary-title>
             <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
-              Remote Servers
+              Remote Sources
             </v-toolbar>
             <v-spacer></v-spacer>
           </v-card-title>
@@ -183,13 +219,14 @@ const backendServer = process.env.BACKEND_SERVER
 export default {
   data () {
     return {
+      helpDialog: false,
       deleteConfirm: false,
       editDialog: false,
       server: {},
       syncServersHeader: [
         { sortable: false },
-        { text: 'Server Name', value: 'name' },
-        { text: 'Host', value: 'host' },
+        { text: 'Source Name', value: 'name' },
+        { text: 'Base URL', value: 'host' },
         { text: 'Source Type', value: 'sourceType' },
         { text: 'User Name', value: 'username' },
         { text: 'Password', value: 'password' },
@@ -197,11 +234,14 @@ export default {
       ],
       uploadSourcesHeader: [
         { sortable: false },
-        { text: 'CSV Name', value: 'name' }
+        { text: 'Source Name',
+          align: 'left',
+          value: 'name'
+        }
       ],
       selectedComponent: '',
       dataSources: [
-        { text: 'Upload', value: 'upload' },
+        { text: 'Upload CSV', value: 'upload' },
         { text: 'Remote Source', value: 'remote' }
       ],
       dataSource: '',

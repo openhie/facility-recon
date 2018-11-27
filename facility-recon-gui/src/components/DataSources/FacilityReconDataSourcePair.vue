@@ -19,6 +19,38 @@
       >
         {{alertMsg}}
       </v-alert>
+      <v-dialog
+        v-model="helpDialog"
+        scrollable 
+        persistent :overlay="false"
+        max-width="700px"
+        transition="dialog-transition"
+      >
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              <v-icon>info</v-icon> About this page
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="helpDialog = false">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            This page let you choose a pair of data sources to use for reconciliation
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <v-layout column>
+        <v-flex xs1 text-xs-right>
+          <v-tooltip top>
+            <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+              <v-icon>help</v-icon>
+            </v-btn>
+            <span>Help</span>
+          </v-tooltip>
+        </v-flex>
+      </v-layout>
       <v-card style="width: 1000px" color='blue lighten-3'>
         <v-card-title primary-title>
           <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
@@ -81,6 +113,7 @@ const backendServer = process.env.BACKEND_SERVER
 export default {
   data () {
     return {
+      helpDialog: false,
       alertSuccess: false,
       alertError: false,
       alertMsg: '',
@@ -119,6 +152,12 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Info'
         this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      if (this.source1.name === this.source2.name && this.source1.source === this.source2.source) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = 'Data source pair of the same data source is not allowed, change one of the source'
         return
       }
       this.$store.state.dynamicProgress = true

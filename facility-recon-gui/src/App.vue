@@ -2,22 +2,38 @@
   <v-app>
     <v-toolbar color="primary" dark app>
       <v-toolbar-title v-text="title"></v-toolbar-title>
+      <v-spacer></v-spacer>
       <v-toolbar-items v-if="$store.state.auth.token">
-        <v-btn to="dataSync" flat v-if='!$store.state.denyAccess'>
-          <v-icon>sync</v-icon>Data Sync And Upload
-        </v-btn>
-        <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess'>
-          <v-icon>compare_arrows</v-icon> Data Source Pair
-        </v-btn>
-        <v-btn to="view" flat v-if='!$store.state.denyAccess'>
-          <v-icon>list</v-icon>View
-        </v-btn>
-        <v-btn flat to="scores" v-if='!$store.state.denyAccess'>
-          <v-icon>find_in_page</v-icon> Reconcile
-        </v-btn>
-        <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess'>
-          <v-icon>dashboard</v-icon> Reconciliation Status
-        </v-btn>
+        <v-tooltip bottom>
+          <v-btn to="dataSync" flat v-if='!$store.state.denyAccess' slot="activator">
+            <v-icon>sync</v-icon>Data Sync And Upload
+          </v-btn>
+          <span>Upload CSV data or synhronize remote server data</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess' slot="activator">
+            <v-icon>compare_arrows</v-icon> Data Source Pair
+          </v-btn>
+          <span>Select data sources to start mathing</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <v-btn to="view" flat v-if='!$store.state.denyAccess' slot="activator">
+            <v-icon>list</v-icon>View
+          </v-btn>
+          <span>Explore data sources contents</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <v-btn flat to="scores" v-if='!$store.state.denyAccess' slot="activator">
+            <v-icon>find_in_page</v-icon> Reconcile
+          </v-btn>
+          <span>Perform location matching of your selected data sources</span>
+        </v-tooltip>
+        <v-tooltip bottom>
+          <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess' slot="activator">
+            <v-icon>dashboard</v-icon> Reconciliation Status
+          </v-btn>
+          <span>Matching Status</span>
+        </v-tooltip>
         <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
           <v-icon>archive</v-icon> Archived Uploads
         </v-btn>
@@ -65,6 +81,9 @@
           </v-card-text>
         </v-card>
       </v-dialog>
+      <template v-if="Object.keys($store.state.dataSourcePair.source1).length > 0 && $store.state.auth.token">
+        Source 1: <b><i>{{$store.state.dataSourcePair.source1.name}}</i></b>, Source 2: <b><i>{{$store.state.dataSourcePair.source2.name}}</i></b>
+      </template>
       <router-view/>
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
@@ -94,6 +113,10 @@ export default {
     renderInitialPage () {
       let source1 = this.$store.state.dataSourcePair.source1.name
       let source2 = this.$store.state.dataSourcePair.source2.name
+      if ((!source1 || !source2) && this.$store.state.dataSources.length > 1) {
+        this.$router.push({ name: 'FacilityReconDataSourcePair' })
+        return
+      }
       if (!source1 || !source2) {
         this.$router.push({ name: 'FacilityReconDataSync' })
         return

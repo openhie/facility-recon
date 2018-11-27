@@ -8,21 +8,21 @@
 
           </v-system-bar>
           <v-toolbar color="deep-purple accent-4" cards dark flat>
-            <v-card-title class="title font-weight-regular">Add New Server</v-card-title>
+            <v-card-title class="title font-weight-regular">Add New Remote Source</v-card-title>
             <v-spacer></v-spacer>
             <v-btn icon dark @click.native="close()">
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
           <v-form ref="form" class="pa-3 pt-4">
-            <v-text-field v-model="name" box required color="deep-purple" label="Source Name"></v-text-field>
-            <v-text-field v-model="host" box required color="deep-purple" label="Base URL"></v-text-field>
             <v-select
               :items="$store.state.remoteDataSources"
               v-model="sourceType"
               required
               label="Source Type"
             ></v-select>
+            <v-text-field v-model="name" box required color="deep-purple" label="Source Name"></v-text-field>
+            <v-text-field v-model="host" box required color="deep-purple" label="Base URL"></v-text-field>
             <v-text-field v-model="username" box color="deep-purple" label="Username"></v-text-field>
             <v-text-field v-model="password" box color="deep-purple" label="Password" style="min-height: 96px" type="password"></v-text-field>
           </v-form>

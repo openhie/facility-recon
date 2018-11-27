@@ -117,7 +117,8 @@ module.exports = function () {
         // Convert to yyyy-mm-dd format (dropping time as it is ignored by DHIS2)
         lastUpdate = new Date(Date.parse(lastUpdate)).toISOString().substr(0, 10);
       } */
-      this.getLastUpdate(credentials.name, credentials.dhis2URL, credentials.auth, (lastUpdate) => {
+      let database = credentials.name + credentials.userID
+      this.getLastUpdate(database, credentials.dhis2URL, credentials.auth, (lastUpdate) => {
         if (!full && lastUpdate) {
           lastUpdate = new Date(Date.parse(lastUpdate)).toISOString().substr(0, 10);
         }
@@ -373,13 +374,15 @@ function checkLoaderDataStore() {
 
 function setLastUpdate(hasKey, lastUpdate) {
   const name = credentials.name;
+  const userID = credentials.userID
+  let database = mixin.toTitleCase(name) + userID
   const auth = credentials.auth;
   const dhis2URL = credentials.dhis2URL;
   winston.info('setting lastupdated time');
   const req = (dhis2URL.protocol == 'https:' ? https : http).request({
     hostname: dhis2URL.hostname,
     port: dhis2URL.port,
-    path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
+    path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${database}`,
     headers: {
       Authorization: auth,
       'Content-Type': 'application/json',

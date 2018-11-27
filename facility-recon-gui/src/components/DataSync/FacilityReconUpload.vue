@@ -109,7 +109,7 @@
               <v-card-title>Upload CSV (utf-8 only)</v-card-title>
               <v-card-text>
                 <v-text-field
-                  label="Unique Name"
+                  label="Enter Unique Name For Your Data"
                   v-model="uploadName"
                   @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="uploadNameErrors"
                   required

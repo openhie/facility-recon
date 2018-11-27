@@ -533,6 +533,7 @@ if (cluster.isMaster) {
 
   app.get('/hierarchy', (req, res) => {
     let source = req.query.source
+    let userID = req.query.userID
     let start = req.query.start
     let count = req.query.count
     let id = req.query.id
@@ -549,8 +550,9 @@ if (cluster.isMaster) {
       });
     } else {
       winston.info(`Fetching Locations For ${source}`);
+      let db = source + userID
       var locationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocations(source, (mcsdData) => {
+        mcsd.getLocations(db, (mcsdData) => {
           mcsd.getBuildings(mcsdData, (buildings) => {
             resolve({
               buildings,
@@ -577,7 +579,7 @@ if (cluster.isMaster) {
     }
   });
 
-  app.get('/getTree/:source', (req, res) => {
+  app.get('/getTree/:source/:userID', (req, res) => {
     if (!req.params.source) {
       winston.error({
         error: 'Missing Data Source',
@@ -588,10 +590,11 @@ if (cluster.isMaster) {
       });
     } else {
       const source = req.params.source
-
+      let userID = req.params.userID
+      let db = source + userID
       winston.info(`Fetching Locations For ${source}`);
       var locationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocations(source, (mcsdData) => {
+        mcsd.getLocations(db, (mcsdData) => {
           winston.info(`Done Fetching Locations For ${source}`);
           resolve(mcsdData);
         });
@@ -610,10 +613,11 @@ if (cluster.isMaster) {
     }
   });
 
-  app.get('/mappingStatus/:source1/:source2/:level/:totalSource2Levels/:totalSource1Levels/:clientId', (req, res) => {
+  app.get('/mappingStatus/:source1/:source2/:level/:totalSource2Levels/:totalSource1Levels/:clientId/:userID', (req, res) => {
     winston.info('Getting mapping status');
-    const source1DB = req.params.source1
-    const source2DB = req.params.source2
+    const userID = req.params.userID
+    const source1DB = req.params.source1 + userID
+    const source2DB = req.params.source2 + userID
     const recoLevel = req.params.level;
     const totalSource2Levels = req.params.totalSource2Levels;
     const totalSource1Levels = req.params.totalSource1Levels;
@@ -651,7 +655,7 @@ if (cluster.isMaster) {
         });
       });
     });
-    const mappingDB = source1DB + source2DB
+    const mappingDB = req.params.source1 + userID + req.params.source2
     const mappingLocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocations(mappingDB, (mcsdMapped) => {
         resolve(mcsdMapped);
@@ -1541,7 +1545,7 @@ if (cluster.isMaster) {
       } else {
         async.eachOfSeries(servers, (server, key, nxtServer) => {
           if (server.sourceType === 'FHIR') {
-            let database = mixin.toTitleCase(server.name)
+            let database = mixin.toTitleCase(server.name) + req.params.userID
             fhir.getLastUpdate(database, (lastUpdate) => {
               if (lastUpdate) {
                 servers[key]["lastUpdate"] = lastUpdate
@@ -1555,7 +1559,7 @@ if (cluster.isMaster) {
             }
             const auth = `Basic ${Buffer.from(`${server.username}:${password}`).toString('base64')}`
             const dhis2URL = url.parse(server.host)
-            let database = mixin.toTitleCase(server.name)
+            let database = mixin.toTitleCase(server.name) + req.params.userID
             dhis.getLastUpdate(database, dhis2URL, auth, (lastUpdate) => {
               if (lastUpdate) {
                 lastUpdate = lastUpdate.split('.').shift()

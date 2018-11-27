@@ -7,94 +7,125 @@
       </v-alert>
     </template>
     <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
-      <v-slide-y-transition mode="out-in">
-        <v-layout row wrap>
-          <v-flex xs6>
+      <v-layout column>
+        <v-flex xs1 text-xs-right>
+          <v-dialog
+            v-model="helpDialog"
+            scrollable 
+            persistent :overlay="false"
+            max-width="700px"
+            transition="dialog-transition"
+          >
             <v-card>
-              <v-card-title primary-title>
-                <h3 class="headline mb-0">Source 1 Data Tree</h3>
-              </v-card-title>
-              <template v-if="loadingSource1Tree">
-                <v-progress-linear :indeterminate="true"></v-progress-linear>
-              </template>
-              <template v-else>
-                <v-card-text>
-                  <p>
-                    <liquor-tree @node:selected="source1NodeSelected" :data="source1Tree" :options="{}" ref="source1Tree" />
-                  </p>
-                </v-card-text>
-              </template>
+              <v-toolbar color="primary" dark>
+                <v-toolbar-title>
+                  <v-icon>info</v-icon> About this page
+                </v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn icon dark @click.native="helpDialog = false">
+                  <v-icon>close</v-icon>
+                </v-btn>
+              </v-toolbar>
+              <v-card-text>
+                This page let you view dat you have uploaded or synchronized from a remote server
+                <v-list>1. Use the tree to filter grid data</v-list>
+              </v-card-text>
             </v-card>
-          </v-flex>
-          <v-flex xs6>
-            <v-card>
-              <v-card-title primary-title>
-                <h3 class="headline mb-0">Source2 Data Tree</h3>
+          </v-dialog>
+          <v-tooltip top>
+            <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+              <v-icon>help</v-icon>
+            </v-btn>
+            <span>Help</span>
+          </v-tooltip>
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex xs6>
+          <v-card>
+            <v-card-title primary-title>
+              <h3 class="headline mb-0">Source 1 Data Tree</h3>
+            </v-card-title>
+            <template v-if="loadingSource1Tree">
+              <v-progress-linear :indeterminate="true"></v-progress-linear>
+            </template>
+            <template v-else>
+              <v-card-text>
+                <p>
+                  <liquor-tree @node:selected="source1NodeSelected" :data="source1Tree" :options="{}" ref="source1Tree" />
+                </p>
+              </v-card-text>
+            </template>
+          </v-card>
+        </v-flex>
+        <v-flex xs6>
+          <v-card>
+            <v-card-title primary-title>
+              <h3 class="headline mb-0">Source2 Data Tree</h3>
+            </v-card-title>
+            <template v-if="loadingSource2Tree">
+              <v-progress-linear :indeterminate="true"></v-progress-linear>
+            </template>
+            <template v-else>
+              <v-card-text>
+                <p>
+                  <liquor-tree @node:selected="source2NodeSelected" :data="source2Tree" :options="{}" ref="source2Tree" />
+                </p>
+              </v-card-text>
+            </template>
+          </v-card>
+        </v-flex>
+        <v-flex xs6>
+          <v-card>
+            <v-card-title primary-title>
+              <h3 class="headline mb-0">Source 1 Data Grid</h3>
+            </v-card-title>
+            <template v-if="loadingSource1Grid">
+              <v-progress-linear :indeterminate="true"></v-progress-linear>
+            </template>
+            <template v-else>
+              <v-card-title>
+                <v-text-field v-model="searchSource1" append-icon="search" label="Search" single-line hide-details></v-text-field>
               </v-card-title>
-              <template v-if="loadingSource2Tree">
-                <v-progress-linear :indeterminate="true"></v-progress-linear>
-              </template>
-              <template v-else>
-                <v-card-text>
-                  <p>
-                    <liquor-tree @node:selected="source2NodeSelected" :data="source2Tree" :options="{}" ref="source2Tree" />
-                  </p>
-                </v-card-text>
-              </template>
-            </v-card>
-          </v-flex>
-          <v-flex xs6>
-            <v-card>
-              <v-card-title primary-title>
-                <h3 class="headline mb-0">Source 1 Data Grid</h3>
+              <v-card-text>
+                <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
+                  <template slot="items" slot-scope="props">
+                    <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">{{props.item[header.value]}}</td>
+                  </template>
+                </v-data-table>
+              </v-card-text>
+              <div class="text-xs-center pt-2">
+                <v-pagination v-model="source1Pagination.page" :length="source1Pages"></v-pagination>
+              </div>
+            </template>
+          </v-card>
+        </v-flex>
+        <v-flex xs6>
+          <v-card>
+            <v-card-title primary-title>
+              <h3 class="headline mb-0">Source 2 Data Grid</h3>
+            </v-card-title>
+            <template v-if="loadingSource2Grid">
+              <v-progress-linear :indeterminate="true"></v-progress-linear>
+            </template>
+            <template v-else>
+              <v-card-title>
+                <v-text-field v-model="searchSource2" append-icon="search" label="Search" single-line hide-details></v-text-field>
               </v-card-title>
-              <template v-if="loadingSource1Grid">
-                <v-progress-linear :indeterminate="true"></v-progress-linear>
-              </template>
-              <template v-else>
-                <v-card-title>
-                  <v-text-field v-model="searchSource1" append-icon="search" label="Search" single-line hide-details></v-text-field>
-                </v-card-title>
-                <v-card-text>
-                  <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
-                    <template slot="items" slot-scope="props">
-                      <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">{{props.item[header.value]}}</td>
-                    </template>
-                  </v-data-table>
-                </v-card-text>
-                <div class="text-xs-center pt-2">
-                  <v-pagination v-model="source1Pagination.page" :length="source1Pages"></v-pagination>
-                </div>
-              </template>
-            </v-card>
-          </v-flex>
-          <v-flex xs6>
-            <v-card>
-              <v-card-title primary-title>
-                <h3 class="headline mb-0">Source 2 Data Grid</h3>
-              </v-card-title>
-              <template v-if="loadingSource2Grid">
-                <v-progress-linear :indeterminate="true"></v-progress-linear>
-              </template>
-              <template v-else>
-                <v-card-title>
-                  <v-text-field v-model="searchSource2" append-icon="search" label="Search" single-line hide-details></v-text-field>
-                </v-card-title>
-                <v-card-text>
-                  <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
-                    <template slot="items" slot-scope="props">
-                      <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">{{props.item[header.value]}}</td>
-                    </template>
-                  </v-data-table>
-                </v-card-text>
-                <div class="text-xs-center pt-2">
-                  <v-pagination v-model="source2Pagination.page" :length="source2Pages"></v-pagination>
-                </div>
-              </template>
-            </v-card>
-          </v-flex>
-        </v-layout>
-      </v-slide-y-transition>
+              <v-card-text>
+                <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
+                  <template slot="items" slot-scope="props">
+                    <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">{{props.item[header.value]}}</td>
+                  </template>
+                </v-data-table>
+              </v-card-text>
+              <div class="text-xs-center pt-2">
+                <v-pagination v-model="source2Pagination.page" :length="source2Pages"></v-pagination>
+              </div>
+            </template>
+          </v-card>
+        </v-flex>
+      </v-layout>
       <br>
       <v-layout row wrap>
         <v-flex xs1 xl10>
@@ -118,6 +149,7 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      helpDialog: false,
       headerText: {
         level2: 'Level 1',
         level3: 'Level 2',
@@ -176,7 +208,8 @@ export default {
         id = ''
       }
       this.loadingSource1Grid = true
-      let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}`
+      let userID = this.$store.state.auth.userID
+      let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}&userID=${userID}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource1Grid = false
         if (hierarchy.data) {
@@ -224,7 +257,8 @@ export default {
       }
       this.loadingSource2 = true
       this.loadingSource2Grid = true
-      let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}`
+      let userID = this.$store.state.auth.userID
+      let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}&userID=${userID}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource2Grid = false
         if (hierarchy.data) {
@@ -268,15 +302,16 @@ export default {
       })
     },
     getTree () {
+      let userID = this.$store.state.auth.userID
       this.loadingSource2Tree = true
-      axios.get(backendServer + '/getTree/' + this.source2).then((hierarchy) => {
+      axios.get(backendServer + '/getTree/' + this.source2 + '/' + userID).then((hierarchy) => {
         this.loadingSource2Tree = false
         if (hierarchy.data) {
           this.source2Tree = hierarchy.data
         }
       })
       this.loadingSource1Tree = true
-      axios.get(backendServer + '/getTree/' + this.source1).then((hierarchy) => {
+      axios.get(backendServer + '/getTree/' + this.source1 + '/' + userID).then((hierarchy) => {
         this.loadingSource1Tree = false
         if (hierarchy.data) {
           this.source1Tree = hierarchy.data
