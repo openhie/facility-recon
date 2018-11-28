@@ -17,7 +17,7 @@ const config = require('./config')
 
 module.exports = function () {
   return {
-    sync(host, username, password, mode, name, userID, clientId) {
+    sync(host, username, password, mode, name, userID, clientId, topOrgId, topOrgName) {
       const fhirSyncRequestId = `fhirSyncRequest${clientId}`;
       const fhirSyncRequest = JSON.stringify({
         status: '1/2 - Loading all data from the FHIR Server specified',
@@ -76,7 +76,50 @@ module.exports = function () {
             let countSaved = 0;
             let totalRows = locations.entry.length
             let count = 0
+            
+            //adding the fake orgid as the top orgid
+            let fhir = {
+              resourceType: 'Location',
+              id: topOrgId,
+              status: 'active',
+              mode: 'instance',
+            };
+            fhir.identifier = [{
+              system: 'https://digitalhealth.intrahealth.org/source1',
+              value: topOrgId,
+            }, ];
+            fhir.physicalType = {
+              coding: [{
+                system: 'http://hl7.org/fhir/location-physical-type',
+                code: 'jdn',
+                display: 'Jurisdiction',
+              }],
+              text: 'Jurisdiction',
+            };
+            const url = URI(config.getConf('mCSD:url')).segment(database)
+              .segment('fhir')
+              .segment('Location')
+              .segment(fhir.id)
+              .toString();
+            const options = {
+              url: url.toString(),
+              headers: {
+                'Content-Type': 'application/fhir+json',
+              },
+              json: fhir,
+            };
+            request.put(options, (err, res, body) => {
+              if (err) {
+                winston.error("An error occured while saving the top org of hierarchy, this will cause issues with reconciliation")
+              }
+            })
             async.each(locations.entry, (entry, nxtEntry) => {
+              if (!entry.resource.hasOwnProperty('partOf') || !entry.resource.partOf.reference) {
+                entry.resource.partOf = {
+                  reference: `Location/${topOrgId}`,
+                  display: topOrgName
+                }
+              }
               count++
               saveBundle.entry.push(entry)
               if (saveBundle.entry.length >= 250 || totalRows === count) {

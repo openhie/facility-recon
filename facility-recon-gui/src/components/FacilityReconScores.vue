@@ -246,94 +246,95 @@
         <v-flex xs2 right>
           <div style="border-style: solid;border-color:green; text-align: center;">
             <b>Source 1 Reconciliation Status</b>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex>
-                  <v-icon light>thumb_up</v-icon>
-                  <b>Matched</b>
+            
+              <v-layout row wrap>
+                <v-flex xs6>
+                  <v-layout column>
+                    <v-flex>
+                      <b>Matched</b>
+                    </v-flex>
+                    <v-flex align-center>
+                      <center>
+                        <b>{{source1TotalMatched}}/{{source1TotalRecords}}</b>
+                      </center>
+                    </v-flex>
+                    <v-flex>
+                      <center>
+                        <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMatched" color="green">
+                          <font color="black">
+                            <b>{{ source1PercentMatched }}%</b>
+                          </font>
+                        </v-progress-circular>
+                      </center>
+                    </v-flex>
+                  </v-layout>
                 </v-flex>
-                <v-flex align-center>
-                  <center>
-                    <b>{{source1TotalMatched}}/{{source1TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMatched" color="yellow">
-                      <font color="white">
-                        <b>{{ source1PercentMatched }}%</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>lock_open</v-icon>
-                  <b>Un Matched</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{source1TotalUnMatched}}/{{source1TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentUnMatched" color="yellow">
-                      <font color="white">
-                        <b>{{source1PercentUnMatched}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>thumb_down</v-icon>
-                  <b>No Match</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{source1TotalNoMatch}}/{{source1TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNoMatch" color="yellow">
-                      <font color="white">
-                        <b>{{source1PercentNoMatch}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
+                <v-flex xs6>
+                  <v-layout column>
+                    <v-flex align-center>
+                      <b>Unmatched</b>
+                    </v-flex>
+                    <v-flex xs1>
+                      <center>
+                        <b>{{source1TotalUnMatched}}/{{source1TotalRecords}}</b>
+                      </center>
+                    </v-flex>
+                    <v-flex xs1 align-center>
+                      <center>
+                        <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentUnMatched" color="red">
+                          <font color="black">
+                            <b>{{source1PercentUnMatched}}%</b>
+                          </font>
+                        </v-progress-circular>
+                      </center>
+                    </v-flex>
+                  </v-layout>
                 </v-flex>
               </v-layout>
-            </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>notification_important</v-icon>
-                  <b>Flagged</b>
+              <v-layout row wrap>
+                <v-flex xs6>
+                  <v-layout column>
+                    <v-flex align-center>
+                      <b>Flagged</b>
+                    </v-flex>
+                    <v-flex xs1>
+                      <center>
+                        <b>{{totalFlagged}}/{{source1TotalRecords}}</b>
+                      </center>
+                    </v-flex>
+                    <v-flex xs1 align-center>
+                      <center>
+                        <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentFlagged" color="orange">
+                          <font color="black">
+                            <b>{{source1PercentFlagged}}%</b>
+                          </font>
+                        </v-progress-circular>
+                      </center>
+                    </v-flex>
+                  </v-layout>
                 </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{totalFlagged}}/{{source1TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentFlagged" color="yellow">
-                      <font color="white">
-                        <b>{{source1PercentFlagged}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
+                <v-flex xs6>
+                  <v-layout column>
+                    <v-flex align-center>
+                      <b>No Match</b>
+                    </v-flex>
+                    <v-flex xs1>
+                      <center>
+                        <b>{{source1TotalNoMatch}}/{{source1TotalRecords}}</b>
+                      </center>
+                    </v-flex>
+                    <v-flex xs1 align-center>
+                      <center>
+                        <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNoMatch" color="red">
+                          <font color="black">
+                            <b>{{source1PercentNoMatch}}%</b>
+                          </font>
+                        </v-progress-circular>
+                      </center>
+                    </v-flex>
+                  </v-layout>
                 </v-flex>
               </v-layout>
-            </v-chip>
           </div>
         </v-flex>
         <v-flex xs4 child-flex>
@@ -383,95 +384,94 @@
         <v-flex xs2 right>
           <div style='border-style: solid;border-color: green; text-align: center;'>
             <b>Source 2 Reconciliation Status</b>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>thumb_up</v-icon>
-                  <b>Matched</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{source2TotalMatched}}/{{source2TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentMatched" color="yellow">
-                      <font color="white">
-                        <b>{{source2PercentMatched}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex xs1>
-                  <v-icon light>lock_open</v-icon>
-                  <b>Un Matched</b>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <b>{{source2TotalUnmatched}}/{{source2TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentUnmatched" color="yellow">
-                      <font color="white">
-                        <b>{{ source2PercentUnmatched }}%</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-            <br>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>notification_important</v-icon>
-                  <b>Flagged</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{totalFlagged}}/{{source2TotalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentFlagged" color="yellow">
-                      <font color="white">
-                        <b>{{source2PercentFlagged}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-            <v-chip color="green" text-color='white' style='height:138px;width:128px'>
-              <v-layout column>
-                <v-flex align-center>
-                  <v-icon light>notification_important</v-icon>
-                  <b>Not in Source 1</b>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <b>{{source2NotInSource1}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentNotInSource1" color="yellow">
-                      <font color="white">
-                        <b>{{source2PercentNotInSource1}} %</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
+            <v-layout row wrap>
+              <v-flex xs6>
+                <v-layout column>
+                  <v-flex align-center>
+                    <b>Matched</b>
+                  </v-flex>
+                  <v-flex xs1>
+                    <center>
+                      <b>{{source2TotalMatched}}/{{source2TotalRecords}}</b>
+                    </center>
+                  </v-flex>
+                  <v-flex xs1 align-center>
+                    <center>
+                      <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentMatched" color="green">
+                        <font color="black">
+                          <b>{{source2PercentMatched}}%</b>
+                        </font>
+                      </v-progress-circular>
+                    </center>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+              <v-flex xs6>
+                <v-layout column>
+                  <v-flex xs1>
+                    <b>Unmatched</b>
+                  </v-flex>
+                  <v-flex xs1 align-center>
+                    <center>
+                      <b>{{source2TotalUnmatched}}/{{source2TotalRecords}}</b>
+                    </center>
+                  </v-flex>
+                  <v-flex xs1>
+                    <center>
+                      <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentUnmatched" color="red">
+                        <font color="black">
+                          <b>{{ source2PercentUnmatched }}%</b>
+                        </font>
+                      </v-progress-circular>
+                    </center>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+            </v-layout>
+            <v-layout row wrap>
+              <v-flex xs6>
+                <v-layout column>
+                  <v-flex align-center>
+                    <b>Flagged</b>
+                  </v-flex>
+                  <v-flex xs1>
+                    <center>
+                      <b>{{totalFlagged}}/{{source2TotalRecords}}</b>
+                    </center>
+                  </v-flex>
+                  <v-flex xs1 align-center>
+                    <center>
+                      <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentFlagged" color="orange">
+                        <font color="black">
+                          <b>{{source2PercentFlagged}}%</b>
+                        </font>
+                      </v-progress-circular>
+                    </center>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+              <v-flex xs6>
+                <v-layout column>
+                  <v-flex align-center>
+                    <b>Not in Source 1</b>
+                  </v-flex>
+                  <v-flex xs1>
+                    <center>
+                      <b>{{source2NotInSource1}}</b>
+                    </center>
+                  </v-flex>
+                  <v-flex xs1 align-center>
+                    <center>
+                      <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentNotInSource1" color="red">
+                        <font color="black">
+                          <b>{{source2PercentNotInSource1}}%</b>
+                        </font>
+                      </v-progress-circular>
+                    </center>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+            </v-layout>
           </div>
         </v-flex>
       </v-layout>
@@ -1186,7 +1186,7 @@ export default {
         return 0
       } else {
         return parseFloat(
-          (this.source1TotalMatched * 100 / this.source1TotalRecords).toFixed(2)
+          (this.source1TotalMatched * 100 / this.source1TotalRecords).toFixed(1)
         )
       }
     },
@@ -1198,7 +1198,7 @@ export default {
         return 0
       } else {
         return parseFloat(
-          (this.source1TotalUnMatched * 100 / this.source1TotalRecords).toFixed(2)
+          (this.source1TotalUnMatched * 100 / this.source1TotalRecords).toFixed(1)
         )
       }
     },
@@ -1218,7 +1218,7 @@ export default {
             this.$store.state.flagged.length *
             100 /
             this.$store.state.scoreResults.length
-          ).toFixed(2)
+          ).toFixed(1)
         )
       } else {
         return 0
@@ -1240,7 +1240,7 @@ export default {
             this.$store.state.noMatchContent.length *
             100 /
             this.$store.state.scoreResults.length
-          ).toFixed(2)
+          ).toFixed(1)
         )
       } else {
         return 0
@@ -1272,7 +1272,7 @@ export default {
             this.source2TotalUnmatched *
             100 /
             this.$store.state.source2TotalRecords
-          ).toFixed(2)
+          ).toFixed(1)
         )
       }
     },
@@ -1285,7 +1285,7 @@ export default {
             this.$store.state.flagged.length *
             100 /
             this.$store.state.source2TotalRecords
-          ).toFixed(2)
+          ).toFixed(1)
         )
       } else {
         return 0
@@ -1303,7 +1303,7 @@ export default {
             this.source2TotalMatched *
             100 /
             this.$store.state.source2TotalRecords
-          ).toFixed(2)
+          ).toFixed(1)
         )
       }
     },
@@ -1320,7 +1320,7 @@ export default {
         return 0
       }
       var percent = parseFloat(
-        (this.source2NotInSource1 * 100 / this.source2TotalRecords).toFixed(2)
+        (this.source2NotInSource1 * 100 / this.source2TotalRecords).toFixed(1)
       )
       return parseFloat(percent)
     }

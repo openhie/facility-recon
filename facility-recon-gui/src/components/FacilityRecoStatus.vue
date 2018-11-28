@@ -73,10 +73,9 @@
       <v-flex xs1>
         <v-layout row wrap>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_up</v-icon>
                   <b>Source 1 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -97,11 +96,10 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:144px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:144px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_up</v-icon>
-                  <b>Source 1 Not Mapped</b>
+                  <b>Source 1 Not Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -121,10 +119,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_down</v-icon>
                   <b>Source 1 No Match</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -145,10 +142,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>notification_important</v-icon>
                   <b>Source 1 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -169,10 +165,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_up</v-icon>
                   <b>Source 2 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -182,7 +177,7 @@
                 </v-flex>
                 <v-flex xs1>
                   <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentMapped" color="yellow">
+                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source2PercentMapped" color="green">
                       <font color="white">
                         <b>{{ source2PercentMapped }}%</b>
                       </font>
@@ -193,10 +188,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="red" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>notification_important</v-icon>
                   <b>Source 2 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -218,10 +212,9 @@
           </v-flex>
           <v-spacer></v-spacer>
           <v-flex xs1>
-            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="cyan" text-color='black' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_up</v-icon>
                   <b>Source 1 Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -232,7 +225,7 @@
                 <v-flex xs1>
                   <center>
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMappedLevel" color="yellow">
-                      <font color="white">
+                      <font color="black">
                         <b>{{ source1PercentMappedLevel }}%</b>
                       </font>
                     </v-progress-circular>
@@ -242,11 +235,10 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="green" text-color='white' style='height:138px;width:143px'>
+            <v-chip color="cyan" text-color='black' style='height:138px;width:143px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_down</v-icon>
-                  <b>Source 1 Not Mapped</b>
+                  <b>Source 1 Not Matched</b>
                 </v-flex>
                 <v-flex xs1 align-center>
                   <center>
@@ -256,7 +248,7 @@
                 <v-flex xs1>
                   <center>
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNotMappedLevel" color="yellow">
-                      <font color="white">
+                      <font color="black">
                         <b>{{ source1PercentNotMappedLevel }}%</b>
                       </font>
                     </v-progress-circular>
@@ -266,10 +258,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="cyan" text-color='black' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>thumb_down</v-icon>
                   <b>Source 1 No Match</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -280,7 +271,7 @@
                 <v-flex xs1>
                   <center>
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNoMatchLevel" color="yellow">
-                      <font color="white">
+                      <font color="black">
                         <b>{{ source1PercentNoMatchLevel }}%</b>
                       </font>
                     </v-progress-circular>
@@ -290,10 +281,9 @@
             </v-chip>
           </v-flex>
           <v-flex xs1>
-            <v-chip color="green" text-color='white' style='height:138px;width:137px'>
+            <v-chip color="cyan" text-color='black' style='height:138px;width:137px'>
               <v-layout column>
                 <v-flex xs1>
-                  <v-icon light>notification_important</v-icon>
                   <b>Source 1 Flagged</b>
                 </v-flex>
                 <v-flex xs1 align-center>
@@ -304,7 +294,7 @@
                 <v-flex xs1>
                   <center>
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentFlagged" color="yellow">
-                      <font color="white">
+                      <font color="black">
                         <b>{{ source1PercentFlagged }}%</b>
                       </font>
                     </v-progress-circular>

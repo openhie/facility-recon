@@ -15,7 +15,7 @@
   },
   "auth": {
     "secret": "3084e343-71bc-4247-86e4-ea210af89c28",
-    "tokenDuration": 1800
+    "tokenDuration": 5400
   },
   "logger": {
     "level": "info"

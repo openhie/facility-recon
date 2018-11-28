@@ -61,7 +61,7 @@
         <v-flex xs6>
           <v-card>
             <v-card-title primary-title>
-              <h3 class="headline mb-0">Source2 Data Tree</h3>
+              <h3 class="headline mb-0">Source 2 Data Tree</h3>
             </v-card-title>
             <template v-if="loadingSource2Tree">
               <v-progress-linear :indeterminate="true"></v-progress-linear>

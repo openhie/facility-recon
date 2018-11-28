@@ -38,6 +38,7 @@
           </v-toolbar>
           <v-card-text>
             This page let you choose a pair of data sources to use for reconciliation
+            <v-list>1. Source 1 is the source while source 2 is the target</v-list>
           </v-card-text>
         </v-card>
       </v-dialog>

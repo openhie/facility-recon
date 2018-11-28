@@ -518,7 +518,7 @@ if (cluster.isMaster) {
       if (mode === 'update') {
         full = false;
       }
-      dhis.sync(host, username, password, name, userID, clientId, false, full, false, true);
+      dhis.sync(host, username, password, name, userID, clientId, topOrgId, topOrgName, false, full, false, true);
     });
   });
 
@@ -527,7 +527,7 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info('Received a request to sync FHIR server ' + fields.host)
-      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.userID, fields.clientId)
+      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.userID, fields.clientId, topOrgId, topOrgName)
     })
   })
 

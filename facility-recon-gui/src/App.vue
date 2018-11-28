@@ -82,7 +82,7 @@
         </v-card>
       </v-dialog>
       <template v-if="Object.keys($store.state.dataSourcePair.source1).length > 0 && $store.state.auth.token">
-        Source 1: <b><i>{{$store.state.dataSourcePair.source1.name}}</i></b>, Source 2: <b><i>{{$store.state.dataSourcePair.source2.name}}</i></b>
+        Source 1: <b>{{$store.state.dataSourcePair.source1.name}}</b>, &nbsp; &nbsp; Source 2: <b>{{$store.state.dataSourcePair.source2.name}}</b>
       </template>
       <router-view/>
     </v-content>

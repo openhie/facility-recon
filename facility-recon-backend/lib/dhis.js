@@ -25,7 +25,7 @@ const credentials = {
 
 module.exports = function () {
   return {
-    sync(host, username, password, name, userID, clientId, reset, full, dousers, doservices) {
+    sync(host, username, password, name, userID, clientId, topOrgId, topOrgName, reset, full, dousers, doservices) {
       const dhis2URL = url.parse(host);
       const auth = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
       credentials.dhis2URL = dhis2URL;
@@ -33,6 +33,8 @@ module.exports = function () {
       credentials.auth = auth;
       credentials.name = name;
       credentials.userID = userID;
+      credentials.topOrgId = topOrgId
+      credentials.topOrgName = topOrgName
 
       if (reset) {
         winston.info(`Attempting to reset time on ${host}\n`);
@@ -154,13 +156,12 @@ module.exports = function () {
           `userRoles=${uflag}`,
         ];
 
-        if (lastUpdate) {
+        if (!full && lastUpdate) {
           metadataOpts.push(`filter=lastUpdated:gt:${lastUpdate}`);
         }
         const dhis2URL = credentials.dhis2URL;
         const auth = credentials.auth;
-        winston.info(`GETTING ${dhis2URL.protocol}//${dhis2URL.hostname}:${dhis2URL.port}${dhis2URL.path}/api/metadata.json?${
-    metadataOpts.join('&')}`);
+        winston.info(`GETTING ${dhis2URL.protocol}//${dhis2URL.hostname}:${dhis2URL.port}${dhis2URL.path}/api/metadata.json?${metadataOpts.join('&')}`);
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
           port: dhis2URL.port,
@@ -177,6 +178,7 @@ module.exports = function () {
           });
           res.on('end', () => {
             if (!isJSON(body)) {
+              winston.error(body)
               winston.error('Non JSON response received while getting DHIS2 data');
               const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
               dhisSyncRequest = JSON.stringify({
@@ -210,13 +212,51 @@ module.exports = function () {
 }
 
 function processOrgUnit(metadata, hasKey) {
+  let name = credentials.name;
+  const clientId = credentials.clientId;
+  const database = mixin.toTitleCase(name) + credentials.userID;
   let counter = 0;
   const max = metadata.organisationUnits.length;
-  async.each(metadata.organisationUnits, (org, nxtOrg) => {
-    const name = credentials.name;
-    const clientId = credentials.clientId;
-    const database = mixin.toTitleCase(name) + credentials.userID;
+  //adding the fake orgid as the top orgid
+  let fhir = {
+    resourceType: 'Location',
+    id: credentials.topOrgId,
+    status: 'active',
+    mode: 'instance',
+  };
+  fhir.identifier = [
+    {
+      system: 'https://digitalhealth.intrahealth.org/source1',
+      value: credentials.topOrgId,
+    },
+  ];
+  fhir.physicalType = {
+    coding: [{
+      system: 'http://hl7.org/fhir/location-physical-type',
+      code: 'jdn',
+      display: 'Jurisdiction',
+    }],
+    text: 'Jurisdiction',
+  };
+  const url = URI(config.getConf('mCSD:url')).segment(database)
+    .segment('fhir')
+    .segment('Location')
+    .segment(fhir.id)
+    .toString();
+  const options = {
+    url: url.toString(),
+    headers: {
+      'Content-Type': 'application/fhir+json',
+    },
+    json: fhir,
+  };
+  request.put(options, (err, res, body) => {
+    if (err) {
+      winston.error("An error occured while saving the top org of hierarchy, this will cause issues with reconciliation")
+    }
+  })
 
+  async.each(metadata.organisationUnits, (org, nxtOrg) => {
     // winston.info(`Processing (${i}/${max}) ${org.id}`);
     const fhir = {
       resourceType: 'Location',
@@ -281,9 +321,14 @@ function processOrgUnit(metadata, hasKey) {
         winston.error(`Failed to load coordinates. ${e.message}`);
       }
     }
-    if (org.parent) {
+    if (org.hasOwnProperty("parent") && org.parent.id) {
       fhir.partOf = {
         reference: `Location/${org.parent.id}`,
+      };
+    } else {
+      fhir.partOf = {
+        reference: `Location/${credentials.topOrgId}`,
+        display: credentials.topOrgName
       };
     }
     if (org.attributeValues) {

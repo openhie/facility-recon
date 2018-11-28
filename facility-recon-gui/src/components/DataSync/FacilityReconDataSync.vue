@@ -14,8 +14,9 @@
           Are you sure you want to delete {{server.name}} {{server.host}} <br> This will also delete the Database
         </v-card-text>
         <v-card-actions>
-          <v-btn color="success" @click="deleteDataSource">Yes</v-btn>
           <v-btn color="error" @click="deleteConfirm = false">Cancel</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="success" @click="deleteDataSource">Yes</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -54,12 +55,12 @@
           </v-layout>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="primary" dark @click.native="saveEdit('match')">
-            <v-icon left>save</v-icon>Save
-          </v-btn>
-          <v-spacer></v-spacer>
           <v-btn color="error" @click.native="editDialog = false" style="color: white">
             <v-icon dark left>cancel</v-icon>Cancel
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" dark @click.native="saveEdit('match')">
+            <v-icon left>save</v-icon>Save
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -85,10 +86,16 @@
           This page let you load data from various sources into the app for reconciliation
           <v-list>1. Select to add remote source if you have a DHIS2 or FHIR server that you want to use its data on this app</v-list>
           <v-list>2. Select Upload CSV if you have a CSV file and want to upload its data on the app</v-list>
-          <v-list>3. Use Force Full Sync to fetch all data from the remote server and update the app</v-list>
-          <v-list>4. Use Sync (Update) to pull updated records from the remote server and update the app</v-list>
-          <v-list>5. You may proceed to the 'Data Source Pair' page after you have added atleast two data sources</v-list>
-          <v-list>6. You may come back to this page and add more sources at any time</v-list>
+          <v-list>3. The system requires CSV data to have atleast 2 levels above facility</v-list>
+          <v-list>4. Level 1 is the highest level on the hierarchy i.e Country</v-list>
+          <v-list>
+            5. Base URL under remote sources section refer to the URL i.e http://localhost:3447/fhir and not http://localhost:3447/fhir/Location.
+            Same applies to DHIS2 base URL
+          </v-list>
+          <v-list>6. Use Force Full Sync to fetch all data from the remote server and update the app</v-list>
+          <v-list>8. Use Sync (Update) to pull updated records from the remote server and update the app</v-list>
+          <v-list>9. You may proceed to the 'Data Source Pair' page after you have added atleast two data sources</v-list>
+          <v-list>10. You may come back to this page and add more sources at any time</v-list>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -173,7 +180,8 @@
                 <td>{{props.item.host}}</td>
                 <td>{{props.item.sourceType}}</td>
                 <td>{{props.item.username}}</td>
-                <td>*****</td>
+                <td v-if="props.item.username">*****</td>
+                <td v-else></td>
                 <td>{{props.item.lastUpdate}}</td>
               </template>
             </v-data-table>
