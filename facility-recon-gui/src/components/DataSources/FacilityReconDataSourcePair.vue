@@ -52,7 +52,7 @@
           </v-tooltip>
         </v-flex>
       </v-layout>
-      <v-card style="width: 1000px" color='blue lighten-3'>
+      <v-card style="width: 1000px" color='cyan lighten-5'>
         <v-card-title primary-title>
           <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
             Choose Data Source Pair

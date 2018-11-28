@@ -153,17 +153,29 @@
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-actions>
-            <v-btn color="primary" @click="sync('full')" round>
+            <v-btn color="primary" @click="sync('full')" round v-if="remoteServers.length > 0">
               <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="primary lighten-1" @click="sync('update')" round>
+            <v-btn color="primary" @click="sync('full')" round disabled v-else>
+              <v-icon left>sync</v-icon>Force Full Sync
+            </v-btn>
+            <v-btn color="primary lighten-1" @click="sync('update')" round v-if="remoteServers.length > 0">
+              <v-icon left>sync</v-icon>Sync (Update)
+            </v-btn>
+            <v-btn color="primary lighten-1" @click="sync('update')" round disabled v-else>
               <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="success" @click="editDataSource" round>
+            <v-btn color="success" @click="editDataSource" round v-if="remoteServers.length > 0">
               <v-icon left>edit</v-icon>Edit
             </v-btn>
-            <v-btn color="error" @click="validateDelete" round>
+            <v-btn color="success" @click="editDataSource" round disabled v-else>
+              <v-icon left>edit</v-icon>Edit
+            </v-btn>
+            <v-btn color="error" @click="validateDelete" round v-if="remoteServers.length > 0">
+              <v-icon left>delete</v-icon>Delete
+            </v-btn>
+            <v-btn color="error" @click="validateDelete" round disabled v-else>
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
@@ -193,7 +205,10 @@
           </v-card-title>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="error" @click="validateDelete" round>
+            <v-btn color="error" @click="validateDelete" round v-if="uploadedSources.length > 0">
+              <v-icon left>delete</v-icon>Delete
+            </v-btn>
+            <v-btn color="error" @click="validateDelete" round disabled v-else>
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
