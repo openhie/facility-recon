@@ -1,9 +1,9 @@
-FROM abiosoft/caddy:latest
+FROM node:boron
 
-# must have done this first
-# npm install
-# node build/build.js
+WORKDIR /src/
+RUN npm install -g http-server
 
-ADD ./dist/ /srv/
+# add app
+ADD ./dist/ /src/
 
-COPY ./Caddyfile-docker /etc/Caddyfile
+CMD ["http-server"]

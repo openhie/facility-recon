@@ -5,51 +5,86 @@ This tool enables matching of facility lists including nested lists and with a p
 * Both automatic and manual matching, including monitoring the status of existing matches.
 * Backend engine using [FHIR](https://www.hl7.org/fhir/location.html)) Location resources based on the [mCSD](http://wiki.ihe.net/index.php/Mobile_Care_Services_Discovery_(mCSD)) profile.
 * Modular system to extend algorithms for matching.
-* CSV and mCSD as data sources with others to be supported in the near future.
-* User management through DHIS2.
+* CSV, DHIS2, and FHIR servers as data sources.
 
-## Quickstart
-### Hearth (mCSD Server) Installation
-* Make sure mongo 3.6 or above is installed and running before proceeding with below instructions
+## Quickstart using Docker
+
+The fastest way to get started is to run the GUI directly and use Docker for the other components (backend, Redis, MongoDB, Hearth FHIR server).
+
+> The GUI and backend are separate apps. The GUI is a statically built site in the current version, so substituting values in environment variables for the backend is not possible. See the Ansible scripts for ways to install directly on remote servers that modify the backend host for the static site.
+
+Clone the repo and start the docker apps.
+```
+git clone https://github.com/openhie/facility-recon.git
+cd facility-recon
+docker-compose up
+```
+Build and run the frontend.
+```sh
+cd facility-recon/facility-recon-gui
+npm run dev
+```
+
+Visit: http://localhost:8080
+
+The default user is `root@gofr.org` and pass is `gofr`
+
+## Developer Instructions
+
+### Hearth (FHIR Server) Installation
+
+> Make sure mongo 3.6 or above is installed and running before proceeding with below instructions
 
 ```sh
 git clone https://github.com/intrahealth/hearth.git
 cd hearth
 npm install
 ```
-* open the config file located under config/default.json and disable authentication by setting authentication type to disabled
-i.e "authentication": { "type": "disabled"}
+Open the config file located under config/default.json and disable authentication by setting authentication type to disabled i.e "authentication": { "type": "disabled"}
 
-* Start hearth
+Start hearth
 ```sh
 npm run dev:start
 ```
 
-### Download GOFR
+
+### Backend
+
+Download the repo.
 ```sh
-cd ~
 git clone https://github.com/openhie/facility-recon.git
 ```
-### GOFR Backend Installation
+
 ```sh
 cd facility-recon/facility-recon-backend
 npm install
-cd ~
+```
+
+Install and run Redis
+```
 wget http://download.redis.io/redis-stable.tar.gz
 tar xvzf redis-stable.tar.gz
 cd redis-stable
 make
 redis-server
+```
+
+Run the backend
+```
 cd ~/facility-recon/facility-recon-backend
 node lib/index.js
 ```
-### GOFR Frontend Installation
+
+### Frontend
 ```sh
 cd facility-recon/facility-recon-gui
 npm install
 npm run build
 ```
-### DHIS2 App Installation
+
+### DHIS2 App (Optional)
+> Note that the DHIS2 app is not required for running the tool as it can be run standalone from the GUI.
+
 * Copy the frontend build contents from facility-recon/facility-recon-gui/dist into facility-recon/dhis2App/ and then zip the content of of dhis2App
 ```sh
 cp -r facility-recon/facility-recon-gui/dist/* facility-reco/dhis2App/
