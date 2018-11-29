@@ -51,6 +51,13 @@
       backup: no
 
 
+  - replace:
+      path: $HOME/facility-recon/facility-recon-gui/config/index.js
+      regexp: 'https://test.geoalign.datim.org/facrecon'
+      replace: 'http://{{ ansible_default_ipv4.address }}:3000'
+      backup: no
+
+
   - name: Build static site for facility-recon-gui
     shell: cd $HOME/facility-recon/facility-recon-gui && node build/build.js
 
