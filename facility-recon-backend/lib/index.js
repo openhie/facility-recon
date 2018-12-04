@@ -242,8 +242,8 @@ if (cluster.isMaster) {
         models.UsersSchema.find({
           userName: fields.username
         }).lean().exec((err, data) => {
-          let userID = data[0]._id.toString()
           if (data.length === 1) {
+            let userID = data[0]._id.toString()
             let passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
             if (passwordMatch) {
               let tokenDuration = config.getConf('auth:tokenDuration')
@@ -1581,6 +1581,19 @@ if (cluster.isMaster) {
     })
   })
 
+  app.get('/getDataPairs/:userID', (req, res) => {
+    winston.info('received request to get data sources');
+    mongo.getDataPairs(req.params.userID, (err, pairs) => {
+      if (err) {
+        res.status(500).json({
+          error: 'Unexpected error occured,please retry',
+        });
+      } else {
+        res.status(200).json(pairs)
+      }
+    })
+  })
+
   app.post('/addDataSourcePair', (req, res) => {
     winston.info('Received a request to save data source pairs')
     const form = new formidable.IncomingForm();
@@ -1622,7 +1635,7 @@ if (cluster.isMaster) {
         })
       } else {
         if (sources.length > 0) {
-          res.status(200).json(sources[0])
+          res.status(200).json(sources)
         } else {
           res.status(200).send(false)
         }

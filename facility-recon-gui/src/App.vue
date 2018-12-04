@@ -81,8 +81,8 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <template v-if="Object.keys($store.state.dataSourcePair.source1).length > 0 && $store.state.auth.token">
-        Source 1: <b>{{$store.state.dataSourcePair.source1.name}}</b>, &nbsp; &nbsp; Source 2: <b>{{$store.state.dataSourcePair.source2.name}}</b>
+      <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
+        Source 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; Source 2: <b>{{$store.state.activePair.source2.name}}</b>
       </template>
       <router-view/>
     </v-content>
@@ -111,8 +111,8 @@ export default {
   },
   methods: {
     renderInitialPage () {
-      let source1 = this.$store.state.dataSourcePair.source1.name
-      let source2 = this.$store.state.dataSourcePair.source2.name
+      let source1 = this.$store.state.activePair.source1.name
+      let source2 = this.$store.state.activePair.source2.name
       if ((!source1 || !source2) && this.$store.state.dataSources.length > 1) {
         this.$router.push({ name: 'FacilityReconDataSourcePair' })
         return
@@ -136,8 +136,8 @@ export default {
       })
     },
     getTotalLevels () {
-      let source1 = this.$store.state.dataSourcePair.source1.name
-      let source2 = this.$store.state.dataSourcePair.source2.name
+      let source1 = this.$store.state.activePair.source1.name
+      let source2 = this.$store.state.activePair.source2.name
       if (!source1 || !source2) {
         this.$store.state.totalSource1Levels = 5
         this.$store.state.totalSource2Levels = 5
@@ -160,11 +160,11 @@ export default {
       })
     },
     getRecoStatus () {
-      if (Object.keys(this.$store.state.dataSourcePair.source1).length === 0 || Object.keys(this.$store.state.dataSourcePair.source2).length === 0) {
+      if (Object.keys(this.$store.state.activePair.source1).length === 0 || Object.keys(this.$store.state.activePair.source2).length === 0) {
         return
       }
-      let source1 = this.toTitleCase(this.$store.state.dataSourcePair.source1.name)
-      let source2 = this.toTitleCase(this.$store.state.dataSourcePair.source2.name)
+      let source1 = this.toTitleCase(this.$store.state.activePair.source1.name)
+      let source2 = this.toTitleCase(this.$store.state.activePair.source2.name)
       axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2).then((status) => {
         if (status.data.status) {
           this.$store.state.recoStatus.status = status.data.status
@@ -184,37 +184,30 @@ export default {
       }).catch((err) => {
         this.$store.state.loadingServers = false
         console.log(JSON.stringify(err))
-        console.log(err.response.error)
       })
     },
     getDataSourcePair () {
+      this.$store.state.activePair.source1 = {}
+      this.$store.state.activePair.source2 = {}
       let userID = this.$store.state.auth.userID
       axios.get(backendServer + '/getDataSourcePair/' + userID).then((response) => {
-        if (response.data) {
-          let source1 = this.$store.state.dataSources.find((dataSources) => {
-            return dataSources._id === response.data.source1
-          })
-          let source2 = this.$store.state.dataSources.find((dataSources) => {
-            return dataSources._id === response.data.source2
-          })
-          if (source1) {
-            this.$store.state.dataSourcePair.source1.id = source1._id
-            this.$store.state.dataSourcePair.source1.name = source1.name
-          } else {
-            this.$store.state.dataSourcePair.source1 = {}
-          }
-          if (source2) {
-            this.$store.state.dataSourcePair.source2.id = source2._id
-            this.$store.state.dataSourcePair.source2.name = source2.name
-          } else {
-            this.$store.state.dataSourcePair.source2 = {}
-          }
-        } else {
-          this.$store.state.dataSourcePair.source1 = {}
-          this.$store.state.dataSourcePair.source2 = {}
+        this.$store.state.dataSourcePairs = response.data
+        let activeSource = response.data.find((source) => {
+          return source.status === 'active'
+        })
+        if (activeSource) {
+          this.$store.state.activePair.source1.id = activeSource.source1._id
+          this.$store.state.activePair.source1.name = activeSource.source1.name
+          this.$store.state.activePair.source2.id = activeSource.source2._id
+          this.$store.state.activePair.source2.name = activeSource.source2.name
         }
         this.renderInitialPage()
         this.getTotalLevels()
+      }).catch((err) => {
+        console.log(JSON.stringify(err))
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = 'An error occured while getting data source pairs, reload the app to retry'
       })
     }
   },

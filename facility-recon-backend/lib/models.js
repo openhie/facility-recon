@@ -71,13 +71,18 @@ let DataSources = new mongoose.Schema({
 
 let DataSourcePair = new mongoose.Schema({
   source1: {
-    type: String
+    type: Schema.Types.ObjectId,
+    ref: 'DataSources'
   },
   source2: {
-    type: String
+    type: Schema.Types.ObjectId,
+    ref: 'DataSources'
   },
   status: {
     type: String
+  },
+  shared: {
+    type: Array
   },
   userID: {
     type: Schema.Types.ObjectId,

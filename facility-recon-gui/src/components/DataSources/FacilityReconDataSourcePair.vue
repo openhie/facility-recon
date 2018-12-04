@@ -52,58 +52,94 @@
           </v-tooltip>
         </v-flex>
       </v-layout>
-      <v-card style="width: 1000px" color='cyan lighten-5'>
-        <v-card-title primary-title>
-          <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
-            Choose Data Source Pair
-          </v-toolbar>
-        </v-card-title>
-        <v-card-text style="float: center">
-          <v-layout row wrap style="float: center">
-            <v-flex xs6>
+      <v-layout column>
+        <v-flex>
+          <v-card style="width: 1000px" color='cyan lighten-5'>
+            <v-card-title primary-title>
+              <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
+                Choose Data Source Pair
+              </v-toolbar>
+            </v-card-title>
+            <v-card-text style="float: center">
+              <v-layout row wrap style="float: center">
+                <v-flex xs6>
+                  <v-data-table
+                    :headers="source1Headers"
+                    :items="$store.state.dataSources"
+                    :loading="$store.state.loadingServers"
+                    dark
+                  >
+                    <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
+                    <template slot="items" slot-scope="props">
+                      <v-radio-group v-model='source1' style="height: 5px">
+                        <td>
+                          <v-radio :value="props.item" color="blue"></v-radio>
+                        </td>
+                      </v-radio-group>
+                      <td>{{props.item.name}}</td>
+                    </template>
+                  </v-data-table>
+                </v-flex>
+                <v-flex xs6>
+                  <v-data-table
+                    :headers="source2Headers"
+                    :items="$store.state.dataSources"
+                    item-key="id"
+                    :loading="$store.state.loadingServers"
+                  >
+                    <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
+                    <template slot="items" slot-scope="props">
+                      <v-radio-group v-model='source2' style="height: 5px">
+                        <td>
+                          <v-radio :value="props.item" color="blue"></v-radio>
+                        </td>
+                      </v-radio-group>
+                      <td>{{props.item.name}}</td>
+                    </template>
+                  </v-data-table>
+                </v-flex>
+              </v-layout>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" round @click="save"><v-icon left>save</v-icon> Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-flex>
+        <v-flex>
+          <v-card style="width: 1000px" color='cyan lighten-4'>
+            <v-card-title primary-title>
+              <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
+                Existing Data Source Pairs
+              </v-toolbar>
+            </v-card-title>
+            <v-card-text style="float: center">
               <v-data-table
-                :headers="source1Headers"
-                :items="$store.state.dataSources"
-                :loading="$store.state.loadingServers"
-                dark
-              >
-                <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-                <template slot="items" slot-scope="props">
-                  <v-radio-group v-model='source1' style="height: 5px">
-                    <td>
-                      <v-radio :value="props.item" color="blue"></v-radio>
-                    </td>
-                  </v-radio-group>
-                  <td>{{props.item.name}}</td>
-                </template>
-              </v-data-table>
-            </v-flex>
-            <v-flex xs6>
-              <v-data-table
-                :headers="source2Headers"
-                :items="$store.state.dataSources"
+                :headers="sourcePairHeaders"
+                :items="$store.state.dataSourcePairs"
                 item-key="id"
                 :loading="$store.state.loadingServers"
               >
                 <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
                 <template slot="items" slot-scope="props">
-                  <v-radio-group v-model='source2' style="height: 5px">
+                  <td>{{props.item.source1.name}} - {{props.item.source2.name}}</td>
+                  <td>{{props.item.userID.userName}}</td>
+                  <v-radio-group v-model='activeDataSourcePair' style="height: 5px">
                     <td>
                       <v-radio :value="props.item" color="blue"></v-radio>
                     </td>
                   </v-radio-group>
-                  <td>{{props.item.name}}</td>
                 </template>
               </v-data-table>
-            </v-flex>
-          </v-layout>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" round @click="save"><v-icon left>save</v-icon> Save</v-btn>
-        </v-card-actions>
-      </v-card>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" round @click="activatePair"><v-icon left>save</v-icon> Activate Pair</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-flex>
+      </v-layout>
     </center>
   </v-container>
 </template>
@@ -120,6 +156,7 @@ export default {
       alertMsg: '',
       source1: {},
       source2: {},
+      activeDataSourcePair: {},
       source1Headers: [
         { sortable: false },
         { text: 'Source 1', value: 'headerSource1', sortable: false }
@@ -127,6 +164,11 @@ export default {
       source2Headers: [
         { sortable: false },
         { text: 'Source 2', value: 'headerSource2', sortable: false }
+      ],
+      sourcePairHeaders: [
+        { text: 'Pair', value: 'pair' },
+        { text: 'Owner', value: 'owner', sortable: false },
+        { text: 'Active', value: 'active' }
       ]
     }
   },
@@ -134,6 +176,7 @@ export default {
     reset () {
       this.source1 = {}
       this.source2 = {}
+      this.activeDataSourcePair = {}
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Reseting Data Source Pairs'
       let userID = this.$store.state.auth.userID
@@ -182,14 +225,26 @@ export default {
         this.$store.state.dynamicProgress = false
         console.log(error)
       })
+    },
+    activatePair () {
+      this.source1 = this.$store.state.dataSources.find((dataSource) => {
+        return dataSource._id === this.activeDataSourcePair.source1._id
+      })
+      this.source2 = this.$store.state.dataSources.find((dataSource) => {
+        return dataSource._id === this.activeDataSourcePair.source2._id
+      })
+      this.save()
     }
   },
   created () {
     this.source1 = this.$store.state.dataSources.find((dataSource) => {
-      return dataSource._id === this.$store.state.dataSourcePair.source1.id
+      return dataSource._id === this.$store.state.activePair.source1.id
     })
     this.source2 = this.$store.state.dataSources.find((dataSource) => {
-      return dataSource._id === this.$store.state.dataSourcePair.source2.id
+      return dataSource._id === this.$store.state.activePair.source2.id
+    })
+    this.activeDataSourcePair = this.$store.state.dataSourcePairs.find((pair) => {
+      return pair.status === 'active'
     })
     if (!this.source1) {
       this.source1 = {}

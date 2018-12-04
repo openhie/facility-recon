@@ -65,7 +65,7 @@
             <b>All Levels</b>
           </v-flex>
           <v-spacer></v-spacer>
-          <v-flex xs4>
+          <v-flex xs3>
             <b>Level {{recoLevel-1}} Only</b>
           </v-flex>
         </v-layout>
@@ -95,29 +95,7 @@
               </v-layout>
             </v-chip>
           </v-flex>
-          <v-flex xs1>
-            <v-chip color="green" text-color='white' style='height:138px;width:144px'>
-              <v-layout column>
-                <v-flex xs1>
-                  <b>Source 1 Not Matched</b>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <b>{{$store.state.source1TotalAllNotMapped}}/{{$store.state.source1TotalAllRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNotMapped" color="yellow">
-                      <font color="white">
-                        <b>{{ source1PercentNotMapped }}%</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-          </v-flex>
+          
           <v-flex xs1>
             <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
@@ -227,29 +205,6 @@
                     <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentMappedLevel" color="yellow">
                       <font color="black">
                         <b>{{ source1PercentMappedLevel }}%</b>
-                      </font>
-                    </v-progress-circular>
-                  </center>
-                </v-flex>
-              </v-layout>
-            </v-chip>
-          </v-flex>
-          <v-flex xs1>
-            <v-chip color="cyan" text-color='black' style='height:138px;width:143px'>
-              <v-layout column>
-                <v-flex xs1>
-                  <b>Source 1 Not Matched</b>
-                </v-flex>
-                <v-flex xs1 align-center>
-                  <center>
-                    <b>{{totalNotMapped}}/{{totalRecords}}</b>
-                  </center>
-                </v-flex>
-                <v-flex xs1>
-                  <center>
-                    <v-progress-circular :rotate="-90" :size="65" :width="8" :value="source1PercentNotMappedLevel" color="yellow">
-                      <font color="black">
-                        <b>{{ source1PercentNotMappedLevel }}%</b>
                       </font>
                     </v-progress-circular>
                   </center>
@@ -489,14 +444,14 @@ export default {
   },
   computed: {
     source1 () {
-      let source = this.$store.state.dataSourcePair.source1.name
+      let source = this.$store.state.activePair.source1.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
     source2 () {
-      let source = this.$store.state.dataSourcePair.source2.name
+      let source = this.$store.state.activePair.source2.name
       if (source) {
         source = this.toTitleCase(source)
       }

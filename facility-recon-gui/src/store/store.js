@@ -34,7 +34,8 @@ export const store = new Vuex.Store({
       OrgId: 'lZsCb6y0KDX',
       OrgName: 'Malawi'
     },
-    dataSourcePair: {
+    dataSourcePairs: [],
+    activePair: {
       source1: {},
       source2: {}
     },

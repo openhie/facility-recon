@@ -382,14 +382,14 @@ export default {
       return Math.ceil(this.source1Pagination.totalItems / this.source1Count)
     },
     source1 () {
-      let source = this.$store.state.dataSourcePair.source1.name
+      let source = this.$store.state.activePair.source1.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
     source2 () {
-      let source = this.$store.state.dataSourcePair.source2.name
+      let source = this.$store.state.activePair.source2.name
       if (source) {
         source = this.toTitleCase(source)
       }

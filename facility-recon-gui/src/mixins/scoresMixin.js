@@ -18,7 +18,8 @@ export const scoresMixin = {
     checkScoreProgress () {
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/scoreProgress/' + clientId).then((scoreProgress) => {
-        if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false) {
+        if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false ||
+          (scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null)) {
           clearInterval(this.scoreProgressTimer)
           return
         }
@@ -161,24 +162,24 @@ export const scoresMixin = {
       })
     },
     getSource1 () {
-      let source = this.$store.state.dataSourcePair.source1.name
+      let source = this.$store.state.activePair.source1.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
     getSource2 () {
-      let source = this.$store.state.dataSourcePair.source2.name
+      let source = this.$store.state.activePair.source2.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
     getSource1Name () {
-      return this.$store.state.dataSourcePair.source1.name
+      return this.$store.state.activePair.source1.name
     },
     getSource2Name () {
-      return this.$store.state.dataSourcePair.source2.name
+      return this.$store.state.activePair.source2.name
     }
   },
   created () {

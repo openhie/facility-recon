@@ -176,6 +176,25 @@ module.exports = function () {
         });
       })
     },
+
+    getDataPairs(userID, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.DataSourcePairSchema.find({
+          userID: userID
+        }).populate("source1").populate("source2").populate("userID").lean().exec({}, (err, data) => {
+          if (err) {
+            winston.error(err);
+            return callback('Unexpected error occured,please retry');
+          }
+          callback(err, data)
+        });
+      })
+    },
+
     addDataSourcePair(sources, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
@@ -236,7 +255,9 @@ module.exports = function () {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
+        winston.error(userID)
         models.DataSourcePairSchema.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
+          winston.error(data)
           return callback(err,data)
         })
       })
@@ -247,7 +268,9 @@ module.exports = function () {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcePairSchema.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
+        models.DataSourcePairSchema.find({
+          'userID': userID
+        }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").lean().exec({}, (err, data) => {
           return callback(err, data)
         })
       })

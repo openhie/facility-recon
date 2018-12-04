@@ -1,9 +1,14 @@
 <template>
   <v-container>
     <center>
-    <v-alert type="error" :value="authStatus">
-      Authentication Failed
-    </v-alert>
+    <v-layout row wrap>
+      <v-flex xs3></v-flex>
+      <v-flex xs6>
+        <v-alert type="error" :value="authStatus">
+          Authentication Failed
+        </v-alert>
+      </v-flex>
+    </v-layout>
     <v-card width="430px" hover>
       <v-card-title primary-title>
         <v-toolbar color="primary" style="color: white">
