@@ -493,7 +493,6 @@ module.exports = function () {
           constructURL(reference, (url) => {
             cntLvls(url, totalLevels => callback(totalLevels));
           })
-
         });
       }
       constructURL(topOrgId, (url) => {

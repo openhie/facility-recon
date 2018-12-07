@@ -50,6 +50,7 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
+          <v-spacer></v-spacer>
           <v-btn color="primary" dark @click.native="submitCSV">Proceed</v-btn>
         </v-card-actions>
       </v-card>
@@ -255,8 +256,8 @@
                 </v-layout>
               </v-layout>
             </v-container>
-            <v-btn color="primary" @click.native="confirmUpload = true" :disabled="$v.$invalid">Upload</v-btn>
             <v-btn color="error" @click.native="e1 = 1">Go Back</v-btn>
+            <v-btn color="primary" @click.native="confirmUpload = true" :disabled="$v.$invalid">Upload</v-btn>
           </v-stepper-content>
         </v-stepper-items>
       </v-stepper>

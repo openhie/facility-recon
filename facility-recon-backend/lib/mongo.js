@@ -152,7 +152,9 @@ module.exports = function () {
                 models.DataSourcesSchema.deleteOne({
                   _id: id
                 }, (err, data) => {
-                  return callback(err, data);
+                  models.DataSourcePairSchema.deleteMany({ $or: [{source1: id}, {source2: id}] }, (err, data) => {
+                    return callback(err, data);
+                  });
                 });
               })
             })
