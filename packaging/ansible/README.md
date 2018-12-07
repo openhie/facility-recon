@@ -100,19 +100,19 @@ journalctl -u redis.service -b
 
 #### Restart services
 ```
-systemctl restart facility-recon-backend.service
-systemctl restart facility-recon-hearth.service
+sudo systemctl restart facility-recon-backend.service
+sudo systemctl restart facility-recon-hearth.service
 # standalone
-systemctl restart facility-recon-gui.service
+sudo systemctl restart facility-recon-gui.service
 ```
 
 #### Restart databases
 ```
 # on centos, use `mongod`
-systemctl restart mongod.service
+sudo systemctl restart mongod.service
 # on ubuntu,use `mongodb`
-systemctl restart mongodb.service
-systemctl restart redis.service
+sudo systemctl restart mongodb.service
+sudo systemctl restart redis.service
 ```
 
 ### Networking
