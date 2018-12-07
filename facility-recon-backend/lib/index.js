@@ -368,6 +368,12 @@ if (cluster.isMaster) {
         } else {
           winston.info("Data source pair shared successfully")
           mongo.getDataSourcePair(fields.userID, (err, pairs) => {
+            if(err) {
+              winston.error(err)
+              winston.error("An error has occured while getting data source pairs")
+              res.status(500).send("An error has occured while getting data source pairs")
+              return
+            }
             res.status(200).json(pairs)
           })
         }
@@ -504,6 +510,7 @@ if (cluster.isMaster) {
       mongo.getArchives(orgid, (err, archives) => {
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
+          winston.error(err)
           winston.error({
             error: 'Unexpected error has occured'
           });
@@ -1527,6 +1534,7 @@ if (cluster.isMaster) {
           res.status(500).json({
             error: 'Unexpected error occured,please retry',
           });
+          winston.error(err)
         } else {
           winston.info('Data source saved successfully');
           res.set('Access-Control-Allow-Origin', '*');
@@ -1538,6 +1546,7 @@ if (cluster.isMaster) {
       });
     });
   });
+
   app.post('/editDataSource', (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
@@ -1548,6 +1557,7 @@ if (cluster.isMaster) {
           res.status(500).json({
             error: 'Unexpected error occured,please retry',
           });
+          winston.error(err)
         } else {
           winston.info('Data source edited sucessfully');
           res.set('Access-Control-Allow-Origin', '*');
@@ -1570,6 +1580,7 @@ if (cluster.isMaster) {
         res.status(500).json({
           error: 'Unexpected error occured while deleting data source,please retry',
         });
+        winston.error(err)
       } else {
         res.status(200).json({
           status: 'done',
@@ -1586,6 +1597,7 @@ if (cluster.isMaster) {
         res.status(500).json({
           error: 'Unexpected error occured,please retry',
         });
+        winston.error(err)
       } else {
         async.eachOfSeries(servers, (server, key, nxtServer) => {
           if (server.sourceType === 'FHIR') {
@@ -1628,11 +1640,11 @@ if (cluster.isMaster) {
   app.get('/getDataPairs/:userID', (req, res) => {
     winston.info('received request to get data sources');
     mongo.getDataPairs(req.params.userID, (err, pairs) => {
-      winston.error(pairs)
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured,please retry',
         });
+        winston.error(err)
       } else {
         res.status(200).json(pairs)
       }
@@ -1698,6 +1710,7 @@ if (cluster.isMaster) {
           error: 'Unexpected error occured while saving'
         })
       } else {
+        winston.info("Returning list of data source pairs")
         res.status(200).json(sources)
       }
     })

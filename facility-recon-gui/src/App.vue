@@ -194,7 +194,7 @@ export default {
       axios.get(backendServer + '/getDataSourcePair/' + userID).then((response) => {
         this.$store.state.dataSourcePairs = response.data
         let activeSource = this.getActivePair()
-        if (activeSource) {
+        if (Object.keys(activeSource).length > 0) {
           this.$store.state.activePair.source1.id = activeSource.source1._id
           this.$store.state.activePair.source1.name = activeSource.source1.name
           this.$store.state.activePair.source2.id = activeSource.source2._id
