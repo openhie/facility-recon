@@ -185,7 +185,7 @@ module.exports = function () {
       db.once("open", () => {
         models.DataSourcePairSchema.find({
           userID: userID
-        }).populate("source1").populate("source2").populate("userID").lean().exec({}, (err, data) => {
+        }).populate("source1").populate("source2").populate("shared").populate("userID").lean().exec({}, (err, data) => {
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -249,13 +249,50 @@ module.exports = function () {
         })
       }
     },
+
+    activateSharedPair(pairID, userID, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.DataSourcePairSchema.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
+          if (data) {
+            async.each(data, (dt, nxtDt) => {
+              models.DataSourcePairSchema.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
+                return nxtDt()
+              })
+            }, () => {
+              models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
+                return callback(err, data)
+              })
+            })
+          } else {
+            models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
+              return callback(err, data)
+            })
+          }
+        })
+      })
+    },
+
+    shareSourcePair(sharePair, users, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.DataSourcePairSchema.findByIdAndUpdate(sharePair, {'shared.users': users}, (err, data) => {
+          return callback(err, data)
+        })
+      })
+    },
     resetDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        winston.error(userID)
         models.DataSourcePairSchema.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
           winston.error(data)
           return callback(err,data)
@@ -268,9 +305,9 @@ module.exports = function () {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        models.DataSourcePairSchema.find({
-          'userID': userID
-        }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").lean().exec({}, (err, data) => {
+        models.DataSourcePairSchema.find({ $or: [{'userID': userID}, {'shared.users': userID}]
+          
+        }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
           return callback(err, data)
         })
       })

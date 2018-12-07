@@ -464,9 +464,6 @@ export default {
     'appSyncProgress': SyncProgress
   },
   created () {
-    if (this.$store.state.dataSources.length === 0) {
-      eventBus.$emit('getDataSources')
-    }
     eventBus.$on('dataSourceSaved', () => {
       this.addDataSource = false
       this.dataSource = ''

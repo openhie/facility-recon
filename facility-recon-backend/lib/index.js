@@ -331,6 +331,50 @@ if (cluster.isMaster) {
     })
   })
 
+  app.get('/getUsers', (req, res) => {
+    winston.info("received a request to get users lists")
+    const database = config.getConf("DB_NAME")
+    const mongoUser = config.getConf("DB_USER")
+    const mongoPasswd = config.getConf("DB_PASSWORD")
+    const mongoHost = config.getConf("DB_HOST")
+    const mongoPort = config.getConf("DB_PORT")
+
+    if (mongoUser && mongoPasswd) {
+      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    } else {
+      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    }
+    mongoose.connect(uri);
+    let db = mongoose.connection
+    db.on("error", console.error.bind(console, "connection error:"))
+    db.once("open", () => {
+      models.UsersSchema.find({}).lean().exec((err, users) => {
+        winston.info(`sending back a list of ${users.length} users`)
+        res.status(200).json(users)
+      })
+    })
+  })
+
+  app.post('/shareSourcePair', (req, res) => {
+    winston.info("Received a request to share data source pair")
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      fields.users = JSON.parse(fields.users)
+      mongo.shareSourcePair(fields.sharePair, fields.users, (err, response) => {
+        if(err) {
+          winston.error(err)
+          winston.error("An error occured while sharing data source pair")
+          res.status(500).send("An error occured while sharing data source pair")
+        } else {
+          winston.info("Data source pair shared successfully")
+          mongo.getDataSourcePair(fields.userID, (err, pairs) => {
+            res.status(200).json(pairs)
+          })
+        }
+      })
+    })
+  })
+
   app.get('/getRoles/:id?', (req, res) => {
     winston.info("Received a request to get roles")
     const database = config.getConf("DB_NAME")
@@ -1584,6 +1628,7 @@ if (cluster.isMaster) {
   app.get('/getDataPairs/:userID', (req, res) => {
     winston.info('received request to get data sources');
     mongo.getDataPairs(req.params.userID, (err, pairs) => {
+      winston.error(pairs)
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured,please retry',
@@ -1612,6 +1657,24 @@ if (cluster.isMaster) {
     })
   })
 
+  app.post('/activateSharedPair', (req, res) => {
+    winston.info('Received a request to activate shared data source pair')
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      mongo.activateSharedPair(fields.pairID, fields.userID, (error, results) => {
+        if (error) {
+          winston.error(error)
+          res.status(400).json({
+            error: 'Unexpected error occured while activating shared data source pair'
+          })
+        } else {
+          winston.info('Shared data source pair activated successfully')
+          res.status(200).send()
+        }
+      })
+    })
+  })
+
   app.get('/resetDataSourcePair/:userID', (req,res) => {
     winston.info('Received a request to reset data source pair')
     mongo.resetDataSourcePair(req.params.userID, (error, response) => {
@@ -1630,15 +1693,12 @@ if (cluster.isMaster) {
   app.get('/getDataSourcePair/:userID', (req, res) => {
     mongo.getDataSourcePair(req.params.userID, (err, sources) => {
       if (err) {
+        winston.error(err)
         res.status(400).json({
           error: 'Unexpected error occured while saving'
         })
       } else {
-        if (sources.length > 0) {
-          res.status(200).json(sources)
-        } else {
-          res.status(200).send(false)
-        }
+        res.status(200).json(sources)
       }
     })
   })

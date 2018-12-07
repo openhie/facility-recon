@@ -82,7 +82,14 @@ let DataSourcePair = new mongoose.Schema({
     type: String
   },
   shared: {
-    type: Array
+    users: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Users'
+    }],
+    activeUsers: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Users'
+    }]
   },
   userID: {
     type: Schema.Types.ObjectId,

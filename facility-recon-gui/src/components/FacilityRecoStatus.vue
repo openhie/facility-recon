@@ -411,7 +411,7 @@ export default {
       const clientId = this.$store.state.clientId
       let totalSource2Levels = this.$store.state.totalSource2Levels
       let totalSource1Levels = this.$store.state.totalSource1Levels
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
       axios.get(backendServer + '/mappingStatus/' + this.source1 + '/' + this.source2 + '/' + this.recoLevel + '/' + totalSource2Levels + '/' + totalSource1Levels + '/' + clientId + '/' + userID).then((mappingStatus) => {

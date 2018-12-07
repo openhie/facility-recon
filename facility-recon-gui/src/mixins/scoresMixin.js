@@ -79,7 +79,7 @@ export const scoresMixin = {
           value: k + 1
         })
       }
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let path = `source1=${source1}&source2=${source2}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}`
       axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
@@ -145,7 +145,7 @@ export const scoresMixin = {
     getSource2Unmached () {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       if (!source1 || !source2) {
         return
       }

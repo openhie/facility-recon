@@ -208,7 +208,7 @@ export default {
         id = ''
       }
       this.loadingSource1Grid = true
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}&userID=${userID}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource1Grid = false
@@ -257,7 +257,7 @@ export default {
       }
       this.loadingSource2 = true
       this.loadingSource2Grid = true
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}&userID=${userID}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource2Grid = false
@@ -302,7 +302,7 @@ export default {
       })
     },
     getTree () {
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       this.loadingSource2Tree = true
       axios.get(backendServer + '/getTree/' + this.source2 + '/' + userID).then((hierarchy) => {
         this.loadingSource2Tree = false

@@ -113,7 +113,7 @@ export default {
     renderInitialPage () {
       let source1 = this.$store.state.activePair.source1.name
       let source2 = this.$store.state.activePair.source2.name
-      if ((!source1 || !source2) && this.$store.state.dataSources.length > 1) {
+      if ((!source1 || !source2) && (this.$store.state.dataSources.length > 1 || this.$store.state.dataSourcePairs.length > 0)) {
         this.$router.push({ name: 'FacilityReconDataSourcePair' })
         return
       }
@@ -123,7 +123,8 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      let userID = this.$store.state.auth.userID
+      // if this is a shared data pair then it will automatically use userid of the owner
+      let userID = this.$store.state.activePair.userID._id
       axios.get(backendServer + '/uploadAvailable/' + source1 + '/' + source2 + '/' + userID).then((results) => {
         if (results.data.dataUploaded) {
           this.$router.push({ name: 'FacilityReconScores' })
@@ -149,7 +150,7 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       axios.get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + userID).then((levels) => {
         this.$store.state.initializingApp = false
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
@@ -192,14 +193,14 @@ export default {
       let userID = this.$store.state.auth.userID
       axios.get(backendServer + '/getDataSourcePair/' + userID).then((response) => {
         this.$store.state.dataSourcePairs = response.data
-        let activeSource = response.data.find((source) => {
-          return source.status === 'active'
-        })
+        let activeSource = this.getActivePair()
         if (activeSource) {
           this.$store.state.activePair.source1.id = activeSource.source1._id
           this.$store.state.activePair.source1.name = activeSource.source1.name
           this.$store.state.activePair.source2.id = activeSource.source2._id
           this.$store.state.activePair.source2.name = activeSource.source2.name
+          this.$store.state.activePair.shared = activeSource.shared
+          this.$store.state.activePair.userID = activeSource.userID
         }
         this.renderInitialPage()
         this.getTotalLevels()
@@ -208,13 +209,37 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
         this.$store.state.errorDescription = 'An error occured while getting data source pairs, reload the app to retry'
+        this.renderInitialPage()
+        this.getTotalLevels()
       })
+    },
+    getActivePair () {
+      let shared
+      let activeDataSourcePair = {}
+      this.$store.state.dataSourcePairs.forEach((pair) => {
+        if (pair.userID._id === this.$store.state.auth.userID && pair.status === 'active') {
+          activeDataSourcePair = pair
+        }
+        if (Object.keys(activeDataSourcePair).length > 0) {
+          shared = undefined
+          return
+        }
+        if (pair.userID._id !== this.$store.state.auth.userID && pair.status === 'active') {
+          shared = pair
+        }
+      })
+      if (shared) {
+        activeDataSourcePair = shared
+      }
+      return activeDataSourcePair
     }
   },
   created () {
     if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
       this.$store.state.auth.userID = VueCookies.get('userID')
+      this.$store.state.auth.username = VueCookies.get('username')
+      this.$store.state.auth.role = VueCookies.get('role')
       axios.get(backendServer + '/isTokenActive/').then((response) => {
         // will come here only if the token is active
         this.$store.state.clientId = uuid.v4()
