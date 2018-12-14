@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 from recommonmark.parser import CommonMarkParser
-project = 'Facility Match'
+project = 'Facility Reconciliation Tool'
 copyright = '2018, IntraHealth International'
 author = 'IntraHealth International'
 
@@ -182,3 +182,6 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+html_theme_options = {
+    "collapse_navigation": False
+}

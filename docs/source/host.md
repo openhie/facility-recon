@@ -1,4 +1,4 @@
-# Hosting
+# Host
 
 Systems planners should test locally with the largest data sources that would represent their use case. With no user interaction, the demo server uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: 250MB, frontend: 30MB).
 
