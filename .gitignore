@@ -14,3 +14,11 @@ facility-recon-backend/lib/dbArchives/*
 *.terraform*
 terraform.tfstate
 terraform.tfstate.backup
+
+# ides
+.vscode
+
+# readthedocs
+build
+_static
+_templates
