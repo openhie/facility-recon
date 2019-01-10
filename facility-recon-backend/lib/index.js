@@ -1,6 +1,7 @@
 require('./init');
 const cluster = require('cluster');
 const express = require('express');
+const path = require('path')
 const bodyParser = require('body-parser');
 const formidable = require('formidable');
 const winston = require('winston');
@@ -30,8 +31,21 @@ const scores = require('./scores')();
 const app = express();
 const server = require('http').createServer(app);
 
+let cleanReqPath = function (req, res, next) {
+  let modified_url = req.url.replace("/gofr",'')
+  if (modified_url) {
+    req.url = req.url.replace('/gofr', '')
+  }
+  return next()
+}
+
 let jwtValidator = function(req, res, next) {
-  if (req.method == "OPTIONS" || req.path == "/authenticate/") {
+  if (req.method == "OPTIONS" || 
+  req.path == "/authenticate/" || 
+  req.path == "/gofr" || 
+  req.path.startsWith("/static/js") ||
+  req.path.startsWith("/static/css")
+  ) {
     return next()
   }
   if (!req.headers.authorization || req.headers.authorization.split(' ').length !== 2) {
@@ -63,7 +77,9 @@ let jwtValidator = function(req, res, next) {
   }
 }
 
+app.use(cleanReqPath)
 app.use(jwtValidator)
+app.use(express.static(__dirname + '/../dist'));
 app.use(cors({
   origin: true,
   credentials: true
@@ -961,6 +977,35 @@ if (cluster.isMaster) {
           winston.error(err);
         }
         return res.status(200).send(csv)
+      })
+    })
+  })
+
+  app.get('/getCSV', (req,res) => {
+    let locations = []
+    let fields = ['ID', 'Facility', 'Chiefdom', 'District', 'Country']
+    mcsd.getLocations("Dhis2OnlineDemoServer5c09e731a455b7490508e3c9", (mcsdData) => {
+      mcsd.filterLocations(mcsdData, topOrgId, 5, (mcsdLevel) => {
+        async.eachSeries(mcsdLevel.entry, (dt, nxt) => {
+          let entityParent = dt.resource.partOf.reference
+          mcsd.getLocationParentsFromData(entityParent, mcsdData, "names", (parents) => {
+            if (parents.length == 4) {
+              locations.push({
+                "ID": dt.resource.id,
+                "Facility": dt.resource.name,
+                "Chiefdom": parents[0],
+                "District": parents[1],
+                "Country": parents[2]
+              })
+            }
+            return nxt()
+          })
+        }, () => {
+          let csvdata = json2csv(locations, {
+            fields
+          });
+          res.send(csvdata)
+        })
       })
     })
   })
@@ -1883,6 +1928,16 @@ if (cluster.isMaster) {
         })
       }
     }
+  });
+
+  app.get('/gofr', function (req, res) {
+    res.sendFile(path.join(__dirname + '/../dist/index.html'));
+  });
+  app.get('/static/js/:file', function (req, res) {
+    res.sendFile(path.join(__dirname + '/../dist/static/js/' + req.params.file));
+  });
+  app.get('/static/css/:file', function (req, res) {
+    res.sendFile(path.join(__dirname + '/../dist/static/css/' + req.params.file));
   });
 
   server.listen(config.getConf('server:port'));
