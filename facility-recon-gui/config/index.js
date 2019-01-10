@@ -45,10 +45,10 @@ module.exports = {
 
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../../facility-recon-backend/dist/index.html'),
+    index: path.resolve(__dirname, '../../facility-recon-backend/gui/index.html'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../../facility-recon-backend/dist'),
+    assetsRoot: path.resolve(__dirname, '../../facility-recon-backend/gui'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '',
 

@@ -79,7 +79,7 @@ let jwtValidator = function(req, res, next) {
 
 app.use(cleanReqPath)
 app.use(jwtValidator)
-app.use(express.static(__dirname + '/../dist'));
+app.use(express.static(__dirname + '/../gui'));
 app.use(cors({
   origin: true,
   credentials: true
@@ -1931,13 +1931,13 @@ if (cluster.isMaster) {
   });
 
   app.get('/gofr', function (req, res) {
-    res.sendFile(path.join(__dirname + '/../dist/index.html'));
+    res.sendFile(path.join(__dirname + '/../gui/index.html'));
   });
   app.get('/static/js/:file', function (req, res) {
-    res.sendFile(path.join(__dirname + '/../dist/static/js/' + req.params.file));
+    res.sendFile(path.join(__dirname + '/../gui/static/js/' + req.params.file));
   });
   app.get('/static/css/:file', function (req, res) {
-    res.sendFile(path.join(__dirname + '/../dist/static/css/' + req.params.file));
+    res.sendFile(path.join(__dirname + '/../gui/static/css/' + req.params.file));
   });
 
   server.listen(config.getConf('server:port'));
