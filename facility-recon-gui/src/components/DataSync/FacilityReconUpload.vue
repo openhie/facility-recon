@@ -46,7 +46,7 @@
           </v-toolbar-title>
         </v-toolbar>
         <v-card-text>
-          You are about to upload a new dataset, this will erase any existing data
+          You are about to upload CSV data into the app, click proceed to upload
         </v-card-text>
         <v-card-actions>
           <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
@@ -107,7 +107,7 @@
         <v-stepper-items>
           <v-stepper-content step="1">
             <v-card class="mb-5" height="200px">
-              <v-card-title>Upload CSV (utf-8 only)</v-card-title>
+              <v-card-title>Upload CSV (utf-8 only) - <b>Select a CSV file and upload</b></v-card-title>
               <v-card-text>
                 <v-text-field
                   label="Enter Unique Name For Your Data"
@@ -124,7 +124,7 @@
             <v-btn color="primary" @click.native="e1 = 2" v-else disabled>Continue</v-btn>
           </v-stepper-content>
           <v-stepper-content step="2">
-
+            <b>Map an appropriate CSV header against those on the app.</b>
             <v-container fluid>
               <v-layout row wrap ref="form" v-model="valid">
                 <v-flex xs6>

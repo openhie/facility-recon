@@ -11,32 +11,65 @@
           <span>Upload CSV data or synhronize remote server data</span>
         </v-tooltip>
         <v-tooltip bottom>
-          <v-btn flat to="dataSourcePair" v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>compare_arrows</v-icon> Data Source Pair
-          </v-btn>
-          <span>Select data sources to start mathing</span>
-        </v-tooltip>
-        <v-tooltip bottom>
           <v-btn to="view" flat v-if='!$store.state.denyAccess' slot="activator">
             <v-icon>list</v-icon>View
           </v-btn>
           <span>Explore data sources contents</span>
         </v-tooltip>
-        <v-tooltip bottom>
-          <v-btn flat to="scores" v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>find_in_page</v-icon> Reconcile
+        <v-menu open-on-hover bottom offset-x>
+          <v-btn slot="activator" flat>
+            Reconcile
           </v-btn>
-          <span>Perform location matching of your selected data sources</span>
-        </v-tooltip>
-        <v-tooltip bottom>
-          <v-btn flat to="recoStatus" v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>dashboard</v-icon> Reconciliation Status
-          </v-btn>
-          <span>Matching Status</span>
-        </v-tooltip>
-        <v-btn flat to="dbAdmin" v-if='!$store.state.denyAccess'>
-          <v-icon>archive</v-icon> Archived Uploads
-        </v-btn>
+          <v-list>
+            <v-tooltip top>
+              <v-list-tile to="dataSourcePair" slot="activator" v-if="$store.state.dataSources.length > 1">
+                <v-list-tile-title>
+                  <v-icon>compare_arrows</v-icon>Create and Manage Data Source Pair
+                </v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile to="dataSourcePair" slot="activator" disabled v-else>
+                <v-list-tile-title>
+                  <v-icon>compare_arrows</v-icon>Data Source Pair
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>Select data sources to start mathing</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile to="scores" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
+                <v-list-tile-title>
+                  <v-icon>find_in_page</v-icon>Reconcile
+                </v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile to="scores" slot="activator" v-else>
+                <v-list-tile-title>
+                  <v-icon>find_in_page</v-icon>Reconcile
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>Perform location matching of your selected data sources</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-list-tile to="recoStatus" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
+                <v-list-tile-title>
+                  <v-icon>dashboard</v-icon> Reconciliation Status
+                </v-list-tile-title>
+              </v-list-tile>
+              <v-list-tile to="recoStatus" slot="activator" v-else>
+                <v-list-tile-title>
+                  <v-icon>dashboard</v-icon> Reconciliation Status
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>Matching Status</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-list-tile to="dbAdmin" slot="activator">
+                <v-list-tile-title>
+                  <v-icon>archive</v-icon> Archived Uploads
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>Access to backup data</span>
+            </v-tooltip>
+          </v-list>
+        </v-menu>
         <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
           <v-icon>perm_identity</v-icon> Add User
         </v-btn>
