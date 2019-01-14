@@ -6,9 +6,12 @@ import router from './router'
 import Vuetify from 'vuetify'
 import Vuelidate from 'vuelidate'
 import 'vuetify/dist/vuetify.min.css'
+
 import {
   store
 } from './store/store'
+
+import i18n from './i18n'
 
 Vue.use(Vuelidate)
 Vue.use(Vuetify, {
@@ -31,8 +34,11 @@ new Vue({
   el: '#app',
   router,
   store,
+
   components: {
     App
   },
+
+  i18n,
   template: '<App/>'
 })
