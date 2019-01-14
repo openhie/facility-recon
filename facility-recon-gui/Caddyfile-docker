@@ -1,6 +1,0 @@
-:8080 {
-    root /srv
-    log stdout
-    errors stdout
-    tls off
-}
