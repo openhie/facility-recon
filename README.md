@@ -9,9 +9,7 @@ This tool enables matching of facility lists including nested lists and with a p
 
 ## Quickstart using Docker
 
-The fastest way to get started is to run the GUI directly and use Docker for the other components (backend, Redis, MongoDB, Hearth FHIR server).
-
-> The GUI and backend are separate apps. The GUI is a statically built site in the current version, so substituting values in environment variables for the backend is not possible. See the Ansible scripts for ways to install directly on remote servers that modify the backend host for the static site.
+The fastest way to get started is to Docker which runs all components: app, Redis, MongoDB, and the Hearth FHIR server.
 
 Clone the repo and start the docker apps.
 ```
@@ -19,13 +17,8 @@ git clone https://github.com/openhie/facility-recon.git
 cd facility-recon
 docker-compose up
 ```
-Build and run the frontend.
-```sh
-cd facility-recon/facility-recon-gui
-npm run dev
-```
 
-Visit: http://localhost:8080
+Visit: http://localhost:3000/gofr
 
 The default user is `root@gofr.org` and pass is `gofr`
 
