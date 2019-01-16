@@ -499,6 +499,38 @@ module.exports = function () {
         cntLvls(url, totalLevels => callback(false, totalLevels));
       })
     },
+    editLocation(id, name, parent, db, callback) {
+      this.getLocationByID(db, id, false, (location) => {
+        location.entry[0].resource.name = name
+        let promise = new Promise((resolve, reject) => {
+          if (parent) {
+            this.getLocationByID(db, parent, false, (locationParent) => {
+              location.entry[0].resource.partOf = {
+                display: locationParent.entry[0].resource.name,
+                reference: 'Location/' + locationParent.entry[0].resource.id
+              }
+              resolve()
+            })
+          } else {
+            delete location.entry[0].resource.partOf
+            resolve()
+          }
+        })
+        promise.then(() => {
+          const fhir = {};
+          fhir.entry = [];
+          fhir.type = 'document';
+          fhir.entry = fhir.entry.concat(location.entry[0]);
+          this.saveLocations(fhir, db, (err, res) => {
+            if (err) {
+              winston.error(err);
+            }
+            callback(err);
+          });
+        })
+
+      })
+    },
     saveLocations(mCSD, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').toString();
       const options = {
@@ -1151,6 +1183,7 @@ module.exports = function () {
             let level = 1
             async.eachSeries(parents, (parent, nxtParent) => {
               row['level' + level] = parent.text
+              row['level' + level + 'id'] = parent.id
               level++
               return nxtParent()
             }, () => {

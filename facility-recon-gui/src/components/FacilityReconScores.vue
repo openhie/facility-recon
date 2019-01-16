@@ -43,7 +43,7 @@
         <v-card :width='dialogWidth'>
           <v-toolbar color="primary" dark>
             <v-toolbar-title>
-              {{ selectedSource1Name }}
+              Matching {{ selectedSource1Name }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
             <v-text-field v-model="searchPotential" append-icon="search" label="Search" single-line hide-details color="yellow" />
@@ -177,6 +177,8 @@
           FHIR Export
         </v-btn>
         <v-spacer></v-spacer>
+        <b>Reconciling level {{$store.state.recoLevel-1}}</b>
+        <v-spacer></v-spacer>
         <v-flex xs1 sm2 md2 right>
           <v-select :items="$store.state.levelArray"
             v-model="$store.state.recoLevel" 
@@ -194,54 +196,52 @@
           <v-btn slot="activator" color="primary" dark @click="getScores" round>
             <v-icon>repeat_one</v-icon> Recalculate Scores</v-btn>
         </v-flex>
-        <v-dialog
-          v-model="helpDialog"
-          scrollable 
-          persistent :overlay="false"
-          max-width="700px"
-          transition="dialog-transition"
-        >
-          <v-card>
-            <v-toolbar color="primary" dark>
-              <v-toolbar-title>
-                <v-icon>info</v-icon> About this page
-              </v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-btn icon dark @click.native="helpDialog = false">
-                <v-icon>close</v-icon>
-              </v-btn>
-            </v-toolbar>
-            <v-card-text>
-              This page let you map source 1 data with those in source2
-              <v-list>
-                1. Source 1 refer to the data source name selected as source 1 under data source pair section
-              </v-list>
-              <v-list>
-                2. Source 2 refer to the data source name selected as source 2 under data source pair section
-              </v-list>
-              <v-list>
-                3. After breaking a match, you will need to recalculate scores for the app to load potential matches of the broken location
-              </v-list>
-              <v-list>
-                4. FLAGGED Locations are the locations that will need to be reviewed before they are saved as matches
-              </v-list>
-              <v-list>
-                5. NO MATCHES - these are locations that do not matches anything from source 2
-              </v-list>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
-        
-          <v-flex xs1 text-xs-right>
-            <v-tooltip top>
-              <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
-                <v-icon>help</v-icon>
-              </v-btn>
-              <span>Help</span>
-            </v-tooltip>
-          </v-flex>
-        
+        <v-flex xs1 text-xs-right>
+          <v-tooltip top>
+            <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+              <v-icon>help</v-icon>
+            </v-btn>
+            <span>Help</span>
+          </v-tooltip>
+        </v-flex>
       </v-layout>
+      <v-dialog
+        v-model="helpDialog"
+        scrollable 
+        persistent :overlay="false"
+        max-width="700px"
+        transition="dialog-transition"
+      >
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              <v-icon>info</v-icon> About this page
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="helpDialog = false">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            This page let you map source 1 data with those in source2
+            <v-list>
+              1. Source 1 refer to the data source name selected as source 1 under data source pair section
+            </v-list>
+            <v-list>
+              2. Source 2 refer to the data source name selected as source 2 under data source pair section
+            </v-list>
+            <v-list>
+              3. After breaking a match, you will need to recalculate scores for the app to load potential matches of the broken location
+            </v-list>
+            <v-list>
+              4. FLAGGED Locations are the locations that will need to be reviewed before they are saved as matches
+            </v-list>
+            <v-list>
+              5. NO MATCHES - these are locations that do not matches anything from source 2
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
       <v-layout row wrap>
         <v-flex xs2 right>
           <div style="border-style: solid;border-color:green; text-align: center;">
@@ -580,7 +580,6 @@
     </v-container>
   </v-container>
 </template>
-
 <script>
 import axios from 'axios'
 import LiquorTree from 'liquor-tree'
@@ -1326,6 +1325,7 @@ export default {
     }
   },
   created () {
+    // this.$i18n.locale = "ja"
     this.addListener()
     if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
       this.dialogWidth = 'auto'

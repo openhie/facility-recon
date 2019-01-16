@@ -40,6 +40,52 @@
           </v-tooltip>
         </v-flex>
       </v-layout>
+      <v-dialog persistent v-model="editDialog" transition="scale-transition" max-width="500px">
+        <v-card height="500px">
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              Edit Location
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-icon @click="editDialog = false" style="cursor: pointer">close</v-icon>
+          </v-toolbar>
+          <v-card-text>
+            <v-layout column>
+              <v-flex>
+                <v-text-field v-model="editLocationName" 
+                  @blur="$v.editLocationName.$touch()"
+                  @change="$v.editLocationName.$touch()"
+                  :error-messages="editLocationNameErrors"
+                  required
+                  label="Facility">
+                </v-text-field>
+              </v-flex>
+              <v-flex>
+                <v-select
+                  :items="editParents"
+                  v-model="editLocationParent"
+                  box
+                  label="Parent"
+                ></v-select>
+              </v-flex>
+            </v-layout>
+          </v-card-text>
+        </v-card>
+        <v-layout column>
+          <v-flex>
+            <v-toolbar color="brown lighten-2">
+              <v-layout row wrap>
+                <v-flex xs6 text-sm-left>
+                  <v-btn color="error" @click.native="editDialog = false"><v-icon left>cancel</v-icon> Cancel</v-btn>
+                </v-flex>
+                <v-flex xs6 text-sm-right>
+                  <v-btn color="primary" :disabled="$v.$invalid" dark @click="saveEdit()"><v-icon left>save</v-icon>Save</v-btn>
+                </v-flex>
+              </v-layout>
+            </v-toolbar>
+          </v-flex>
+        </v-layout>
+      </v-dialog>
       <v-layout row wrap>
         <v-flex xs6>
           <v-card>
@@ -90,7 +136,14 @@
               <v-card-text>
                 <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
                   <template slot="items" slot-scope="props">
-                    <td v-for='header in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">{{props.item[header.value]}}</td>
+                    <td v-for='(header, key) in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">
+                      <template v-if="key === 0">
+                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> | <v-icon>delete</v-icon>
+                      </template>
+                      <template v-else>
+                        {{props.item[header.value]}}
+                      </template>
+                    </td>
                   </template>
                 </v-data-table>
               </v-card-text>
@@ -115,7 +168,14 @@
               <v-card-text>
                 <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
                   <template slot="items" slot-scope="props">
-                    <td v-for='header in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">{{props.item[header.value]}}</td>
+                    <td v-for='(header, key) in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">
+                      <template v-if="key === 0">
+                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> | <v-icon>delete</v-icon>
+                      </template>
+                      <template v-else>
+                        {{props.item[header.value]}}
+                      </template>
+                    </td>
                   </template>
                 </v-data-table>
               </v-card-text>
@@ -142,14 +202,25 @@
 <script scoped>
 import LiquorTree from 'liquor-tree'
 import axios from 'axios'
+import { required } from 'vuelidate/lib/validators'
 import { scoresMixin } from '../mixins/scoresMixin'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
+  validations: {
+    editLocationName: { required }
+  },
   mixins: [scoresMixin],
   data () {
     return {
+      editDialog: false,
+      editLocationName: '',
+      editLocationId: '',
+      editParents: [],
+      editLocationParent: '',
+      editSource: '',
       helpDialog: false,
+      lastLevel: [],
       headerText: {
         level2: 'Level 1',
         level3: 'Level 2',
@@ -202,6 +273,47 @@ export default {
     }
   },
   methods: {
+    edit (data, source) {
+      if (source === 'source1') {
+        this.editSource = this.source1
+      } else if (source === 'source2') {
+        this.editSource = this.source2
+      }
+      this.editLocationName = data.facility
+      this.editLocationId = data.id
+      this.editDialog = true
+      let length = Object.keys(this.source2GridHeader).length
+      let levelNextFacility = this.source2GridHeader[length - 1].value
+      this.editLocationParent = data[levelNextFacility + 'id']
+      let level = levelNextFacility.replace('level', '')
+      this.getLevelData(level)
+    },
+    saveEdit () {
+      let formData = new FormData()
+      formData.append('userID', this.$store.state.activePair.userID._id)
+      formData.append('source', this.editSource)
+      formData.append('locationId', this.editLocationId)
+      formData.append('locationName', this.editLocationName)
+      formData.append('locationParent', this.editLocationParent)
+      axios.post(backendServer + '/editLocation', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response) => {
+        this.editDialog = false
+        this.getSource1Grid(false)
+        this.getSource2Grid(false)
+        this.getTree()
+      }).catch((err) => {
+        console.log(JSON.stringify(err))
+      })
+    },
+    getLevelData (level) {
+      let userID = this.$store.state.activePair.userID._id
+      axios.get(backendServer + '/getLevelData/' + this.source1 + '/' + userID + '/' + level).then((data) => {
+        this.editParents = data.data
+      })
+    },
     getSource1Grid (id) {
       this.loadingSource1 = true
       if (!id) {
@@ -330,6 +442,11 @@ export default {
   computed: {
     source2GridHeader () {
       let header = []
+      header.push({
+        text: '',
+        value: '',
+        sortable: false
+      })
       let gridWithAllHeaders = {}
       if (this.source2Grid && this.source2Grid.length > 0) {
         for (var grid in this.source2Grid) {
@@ -340,7 +457,6 @@ export default {
           }
         }
       }
-
       for (const key in gridWithAllHeaders) {
         if (this.headerText[key]) {
           header.push({ text: this.headerText[key], value: key })
@@ -350,6 +466,11 @@ export default {
     },
     source1GridHeader () {
       let header = []
+      header.push({
+        text: '',
+        value: '',
+        sortable: false
+      })
       let gridWithAllHeaders = {}
       if (this.source1Grid && this.source1Grid.length > 0) {
         for (var grid in this.source1Grid) {
@@ -394,6 +515,12 @@ export default {
         source = this.toTitleCase(source)
       }
       return source
+    },
+    editLocationNameErrors () {
+      const errors = []
+      if (!this.$v.editLocationName.$dirty) return errors
+      !this.$v.editLocationName.required && errors.push('Facility Name is required')
+      return errors
     }
   },
   watch: {

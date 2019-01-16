@@ -463,6 +463,43 @@ if (cluster.isMaster) {
     })
   });
 
+  app.get('/getLevelData/:source/:userID/:level', (req, res) => {
+    let userID = req.params.userID
+    let db = req.params.source + userID;
+    let level = req.params.level
+    let levelData = []
+    mcsd.getLocations(db, (mcsdData) => {
+      mcsd.filterLocations(mcsdData, topOrgId, level, (mcsdLevelData) => {
+        async.each(mcsdLevelData.entry, (data, nxtData) => {
+          levelData.push({
+            text: data.resource.name,
+            value: data.resource.id
+          })
+          return nxtData()
+        }, () => {
+          res.status(200).json(levelData)
+        })
+      });
+    });
+  })
+
+  app.post('/editLocation', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      let db = fields.source + fields.userID
+      let id = fields.locationId
+      let name = fields.locationName
+      let parent = fields.locationParent
+      mcsd.editLocation(id, name, parent, db, (resp, err) => {
+        if(err) {
+          res.status(400).send(err)
+        } else {
+          res.status(200).send()
+        }
+      })
+    })
+  })
+
   app.get('/uploadAvailable/:source1/:source2/:userID', (req, res) => {
 
     if (!req.params.source1 || !req.params.source2) {

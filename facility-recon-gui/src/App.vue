@@ -117,14 +117,12 @@
       <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
         Source 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; Source 2: <b>{{$store.state.activePair.source2.name}}</b>
       </template>
-      <router-view/>
+      <router-view />
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-      
     </v-footer>
   </v-app>
 </template>
-
 <script>
 import axios from 'axios'
 import { scoresMixin } from './mixins/scoresMixin'

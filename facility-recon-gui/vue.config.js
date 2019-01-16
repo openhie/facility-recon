@@ -1,3 +1,4 @@
+const merge = require('deepmerge')
 module.exports = {
   pluginOptions: {
     i18n: {
