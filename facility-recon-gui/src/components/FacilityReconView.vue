@@ -40,6 +40,23 @@
           </v-tooltip>
         </v-flex>
       </v-layout>
+      <v-dialog persistent transition="scale-transition" v-model="confirmDelete" max-width="500px">
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              Warning
+            </v-toolbar-title>
+          </v-toolbar>
+          <v-card-text>
+            Are you sure that you want to delete {{deleteLocationData.facility}}
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="error" @click.native="confirmDelete = false">Cancel</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" dark @click.native="deleteLocation()">Proceed</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <v-dialog persistent v-model="editDialog" transition="scale-transition" max-width="500px">
         <v-card height="500px">
           <v-toolbar color="primary" dark>
@@ -73,7 +90,7 @@
         </v-card>
         <v-layout column>
           <v-flex>
-            <v-toolbar color="brown lighten-2">
+            <v-toolbar >
               <v-layout row wrap>
                 <v-flex xs6 text-sm-left>
                   <v-btn color="error" @click.native="editDialog = false"><v-icon left>cancel</v-icon> Cancel</v-btn>
@@ -138,7 +155,8 @@
                   <template slot="items" slot-scope="props">
                     <td v-for='(header, key) in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> | <v-icon>delete</v-icon>
+                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> | 
+                        <v-icon @click="deleteLocation(props.item, 'source1', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
                       </template>
                       <template v-else>
                         {{props.item[header.value]}}
@@ -170,7 +188,8 @@
                   <template slot="items" slot-scope="props">
                     <td v-for='(header, key) in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> | <v-icon>delete</v-icon>
+                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> | 
+                        <v-icon @click="deleteLocation(props.item, 'source2', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
                       </template>
                       <template v-else>
                         {{props.item[header.value]}}
@@ -213,6 +232,9 @@ export default {
   mixins: [scoresMixin],
   data () {
     return {
+      confirmDelete: false,
+      deleteLocationData: '',
+      deleteSource: '',
       editDialog: false,
       editLocationName: '',
       editLocationId: '',
@@ -308,9 +330,26 @@ export default {
         console.log(JSON.stringify(err))
       })
     },
+    deleteLocation (location, source, stage) {
+      if (stage === 'requestConfirmation') {
+        if (source === 'source1') {
+          this.deleteSource = this.source1
+        } else if (source === 'source2') {
+          this.deleteSource = this.source2
+        }
+        this.deleteLocationData = location
+        this.confirmDelete = true
+      } else {
+        let userID = this.$store.state.activePair.userID._id
+        axios.delete(backendServer + `/deleteLocation?id=${this.deleteLocationData.id}&source=${this.deleteSource}&userID=${userID}`)
+        .then((data) => {
+
+        })
+      }
+    },
     getLevelData (level) {
       let userID = this.$store.state.activePair.userID._id
-      axios.get(backendServer + '/getLevelData/' + this.source1 + '/' + userID + '/' + level).then((data) => {
+      axios.get(backendServer + '/getLevelData/' + this.editSource + '/' + userID + '/' + level).then((data) => {
         this.editParents = data.data
       })
     },

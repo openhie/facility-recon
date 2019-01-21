@@ -500,8 +500,20 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/uploadAvailable/:source1/:source2/:userID', (req, res) => {
+  app.delete('/deleteLocation', (req, res) => {
+    let id = req.query.id
+    let source = req.query.source
+    let userID = req.query.userID
+    mcsd.deleteLocation(id, source, userID, (resp, err) => {
+      if (err) {
+        res.status(400).send(err)
+      } else {
+        res.status(200).send()
+      }
+    })
+  })
 
+  app.get('/uploadAvailable/:source1/:source2/:userID', (req, res) => {
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Orgid'

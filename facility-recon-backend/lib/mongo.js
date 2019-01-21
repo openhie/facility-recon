@@ -108,17 +108,15 @@ module.exports = function () {
       })
     },
 
-    deleteDataSource(id, name, userID, callback) {
-      let requestedDB = name+userID
-      let deleteDB = []
-      deleteDB.push(requestedDB)
+    getMappingDBs(name, userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);
       let db = mongoose.connection
+      let mappingDBs = []
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        mongoose.connection.db.admin().command({listDatabases:1},(error, results) => {
-          async.eachSeries(results.databases, (database,nxtDB) => {
+        mongoose.connection.db.admin().command({listDatabases: 1}, (error, results) => {
+          async.eachSeries(results.databases, (database, nxtDB) => {
             let dbName1 = database.name
             if (dbName1.includes(name) && dbName1.includes(userID)) {
               dbName1 = dbName1.replace(name, '')
@@ -131,7 +129,7 @@ module.exports = function () {
                 return db.name === dbName1 + userID
               })
               if (dbName1 && db) {
-                deleteDB.push(database.name)
+                mappingDBs.push(database.name)
                 return nxtDB()
               } else {
                 return nxtDB()
@@ -140,24 +138,33 @@ module.exports = function () {
               return nxtDB()
             }
           }, () => {
-            async.eachSeries(deleteDB,(db,nxtDB) => {
-              this.deleteDB(db, (error) => {
-                return nxtDB()
-              })
-            },() => {
-              mongoose.connect(uri);
-              let db = mongoose.connection
-              db.on("error", console.error.bind(console, "connection error:"))
-              db.once("open", () => {
-                models.DataSourcesSchema.deleteOne({
-                  _id: id
-                }, (err, data) => {
-                  models.DataSourcePairSchema.deleteMany({ $or: [{source1: id}, {source2: id}] }, (err, data) => {
-                    return callback(err, data);
-                  });
-                });
-              })
-            })
+            return callback(mappingDBs)
+          })
+        })
+      })
+    },
+
+    deleteDataSource(id, name, userID, callback) {
+      let requestedDB = name+userID
+      let deleteDB = []
+      deleteDB.push(requestedDB)
+      const mongoose = require('mongoose')
+      this.getMappingDBs(name, userID, (mappingDBs) => {
+        deleteDB = deleteDB.concat(mappingDBs)
+        async.eachSeries(deleteDB, (db, nxtDB) => {
+          this.deleteDB(db, (error) => {
+            return nxtDB()
+          })
+        }, () => {
+          mongoose.connect(uri);
+          let db = mongoose.connection
+          db.on("error", console.error.bind(console, "connection error:"))
+          db.once("open", () => {
+            models.DataSourcesSchema.deleteOne({_id: id}, (err, data) => {
+              models.DataSourcePairSchema.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
+                return callback(err, data);
+              });
+            });
           })
         })
       })

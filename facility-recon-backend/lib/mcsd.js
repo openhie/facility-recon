@@ -8,6 +8,7 @@ const async = require('async');
 const csv = require('fast-csv');
 const isJSON = require('is-json');
 const redis = require('redis');
+const mongo = require('./mongo')();
 
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
@@ -531,6 +532,28 @@ module.exports = function () {
 
       })
     },
+
+    deleteLocation (id, source, userID, callback) {
+      let db = source + userID
+      mongo.getMappingDBs(source, userID, (dbs) => {
+        dbs.push(db)
+        async.each(dbs, (db) => {
+          const url_prefix = URI(config.getConf('mCSD:url'))
+            .segment(db)
+            .segment('fhir')
+            .segment('Location')
+          const url = URI(url_prefix).segment(id).toString()
+          const options = {
+            url,
+          };
+          request.delete(options, (err, res, body) => {
+
+          })
+        })
+        
+      })
+    },
+
     saveLocations(mCSD, database, callback) {
       const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').toString();
       const options = {
