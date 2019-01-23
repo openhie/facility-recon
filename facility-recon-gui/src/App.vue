@@ -6,75 +6,75 @@
       <v-toolbar-items v-if="$store.state.auth.token">
         <v-tooltip bottom>
           <v-btn to="dataSync" flat v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>sync</v-icon>Data Sync And Upload
+            <v-icon>sync</v-icon>{{ $t('App.menu.dataSources.msg')}}
           </v-btn>
-          <span>Upload CSV data or synhronize remote server data</span>
+          <span>{{ $t('App.menu.dataSources.tooltip')}}</span>
         </v-tooltip>
         <v-tooltip bottom>
           <v-btn to="view" flat v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>list</v-icon>View
+            <v-icon>list</v-icon>{{ $t('App.menu.view.msg')}}
           </v-btn>
-          <span>Explore data sources contents</span>
+          <span>{{ $t('App.menu.view.tooltip')}</span>
         </v-tooltip>
         <v-menu open-on-hover bottom offset-x>
           <v-btn slot="activator" flat>
-            Reconcile
+            {{ $t('App.menu.recoParent.msg')}}
           </v-btn>
           <v-list>
             <v-tooltip top>
               <v-list-tile to="dataSourcePair" slot="activator" v-if="$store.state.dataSources.length > 1">
                 <v-list-tile-title>
-                  <v-icon>compare_arrows</v-icon>Create and Manage Data Source Pair
+                  <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>
               </v-list-tile>
               <v-list-tile to="dataSourcePair" slot="activator" disabled v-else>
                 <v-list-tile-title>
-                  <v-icon>compare_arrows</v-icon>Data Source Pair
+                  <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>
               </v-list-tile>
-              <span>Select data sources to start mathing</span>
+              <span>{{ $t('App.menu.createPair.tooltip')}}</span>
             </v-tooltip>
             <v-tooltip top>
               <v-list-tile to="scores" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
                 <v-list-tile-title>
-                  <v-icon>find_in_page</v-icon>Reconcile
+                  <v-icon>find_in_page</v-icon>{{ $t('App.menu.reconcile.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
               <v-list-tile to="scores" slot="activator" v-else>
                 <v-list-tile-title>
-                  <v-icon>find_in_page</v-icon>Reconcile
+                  <v-icon>find_in_page</v-icon>{{ $t('App.menu.reconcile.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
-              <span>Perform location matching of your selected data sources</span>
+              <span>{{ $t('App.menu.reconcile.tooltip') }}</span>
             </v-tooltip>
             <v-tooltip bottom>
               <v-list-tile to="recoStatus" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
                 <v-list-tile-title>
-                  <v-icon>dashboard</v-icon> Reconciliation Status
+                  <v-icon>dashboard</v-icon> {{ $t('App.menu.recoStatus.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
               <v-list-tile to="recoStatus" slot="activator" v-else>
                 <v-list-tile-title>
-                  <v-icon>dashboard</v-icon> Reconciliation Status
+                  <v-icon>dashboard</v-icon> {{ $t('App.menu.recoStatus.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
-              <span>Matching Status</span>
+              <span>{{ $t('App.menu.recoStatus.tooltip') }}</span>
             </v-tooltip>
             <v-tooltip bottom>
               <v-list-tile to="dbAdmin" slot="activator">
                 <v-list-tile-title>
-                  <v-icon>archive</v-icon> Archived Uploads
+                  <v-icon>archive</v-icon> {{ $t('App.menu.archive.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
-              <span>Access to backup data</span>
+              <span>{{ $t('App.menu.archive.tooltip') }}</span>
             </v-tooltip>
           </v-list>
         </v-menu>
         <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
-          <v-icon>perm_identity</v-icon> Add User
+          <v-icon>perm_identity</v-icon> {{ $t('App.menu.addUser.msg') }}
         </v-btn>
         <v-btn flat to="logout" v-if='!$store.state.denyAccess'>
-          <v-icon>logout</v-icon> Logout
+          <v-icon>logout</v-icon> {{ $t('App.menu.logout.msg') }}
         </v-btn>
       </v-toolbar-items>
       <v-spacer></v-spacer>
@@ -109,7 +109,7 @@
       <v-dialog v-model="$store.state.initializingApp" persistent width="300">
         <v-card color="primary" dark>
           <v-card-text>
-            Initializing App
+            {{ $t('App.initApp') }}
             <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
           </v-card-text>
         </v-card>
@@ -120,6 +120,22 @@
       <router-view />
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
+      <v-layout row wrap>
+        <v-spacer></v-spacer>
+        <v-flex xs1>
+          <v-tooltip top>
+            <img src="../static/english.png" width="25" height="25" @click="changeLocale('en')" style="cursor: pointer" slot="activator">
+            <span>English Translation</span>
+          </v-tooltip>
+        </v-flex>
+        <v-flex xs1>
+          <v-tooltip top>
+            <img src="../static/french.png" width="25" height="25" @click="changeLocale('fr')" style="cursor: pointer" slot="activator">
+            <span>French Translation</span>
+          </v-tooltip>
+        </v-flex>
+        
+      </v-layout>
     </v-footer>
   </v-app>
 </template>
@@ -137,10 +153,13 @@ export default {
   data () {
     return {
       fixed: false,
-      title: 'Facility Reconciliation'
+      title: this.$t('App.title')
     }
   },
   methods: {
+    changeLocale (locale) {
+      this.$i18n.locale = locale
+    },
     renderInitialPage () {
       let source1 = this.$store.state.activePair.source1.name
       let source2 = this.$store.state.activePair.source2.name

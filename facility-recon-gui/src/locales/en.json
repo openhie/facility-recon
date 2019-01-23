@@ -1,3 +1,41 @@
 {
-  "hello": "hello i18n !!"
+  "App": {
+    "title": "Facility Reconciliation",
+    "initApp": "Initializing App",
+    "menu": {
+      "createPair": {
+        "msg": "Create and Manage Data Source Pair",
+        "tooltip": "Select data sources to start mathing"
+      },
+      "reconcile": {
+        "msg": "Reconcile",
+        "tooltip": "Perform location matching of your selected data sources"
+      },
+      "recoStatus": {
+        "msg": "Reconciliation Status",
+        "tooltip": "Matching Status"
+      },
+      "archive": {
+        "msg": "Archived Uploads",
+        "tooltip": "Access to backup data"
+      },
+      "addUser": {
+        "msg": "Add User"
+      },
+      "logout": {
+        "msg": "Logout"
+      },
+      "dataSources": {
+        "msg": "Data Sources",
+        "tooltip": "Upload CSV data or synhronize remote server data"
+      },
+      "view": {
+        "msg": "View",
+        "tooltip": "Explore data sources contents"
+      },
+      "recoParent": {
+        "msg": "Reconcile"
+      }
+    }
+  }
 }
