@@ -14,16 +14,16 @@ localhost ansible_connection=local
 
 ## SSH setup
 
-A example playbook is provided to show how to create a facility-recon user with sudo permissions using Ansible to be used with an instance like a digitalocean droplet. 
+A example playbook is provided to show how to create a `fr` user with sudo permissions using Ansible to be used with VM. See `/packaging` for Terraform (Digital Ocean) and Vagrant (CentOS 7 and Ubuntu 18) for working examples.
 
-> Create a droplet. Make sure to include a public ssh key before creation. You should be able to ssh as root if the public key was set correctly (this is the default of DO). See the folder `terraform` for a working example to programmatically launch a server instance.
+Create a VM. Make sure to include a public ssh key for the user who will install prerequisites.
 
-Create the facility-recon user and gives it sudo access:
+Create the `fr` user and gives it sudo access:
 ```sh
 ansible-playbook -i /usr/local/etc/ansible/hosts user.yaml
 ```
 
-As necessary, add additional ssh keys to the user facility-recon:
+As necessary, add additional ssh keys to the user `fr`. (Ensure that the user's public key is available on github, ie. https://github.com/citizenrich.keys):
 ```
 ansible-playbook -i /usr/local/etc/ansible/hosts keys.yaml
 ```
@@ -40,30 +40,11 @@ ansible-playbook -i /usr/local/etc/ansible/hosts prep_ubuntu.yaml
 
 Install the services and load and start them in systemd:
 ```
-# prepare hearth, backend, frontend, and check for a prepared DHIS2 web application
+# prepare hearth and the app
 ansible-playbook -i /usr/local/etc/ansible/hosts install.yaml
 # install into systemd and begin the hearth and backend services
 ansible-playbook -i /usr/local/etc/ansible/hosts services.yaml
 ```
-
-## Standalone
-
-> Note that the GUI must be built with the knowledge of the IP address of the backend server. Static sites cannot interpret dynamic variables. So, the GUI must be statically built with the backend IP or domain, it is not detected at runtime. The static IP address of the host is replaced in the ansible script.
-
-To run the GUI in standalone mode (not through DHIS2):
-```
-ansible-playbook -i /usr/local/etc/ansible/hosts standalone.yaml
-```
-
-## Upgrades
-
-Rerunning the `install` playbook updates intrahealth/hearth, the backend, and frontend repos on the remote server. Rerunning the `services.yaml` playbook updates services. Services are restarted (not just reloaded).
-
-The `install.yaml` playbook uses:
-* `git pull` to get the latest updates to the master branch.
-* `npm install` to update packages.
-
-The gui is rebuilt in the `standalone.yaml` playbook when it is rerun.
 
 ## Troubleshooting
 
@@ -72,6 +53,15 @@ Check that all processes are running and see the latest status for hearth and th
 ansible-playbook -i /usr/local/etc/ansible/hosts troubleshoot.yaml
 ```
 
+## Upgrades
+
+Rerunning the `install` playbook updates intrahealth/hearth and app repos on the remote server. Rerunning the `services.yaml` playbook updates services. Services are restarted (not just reloaded).
+
+The `install.yaml` playbook uses:
+* `git pull` to get the latest updates to the master branch.
+* `npm install` to update packages.
+
+
 #### Basic status
 ```
 # on centos, use `mongod`
@@ -79,31 +69,25 @@ systemctl status mongod.service
 # on ubuntu,use `mongodb`
 systemctl status mongodb.service
 systemctl status redis.service
-systemctl status facility-recon-backend.service
-systemctl status facility-recon-hearth.service
-# standalone
-systemctl status facility-recon-gui.service
+systemctl status facility-recon.service
+systemctl status hearth.service
 ```
 
 #### Logs
 ```
-journalctl -u facility-recon-backend.service -b
-journalctl -u facility-recon-hearth.service -b
-# standalone
-journalctl -u facility-recon-gui.service -b
 # on centos, use `mongod`
 journalctl -u mongod.service -b
 # on ubuntu,use `mongodb`
 journalctl -u mongodb.service -b
+journalctl -u facility-recon.service -b
+journalctl -u hearth.service -b
 journalctl -u redis.service -b
 ```
 
 #### Restart services
 ```
-sudo systemctl restart facility-recon-backend.service
-sudo systemctl restart facility-recon-hearth.service
-# standalone
-sudo systemctl restart facility-recon-gui.service
+sudo systemctl restart facility-recon.service
+sudo systemctl restart hearth.service
 ```
 
 #### Restart databases

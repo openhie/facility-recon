@@ -38,15 +38,15 @@
       enabled: yes
 
 
-  - name: run backend
+  - name: run app
     service: 
-      name: facility-recon-backend.service
+      name: facility-recon.service
       state: started
       enabled: yes
 
 
   - name: hearth journalctl since last reboot
-    command: journalctl -u facility-recon-hearth.service -b
+    command: journalctl -u hearth.service -b
     register: hearth
 
 
@@ -54,8 +54,8 @@
       msg: "{{ hearth.stdout_lines }}"
 
 
-  - name: backend journalctl since last reboot
-    command: journalctl -u facility-recon-backend.service -b
+  - name: app journalctl since last reboot
+    command: journalctl -u facility-recon.service -b
     register: backend
 
 
@@ -97,7 +97,7 @@
 
 
   - name: status hearth
-    command: systemctl status facility-recon-hearth.service
+    command: systemctl status hearth.service
     register: statush
 
 
@@ -105,8 +105,8 @@
       msg: "{{ statush.stdout_lines }}"
 
 
-  - name: status backend
-    command: systemctl status facility-recon-backend.service
+  - name: status app
+    command: systemctl status facility-recon.service
     register: statusb
 
     

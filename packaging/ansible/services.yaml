@@ -35,8 +35,8 @@
 
   - name: install systemd template for hearth service (ubuntu)
     template:
-      src: facility-recon-hearth.service.j2
-      dest: /etc/systemd/system/facility-recon-hearth.service
+      src: hearth.service.j2
+      dest: /etc/systemd/system/hearth.service
       mode: 644
       force: yes
     vars:
@@ -46,8 +46,8 @@
 
   - name: install systemd template for hearth service (centos)
     template:
-      src: facility-recon-hearth.service.j2
-      dest: /etc/systemd/system/facility-recon-hearth.service
+      src: hearth.service.j2
+      dest: /etc/systemd/system/hearth.service
       mode: 644
       force: yes
     vars:
@@ -57,7 +57,7 @@
 
   - name: run hearth
     service: 
-      name: facility-recon-hearth.service
+      name: hearth.service
       # https://docs.ansible.com/ansible/2.7/modules/systemd_module.html
       state: restarted
       enabled: yes
@@ -66,10 +66,10 @@
 
 # backend
 
-  - name: install systemd template for backend service (ubuntu)
+  - name: install systemd template for facility-recon service (ubuntu)
     template:
-      src: facility-recon-backend.service.j2
-      dest: /etc/systemd/system/facility-recon-backend.service
+      src: facility-recon.service.j2
+      dest: /etc/systemd/system/facility-recon.service
       mode: 644
       force: yes
     vars:
@@ -77,10 +77,10 @@
     when: ansible_distribution == 'Ubuntu'
 
 
-  - name: install systemd template for backend service (centos)
+  - name: install systemd template for facility-recon service (centos)
     template:
-      src: facility-recon-backend.service.j2
-      dest: /etc/systemd/system/facility-recon-backend.service
+      src: facility-recon.service.j2
+      dest: /etc/systemd/system/facility-recon.service
       mode: 644
       force: yes
     vars:
@@ -90,7 +90,7 @@
 
   - name: run backend
     service: 
-      name: facility-recon-backend.service
+      name: facility-recon.service
       state: restarted
       enabled: yes
       daemon_reload: yes

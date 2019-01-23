@@ -24,8 +24,8 @@ services:
       - "3447:3447"
     restart: unless-stopped
 
-  backend:
-    image: openhie/facility-recon-backend:latest
+  facility-recon:
+    image: openhie/facility-recon:latest
     environment: 
       - HEARTH_URL=http://hearth:3447 
       - REDIS_HOST=redis 

@@ -1,5 +1,5 @@
 ---
-- name: create facility-recon user
+- name: create fr user
   hosts: all
   remote_user: "{{ user }}"
   become: true
@@ -13,32 +13,32 @@
   tasks:
     - name: Create new user
       user:
-        name: facility-recon
+        name: fr
         shell: /bin/bash
 
 
     - name: Create .ssh folder
       file:
-        path: ~facility-recon/.ssh
+        path: ~fr/.ssh
         state: directory
-        owner: facility-recon
-        group: facility-recon
+        owner: fr
+        group: fr
         mode: 0700
 
 
     - name: Ensure authorized_keys file exists and dont write over it
       copy:
         content: ""
-        dest: ~facility-recon/.ssh/authorized_keys
+        dest: ~fr/.ssh/authorized_keys
         force: no
-        owner: facility-recon
-        group: facility-recon
+        owner: fr
+        group: fr
         mode: 0700
 
 
     - name: Set authorized key from ansible user
       authorized_key:
-        user: facility-recon
+        user: fr
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
@@ -61,8 +61,20 @@
 
     - name: Add sudoers users to wheel group
       user: 
-        name: facility-recon
+        name: fr
         groups: wheel 
         append: yes
         state: present
         createhome: yes
+
+
+    - name: Set backend server env var for app
+      lineinfile: 
+        dest: ~fr/.bash_profile 
+        state: present 
+        create: yes
+        owner: fr
+        group: fr
+        regexp: '^BACKEND_SERVER'
+        line: 'BACKEND_SERVER={{ ansible_default_ipv4.address }}'
+

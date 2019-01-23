@@ -19,6 +19,9 @@ terraform init
 terraform apply
 terraform state pull | jq --raw-output
 ```
+
+You should be able to ssh as root if the public key was set correctly (this is the default of DO). 
+
 Clean up.
 ```
 terraform destroy

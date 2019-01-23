@@ -94,4 +94,3 @@
       name: mongodb
       state: started
       enabled: yes
-

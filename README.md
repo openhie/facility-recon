@@ -20,7 +20,7 @@ docker-compose up
 
 Visit: http://localhost:3000/gofr
 
-The default user is `root@gofr.org` and pass is `gofr`
+The default admin user is `root@gofr.org` and pass is `gofr`. A different admin users should immediately be created, the default deleted, and ordinary users added as well.
 
 ## Developer Instructions
 

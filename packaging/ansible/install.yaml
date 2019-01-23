@@ -62,9 +62,7 @@
     shell: cd $HOME/facility-recon && git pull
 
 
-  - name: Backend - Install/update packages based on package.json.
+  - name: App - Install/update packages based on package.json.
     npm:
       path: $HOME/facility-recon/facility-recon-backend
       state: latest
-
-
