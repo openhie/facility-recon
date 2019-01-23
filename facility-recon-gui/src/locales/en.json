@@ -2,6 +2,7 @@
   "App": {
     "title": "Facility Reconciliation",
     "initApp": "Initializing App",
+    "source": "Source",
     "menu": {
       "createPair": {
         "msg": "Create and Manage Data Source Pair",

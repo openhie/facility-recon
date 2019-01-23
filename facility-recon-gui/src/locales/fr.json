@@ -2,39 +2,40 @@
   "App": {
     "title": "Facility Reconciliation",
     "initApp": "Initialisation de l'App",
+    "source": "la source",
     "menu": {
       "createPair": {
         "msg": "Créer et gérer une paire de sources de données",
         "tooltip": "Select data sources to start mathing"
       },
       "reconcile": {
-        "msg": "Reconcile",
-        "tooltip": "Perform location matching of your selected data sources"
+        "msg": "Réconcilier",
+        "tooltip": "Effectuer une correspondance d'emplacement de vos sources de données sélectionnées"
       },
       "recoStatus": {
-        "msg": "Reconciliation Status",
-        "tooltip": "Matching Status"
+        "msg": "État de rapprochement",
+        "tooltip": "Statut de correspondance"
       },
       "archive": {
-        "msg": "Archived Uploads",
-        "tooltip": "Access to backup data"
+        "msg": "Téléchargements archivés",
+        "tooltip": "Accès aux données de sauvegarde"
       },
       "addUser": {
-        "msg": "Add User"
+        "msg": "Ajouter un utilisateur"
       },
       "logout": {
-        "msg": "Logout"
+        "msg": "Connectez - Out"
       },
       "dataSources": {
-        "msg": "Data Sources",
-        "tooltip": "Upload CSV data or synhronize remote server data"
+        "msg": "Les sources de données",
+        "tooltip": "Téléchargez des données CSV ou synchronisez des données de serveur distant"
       },
       "view": {
-        "msg": "View",
-        "tooltip": "Explore data sources contents"
+        "msg": "Vue",
+        "tooltip": "Explorer le contenu des sources de données"
       },
       "recoParent": {
-        "msg": "Reconcile"
+        "msg": "Réconcilier"
       }
     }
   }

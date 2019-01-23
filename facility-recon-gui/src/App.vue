@@ -69,6 +69,7 @@
               <span>{{ $t('App.menu.archive.tooltip') }}</span>
             </v-tooltip>
           </v-list>
+          
         </v-menu>
         <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
           <v-icon>perm_identity</v-icon> {{ $t('App.menu.addUser.msg') }}
@@ -114,28 +115,24 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
-        Source 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; Source 2: <b>{{$store.state.activePair.source2.name}}</b>
-      </template>
+      <v-layout row wrap>
+        <v-flex xs6>
+          <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
+           {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>
+          </template>
+        </v-flex>
+        <v-spacer></v-spacer>
+        <v-flex xs1>
+          <v-select
+            :items="locales"
+            v-model="locale"
+          ></v-select>
+        </v-flex>
+      </v-layout>
       <router-view />
     </v-content>
     <v-footer dark color="primary" :fixed="fixed" app>
-      <v-layout row wrap>
-        <v-spacer></v-spacer>
-        <v-flex xs1>
-          <v-tooltip top>
-            <img src="../static/english.png" width="25" height="25" @click="changeLocale('en')" style="cursor: pointer" slot="activator">
-            <span>English Translation</span>
-          </v-tooltip>
-        </v-flex>
-        <v-flex xs1>
-          <v-tooltip top>
-            <img src="../static/french.png" width="25" height="25" @click="changeLocale('fr')" style="cursor: pointer" slot="activator">
-            <span>French Translation</span>
-          </v-tooltip>
-        </v-flex>
-        
-      </v-layout>
+
     </v-footer>
   </v-app>
 </template>
@@ -153,13 +150,20 @@ export default {
   data () {
     return {
       fixed: false,
-      title: this.$t('App.title')
+      title: this.$t('App.title'),
+      locale: 'en',
+      locales: [
+      {text: 'English', value: 'en'},
+      {text: 'French', value: 'fr'}
+      ]
+    }
+  },
+  watch: {
+    locale (val) {
+      this.$i18n.locale = val
     }
   },
   methods: {
-    changeLocale (locale) {
-      this.$i18n.locale = locale
-    },
     renderInitialPage () {
       let source1 = this.$store.state.activePair.source1.name
       let source2 = this.$store.state.activePair.source2.name

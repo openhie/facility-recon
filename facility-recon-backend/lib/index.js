@@ -44,7 +44,8 @@ let jwtValidator = function(req, res, next) {
   req.path == "/authenticate/" || 
   req.path == "/gofr" || 
   req.path.startsWith("/static/js") ||
-  req.path.startsWith("/static/css")
+  req.path.startsWith("/static/css") ||
+  req.path.startsWith("/static/img")
   ) {
     return next()
   }
@@ -1987,6 +1988,9 @@ if (cluster.isMaster) {
   });
   app.get('/static/css/:file', function (req, res) {
     res.sendFile(path.join(__dirname + '/../gui/static/css/' + req.params.file));
+  });
+  app.get('/static/img/:file', function (req, res) {
+    res.sendFile(path.join(__dirname + '/../gui/static/img/' + req.params.file));
   });
 
   server.listen(config.getConf('server:port'));
