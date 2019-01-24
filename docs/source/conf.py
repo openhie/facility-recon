@@ -191,4 +191,5 @@ html_theme_options = {
 gettext_uuid = True
 gettext_compact = False
 
-locale_dirs = ['locale/']
+# needed for locales on readthedocs
+locale_dirs = ['locales/']
