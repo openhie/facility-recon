@@ -191,3 +191,4 @@ html_theme_options = {
 gettext_uuid = True
 gettext_compact = False
 
+locale_dirs = ['locale/']
