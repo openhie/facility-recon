@@ -1,4 +1,6 @@
-# terraform
+# Terraform
+
+This is an example [Terraform](https://www.terraform.io) remote installation on a VM provided by Digital Ocean. See the `/packaging/terraform` directory for the example configuration.
 
 * Create an account on DO and upload a public SSH key and note your API token.
 * Export a `DIGITALOCEAN_TOKEN` variable with your API token.

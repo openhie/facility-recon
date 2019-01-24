@@ -1,15 +1,14 @@
 # Vagrant
 
-This an in-progress creation of a base box for end-to-end testing of facility recon using Vagrant and Ansible. It is not complete.
+## Install
 
-The CentOS version is copied and modified from the BAO Systems DHIS2-CentOS [Vagrantfile](https://github.com/baosystems/dhis2-centos).
+This an example using Vagrant for an Ubuntu or CentOS VM for end-to-end testing of facility recon.
 
 To use just change directory into the OS (CentOS or Ubuntu) you want to use and fire it up.
 ```sh
 cd ubuntu
 vagrant up
 ```
-
 
 ## Troubleshooting
 

@@ -2,9 +2,13 @@ Developer Guide
 ===============
 
 .. toctree::
-   :maxdepth: 2
-   :caption: User Guide
+   :maxdepth: 1
 
+   docker
    install
+   vagrant
    host
+   ansible
+   terraform
    contrib
+   docs

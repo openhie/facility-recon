@@ -21,13 +21,13 @@
 
 from recommonmark.parser import CommonMarkParser
 project = 'Facility Reconciliation Tool'
-copyright = '2018, IntraHealth International'
+copyright = '2019, IntraHealth International'
 author = 'IntraHealth International'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '0.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -185,3 +185,9 @@ epub_exclude_files = ['search.html']
 html_theme_options = {
     "collapse_navigation": False
 }
+
+
+# for localization
+gettext_uuid = True
+gettext_compact = False
+

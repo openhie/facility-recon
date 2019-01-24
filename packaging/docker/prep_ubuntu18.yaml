@@ -1,0 +1,78 @@
+---
+- name: Docker for Ubuntu 18
+  hosts: all
+  remote_user: "{{ user }}"
+  become: true
+  tags: prep
+
+  vars_prompt:
+    - name: "user"
+      prompt: "Please enter the username (with sudo)"
+      private: no
+
+  tasks:
+
+
+  - name: Run the equivalent of "apt-get update"
+    apt:
+      update_cache: yes
+
+
+  - name: Ensure git
+    apt:
+      name: git
+      state: present
+
+  - name: Ensure pre-req
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+
+
+  - name: Key for docker repo
+    shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+  
+  - name: Add apt repo for docker-ce
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+      state: present
+
+
+  - name: Run the equivalent of "apt-get update"
+    apt:
+      update_cache: yes
+  
+
+  - name: Ensure docker-ce
+    apt:
+      name: docker-ce
+      state: present
+
+
+  - name: Ensure docker is running
+    service: 
+      name: docker
+      state: started
+      enabled: yes
+
+
+  - name: Add user to docker group
+    user: 
+      name: "{{ user }}"
+      groups: docker 
+      append: yes
+      state: present
+
+
+  - name: Compose script
+    shell: curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+
+  - name: Compose script perms
+    shell: chmod +x /usr/local/bin/docker-compose

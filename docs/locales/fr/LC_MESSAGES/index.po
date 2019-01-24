@@ -1,0 +1,44 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+# 48e09a013b4f4f1c892e6e3c830f549a
+#: ../../source/index.rst:2
+msgid "Welcome to the Facility Reconciliation Tool's documentation!"
+msgstr ""
+
+# e4186c02512341e99959ace5ef4f4c4c
+#: ../../source/index.rst:4
+msgid ""
+"The Facility Reconciliation Tool is a part of the Global Open Facility "
+"Registry. It's and open source and open standards-based tool to help "
+"users match lists of facilities from different data sources. The tools "
+"supports uploading data from CSV, FHIR servers and DHIS2 instances."
+msgstr ""
+
+# ebb58614d7e54b0fb6af6db9f37aff00
+#: ../../source/index.rst:6
+msgid "If you are new to the tools, please consider trying the quick starts!"
+msgstr ""
+
+# 4d8104e5a9e44a6fa393b6b09cd16868
+#: ../../source/index.rst:10
+msgid "Contents"
+msgstr ""
+

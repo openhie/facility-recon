@@ -22,3 +22,6 @@ terraform.tfstate.backup
 build
 _static
 _templates
+
+# transifex
+.tx
