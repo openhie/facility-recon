@@ -1,0 +1,61 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"PO-Revision-Date: 2019-01-25 20:32+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 18924b57427f4b4ca8c617ccede93208
+#: ../../source/dev/vagrant.md:1
+msgid "Vagrant"
+msgstr ""
+
+# 5b270307cb3241828e9dccbd83ae799d
+#: ../../source/dev/vagrant.md:3
+msgid "Install"
+msgstr ""
+
+# 2080c1ffeab2427c937e2f1507603eed
+#: ../../source/dev/vagrant.md:5
+msgid ""
+"This an example using Vagrant for an Ubuntu or CentOS VM for end-to-end "
+"testing of facility recon."
+msgstr ""
+
+# 684b75f746314247b472f907e4059206
+#: ../../source/dev/vagrant.md:7
+msgid ""
+"To use just change directory into the OS (CentOS or Ubuntu) you want to use "
+"and fire it up."
+msgstr ""
+
+# f8347eb34d464c1e95716d1267d85a4f
+#: ../../source/dev/vagrant.md:13
+msgid "Troubleshooting"
+msgstr ""
+
+# 136c2ecf032e48a495181b8ce913251c
+#: ../../source/dev/vagrant.md:15
+msgid ""
+"For cleaning up, note that Vagrant boxes are stored in ~/.vagrant.d/boxes."
+msgstr ""
+
+# ae711f675d7c4704939068bdd854c2f1
+#: ../../source/dev/vagrant.md:16
+msgid ""
+"[macOS] If there is a port conflict error for ssh, then clear out port "
+"forwarding entry for 2222 in /Library/Preferences/VMware\\ Fusion/networking"
+" and /Library/Preferences/VMware\\ Fusion/vmnet8/nat.conf"
+msgstr ""

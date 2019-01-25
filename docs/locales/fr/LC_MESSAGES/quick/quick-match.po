@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-01-24 11:38-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-01-24 19:52+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 # aa5ad2de117949318856542cde396b10
 #: ../../source/quick/quick-match.md:1
@@ -26,9 +25,9 @@ msgstr ""
 # 7c68f76cc53846688a1e958086dd2f81
 #: ../../source/quick/quick-match.md:3
 msgid ""
-"To match facility lists the steps are to first create a pair of data "
-"sources and then to do the reconciliation starting at the highest level "
-"and going down the hierarchy to the last level."
+"To match facility lists the steps are to first create a pair of data sources"
+" and then to do the reconciliation starting at the highest level and going "
+"down the hierarchy to the last level."
 msgstr ""
 
 # d240cb01dc194bceadb58043e38ca4ec
@@ -39,10 +38,10 @@ msgstr ""
 # da0e03921e8447fb8999effda6660232
 #: ../../source/quick/quick-match.md:7
 msgid ""
-"Go to the Data Source Pair tab and select both data sources. The data "
-"source you select under “Source 1”  is the target (the one you want to "
-"fix). The data source you select under “Source 2”  is the one that is the"
-" leader that you want to eventually merge your data with."
+"Go to the Data Source Pair tab and select both data sources. The data source"
+" you select under “Source 1”  is the target (the one you want to fix). The "
+"data source you select under “Source 2”  is the one that is the leader that "
+"you want to eventually merge your data with."
 msgstr ""
 
 # f484a0ea38d94610a63149efea3bc75c
@@ -64,11 +63,11 @@ msgstr ""
 #: ../../source/quick/quick-match.md:16
 msgid ""
 "There are only two regions (the top administrative level in the fakeland "
-"data). They are automatically matched. The status wheels labeled "
-"“Matched” indicate that 2 of 2 regions have been matched. In the bottom "
-"portion of the screenshot below, you can also see that for Level 1 there "
-"is 100% match, as the two locations in Source 1 match the two locations "
-"in Source 2. Select Proceed to Level 2."
+"data). They are automatically matched. The status wheels labeled “Matched” "
+"indicate that 2 of 2 regions have been matched. In the bottom portion of the"
+" screenshot below, you can also see that for Level 1 there is 100% match, as"
+" the two locations in Source 1 match the two locations in Source 2. Select "
+"Proceed to Level 2."
 msgstr ""
 
 # 9e463257ac9a412384e0d5b3da1a7340
@@ -89,8 +88,7 @@ msgstr ""
 # 026327f28386440c9e4e901fdb658130
 #: ../../source/quick/quick-match.md:28
 msgid ""
-"There is a list of unmatched facilities in the light green box for Source"
-" 1."
+"There is a list of unmatched facilities in the light green box for Source 1."
 msgstr ""
 
 # 465dac97b1784354a0ced9f92e29f404
@@ -106,22 +104,22 @@ msgstr ""
 # 2d84368b6bad46d5ba600edd6540d69c
 #: ../../source/quick/quick-match.md:37
 msgid ""
-"Select the most appropriate match, in this case it is Referral Hospital, "
-"and click SAVE MATCH."
+"Select the most appropriate match, in this case it is Referral Hospital, and"
+" click SAVE MATCH."
 msgstr ""
 
 # ef0f8e1d5cd3437389ef0002b8057c67
 #: ../../source/quick/quick-match.md:38
 msgid ""
-"Go through the unmatched facilities in Source 1, select and save the best"
-" matches. One you are done, you will see:"
+"Go through the unmatched facilities in Source 1, select and save the best "
+"matches. One you are done, you will see:"
 msgstr ""
 
 # a3940539d9cb442a9473a8ae1620e328
 #: ../../source/quick/quick-match.md:42
 msgid ""
-"The Source 1 Reconciliation Status, in the top left-hand status box, "
-"should be 100%."
+"The Source 1 Reconciliation Status, in the top left-hand status box, should "
+"be 100%."
 msgstr ""
 
 # ceed31a282544884be161f0c1de86bbf
@@ -133,9 +131,9 @@ msgstr ""
 #: ../../source/quick/quick-match.md:46
 msgid ""
 "On the top left of the reconciliation tab there is an option to output "
-"either a FHIR-based report of the final reconciled dataset or a CSV of "
-"what matched and did not match in either dataset. Choose CSV Export. You "
-"will receive three files of matches and unmatches."
+"either a FHIR-based report of the final reconciled dataset or a CSV of what "
+"matched and did not match in either dataset. Choose CSV Export. You will "
+"receive three files of matches and unmatches."
 msgstr ""
 
 # cdecb15310054edab730cfd2b1849587
@@ -147,4 +145,3 @@ msgstr ""
 #: ../../source/quick/quick-match.md:50
 msgid "Select Reconciliation Status and view the overall status."
 msgstr ""
-

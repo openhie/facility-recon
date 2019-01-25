@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-01-24 11:38-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-01-24 19:52+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 # 23bd486462c14dd0a19686ecab3ddbe0
 #: ../../source/quick/quick-fake.md:1
@@ -36,16 +35,15 @@ msgstr ""
 # 69080eaab047480cb06ccbf7a135d026
 #: ../../source/quick/quick-fake.md:6
 msgid ""
-"There are two worksheets inside (see the tabs at the bottom), one for "
-"Source 1 NGO and one for Source 2 DHIS2. These are fake data for use in "
-"the tool."
+"There are two worksheets inside (see the tabs at the bottom), one for Source"
+" 1 NGO and one for Source 2 DHIS2. These are fake data for use in the tool."
 msgstr ""
 
 # 52e28dad92e34c199fd39a44ce619b60
 #: ../../source/quick/quick-fake.md:7
 msgid ""
-"Download CSV files for both worksheets to your computer by clicking under"
-" the File menu and choosing Download as: Comma-separated values"
+"Download CSV files for both worksheets to your computer by clicking under "
+"the File menu and choosing Download as: Comma-separated values"
 msgstr ""
 
 # f9e134a2c21c42bc9efb09186f8fea77
@@ -61,9 +59,9 @@ msgstr ""
 # fdaba0e96bf6409e86f710f5c4740232
 #: ../../source/quick/quick-fake.md:14
 msgid ""
-"Go to the reconciliation tool from the site: https://facilitymatch.org "
-"and click DEMO. You will be shown a disclaimer. If you agree, then click "
-"to continue."
+"Go to the reconciliation tool from the site: https://facilitymatch.org and "
+"click DEMO. You will be shown a disclaimer. If you agree, then click to "
+"continue."
 msgstr ""
 
 # 6c1507105e7c4b1e873e77fc3fb961e9
@@ -81,9 +79,9 @@ msgstr ""
 # 6685d0ae115746f297240b141910c88f
 #: ../../source/quick/quick-fake.md:20
 msgid ""
-"Name the upload NGO (you can name it anything you wish) and click ‘Upload"
-" CSV.’ Select the Fakeland Health Facilities - Source 1 NGO file from "
-"where you saved it on your computer."
+"Name the upload NGO (you can name it anything you wish) and click ‘Upload "
+"CSV.’ Select the Fakeland Health Facilities - Source 1 NGO file from where "
+"you saved it on your computer."
 msgstr ""
 
 # f8406a5259cf4dd0bce32947fce30525
@@ -95,9 +93,8 @@ msgstr ""
 #: ../../source/quick/quick-fake.md:25
 msgid ""
 "You will be in a new dialog that asks you to assign headers for facility "
-"name, facility ID code, and administrative levels. Please select the "
-"correct headers from the dropdown menu as indicated in the screenshot "
-"below."
+"name, facility ID code, and administrative levels. Please select the correct"
+" headers from the dropdown menu as indicated in the screenshot below."
 msgstr ""
 
 # 9dfdf7b3af7f42f7b4defb0fb8571673
@@ -109,12 +106,11 @@ msgstr ""
 #: ../../source/quick/quick-fake.md:30
 msgid ""
 "Repeat the above steps for uploading data but this time call the upload "
-"DHIS2 and choose the file Fakeland Health Facilities - Source 2 DHIS2 "
-"file on your computer."
+"DHIS2 and choose the file Fakeland Health Facilities - Source 2 DHIS2 file "
+"on your computer."
 msgstr ""
 
 # 72d6b6ec47344c5aba316471d78200da
 #: ../../source/quick/quick-fake.md:31
 msgid "You should now have two data sources."
 msgstr ""
-

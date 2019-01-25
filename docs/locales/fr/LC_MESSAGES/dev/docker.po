@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"PO-Revision-Date: 2019-01-25 20:32+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# db19499b0bf9424e9c38de83f5a64281
+#: ../../source/dev/docker.md:1
+msgid "Quickstart with Docker"
+msgstr ""
+
+# f72ed7d3f710463980aa6747b6bada90
+#: ../../source/dev/docker.md:3
+msgid ""
+"The fastest way to get started is to use Docker Compose which runs all "
+"components: app, Redis, MongoDB, and the Hearth FHIR server."
+msgstr ""
+
+# b052143756cb4204b56c73875a869770
+#: ../../source/dev/docker.md:5
+msgid "Clone the repo and start the docker apps."
+msgstr ""
+
+# ba2632fa6e47414cbf51a1597dfaf1cc
+#: ../../source/dev/docker.md:12
+msgid "Visit: http://localhost:3000/gofr"
+msgstr ""
+
+# d873a221a78741d387e7c9e7d9bf0ae8
+#: ../../source/dev/docker.md:14
+msgid ""
+"The default admin user is root@gofr.org and pass is gofr. A different admin "
+"users should immediately be created, the default deleted, and ordinary users"
+" added as well."
+msgstr ""
