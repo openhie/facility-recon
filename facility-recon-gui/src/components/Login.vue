@@ -119,6 +119,9 @@ export default {
       })
     }
   },
+  created () {
+    console.log(process.env.BACKEND_SERVER)
+  },
   computed: {
     usernameErrors () {
       const errors = []
