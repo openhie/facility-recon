@@ -1,0 +1,40 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 85ce2394ad7d4d8bac8f138d03419a06
+#: ../../source/dev/host.md:1
+msgid "Hosting Considerations"
+msgstr ""
+
+# ec85f96198134567a2ab501bf9076d3f
+#: ../../source/dev/host.md:3
+msgid ""
+"Systems planners should test locally with the largest data sources that "
+"would represent their use case. With no user interaction, the demo server "
+"uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: "
+"250MB, frontend: 30MB)."
+msgstr ""
+
+# 1072437fcd864a3199ee2c68724ac12c
+#: ../../source/dev/host.md:5
+msgid ""
+"The demo version uses 2 virtual CPUs, 4GB RAM, and 20GB SSD in a cloud-"
+"hosted VPS. For use cases with large data sources, such as 10k facilities, "
+"expect to increase RAM allocation."
+msgstr ""

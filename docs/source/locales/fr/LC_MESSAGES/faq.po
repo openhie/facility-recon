@@ -1,0 +1,43 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"PO-Revision-Date: 2019-01-25 23:34+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 95ca7ed7a375440ba3d41a6bcb16dfc5
+#: ../../source/faq.md:1
+msgid "FAQ"
+msgstr ""
+
+# b6649214d6f9491fac2efb13dcae3be5
+#: ../../source/faq.md:3
+msgid "Is there an API?"
+msgstr ""
+
+# 9ade5006374740bb86dd4d81e41f2ea9
+#: ../../source/faq.md:5
+msgid ""
+"The tool uses a FHIR server, Hearth for persistent storage. Hearth uses "
+"MongoDB for its storage layer."
+msgstr ""
+
+# d10b5c8dc097450e9ae00bc2fb5f210c
+#: ../../source/faq.md:7
+msgid ""
+"To obtain data sources and reconciled sources a user with access to the "
+"underlying stack can make queries to MongoDB or to the FHIR-based REST API "
+"for Hearth. There is no authentication for the raw access in this manner."
+msgstr ""

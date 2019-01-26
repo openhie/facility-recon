@@ -1,0 +1,54 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 876db6bd821a40c88b735d94665b13ea
+#: ../../source/dev/contrib.md:1
+msgid "Contribute"
+msgstr ""
+
+# e4473187295c4d70bb652596c14f83ed
+#: ../../source/dev/contrib.md:3
+msgid ""
+"The Reconciliation Tool is distributed under the Apache 2.0 license. The "
+"community welcomes contributions!"
+msgstr ""
+
+# 766bad84c7ca4e43a5be86ea6418f3ba
+#: ../../source/dev/contrib.md:5
+msgid ""
+"For substantial features please consider engaging with the community first "
+"and be prepared to be asked to create a design document. A design document "
+"can simply be a brief Google Doc that community members can provide feedback"
+" towards."
+msgstr ""
+
+# f5b94e77ebe34645b58f363f0fdab78a
+#: ../../source/dev/contrib.md:6
+msgid ""
+"For smaller features please engage in a GitHub issue or approach the "
+"community and ask early on about the approach."
+msgstr ""
+
+# 3db8829c44fd44bdac6df8f57038d019
+#: ../../source/dev/contrib.md:8
+msgid ""
+"Please join the OpenHIE Facility Registry Community for open monthly "
+"discussions and the Facility Registry Google Group for announcements and "
+"discussions."
+msgstr ""

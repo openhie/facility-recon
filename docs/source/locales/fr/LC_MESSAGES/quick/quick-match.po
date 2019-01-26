@@ -1,0 +1,147 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# aa5ad2de117949318856542cde396b10
+#: ../../source/quick/quick-match.md:1
+msgid "Match data sources"
+msgstr ""
+
+# 7c68f76cc53846688a1e958086dd2f81
+#: ../../source/quick/quick-match.md:3
+msgid ""
+"To match facility lists the steps are to first create a pair of data sources"
+" and then to do the reconciliation starting at the highest level and going "
+"down the hierarchy to the last level."
+msgstr ""
+
+# d240cb01dc194bceadb58043e38ca4ec
+#: ../../source/quick/quick-match.md:5
+msgid "## Pair sources"
+msgstr ""
+
+# da0e03921e8447fb8999effda6660232
+#: ../../source/quick/quick-match.md:7
+msgid ""
+"Go to the Data Source Pair tab and select both data sources. The data source"
+" you select under “Source 1”  is the target (the one you want to fix). The "
+"data source you select under “Source 2”  is the one that is the leader that "
+"you want to eventually merge your data with."
+msgstr ""
+
+# f484a0ea38d94610a63149efea3bc75c
+#: ../../source/quick/quick-match.md:8
+msgid "Choose NGO as Source 1 and DHIS2 as Source 2."
+msgstr ""
+
+# 519e93d4fdc6482bb9862fa721cc2aa8
+#: ../../source/quick/quick-match.md:12
+msgid "Click SAVE and you will be taken to the reconciliation screen."
+msgstr ""
+
+# 3a3a1061a3a0484bb364b7a370b3bac8
+#: ../../source/quick/quick-match.md:14
+msgid "Reconciliation"
+msgstr ""
+
+# 1db6e295387e4b5cab7eafd5baa3c254
+#: ../../source/quick/quick-match.md:16
+msgid ""
+"There are only two regions (the top administrative level in the fakeland "
+"data). They are automatically matched. The status wheels labeled “Matched” "
+"indicate that 2 of 2 regions have been matched. In the bottom portion of the"
+" screenshot below, you can also see that for Level 1 there is 100% match, as"
+" the two locations in Source 1 match the two locations in Source 2. Select "
+"Proceed to Level 2."
+msgstr ""
+
+# 9e463257ac9a412384e0d5b3da1a7340
+#: ../../source/quick/quick-match.md:22
+msgid "At Level 2, the districts will automatically be matched."
+msgstr ""
+
+# 4e1737f6927942de8a9bea0c8787bf97
+#: ../../source/quick/quick-match.md:26
+msgid "Click Proceed to Level 3."
+msgstr ""
+
+# c3435dd4d73b46cab387199f12e256d5
+#: ../../source/quick/quick-match.md:27
+msgid "At Level 3, some facilities will not match."
+msgstr ""
+
+# 026327f28386440c9e4e901fdb658130
+#: ../../source/quick/quick-match.md:28
+msgid ""
+"There is a list of unmatched facilities in the light green box for Source 1."
+msgstr ""
+
+# 465dac97b1784354a0ced9f92e29f404
+#: ../../source/quick/quick-match.md:32
+msgid "Select one of the facilities, like General Referral Hospital."
+msgstr ""
+
+# 30792f722f144109be76fcb2f5a698c1
+#: ../../source/quick/quick-match.md:33
+msgid "A pop-up dialog will let you choose which facility to match it to."
+msgstr ""
+
+# 2d84368b6bad46d5ba600edd6540d69c
+#: ../../source/quick/quick-match.md:37
+msgid ""
+"Select the most appropriate match, in this case it is Referral Hospital, and"
+" click SAVE MATCH."
+msgstr ""
+
+# ef0f8e1d5cd3437389ef0002b8057c67
+#: ../../source/quick/quick-match.md:38
+msgid ""
+"Go through the unmatched facilities in Source 1, select and save the best "
+"matches. One you are done, you will see:"
+msgstr ""
+
+# a3940539d9cb442a9473a8ae1620e328
+#: ../../source/quick/quick-match.md:42
+msgid ""
+"The Source 1 Reconciliation Status, in the top left-hand status box, should "
+"be 100%."
+msgstr ""
+
+# ceed31a282544884be161f0c1de86bbf
+#: ../../source/quick/quick-match.md:44
+msgid "Export a reconciliation report"
+msgstr ""
+
+# d26bb72530b0411289a19e23bb9c0fa2
+#: ../../source/quick/quick-match.md:46
+msgid ""
+"On the top left of the reconciliation tab there is an option to output "
+"either a FHIR-based report of the final reconciled dataset or a CSV of what "
+"matched and did not match in either dataset. Choose CSV Export. You will "
+"receive three files of matches and unmatches."
+msgstr ""
+
+# cdecb15310054edab730cfd2b1849587
+#: ../../source/quick/quick-match.md:48
+msgid "View reconciliation status"
+msgstr ""
+
+# 3aaabb37e2d245279a35a562ffb2688c
+#: ../../source/quick/quick-match.md:50
+msgid "Select Reconciliation Status and view the overall status."
+msgstr ""

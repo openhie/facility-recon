@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 0ee9d0dc59e54153981a2290793afda7
+#: ../../source/dev/install.md:1
+msgid "Install Locally"
+msgstr ""
+
+# 5b98d6dafc2244e484956efa5bac3518
+#: ../../source/dev/install.md:3
+msgid "Hearth (FHIR Server) Installation"
+msgstr ""
+
+# cc79e9eb18464d3b9b7771a98646f934
+#: ../../source/dev/install.md:5
+msgid ""
+"Make sure mongo 3.6 or above is installed and running before proceeding with"
+" below instructions"
+msgstr ""
+
+# ed6d4a3c4205476080f85e265cf8d2ce
+#: ../../source/dev/install.md:12
+msgid ""
+"Open the config file located under config/default.json and disable "
+"authentication by setting authentication type to disabled i.e "
+"\"authentication\": { \"type\": \"disabled\"}"
+msgstr ""
+
+# c8bfb555be99410f9a747fd75f5f66a9
+#: ../../source/dev/install.md:14
+msgid "Start hearth"
+msgstr ""
+
+# 364b8a08c44c443cb28a1cf13e21b6e5
+#: ../../source/dev/install.md:20
+msgid "Backend"
+msgstr ""
+
+# 5baab892f7234c4e9b5c7a440996b204
+#: ../../source/dev/install.md:22
+msgid "Download the repo."
+msgstr ""
+
+# fc94f733914246659c34a4a080ad2d0a
+#: ../../source/dev/install.md:32
+msgid "Install and run Redis"
+msgstr ""
+
+# 8fa3aec1a374425bb011a2326161491d
+#: ../../source/dev/install.md:41
+msgid "Run the backend"
+msgstr ""
+
+# cb8a7639c7464670a121fb9ee1164844
+#: ../../source/dev/install.md:47
+msgid "Frontend"
+msgstr ""
+
+# 4678571dca2641698cc81b24a45717eb
+#: ../../source/dev/install.md:54
+msgid "DHIS2 App (Optional)"
+msgstr ""
+
+# 85a07c3c6305482e946e076ed509cd63
+#: ../../source/dev/install.md:55
+msgid ""
+"Note that the DHIS2 app is not required for running the tool as it can be "
+"run standalone from the GUI."
+msgstr ""
+
+# 06f0896d4f2d42bd87992448aa76a74c
+#: ../../source/dev/install.md:57
+msgid ""
+"Copy the frontend build contents from facility-recon/facility-recon-gui/dist"
+" into facility-recon/dhis2App/ and then zip the content of of dhis2App"
+msgstr ""
+
+# 42b046b4ff224bb687f03de92601b69c
+#: ../../source/dev/install.md:64
+msgid "Login to DHIS2 and install the zipped file (GOFR.zip)"
+msgstr ""

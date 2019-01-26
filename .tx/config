@@ -2,121 +2,121 @@
 host = https://www.transifex.com
 
 [facility-recon.docs_build_gettext_faq]
-file_filter = docs/locales/<lang>/LC_MESSAGES/faq.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/faq.po
 source_file = docs/build/gettext/faq.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_about]
-file_filter = docs/locales/<lang>/LC_MESSAGES/about.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/about.po
 source_file = docs/build/gettext/about.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_index]
-file_filter = docs/locales/<lang>/LC_MESSAGES/index.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/index.po
 source_file = docs/build/gettext/index.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_roadmap]
-file_filter = docs/locales/<lang>/LC_MESSAGES/roadmap.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/roadmap.po
 source_file = docs/build/gettext/roadmap.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_quick_quick-fake]
-file_filter = docs/locales/<lang>/LC_MESSAGES/quick/quick-fake.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/quick/quick-fake.po
 source_file = docs/build/gettext/quick/quick-fake.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_quick_index]
-file_filter = docs/locales/<lang>/LC_MESSAGES/quick/index.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/quick/index.po
 source_file = docs/build/gettext/quick/index.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_quick_quick-match]
-file_filter = docs/locales/<lang>/LC_MESSAGES/quick/quick-match.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/quick/quick-match.po
 source_file = docs/build/gettext/quick/quick-match.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_user_match]
-file_filter = docs/locales/<lang>/LC_MESSAGES/user/match.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/user/match.po
 source_file = docs/build/gettext/user/match.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_user_users]
-file_filter = docs/locales/<lang>/LC_MESSAGES/user/users.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/user/users.po
 source_file = docs/build/gettext/user/users.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_user_index]
-file_filter = docs/locales/<lang>/LC_MESSAGES/user/index.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/user/index.po
 source_file = docs/build/gettext/user/index.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_user_sources]
-file_filter = docs/locales/<lang>/LC_MESSAGES/user/sources.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/user/sources.po
 source_file = docs/build/gettext/user/sources.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_terraform]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/terraform.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/terraform.po
 source_file = docs/build/gettext/dev/terraform.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_contrib]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/contrib.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/contrib.po
 source_file = docs/build/gettext/dev/contrib.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_vagrant]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/vagrant.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/vagrant.po
 source_file = docs/build/gettext/dev/vagrant.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_ansible]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/ansible.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/ansible.po
 source_file = docs/build/gettext/dev/ansible.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_docs]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/docs.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/docs.po
 source_file = docs/build/gettext/dev/docs.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_index]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/index.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/index.po
 source_file = docs/build/gettext/dev/index.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_install]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/install.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/install.po
 source_file = docs/build/gettext/dev/install.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_docker]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/docker.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/docker.po
 source_file = docs/build/gettext/dev/docker.pot
 source_lang = en
 type = PO
 
 [facility-recon.docs_build_gettext_dev_host]
-file_filter = docs/locales/<lang>/LC_MESSAGES/dev/host.po
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/host.po
 source_file = docs/build/gettext/dev/host.pot
 source_lang = en
 type = PO

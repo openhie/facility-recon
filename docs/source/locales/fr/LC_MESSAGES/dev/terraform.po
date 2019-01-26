@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 51d344bc1c53465ab215f5069519aeda
+#: ../../source/dev/terraform.md:1
+msgid "Terraform"
+msgstr ""
+
+# ef00cf10c470409fb52931c8bcd7486c
+#: ../../source/dev/terraform.md:3
+msgid ""
+"This is an example Terraform remote installation on a VM provided by Digital"
+" Ocean. See the /packaging/terraform directory for the example "
+"configuration."
+msgstr ""
+
+# bab739218c0047d7a495652b2ff30238
+#: ../../source/dev/terraform.md:5
+msgid ""
+"Create an account on DO and upload a public SSH key and note your API token."
+msgstr ""
+
+# 97263ed4a4e04d19928608aac0a6c455
+#: ../../source/dev/terraform.md:6
+msgid "Export a DIGITALOCEAN_TOKEN variable with your API token."
+msgstr ""
+
+# ff44b523784e4074a8349389f39ab540
+#: ../../source/dev/terraform.md:7
+msgid ""
+"Get the hash fingerprint that DO generated for your SSH key (this is a DO "
+"thing)."
+msgstr ""
+
+# c2250b6683034135870cb2052af22ef9
+#: ../../source/dev/terraform.md:11
+msgid "Export a TF_VAR_fingerprint variable with the hash."
+msgstr ""
+
+# 0110f42802b74be5bf8e38e71c958958
+#: ../../source/dev/terraform.md:12
+msgid ""
+"Get the latest droplet instances and sizes, you'll need the awesome jq "
+"parser for JSON installed."
+msgstr ""
+
+# 5ecc672c63c94a1894b86d9799a3c8d7
+#: ../../source/dev/terraform.md:17
+msgid "Adjust droplet config as you wish using info from the above."
+msgstr ""
+
+# 450659c22d6e46c1b61616a98429d88a
+#: ../../source/dev/terraform.md:18
+msgid "Profit!"
+msgstr ""
+
+# 965ba32b32c240a989c2871eb3916709
+#: ../../source/dev/terraform.md:25
+msgid ""
+"You should be able to ssh as root if the public key was set correctly (this "
+"is the default of DO)."
+msgstr ""
+
+# bd332a2ffbda4cf3af2ece05fd37d575
+#: ../../source/dev/terraform.md:27
+msgid "Clean up."
+msgstr ""
