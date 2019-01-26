@@ -1,6 +1,6 @@
 # How to Build and Update Documentation
 
-These docs are hosted in readthedocs.io. The documentation is built using Sphinx with markdown support enabled. In order to translate, the documentation must first be in the base (English) language. Upon a successful build, the translatable files (.pot) are then pushed to [Transifex](https://www.transifex.com/). The pot files must be synchronized with Transifex for editors to use them.
+These docs are hosted at https://readthedocs.io. The documentation is built using Sphinx with Markdown support enabled. In order to translate, the documentation must first be in the base (English) language. Upon a successful build, the translatable files (.pot) are then pushed to [Transifex](https://www.transifex.com/). The pot files must be synchronized with Transifex for editors to use them.
 
 ## Update Sources for Translation
 
@@ -77,6 +77,12 @@ sphinx-intl update -p build/gettext -l es
 
 Do not replicate this process. It is here to document how it was done in the first place. Doing it again would delete or write over translations or remove them.
 
+* Setup Sphinx for the project. Enable Markdown support. Enable the webhook to trigger builds.
+* Create the source language docs. 
+* Create projects in readthedocs.org for both the source language (facility-recon - no prefix/suffix) and the new one (facility-recon-fr)
+* Set languages correctly on both projects.
+* Assign the -fr project as a translation of the source. You must have two projects.
+
 Create `.pot` files for French. This puts a locales directory in `/docs/source/` and creates files for every `.md` and `.rst` file.
 ```sh
 cd docs
@@ -109,9 +115,12 @@ tx pull -l fr
 
 Manually check the `.po` files translated to confirm the changes.
 
-Build locally to check.
+Build locally to check. (FYI, this puts `.mo` files into the repo which could potentially be gitignored and removed.)
 
 ```sh
 cd docs
 sphinx-build -b html -D language=fr ./source build/html/fr
 ```
+...then open the index.html in the built files for French to confirm.
+
+readthedocs.io should rebuild based on the existing webhook.

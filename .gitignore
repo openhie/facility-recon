@@ -22,3 +22,4 @@ terraform.tfstate.backup
 build
 _static
 _templates
+*.mo
