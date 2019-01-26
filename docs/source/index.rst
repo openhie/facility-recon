@@ -1,12 +1,12 @@
-Welcome to the Facility Reconciliation Tool's Documentation!
-============================================================
+Facility Reconciliation Tool documentation
+==========================================
 
-The Facility Reconciliation Tool is a part of the Global Open Facility Registry. It's an open source and open standards-based tool to help anyone to match lists of facilities from different data sources. The tools supports uploading data from CSV, FHIR servers and DHIS2 instances. 
+The Facility Reconciliation Tool is an open source and open standards-based product to help anyone to match lists of facilities from different data sources. The tools supports uploading data from CSV, FHIR servers and DHIS2 instances. 
 
 If you are new to the tools, please try the quick starts!
 
 Community
-=========
+---------
 
 For support, please have a look through this guide, including the FAQ.
 
@@ -15,18 +15,6 @@ For support, please have a look through this guide, including the FAQ.
 - Search through or create an issue in the `GitHub Repository <https://github.com/openhie/facility-recon/issues>`_.
 
 License
-=======
+--------
+
 The Facility Reconciliation Tool is distributed under the Apache 2.0 license.
-
-Contents
-==========
-
-.. toctree::
-   :maxdepth: 3
-
-   quick/index
-   user/index
-   dev/index
-   faq
-   roadmap
-   about

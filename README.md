@@ -12,8 +12,9 @@ This tool enables matching of facility lists between different sources. It has a
 * Modular system to extend algorithms for matching.
 
 ## Contributing and Community
-* Please do not hesitate to open a GitHub issue! 
-* Please join the OpenHIE [Facility Registry Community](https://wiki.ohie.org/display/SUB/Facility+Registry+Community) for open monthly discussions and the Facility Registry [Google Group](https://groups.google.com/forum/#!forum/facility-registry) for announcements and discussions.
+- For announcements and discussions, join the [Facility Registry Google Group](https://groups.google.com/forum/#!forum/facility-registry).
+- For open monthly discussions, join the [OpenHIE Facility Registry Community](https://wiki.ohie.org/display/SUB/Facility+Registry+Community).
+- Search through or create an issue in the [GitHub Repository](https://github.com/openhie/facility-recon/issues).
 
 ## License
 The Facility Reconciliation Tool is distributed under the Apache 2.0 license.
