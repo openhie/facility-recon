@@ -18,3 +18,13 @@ License
 --------
 
 The Facility Reconciliation Tool is distributed under the Apache 2.0 license.
+
+.. toctree::
+   :maxdepth: 2
+
+   quick/index
+   user/index
+   dev/index
+   faq
+   roadmap
+   about
