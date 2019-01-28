@@ -257,7 +257,8 @@ if (cluster.isMaster) {
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
         models.UsersSchema.find({
-          userName: fields.username
+          userName: fields.username,
+          status: 'Active'
         }).lean().exec((err, data) => {
           if (data.length === 1) {
             let userID = data[0]._id.toString()
@@ -332,7 +333,8 @@ if (cluster.isMaster) {
           otherName: fields.othername,
           surname: fields.surname,
           password: bcrypt.hashSync(fields.password, 8),
-          userName: fields.username
+          userName: fields.username,
+          status: 'Active'
         })
         User.save((err, data) => {
           if (err) {
@@ -365,9 +367,54 @@ if (cluster.isMaster) {
     let db = mongoose.connection
     db.on("error", console.error.bind(console, "connection error:"))
     db.once("open", () => {
-      models.UsersSchema.find({}).lean().exec((err, users) => {
+      models.UsersSchema.find({}).populate("role").lean().exec((err, users) => {
         winston.info(`sending back a list of ${users.length} users`)
         res.status(200).json(users)
+      })
+    })
+  })
+
+  app.post('/changeAccountStatus', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info("Received a request to " + fields.status + ' account for userID ' + fields.id)
+      mongo.changeAccountStatus(fields.status, fields.id, (error, resp) => {
+        if(error) {
+          winston.error(error)
+          return res.status(400).send()
+        } else {
+          res.status(200).send()
+        }
+      })
+    })
+  })
+
+  app.post('/resetPassword', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info("Received a request to reset password for userID " + fields.id)
+      mongo.resetPassword(fields.id, bcrypt.hashSync(fields.surname, 8), (error, resp) => {
+        if (error) {
+          winston.error(error)
+          return res.status(400).send()
+        } else {
+          res.status(200).send()
+        }
+      })
+    })
+  })
+
+  app.post('/changePassword', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      winston.info("Received a request to change password for userID " + fields.id)
+      mongo.resetPassword(fields.id, bcrypt.hashSync(fields.password, 8), (error, resp) => {
+        if (error) {
+          winston.error(error)
+          return res.status(400).send()
+        } else {
+          res.status(200).send()
+        }
       })
     })
   })

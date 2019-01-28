@@ -20,8 +20,19 @@
         "msg": "Archived Uploads",
         "tooltip": "Access to backup data"
       },
+      "account": {
+        "msg": "Account"
+      },
       "addUser": {
-        "msg": "Add User"
+        "msg": "Add User",
+        "tooltip": "Create new user account"
+      },
+      "usersList": {
+        "msg": "Users List",
+        "tooltip": "Enable and Disable user accounts"
+      },
+      "changePassword": {
+        "msg": "Change Password"
       },
       "logout": {
         "msg": "Logout"

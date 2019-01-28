@@ -69,11 +69,35 @@
               <span>{{ $t('App.menu.archive.tooltip') }}</span>
             </v-tooltip>
           </v-list>
-          
         </v-menu>
-        <v-btn flat to="addUser" v-if='!$store.state.denyAccess'>
-          <v-icon>perm_identity</v-icon> {{ $t('App.menu.addUser.msg') }}
-        </v-btn>
+        <v-menu open-on-hover bottom offset-x v-if='!$store.state.denyAccess'>
+          <v-btn slot="activator" flat>
+            <v-icon>perm_identity</v-icon>{{ $t('App.menu.account.msg')}}
+          </v-btn>
+          <v-list>
+            <v-tooltip top>
+              <v-list-tile to="addUser" slot="activator" v-if='$store.state.auth.role === "Admin"'>
+                <v-list-tile-title>
+                  <v-icon>perm_identity</v-icon>{{ $t('App.menu.addUser.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addUser.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-list-tile to="usersList" slot="activator" v-if='$store.state.auth.role === "Admin"'>
+                <v-list-tile-title>
+                  <v-icon>perm_identity</v-icon>{{ $t('App.menu.usersList.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.usersList.tooltip')}}</span>
+            </v-tooltip>
+            <v-list-tile to="changePassword">
+              <v-list-tile-title>
+                <v-icon>perm_identity</v-icon>{{ $t('App.menu.changePassword.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-menu>
         <v-btn flat to="logout" v-if='!$store.state.denyAccess'>
           <v-icon>logout</v-icon> {{ $t('App.menu.logout.msg') }}
         </v-btn>

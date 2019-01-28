@@ -3,7 +3,9 @@ import Router from 'vue-router'
 import FacilityReconUpload from '@/components/DataSync/FacilityReconUpload'
 import Login from '@/components/Login.vue'
 import Logout from '@/components/Logout.vue'
+import UsersList from '@/components/UsersList.vue'
 import AddUser from '@/components/AddUser.vue'
+import ChangePassword from '@/components/ChangePassword.vue'
 import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
 import FacilityRecoStatus from '@/components/FacilityRecoStatus'
@@ -25,6 +27,16 @@ let router = new Router({
     path: '/addUser',
     name: 'AddUser',
     component: AddUser
+  },
+  {
+    path: '/UsersList',
+    name: 'UsersList',
+    component: UsersList
+  },
+  {
+    path: '/ChangePassword',
+    name: 'ChangePassword',
+    component: ChangePassword
   },
   {
     path: '/login',

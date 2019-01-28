@@ -108,6 +108,40 @@ module.exports = function () {
       })
     },
 
+    changeAccountStatus(status, id, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.UsersSchema.findByIdAndUpdate(id, {
+          status: status
+        }, (err, data) => {
+          if (err) {
+            return callback(err);
+          }
+          return callback(false, data)
+        });
+      })
+    },
+
+    resetPassword(id, password, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri);
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.UsersSchema.findByIdAndUpdate(id, {
+          password: password
+        }, (err, data) => {
+          if (err) {
+            return callback(err);
+          }
+          return callback(false, data)
+        });
+      })
+    },
+
     getMappingDBs(name, userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri);

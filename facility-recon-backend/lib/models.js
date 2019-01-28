@@ -27,6 +27,10 @@ let Users = new mongoose.Schema({
     type: String,
     required: true
   },
+  status: {
+    type: String,
+    required: true
+  },
   lastModified: {
     type: Date
   }

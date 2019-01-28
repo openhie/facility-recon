@@ -20,8 +20,19 @@
         "msg": "Téléchargements archivés",
         "tooltip": "Accès aux données de sauvegarde"
       },
+      "account": {
+        "msg": "Account"
+      },
       "addUser": {
-        "msg": "Ajouter un utilisateur"
+        "msg": "Add User",
+        "tooltip": "Create new user account"
+      },
+      "usersList": {
+        "msg": "Users List",
+        "tooltip": "Enable and Disable user accounts"
+      },
+      "changePassword": {
+        "msg": "Change Password"
       },
       "logout": {
         "msg": "Connectez - Out"
