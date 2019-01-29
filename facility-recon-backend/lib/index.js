@@ -258,7 +258,7 @@ if (cluster.isMaster) {
       db.once("open", () => {
         models.UsersSchema.find({
           userName: fields.username,
-          status: 'Active'
+          $or: [{status: 'Active'}, {status: ''}, {status: undefined}]
         }).lean().exec((err, data) => {
           if (data.length === 1) {
             let userID = data[0]._id.toString()

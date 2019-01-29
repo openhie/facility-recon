@@ -1,5 +1,23 @@
 <template>
   <v-container>
+    <v-alert
+      style="width: 500px"
+      v-model="alertSuccess"
+      type="success"
+      dismissible
+      transition="scale-transition"
+    >
+      {{alertMsg}}
+    </v-alert>
+    <v-alert
+      style="width: 500px"
+      v-model="alertFail"
+      type="error"
+      dismissible
+      transition="scale-transition"
+    >
+      {{alertMsg}}
+    </v-alert>
     <v-card color="cyan lighten-5">
       <v-card-title primary-title>
         <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
@@ -58,7 +76,10 @@ export default {
       ],
       users: [],
       loadingUsers: false,
-      searchUsers: ''
+      searchUsers: '',
+      alertSuccess: false,
+      alertFail: false,
+      alertMsg: ''
     }
   },
   methods: {
@@ -78,7 +99,6 @@ export default {
       })
     },
     accountAction (action, user) {
-      console.log(action)
       let id = user._id
       let formData = new FormData()
       formData.append('id', id)
@@ -89,7 +109,17 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         }).then((resp) => {
+          this.alertSuccess = true
+          if (action === 'Active') {
+            this.alertMsg = 'Account activated successfully'
+          } else if (action === 'Inactive') {
+            this.alertMsg = 'Account deactivated successfully'
+          }
           this.getUsers()
+        }).catch((err) => {
+          console.log(JSON.stringify(err))
+          this.alertFail = true
+          this.alertMsg = 'Action failed'
         })
       } else if (action === 'reset') {
         formData.append('surname', user.surname)
@@ -98,7 +128,13 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         }).then((resp) => {
+          this.alertSuccess = true
+          this.alertMsg = 'Password reseted successfully'
           this.getUsers()
+        }).catch((err) => {
+          console.log(JSON.stringify(err))
+          this.alertFail = true
+          this.alertMsg = 'Action failed'
         })
       }
     }
