@@ -16,7 +16,7 @@
           </v-btn>
           <span>{{ $t('App.menu.view.tooltip')}</span>
         </v-tooltip>
-        <v-menu open-on-hover bottom offset-x>
+        <v-menu open-on-hover bottom offset-y>
           <v-btn slot="activator" flat>
             {{ $t('App.menu.recoParent.msg')}}
           </v-btn>
@@ -70,7 +70,7 @@
             </v-tooltip>
           </v-list>
         </v-menu>
-        <v-menu open-on-hover bottom offset-x v-if='!$store.state.denyAccess'>
+        <v-menu open-on-hover bottom offset-y v-if='!$store.state.denyAccess'>
           <v-btn slot="activator" flat>
             <v-icon>perm_identity</v-icon>{{ $t('App.menu.account.msg')}}
           </v-btn>
