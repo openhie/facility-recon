@@ -71,11 +71,13 @@ export const scoresMixin = {
       // generating levels
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {
+        let text
         if (k + 1 > this.$store.state.recoLevel) {
           continue
         }
+        text = this.translateDataHeader('source1', k)
         this.$store.state.levelArray.push({
-          text: 'Level ' + k,
+          text: text,
           value: k + 1
         })
       }

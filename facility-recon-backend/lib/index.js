@@ -494,9 +494,24 @@ if (cluster.isMaster) {
           winston.info(`Received total source2 levels of ${source2TotalLevels}`);
           return callback(err, source2TotalLevels)
         })
+      },
+      getLevelMapping: function (callback) {
+        async.series({
+          levelMapping1: function (callback) {
+            mongo.getLevelMapping(source1, (levelMapping) => {
+              return callback(false, levelMapping)
+            })
+          },
+          levelMapping2: function (callback) {
+            mongo.getLevelMapping(source2, (levelMapping) => {
+              return callback(false, levelMapping)
+            })
+          }
+        }, (err, mappings) => {
+          return callback(false, mappings)
+        })
       }
     }, (err, results) => {
-      res.set('Access-Control-Allow-Origin', '*');
       if (err) {
         winston.error(err);
         res.status(400).json({
@@ -507,7 +522,8 @@ if (cluster.isMaster) {
         res.status(200).json({
           totalSource1Levels: results.Source1Levels,
           totalSource2Levels: results.Source2Levels,
-          recoLevel
+          recoLevel,
+          levelMapping: results.getLevelMapping
         });
       }
     })
@@ -1808,7 +1824,7 @@ if (cluster.isMaster) {
         } else {
           let db1 = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID
           let db2 = mixin.toTitleCase(JSON.parse(fields.source2).name) + JSON.parse(fields.source2).userID
-          async.parallel({
+          async.series({
             levelMapping1: function(callback) {
               mongo.getLevelMapping(db1, (levelMapping) => {
                 return callback(false, levelMapping)
@@ -1820,10 +1836,9 @@ if (cluster.isMaster) {
               })
             }
           }, (err, mappings) => {
-            winston.error(JSON.stringify(mappings))
+            winston.info('Data source pair saved successfully')
+            res.status(200).json(JSON.stringify(mappings))
           })
-          winston.info('Data source pair saved successfully')
-          res.status(200).send()
         }
       })
     })

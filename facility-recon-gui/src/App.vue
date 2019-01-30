@@ -231,6 +231,8 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       axios.get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + userID).then((levels) => {
         this.$store.state.initializingApp = false
+        this.$store.state.levelMapping.source1 = levels.data.levelMapping.levelMapping1
+        this.$store.state.levelMapping.source2 = levels.data.levelMapping.levelMapping2
         this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
         this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
         this.getScores()

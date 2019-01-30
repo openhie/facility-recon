@@ -32,8 +32,10 @@ module.exports = function () {
       let levels = Object.keys(levelData)
       let dbLevel = {}
       async.each(levels, (level, nxtLevel) => {
-        if(level.startsWith('level')) {
+        if(level.startsWith('level') && levelData[level]) {
           dbLevel[level] = levelData[level]
+          return nxtLevel()
+        } else {
           return nxtLevel()
         }
       })
@@ -91,11 +93,11 @@ module.exports = function () {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
       mongoose.connect(uri);
-      winston.error(uri)
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
         models.MetaDataSchema.findOne({}, (err, data) => {
+          db.close()
           if (data && data.levelMapping) {
             return callback(data.levelMapping)
           } else {

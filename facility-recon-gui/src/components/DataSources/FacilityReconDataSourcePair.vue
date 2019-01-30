@@ -274,6 +274,8 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
+        this.$store.state.levelMapping.source1 = JSON.parse(response.data).levelMapping1
+        this.$store.state.levelMapping.source2 = JSON.parse(response.data).levelMapping2
         eventBus.$emit('getDataSourcePair')
         this.alertSuccess = true
         this.alertMsg = 'Data Source Pair Saved Successfully'

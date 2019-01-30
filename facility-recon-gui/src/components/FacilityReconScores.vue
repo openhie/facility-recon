@@ -177,7 +177,7 @@
           FHIR Export
         </v-btn>
         <v-spacer></v-spacer>
-        <b>Reconciling level {{$store.state.recoLevel-1}}</b>
+        <b>Reconciling {{currentLevelText}}</b>
         <v-spacer></v-spacer>
         <v-flex xs1 sm2 md2 right>
           <v-select :items="$store.state.levelArray"
@@ -568,9 +568,9 @@
         </v-tabs>
       </v-layout>
       <v-layout>
-        <v-flex xs1 sm4 md2 v-if="nextLevel == 'yes'">
+        <v-flex xs1 sm4 md2 v-if="goNextLevel == 'yes'">
           <v-btn color="primary" round @click='levelChanged($store.state.recoLevel+1)'>
-            <v-icon>forward</v-icon>Proceed to Level {{$store.state.recoLevel}}</v-btn>
+            <v-icon>forward</v-icon>Proceed to {{nextLevelText}}</v-btn>
         </v-flex>
         <v-flex xs1 sm4 md2 v-if="lastLevelDone == 'yes'">
           <v-btn color="primary" round @click='$router.push({name:"FacilityRecoStatus"})'>
@@ -584,11 +584,12 @@
 import axios from 'axios'
 import LiquorTree from 'liquor-tree'
 import { scoresMixin } from '../mixins/scoresMixin'
+import {generalMixin} from '../mixins/generalMixin'
 
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
-  mixins: [scoresMixin],
+  mixins: [scoresMixin, generalMixin],
   data () {
     return {
       helpDialog: false,
@@ -1035,6 +1036,12 @@ export default {
     }
   },
   computed: {
+    nextLevelText () {
+      return this.translateDataHeader('source1', this.$store.state.recoLevel)
+    },
+    currentLevelText () {
+      return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+    },
     matchedHeaders () {
       let header = [
         { text: 'Source1 Location', value: 'source1Name' },
@@ -1138,7 +1145,7 @@ export default {
       }
       return this.$store.state.source1UnMatched
     },
-    nextLevel () {
+    goNextLevel () {
       if (
         this.$store.state.recoLevel < this.$store.state.totalSource1Levels &&
         this.$store.state.source1UnMatched !== null &&

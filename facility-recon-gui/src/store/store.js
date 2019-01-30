@@ -18,6 +18,15 @@ export const store = new Vuex.Store({
       role: '',
       token: ''
     },
+    levelMapping: {
+      source1: {},
+      source2: {}
+    },
+    config: {
+      reconciliation: {
+        useCSVHeader: true
+      }
+    },
     recoStatus: {
       'status': 'on-progress'
     },
