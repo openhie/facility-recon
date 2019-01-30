@@ -455,6 +455,7 @@ export default {
       this.username = ''
       this.password = ''
       this.name = this.uploadName
+
       axios.post(backendServer + '/uploadCSV',
         formData,
         {

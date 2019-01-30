@@ -105,6 +105,44 @@ let DataSourcePair = new mongoose.Schema({
 let MetaData = new mongoose.Schema({
   lastUpdated: {
     type: String
+  },
+  levelMapping:{
+    facility: {
+      type: String
+    },
+    code: {
+      type: String
+    },
+    level1:{
+      type: String
+    },
+    level2: {
+      type: String
+    },
+    level3: {
+      type: String
+    },
+    level4: {
+      type: String
+    },
+    level5: {
+      type: String
+    },
+    level6: {
+      type: String
+    },
+    level7: {
+      type: String
+    },
+    level8: {
+      type: String
+    },
+    level9: {
+      type: String
+    },
+    level10: {
+      type: String
+    }
   }
 })
 let DataSourcesSchema = mongoose.model('DataSources', DataSources)

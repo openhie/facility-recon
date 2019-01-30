@@ -27,6 +27,84 @@ if (mongoUser && mongoPasswd) {
 
 module.exports = function () {
   return {
+    saveLevelMapping (levelData, database, callback) {
+      winston.info('saving level data')
+      let levels = Object.keys(levelData)
+      let dbLevel = {}
+      async.each(levels, (level, nxtLevel) => {
+        if(level.startsWith('level')) {
+          dbLevel[level] = levelData[level]
+          return nxtLevel()
+        }
+      })
+      dbLevel['code'] = levelData['code']
+      dbLevel['facility'] = levelData['facility']
+      const mongoose = require('mongoose')
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri)
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", function callback() {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (!data) {
+            const MetaData = new models.MetaDataSchema({
+              levelMapping: dbLevel
+            });
+            MetaData.save((err, data) => {
+              db.close()
+              if (err) {
+                winston.error(err)
+                winston.error("Failed to save level data")
+                return callback(err, '')
+              } else {
+                winston.info("Level data saved successfully")
+                return callback(err, 'successful')
+              }
+            })
+          } else {
+            models.MetaDataSchema.findByIdAndUpdate(data.id, {
+              levelMapping: dbLevel
+            }, (err, data) => {
+              db.close()
+              if (err) {
+                winston.error(err)
+                winston.error("Failed to save level data")
+                return callback(err, '')
+              } else {
+                winston.info("Level data saved successfully")
+                return callback(err, 'successful')
+              }
+            })
+          }
+        })
+      })
+    },
+    getLevelMapping (database, callback) {
+      const mongoose = require('mongoose')
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri);
+      winston.error(uri)
+      let db = mongoose.connection
+      db.on("error", console.error.bind(console, "connection error:"))
+      db.once("open", () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data && data.levelMapping) {
+            return callback(data.levelMapping)
+          } else {
+            winston.info("No level mapping data for " + database)
+            return callback(false)
+          }
+        })
+      })
+    },
     addDataSource(fields, callback) {
       const mongoose = require('mongoose')
       let password = ''

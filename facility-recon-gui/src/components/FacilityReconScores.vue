@@ -837,7 +837,7 @@ export default {
     breakMatch (source2Id) {
       this.alert = true
       this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
       let formData = new FormData()
       let userID = this.$store.state.auth.userID
       formData.append('source2Id', source2Id)

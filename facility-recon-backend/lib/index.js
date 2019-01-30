@@ -130,6 +130,7 @@ if (cluster.isMaster) {
               firstName: "Root",
               surname: "Root",
               userName: "root@gofr.org",
+              status: "Active",
               role: data[0]._id,
               password: bcrypt.hashSync("gofr", 8)
             })
@@ -337,6 +338,7 @@ if (cluster.isMaster) {
           status: 'Active'
         })
         User.save((err, data) => {
+          db.close()
           if (err) {
             winston.error(err)
             winston.error('Unexpected error occured,please retry')
@@ -1108,10 +1110,10 @@ if (cluster.isMaster) {
   })
 
   app.get('/unmatchedLocations/:source1/:source2/:type/:userID', (req, res) => {
-    let source1DB = req.params.source1
-    let source2DB = req.params.source2
-    let type = req.params.type
     let userID = req.params.userID
+    let source1DB = req.params.source1 + userID
+    let source2DB = req.params.source2 + userID
+    let type = req.params.type
     let fields = ["id", "name", "parentString"]
     async.parallel({
       source1mCSD: function (callback) {
@@ -1128,7 +1130,7 @@ if (cluster.isMaster) {
       let mappingDB = req.params.source1 + userID + req.params.source2
       async.parallel({
         source1Unmatched: function (callback) {
-          scores.getUnmatched(response.source1mCSD, response.source1mCSD, mappingDB, true, (unmatched, mcsdUnmatched) => {
+          scores.getUnmatched(response.source1mCSD, response.source1mCSD, mappingDB, true, 'source1', (unmatched, mcsdUnmatched) => {
             return callback(null, {
               unmatched,
               mcsdUnmatched
@@ -1136,7 +1138,7 @@ if (cluster.isMaster) {
           })
         },
         source2Unmatched: function (callback) {
-          scores.getUnmatched(response.source2mCSD, response.source2mCSD, mappingDB, true, (unmatched, mcsdUnmatched) => {
+          scores.getUnmatched(response.source2mCSD, response.source2mCSD, mappingDB, true, 'source2', (unmatched, mcsdUnmatched) => {
             return callback(null, {
               unmatched,
               mcsdUnmatched
@@ -1194,7 +1196,7 @@ if (cluster.isMaster) {
     }
     mcsd.getLocations(source2DB, (locations) => {
       mcsd.filterLocations(locations, topOrgId, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(locations, mcsdLevel, mappingDB, false, (unmatched) => {
+        scores.getUnmatched(locations, mcsdLevel, mappingDB, false, 'source2', (unmatched) => {
           winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(unmatched);
@@ -1804,6 +1806,22 @@ if (cluster.isMaster) {
             error: 'Unexpected error occured while saving'
           })
         } else {
+          let db1 = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID
+          let db2 = mixin.toTitleCase(JSON.parse(fields.source2).name) + JSON.parse(fields.source2).userID
+          async.parallel({
+            levelMapping1: function(callback) {
+              mongo.getLevelMapping(db1, (levelMapping) => {
+                return callback(false, levelMapping)
+              })
+            },
+            levelMapping2: function (callback) {
+              mongo.getLevelMapping(db2, (levelMapping) => {
+                return callback(false, levelMapping)
+              })
+            }
+          }, (err, mappings) => {
+            winston.error(JSON.stringify(mappings))
+          })
           winston.info('Data source pair saved successfully')
           res.status(200).send()
         }
@@ -1928,6 +1946,9 @@ if (cluster.isMaster) {
           percent: null
         })
         redisClient.set(uploadRequestId, uploadReqPro)
+        mongo.saveLevelMapping(fields, database, (error, response)=>{
+          
+        })
         mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
           winston.info(`Data upload for ${database} is done`)
           let uploadReqPro = JSON.stringify({

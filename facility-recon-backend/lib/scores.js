@@ -730,7 +730,7 @@ module.exports = function () {
       const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
-    getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, callback) {
+    getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, source, callback) {
       const unmatched = []
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
 
@@ -745,9 +745,19 @@ module.exports = function () {
           if (filteredEntry.resource.id === fakeOrgId) {
             return filteredCallback()
           }
-          let matched = mappedLocations.entry.find((entry) => {
-            return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
-          })
+          let matched
+          if(source === 'source2') {
+            matched = mappedLocations.entry.find((entry) => {
+              return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
+            })
+          } else if(source === 'source1') {
+            matched = mappedLocations.entry.find((entry) => {
+              let matched1 = entry.resource.identifier.find((identifier) => {
+                return identifier.system.endsWith('source1') && identifier.value.endsWith("Location/" + filteredEntry.resource.id)
+              })
+              return matched1
+            })
+          }
           if (!matched) {
             if (getmCSD) {
               mcsdUnmatched.entry.push(filteredEntry)
