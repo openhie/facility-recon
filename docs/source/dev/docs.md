@@ -11,7 +11,8 @@ This should be done if content changes in the base language documentation.
 Create the `.pot` files. 
 ```
 cd docs
-sphinx-build -b gettext source build/gettext
+sphinx-build -b gettext source build/gettext -l fr
+sphinx-intl update -p build/gettext -l fr
 ```
 
 Push files to Transifex.
@@ -72,12 +73,11 @@ In the /docs directory, create the locale files. Use the appropriate [locale](ht
 sphinx-intl update -p build/gettext -l es
 ```
 
-
-## How Localization was Set Up (Do Not Reproduce)
+## How Localization was done (Do Not Reproduce)
 
 Do not replicate this process. It is here to document how it was done in the first place. Doing it again would delete or write over translations or remove them.
 
-* Setup Sphinx for the project. Enable Markdown support. Enable the webhook to trigger builds.
+* Setup Sphinx for the project. Enable Markdown support. Setup readthedocs.org. Enable the webhook to trigger builds.
 * Create the source language docs. 
 * Create projects in readthedocs.org for both the source language (facility-recon - no prefix/suffix) and the new one (facility-recon-fr)
 * Set languages correctly on both projects.

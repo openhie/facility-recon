@@ -1,29 +1,32 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 # Translators:
 # citizenrich, 2019
-# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-25 15:28-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:34+0000\n"
 "Last-Translator: citizenrich, 2019\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 48e09a013b4f4f1c892e6e3c830f549a
 #: ../../source/index.rst:2
-msgid "Welcome to the Facility Reconciliation Tool's Documentation!"
+#, fuzzy
+msgid "Facility Reconciliation Tool documentation"
 msgstr ""
 "Bienvenue dans la documentation de l'outil de rapprochement des "
 "installations!"
@@ -31,10 +34,10 @@ msgstr ""
 # e4186c02512341e99959ace5ef4f4c4c
 #: ../../source/index.rst:4
 msgid ""
-"The Facility Reconciliation Tool is a part of the Global Open Facility "
-"Registry. It's an open source and open standards-based tool to help anyone "
-"to match lists of facilities from different data sources. The tools supports"
-" uploading data from CSV, FHIR servers and DHIS2 instances."
+"The Facility Reconciliation Tool is an open source and open standards-"
+"based product to help anyone match lists of facilities from different "
+"data sources. The tools supports uploading data from CSV, FHIR servers "
+"and DHIS2 instances."
 msgstr ""
 
 # ebb58614d7e54b0fb6af6db9f37aff00
@@ -42,50 +45,75 @@ msgstr ""
 msgid "If you are new to the tools, please try the quick starts!"
 msgstr ""
 
-# 4d8104e5a9e44a6fa393b6b09cd16868
-#: ../../source/index.rst:9
-msgid "Community"
-msgstr ""
-
 # 9b5d51c24ea14798852c0ae176d7abd4
-#: ../../source/index.rst:11
+#: ../../source/index.rst:8
 msgid "For support, please have a look through this guide, including the FAQ."
 msgstr ""
 
 # fba7ad3b7c2c4fc785281be782ca949b
-#: ../../source/index.rst:13
+#: ../../source/index.rst:10
 msgid ""
-"For announcements and discussions, join the `Facility Registry Google Group "
-"<https://groups.google.com/forum/#!forum/facility-registry>`_."
+"For announcements and discussions, join the `Facility Registry Google "
+"Group <https://groups.google.com/forum/#!forum/facility-registry>`_."
 msgstr ""
 
 # dbab3a20b6b142f6a654974a8cb43827
-#: ../../source/index.rst:14
+#: ../../source/index.rst:11
 msgid ""
-"For open monthly discussions, join the `OpenHIE Facility Registry Community "
+"For monthly discussions about facility registries, join the `OpenHIE "
+"Facility Registry Community "
 "<https://wiki.ohie.org/display/SUB/Facility+Registry+Community>`_."
 msgstr ""
 
 # ba80be17342b4452b5cafb852512271f
-#: ../../source/index.rst:15
+#: ../../source/index.rst:12
 msgid ""
-"Search through or create an issue in the `GitHub Repository "
-"<https://github.com/openhie/facility-recon/issues>`_."
+"Create an issue in the `GitHub Repository <https://github.com/openhie"
+"/facility-recon/issues>`_."
 msgstr ""
 
-# 7eba9b6ec9344c119771c58acf008fe4
-#: ../../source/index.rst:18
-msgid "License"
-msgstr ""
-
-# 3a9dcb735b17411e929b9083f53ee243
-#: ../../source/index.rst:19
-msgid ""
-"The Facility Reconciliation Tool is distributed under the Apache 2.0 "
-"license."
-msgstr ""
+# e4186c02512341e99959ace5ef4f4c4c
+#~ msgid ""
+#~ "The Facility Reconciliation Tool is a"
+#~ " part of the Global Open Facility "
+#~ "Registry. It's an open source and "
+#~ "open standards-based tool to help "
+#~ "anyone to match lists of facilities "
+#~ "from different data sources. The tools"
+#~ " supports uploading data from CSV, "
+#~ "FHIR servers and DHIS2 instances."
+#~ msgstr ""
 
 # 4d8104e5a9e44a6fa393b6b09cd16868
-#: ../../source/index.rst:22
-msgid "Contents"
-msgstr ""
+#~ msgid "Community"
+#~ msgstr ""
+
+# dbab3a20b6b142f6a654974a8cb43827
+#~ msgid ""
+#~ "For open monthly discussions, join the"
+#~ " `OpenHIE Facility Registry Community "
+#~ "<https://wiki.ohie.org/display/SUB/Facility+Registry+Community>`_."
+#~ msgstr ""
+
+# ba80be17342b4452b5cafb852512271f
+#~ msgid ""
+#~ "Search through or create an issue "
+#~ "in the `GitHub Repository "
+#~ "<https://github.com/openhie/facility-recon/issues>`_."
+#~ msgstr ""
+
+# 7eba9b6ec9344c119771c58acf008fe4
+#~ msgid "License"
+#~ msgstr ""
+
+# 3a9dcb735b17411e929b9083f53ee243
+#~ msgid ""
+#~ "The Facility Reconciliation Tool is "
+#~ "distributed under the Apache 2.0 "
+#~ "license."
+#~ msgstr ""
+
+# 4d8104e5a9e44a6fa393b6b09cd16868
+#~ msgid "Contents"
+#~ msgstr ""
+

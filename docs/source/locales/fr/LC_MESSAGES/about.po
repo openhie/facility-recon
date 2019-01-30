@@ -1,27 +1,66 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 # Translators:
 # citizenrich, 2019
-# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:34+0000\n"
 "Last-Translator: citizenrich, 2019\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # a1f039a3b8f24432983affe46488254c
 #: ../../source/about.md:1
 msgid "About"
 msgstr "Sur"
+
+# 6d8071005cde4f68b102e1353936802e
+#: ../../source/about.md:3
+msgid ""
+"The tool was built by the international development community for the "
+"initial use case of supporing a monitoring and evaluation platform for "
+"multiple countries. The tool was first created in the .NET framework."
+msgstr ""
+
+# dbdfa993d5bb48b195f2f49f38a804ad
+#: ../../source/about.md:5
+msgid ""
+"This version of the tool was created in an open framework in order to "
+"create a larger community around it and ensure long-term contributions "
+"from the community as well as to add new features."
+msgstr ""
+
+# 5886b885d2a04c47b15b5d238624f0ec
+#: ../../source/about.md:7
+msgid ""
+"The initial use cases have been centered on the health sector. It is "
+"built using the emerging FHIR standard based on the mCSD IHE profile. The"
+" backend is a FHIR server which means that a FHIR-compliant API is "
+"available from server for operations. All data sources are converted to "
+"FHIR Location Resources. This means that ordinary FHIR REST API queries "
+"can be pursued against the backend server."
+msgstr ""
+
+# 06422bd6e0d041009e78dc96c88ac3c6
+#: ../../source/about.md:9
+msgid ""
+"In future, the tool may easily support any hierarchical or flat data, "
+"both in and outside of the health sector. Matching algorithms, new data "
+"sources, and export formats can be created to meet a variety of use cases"
+" as the community requires."
+msgstr ""
+

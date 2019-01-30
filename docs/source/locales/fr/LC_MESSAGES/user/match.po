@@ -1,21 +1,25 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 6b7dba09d3d74e09942c92c41a0e11b2
 #: ../../source/user/match.md:1
@@ -25,9 +29,9 @@ msgstr ""
 # 1db186f71c704eecb77f74bdee34a656
 #: ../../source/user/match.md:3
 msgid ""
-"Reconciling data sources involves choosing a pair of sources to work with "
-"and then running the automatic or manual matching tool. Any kind of match "
-"can be undone."
+"Reconciling data sources involves choosing a pair of sources to work with"
+" and then running the automatic or manual matching tool. Any kind of "
+"match can be undone."
 msgstr ""
 
 # fb9dd20de5504a61ab35589ab3ffd539
@@ -40,16 +44,73 @@ msgstr ""
 msgid ""
 "On the pair tab select one source on the left and one on the right. The "
 "source on the left (source 1) is the data the follower, the data that is "
-"meant to be cleaned. The source on the right is the leader, the source that "
-"is the source of truth."
+"meant to be cleaned. The source on the right is the leader, the source "
+"that is the source of truth."
+msgstr ""
+
+# ab317e57c8804129aad51cc01e66a9e4
+#: ../../source/user/match.md:9
+msgid ""
+"In the pairing process it is possible to share the pair with another user"
+" who may join in helping to match, for example where they are familiar "
+"with a specific area."
 msgstr ""
 
 # b4a92cbb4e81431f8927b4f9d0a88f9a
-#: ../../source/user/match.md:9
+#: ../../source/user/match.md:11
 msgid "Automatic matching"
 msgstr ""
 
+# f791f0e8f2634be69e1d7e747f31d1f5
+#: ../../source/user/match.md:13
+msgid ""
+"When the reconciliation process starts it uses automatic matching. "
+"Matching proceeds like this:"
+msgstr ""
+
+# 29c783c3230e46ceb0ca96777c34c13a
+#: ../../source/user/match.md:15
+msgid ""
+"The first level matches the highest administrative area names (termed "
+"region in the tool) using the Levenshtein distance."
+msgstr ""
+
+# a4887c22676a4db59ffd367cf5764e81
+#: ../../source/user/match.md:16
+msgid ""
+"The second level matches based on the first level and also the "
+"Levenshtein distance for the second level names, termed district in the "
+"tool."
+msgstr ""
+
+# ae41a61a42844e13883f2bc6860c1489
+#: ../../source/user/match.md:17
+msgid ""
+"The final level matches based on the second level (which was already "
+"matched according to the level above it) as well as the Levenshtein "
+"distance."
+msgstr ""
+
 # d153ad8bcb6647d49f6f08cfb83d1139
-#: ../../source/user/match.md:11
+#: ../../source/user/match.md:19
 msgid "Manual matching"
 msgstr ""
+
+# d663f98bd9f04fc7a21b3ea868636585
+#: ../../source/user/match.md:21
+msgid ""
+"Manual matching brings up a dialog box to choose options. If latitude and"
+" longitude coordinates were provided in the data sources, it additionally"
+" scores matches based on the haversine formula for shortest path across a"
+" sphere (geodesic distance) between the points. This is not used in the "
+"automatic matching but is provided for manual matching."
+msgstr ""
+
+# ba4e257983f847e7a05f22079f85790d
+#: ../../source/user/match.md:23
+msgid ""
+"Any administrative area or facility match may be broken. If this is "
+"desired, click Recalculate Scores to rebuild the scoring index and "
+"manually match or flag as desired."
+msgstr ""
+

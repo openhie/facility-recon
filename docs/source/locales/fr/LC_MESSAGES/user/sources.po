@@ -1,46 +1,107 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 573f9b1a7399417aab0c4cf695e860ec
 #: ../../source/user/sources.md:1
 msgid "Data Sources"
 msgstr ""
 
+# 96fdf87b84b64defb70fae20f0a4e49d
+#: ../../source/user/sources.md:3
+msgid ""
+"The tool supports CSV as a file source, as well as remote connections to "
+"DHIS2 and FHIR servers."
+msgstr ""
+
 # fd78bda0afd44ee9b8f6ceacc190489c
-#: ../../source/user/sources.md:4
+#: ../../source/user/sources.md:5
 msgid "Upload CSV"
 msgstr ""
 
-# f796fe6fed5a4120b5248b492478cdb7
-#: ../../source/user/sources.md:6
-msgid "Things to keep in mind in using CSV uploads as data sources:"
-msgstr ""
-
-# c3b429f4e5c5428c907f57531d01ed87
+# bfbd13e97ec849f3bcfd2943874708c1
 #: ../../source/user/sources.md:7
 msgid ""
-"The CSV file should be encoded as Unicode (utf-8). If some entities are "
-"encoded in another format then matches that appear to be the same may not "
-"match."
+"The CSV file should have columns names in the first row of the file. "
+"Empty lines should be removed. The CSV file should be encoded as Unicode "
+"(utf-8) as that is what is used internally in the backend. If some "
+"entities are encoded in another format then matches that appear to be the"
+" same may not match as expected."
+msgstr ""
+
+# 56c9f46e112a484ca42165d24a615fa4
+#: ../../source/user/sources.md:9
+msgid ""
+"Latitude and longitude are optional columns. If they are included they "
+"will be used to facilitate manual matching but they are not used or "
+"required for automatic matching."
+msgstr ""
+
+# 01253cb9f5964e0cb2cf87d602b1a2a6
+#: ../../source/user/sources.md:11
+msgid ""
+"Once uploaded, in the View tab, CSV entries can be edited. Any edits do "
+"not modify the original data source but the edits will be exported after "
+"reconciliation."
 msgstr ""
 
 # 17c9b476daf146379aed1a98bf0a5ba1
-#: ../../source/user/sources.md:10
+#: ../../source/user/sources.md:14
 msgid "Remote servers -- DHIS2 or FHIR"
 msgstr ""
+
+# c2433ca1d0404a6797564782a51974b1
+#: ../../source/user/sources.md:16
+msgid ""
+"The tool supports remote sources. Any server for which the user can "
+"authenticate and is authorized to get the facility and hierarchy for can "
+"be used as a source."
+msgstr ""
+
+# 5bf986266b354427ac41ab4e1bc51c21
+#: ../../source/user/sources.md:18
+msgid ""
+"Extensive compatibility testing has not been performed but DHIS2 versions"
+" >=2.22 should be supported. Please contact the maintainers if there is "
+"an issue."
+msgstr ""
+
+# fa40844ac64649bd902d91716bd86710
+#: ../../source/user/sources.md:20
+msgid ""
+"FHIR is supported for STU3 and R4 support is anticipated. This partly "
+"relies on R4 support in Hearth as the FHIR server."
+msgstr ""
+
+# f796fe6fed5a4120b5248b492478cdb7
+#~ msgid "Things to keep in mind in using CSV uploads as data sources:"
+#~ msgstr ""
+
+# c3b429f4e5c5428c907f57531d01ed87
+#~ msgid ""
+#~ "The CSV file should be encoded as"
+#~ " Unicode (utf-8). If some entities "
+#~ "are encoded in another format then "
+#~ "matches that appear to be the same"
+#~ " may not match."
+#~ msgstr ""
+

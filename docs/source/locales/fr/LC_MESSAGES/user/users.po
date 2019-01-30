@@ -1,45 +1,72 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 7d606abfaad94fc9b4eab7b42c980150
 #: ../../source/user/users.md:1
 msgid "User Management"
 msgstr ""
 
-# f9cb227882564d5683c843936a56552e
+# 0f27eda0a5434c5c871256aede19533b
 #: ../../source/user/users.md:3
+msgid ""
+"There are two classes of users, admin and data managers. The initial "
+"server configuration includes on administrator role. This account and "
+"password should be immediately changed after installation. See the "
+"Developer Guide for more information."
+msgstr ""
+
+# f9cb227882564d5683c843936a56552e
+#: ../../source/user/users.md:5
 msgid "Roles"
 msgstr ""
 
 # 16916d8c14a040698ad8f927c1b962a1
-#: ../../source/user/users.md:5
+#: ../../source/user/users.md:7
 msgid "Admin accounts can add users and manage workspaces."
 msgstr ""
 
 # 91049c1beca246eaa19c3f99ec79e308
-#: ../../source/user/users.md:7
+#: ../../source/user/users.md:9
 msgid "Data manager accounts can manage data only."
 msgstr ""
 
 # 9b2fa952c3554d21bd91a670e4bab72f
-#: ../../source/user/users.md:9
+#: ../../source/user/users.md:11
 msgid ""
-"Custom accounts with specific roles may be created in the future. Please let"
-" the community know if you have use cases for custom account roles."
+"Custom accounts with specific roles may be created in the future. Please "
+"let the community know if you have use cases for custom account roles."
 msgstr ""
+
+# 40089675f90a4b9d957583a0f24853c5
+#: ../../source/user/users.md:13
+msgid "Adding to a Pair"
+msgstr ""
+
+# 7b269879e0414426935b7090dfa16bcd
+#: ../../source/user/users.md:15
+msgid ""
+"Data managers and administrators are able to add other users to help with"
+" reconciliation. To do so, the data source pairing has an option to share"
+" the pairing with another user."
+msgstr ""
+

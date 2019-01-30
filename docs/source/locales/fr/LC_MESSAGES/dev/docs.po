@@ -1,21 +1,25 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-25 15:39-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 97874ae1ece8480cb0eb4aa2f9c5f8c2
 #: ../../source/dev/docs.md:1
@@ -25,129 +29,291 @@ msgstr ""
 # 1cbdb960547044ccb493bb3ee726035e
 #: ../../source/dev/docs.md:3
 msgid ""
-"These docs are hosted in readthedocs.io. The documentation is built using "
-"Sphinx with markdown support enabled. In order to translate, the "
-"documentation must first be in the base (English) language. Upon a "
+"These docs are hosted at https://readthedocs.io. The documentation is "
+"built using Sphinx with Markdown support enabled. In order to translate, "
+"the documentation must first be in the base (English) language. Upon a "
 "successful build, the translatable files (.pot) are then pushed to "
-"Transifex. The pot files must be synchronized with Transifex for editors to "
-"use them."
+"Transifex. The pot files must be synchronized with Transifex for editors "
+"to use them."
 msgstr ""
 
-# 19a721d3cf3246f5b3650295f4dd370b
+# 4eaf445b2a1942968e4c87f9eef7893e
 #: ../../source/dev/docs.md:5
-msgid "Updating Docs with Translations"
+msgid "Update Sources for Translation"
 msgstr ""
 
-# 2aef2a92f61a4893bfdaa5e88e08e252
+# 9652f9c74d4043ef805b7c81124c8d20
 #: ../../source/dev/docs.md:7
-msgid "cd docs sphinx-build -b gettext source build/gettext"
+msgid "This is from the rtd docs with minor changes for folder names."
+msgstr ""
+
+# 3cd8ec9c12794000a82da511fc55c951
+#: ../../source/dev/docs.md:9
+msgid "This should be done if content changes in the base language documentation."
+msgstr ""
+
+# 4993c8e83ee44c52a6c11d7e8505ccb1
+#: ../../source/dev/docs.md:11
+msgid "Create the .pot files."
+msgstr ""
+
+# 4eaf445b2a1942968e4c87f9eef7893e
+#: ../../source/dev/docs.md:17
+msgid "Push files to Transifex."
+msgstr ""
+
+# 4eaf445b2a1942968e4c87f9eef7893e
+#: ../../source/dev/docs.md:22
+msgid "Build Documentation from New Translations"
+msgstr ""
+
+# 59b9e948e2d948dea94edd658f99d312
+#: ../../source/dev/docs.md:28
+msgid ""
+"Next git add, commit, push the changes to the repository master branch. "
+"Then rebuild the English and French projects on readthedocs.org."
 msgstr ""
 
 # c672650a3f6b4736b4bc2c723fd77a7c
-#: ../../source/dev/docs.md:18
+#: ../../source/dev/docs.md:31
 msgid "Update Base (English) Documentation"
 msgstr ""
 
 # 8f2ac12b3732466fbec03f33eb88911a
-#: ../../source/dev/docs.md:20
+#: ../../source/dev/docs.md:33
 msgid "Note: Python 3.x is expect in the Makefile."
 msgstr ""
 
 # 4ba8b1f026e5489f99f76903364a5e41
-#: ../../source/dev/docs.md:22
+#: ../../source/dev/docs.md:35
 msgid "Install prerequisites:"
 msgstr ""
 
 # e216e0ac0aa54c2fae9aaf54aeefe926
-#: ../../source/dev/docs.md:31
+#: ../../source/dev/docs.md:44
 msgid ""
-"Clone the respository, create a branch, and enter the docs directory. (If "
-"you are not a maintainer, please fork, branch, then send a pull request.)"
+"Clone the respository, create a branch, and enter the docs directory. (If"
+" you are not a maintainer, please fork, branch, then send a pull "
+"request.)"
 msgstr ""
 
 # dbacf13fd6684c44aa45a962f9a9eb99
-#: ../../source/dev/docs.md:38
+#: ../../source/dev/docs.md:51
 msgid ""
-"Build the documentation. There is no need to commit documentation builds. "
-"The .gitignore includes the built documentation so built docs will not be "
-"committed by default. readthedocs builds the hosted documentation itself."
+"Build the documentation. There is no need to commit documentation builds."
+" The .gitignore includes the built documentation so built docs will not "
+"be committed by default. readthedocs builds the hosted documentation "
+"itself."
 msgstr ""
 
 # c9d39431eab0412dacd96f6d7fc2868c
-#: ../../source/dev/docs.md:40
+#: ../../source/dev/docs.md:53
 msgid "Build docs in default (English) language."
 msgstr ""
 
 # 855dfedc6d8b4a809729784da0a8d5a3
-#: ../../source/dev/docs.md:45
+#: ../../source/dev/docs.md:58
 msgid ""
-"Built docs will go in the /docs/build directory. Open /docs/build/index.html"
-" in a browser to see the built docs."
+"Built docs will go in the /docs/build directory. Open "
+"/docs/build/index.html in a browser to see the built docs."
 msgstr ""
 
-# 0f3ff374a9b24d37818081e31876899a
-#: ../../source/dev/docs.md:47
-msgid "Create and Translation Intermediate Files (.pot)"
+# 6525e89e1d5d4bafa41f8ad4e739cc1d
+#: ../../source/dev/docs.md:61
+msgid "Transifex Setup"
 msgstr ""
 
 # 61e1a3b26ac9445493c7993d83ed7eae
-#: ../../source/dev/docs.md:49
+#: ../../source/dev/docs.md:63
 msgid ""
 "Transifex provides an accessible interface for contributors to enter and "
 "correct translations. The workflow is explained at readthedocs."
 msgstr ""
 
-# 27bf08ce864e4abdaac2a9cf06c4c7e0
-#: ../../source/dev/docs.md:51
+# b83ab53ee16747819ec0a6db83fafb97
+#: ../../source/dev/docs.md:65
 msgid ""
-"Setup an account on transifex.com. Be added to the OpenHIE organization for "
-"facility-recon project. Obtain a token in user settings and initialize "
-"transifex command line client."
-msgstr ""
-
-# 4993c8e83ee44c52a6c11d7e8505ccb1
-#: ../../source/dev/docs.md:53
-msgid "Change directory to the root of the repo."
-msgstr ""
-
-# e91c9c1a4a324c0c8563459bc79e930e
-#: ../../source/dev/docs.md:59
-msgid ""
-"This will create a $HOME/.transifexrc and .tx folder in the current (repo "
-"root) directory."
-msgstr ""
-
-# bbfe362a12ca4862b8a314d8378d104e
-#: ../../source/dev/docs.md:62
-msgid "Pull Existing Translations"
-msgstr ""
-
-# 476722116cfe4c65a539bdc1198e70f8
-#: ../../source/dev/docs.md:64
-msgid ""
-"Note. Make sure to pull existing translations otherwise you may write over "
-"other's work. Pull existing translations."
+"Setup an account on transifex.com. Be added to the OpenHIE organization "
+"for facility-recon project. Obtain a token in user settings and "
+"initialize transifex command line client. You do not need to tx init the "
+"directly, as the .tx/config should be version control. Setup a $TFX_TOKEN"
+" environment variable for yourself."
 msgstr ""
 
 # 1abfe2b76b474736a29d0545a86436ac
-#: ../../source/dev/docs.md:71
+#: ../../source/dev/docs.md:68
 msgid "Create Translation Intermediate Files for New Languages"
 msgstr ""
 
 # 0e2d17bdcb7147289de94901879f855f
-#: ../../source/dev/docs.md:73
+#: ../../source/dev/docs.md:70
 msgid ""
-"In the /docs directory, create the locale files. Use the appropriate locale."
-" Note that Sphinx supports less locales than Transifex."
+"In the /docs directory, create the locale files. Use the appropriate "
+"locale. Note that Sphinx supports less locales than Transifex."
 msgstr ""
+
+# 141ae542bbcd41eea9686946032df61f
+#: ../../source/dev/docs.md:75
+msgid "How Localization was done (Do Not Reproduce)"
+msgstr ""
+
+# 5395cb2251984c6b9634ae1005b9d386
+#: ../../source/dev/docs.md:77
+msgid ""
+"Do not replicate this process. It is here to document how it was done in "
+"the first place. Doing it again would delete or write over translations "
+"or remove them."
+msgstr ""
+
+# 477bb9fa81e74819a32e0c0df0c9621d
+#: ../../source/dev/docs.md:79
+msgid ""
+"Setup Sphinx for the project. Enable Markdown support. Setup "
+"readthedocs.org. Enable the webhook to trigger builds."
+msgstr ""
+
+# 631fa98960ee4a33a9de9f221203b321
+#: ../../source/dev/docs.md:80
+msgid "Create the source language docs."
+msgstr ""
+
+# 3522fdb739c24252b25da0993f277fc1
+#: ../../source/dev/docs.md:81
+msgid ""
+"Create projects in readthedocs.org for both the source language "
+"(facility-recon - no prefix/suffix) and the new one (facility-recon-fr)"
+msgstr ""
+
+# d0accc4343de47dd9894adcb1a52f089
+#: ../../source/dev/docs.md:82
+msgid "Set languages correctly on both projects."
+msgstr ""
+
+# af05c187a0494e198232ee84ebeaeda6
+#: ../../source/dev/docs.md:83
+msgid ""
+"Assign the -fr project as a translation of the source. You must have two "
+"projects."
+msgstr ""
+
+# 55ac4ee9c4de4304bd710a0857abad44
+#: ../../source/dev/docs.md:85
+msgid ""
+"Create .pot files for French. This puts a locales directory in "
+"/docs/source/ and creates files for every .md and .rst file."
+msgstr ""
+
+# 15206a77710e44bbbcbce545b4226fdf
+#: ../../source/dev/docs.md:91
+msgid ""
+"Init Transifex support for the repo. Do it from the repo root, not docs. "
+"Add a Transifex API token env var prior to doing this."
+msgstr ""
+
+# 855dfedc6d8b4a809729784da0a8d5a3
+#: ../../source/dev/docs.md:98
+msgid "Bulk-map all of the documents. This must be done in the root of the repo."
+msgstr ""
+
+# ec72460df7cb4b5a9d77c620687da545
+#: ../../source/dev/docs.md:105
+msgid "Do the initial push of the source language documents to Transifex."
+msgstr ""
+
+# 92ac98f0e9d04a2f81b478c97acda795
+#: ../../source/dev/docs.md:110
+msgid ""
+"Test by translating and editing a few files on Transifex. Pull from "
+"Transifex."
+msgstr ""
+
+# 7d800c16153b47a8b913f2df6d040dd0
+#: ../../source/dev/docs.md:115
+msgid "Manually check the .po files translated to confirm the changes."
+msgstr ""
+
+# 6e4e586f733d445d89025ce2de5d613d
+#: ../../source/dev/docs.md:117
+msgid ""
+"Build locally to check. (FYI, this puts .mo files into the repo which "
+"could potentially be gitignored and removed.)"
+msgstr ""
+
+# 105373e12d2945f58a2241473fd28953
+#: ../../source/dev/docs.md:123
+msgid "...then open the index.html in the built files for French to confirm."
+msgstr ""
+
+# 3b375a4b716b4dd7b6d325b1fbec0dde
+#: ../../source/dev/docs.md:125
+msgid "readthedocs.io should rebuild based on the existing webhook."
+msgstr ""
+
+# 1cbdb960547044ccb493bb3ee726035e
+#~ msgid ""
+#~ "These docs are hosted in readthedocs.io."
+#~ " The documentation is built using "
+#~ "Sphinx with markdown support enabled. In"
+#~ " order to translate, the documentation "
+#~ "must first be in the base "
+#~ "(English) language. Upon a successful "
+#~ "build, the translatable files (.pot) are"
+#~ " then pushed to Transifex. The pot"
+#~ " files must be synchronized with "
+#~ "Transifex for editors to use them."
+#~ msgstr ""
+
+# 19a721d3cf3246f5b3650295f4dd370b
+#~ msgid "Updating Docs with Translations"
+#~ msgstr ""
+
+# 2aef2a92f61a4893bfdaa5e88e08e252
+#~ msgid "cd docs sphinx-build -b gettext source build/gettext"
+#~ msgstr ""
+
+# 0f3ff374a9b24d37818081e31876899a
+#~ msgid "Create and Translation Intermediate Files (.pot)"
+#~ msgstr ""
+
+# 27bf08ce864e4abdaac2a9cf06c4c7e0
+#~ msgid ""
+#~ "Setup an account on transifex.com. Be"
+#~ " added to the OpenHIE organization "
+#~ "for facility-recon project. Obtain a "
+#~ "token in user settings and initialize"
+#~ " transifex command line client."
+#~ msgstr ""
+
+# 4993c8e83ee44c52a6c11d7e8505ccb1
+#~ msgid "Change directory to the root of the repo."
+#~ msgstr ""
+
+# e91c9c1a4a324c0c8563459bc79e930e
+#~ msgid ""
+#~ "This will create a $HOME/.transifexrc "
+#~ "and .tx folder in the current "
+#~ "(repo root) directory."
+#~ msgstr ""
+
+# bbfe362a12ca4862b8a314d8378d104e
+#~ msgid "Pull Existing Translations"
+#~ msgstr ""
+
+# 476722116cfe4c65a539bdc1198e70f8
+#~ msgid ""
+#~ "Note. Make sure to pull existing "
+#~ "translations otherwise you may write "
+#~ "over other's work. Pull existing "
+#~ "translations."
+#~ msgstr ""
 
 # 4eaf445b2a1942968e4c87f9eef7893e
-#: ../../source/dev/docs.md:78
-msgid "Push Updates in English for Translation"
-msgstr ""
+#~ msgid "Push Updates in English for Translation"
+#~ msgstr ""
 
 # 3cd8ec9c12794000a82da511fc55c951
-#: ../../source/dev/docs.md:80
-msgid ""
-"This should be done if there are changes to base (English) documentation."
-msgstr ""
+#~ msgid ""
+#~ "This should be done if there are"
+#~ " changes to base (English) documentation."
+#~ msgstr ""
+

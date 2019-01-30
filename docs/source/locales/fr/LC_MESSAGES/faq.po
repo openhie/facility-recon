@@ -1,21 +1,25 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
+"POT-Creation-Date: 2019-01-30 17:55-0500\n"
 "PO-Revision-Date: 2019-01-25 23:34+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
+"\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
 
 # 95ca7ed7a375440ba3d41a6bcb16dfc5
 #: ../../source/faq.md:1
@@ -38,6 +42,86 @@ msgstr ""
 #: ../../source/faq.md:7
 msgid ""
 "To obtain data sources and reconciled sources a user with access to the "
-"underlying stack can make queries to MongoDB or to the FHIR-based REST API "
-"for Hearth. There is no authentication for the raw access in this manner."
+"underlying stack can make queries to MongoDB or to the FHIR-based REST "
+"API for Hearth. There is no authentication for the raw access in this "
+"manner."
 msgstr ""
+
+# b0cc25b3de8940ab8405b40d6a5f3b11
+#: ../../source/faq.md:9
+msgid "Can this tool be used in education or agriculture?"
+msgstr ""
+
+# 1b4ee9994d804247b77d6ed2288384c3
+#: ../../source/faq.md:11
+msgid ""
+"Yes! The tool was first created for the health sector and uses the FHIR "
+"standard based on the mCSD IHE profile."
+msgstr ""
+
+# ab57b39c6e404a2b9d087c12b4437b19
+#: ../../source/faq.md:13
+msgid ""
+"Any hierarchical location list can potentially be supported. The backend "
+"representation can be exported in CSV and others may be added as use "
+"cases dictate."
+msgstr ""
+
+# 78b05f978c254b0d8b4e70da49a788c6
+#: ../../source/faq.md:15
+msgid "Does the tool clean the source data?"
+msgstr ""
+
+# 765db4f0f53e47aa8f5dc92e0d497560
+#: ../../source/faq.md:17
+msgid ""
+"No. The tool takes a pair of sources and uses automatic and manual "
+"methods to identify matches. If there are corrections needed, the tool "
+"can export a CSV or FHIR representation of what was and was not matched. "
+"The data sources have to be cleaned outside of the tool."
+msgstr ""
+
+# 1f9f884c2d2442b8abdbfe1a6b843ae8
+#: ../../source/faq.md:19
+msgid "If this is a feature for your use case, please get in touch."
+msgstr ""
+
+# 9cd7982b3b454d1693177652094638a1
+#: ../../source/faq.md:21
+msgid "Can I run the tool on my own PC?"
+msgstr ""
+
+# 98b9ee87b82a4d159435e22c97c376e8
+#: ../../source/faq.md:23
+msgid ""
+"The tool is comprised of four components: the app itself, Redis as an in-"
+"memory database for performance, the Hearth FHIR server, and MongoDB "
+"which is used by both Hearth for storing resources and the app for "
+"managing state."
+msgstr ""
+
+# ef838fa1433046229419aeca87bbfef9
+#: ../../source/faq.md:25
+msgid ""
+"The tool is designed to be hosted on a server, either locally or in the "
+"cloud. The tool supports user management and is meant to be available for"
+" many users to collaborate on matching facility lists. Server "
+"installation is the recommended way to deploy the tool."
+msgstr ""
+
+# bf50944bc45b49e0a2ae3cfe1f2b1135
+#: ../../source/faq.md:27
+msgid ""
+"Docker is recommended is not recommended as by default it will not "
+"persist the data, meaning that when you stop Docker you lose your data. "
+"This can be changed by mounting a volume to store data. But, the tool is "
+"meant as a platform for multiple users to collaborate on matching. It can"
+" be deployed on a server using Docker but the administrator should be "
+"careful to mount a volume to ensure data persistence."
+msgstr ""
+
+# e9a30e1887764c18a461eb5a910d0491
+#: ../../source/faq.md:29
+msgid "Developers may install the stack directly but this is not for production."
+msgstr ""
+
