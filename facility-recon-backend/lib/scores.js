@@ -31,6 +31,7 @@ module.exports = function () {
       const scoreResults = [];
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       const maxSuggestions = config.getConf('matchResults:maxSuggestions');
+
       if (mcsdSource2.total == 0) {
         winston.error('No Source2 data found for this orgunit');
         return callback();
@@ -238,7 +239,7 @@ module.exports = function () {
                       id: source2Entry.resource.id,
                     };
                     thisRanking.potentialMatches = {};
-                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
+                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
                       
                     });
                     // we will need to break here and start processing nxt Source1
@@ -595,7 +596,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
 
                   });
                   return source2Callback();
@@ -629,7 +630,7 @@ module.exports = function () {
                         id: source2Entry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {});
+                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {});
                       return source2Callback();
                     }
                   }
@@ -730,7 +731,7 @@ module.exports = function () {
       const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
       return callback(status);
     },
-    getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, source, callback) {
+    getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, source, parentsFields, callback) {
       const unmatched = []
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
 
@@ -739,6 +740,7 @@ module.exports = function () {
         "type": "document",
         "entry": []
       };
+      const noMatchCode = config.getConf('mapping:noMatchCode');
       mcsd.getLocations(mappingDB, (mappedLocations) => {
         let parentCache = {}
         async.each(mcsdFiltered.entry, (filteredEntry, filteredCallback) => {
@@ -772,21 +774,39 @@ module.exports = function () {
               parentCache[entityParent] = []
               mcsd.getLocationParentsFromData(entityParent, mcsdAll, 'names', (parents) => {
                 parentCache[entityParent] = parents.slice(0,parents.length-1)
-                unmatched.push({
+                let reversedParents = []
+                reversedParents = reversedParents.concat(parentCache[entityParent])
+                reversedParents.reverse()
+                let data = {
                   id,
-                  name,
-                  parents: parentCache[entityParent],
-                  parentString: parentCache[entityParent].join('->')
-                });
+                  name
+                }
+                if(parentsFields) {
+                  async.eachOf(parentsFields, (parent, key, nxtParnt) => {
+                    data[parent] = reversedParents[key]
+                  })
+                } else {
+                  data["parents"] = parentCache[entityParent]
+                }
+                unmatched.push(data);
                 return filteredCallback();
               });
             } else {
-              unmatched.push({
+              let reversedParents = []
+              reversedParents = reversedParents.concat(parentCache[entityParent])
+              reversedParents.reverse()
+              let data = {
                 id,
-                name,
-                parents: parentCache[entityParent],
-                parentString: parentCache[entityParent].join('->')
-              });
+                name
+              }
+              if (parentsFields) {
+                async.eachOf(parentsFields, (parent, key, nxtParnt) => {
+                  data[parent] = reversedParents[key]
+                })
+              } else {
+                data["parents"] = parentCache[entityParent]
+              }
+              unmatched.push(data);
               return filteredCallback();
             }
           } else {

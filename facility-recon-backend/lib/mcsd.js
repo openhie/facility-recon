@@ -587,8 +587,10 @@ module.exports = function () {
         });
       }
     },
-    saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, callback) {
+    saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, autoMatch, callback) {
       const flagCode = config.getConf('mapping:flagCode');
+      const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
+      const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
@@ -596,117 +598,137 @@ module.exports = function () {
 
       const me = this;
       async.parallel({
-          source2Mapped(callback) {
-            const source2Identifier = URI(config.getConf('mCSD:url'))
-              .segment(source2DB)
-              .segment('fhir')
-              .segment('Location')
-              .segment(source2Id)
-              .toString();
-            me.getLocationByIdentifier(mappingDB, source2Identifier, (mapped) => {
-              if (mapped.entry.length > 0) {
-                winston.error('Attempting to map already mapped location');
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-              }
-              return callback(null, null);
-            });
-          },
-          source1Mapped(callback) {
-            const source1Identifier = URI(config.getConf('mCSD:url'))
-              .segment(source1DB)
-              .segment('fhir')
-              .segment('Location')
-              .segment(source1Id)
-              .toString();
-            me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
-              if (mapped.entry.length > 0) {
-                winston.error('Attempting to map already mapped location');
-                return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-              }
-              return callback(null, null);
-            });
-          },
-          source1mCSD(callback) {
-            me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-              return callback(null,mcsd)
-            })
-          }
+        source2Mapped(callback) {
+          const source2Identifier = URI(config.getConf('mCSD:url'))
+            .segment(source2DB)
+            .segment('fhir')
+            .segment('Location')
+            .segment(source2Id)
+            .toString();
+          me.getLocationByIdentifier(mappingDB, source2Identifier, (mapped) => {
+            if (mapped.entry.length > 0) {
+              winston.error('Attempting to map already mapped location');
+              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+            }
+            return callback(null, null);
+          });
         },
-        (err, res) => {
-          if (res.source1Mapped !== null) {
-            return callback(res.source1Mapped);
-          }
-          if (res.source2Mapped !== null) {
-            return callback(res.source2Mapped);
-          }
-          me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
-            const fhir = {};
-            fhir.entry = [];
-            fhir.type = 'document';
-            const entry = [];
-            const resource = {};
-            resource.resourceType = 'Location';
-            resource.name = mcsd.entry[0].resource.name; // take source 2 name
-            resource.alias = res.source1mCSD.entry[0].resource.name // take source1 name
-            resource.id = source2Id;
-            resource.identifier = [];
-            const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
-              .segment(source2Id)
-              .toString();
-            const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-              .segment(source1Id)
-              .toString();
-            resource.identifier.push({
-              system: source2System,
-              value: source2URL,
-            });
-            resource.identifier.push({
-              system: source1System,
-              value: source1URL,
-            });
+        source1Mapped(callback) {
+          const source1Identifier = URI(config.getConf('mCSD:url'))
+            .segment(source1DB)
+            .segment('fhir')
+            .segment('Location')
+            .segment(source1Id)
+            .toString();
+          me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
+            if (mapped.entry.length > 0) {
+              winston.error('Attempting to map already mapped location');
+              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+            }
+            return callback(null, null);
+          });
+        },
+        source1mCSD(callback) {
+          me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+            return callback(null,mcsd)
+          })
+        }
+      }, (err, res) => {
+        if (res.source1Mapped !== null) {
+          return callback(res.source1Mapped);
+        }
+        if (res.source2Mapped !== null) {
+          return callback(res.source2Mapped);
+        }
+        me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
+          const fhir = {};
+          fhir.entry = [];
+          fhir.type = 'document';
+          const entry = [];
+          const resource = {};
+          resource.resourceType = 'Location';
+          resource.name = mcsd.entry[0].resource.name; // take source 2 name
+          resource.alias = res.source1mCSD.entry[0].resource.name // take source1 name
+          resource.id = source2Id;
+          resource.identifier = [];
+          const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
+            .segment(source2Id)
+            .toString();
+          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+            .segment(source1Id)
+            .toString();
+          resource.identifier.push({
+            system: source2System,
+            value: source2URL,
+          });
+          resource.identifier.push({
+            system: source1System,
+            value: source1URL,
+          });
 
-            if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-              if (!mcsd.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
-                resource.partOf = {
-                  display: mcsd.entry[0].resource.partOf.display,
-                  reference: mcsd.entry[0].resource.partOf.reference,
-                };
-              }
+          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+            if (!mcsd.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
+              resource.partOf = {
+                display: mcsd.entry[0].resource.partOf.display,
+                reference: mcsd.entry[0].resource.partOf.reference,
+              };
             }
-            if (recoLevel == totalLevels) {
-              var typeCode = 'bu';
-              var typeName = 'building';
-            } else {
-              var typeCode = 'jdn';
-              var typeName = 'Jurisdiction';
-            }
-            resource.physicalType = {
-              coding: [{
-                code: typeCode,
-                display: typeName,
-                system: 'http://hl7.org/fhir/location-physical-type',
-              }],
-            };
-            if (type == 'flag') {
+          }
+          if (recoLevel == totalLevels) {
+            var typeCode = 'bu';
+            var typeName = 'building';
+          } else {
+            var typeCode = 'jdn';
+            var typeName = 'Jurisdiction';
+          }
+          resource.physicalType = {
+            coding: [{
+              code: typeCode,
+              display: typeName,
+              system: 'http://hl7.org/fhir/location-physical-type',
+            }],
+          };
+          if (type == 'flag') {
+            if (!resource.hasOwnProperty('tag')) {
               resource.tag = [];
-              resource.tag.push({
-                system: source1System,
-                code: flagCode,
-                display: 'To be reviewed',
-              });
             }
-            entry.push({
-              resource,
+            resource.tag.push({
+              system: source1System,
+              code: flagCode,
+              display: 'To be reviewed',
             });
-            fhir.entry = fhir.entry.concat(entry);
-            me.saveLocations(fhir, mappingDB, (err, res) => {
-              if (err) {
-                winston.error(err);
-              }
-              callback(err);
+          }
+          if (autoMatch) {
+            if(!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            resource.tag.push({
+              system: source1System,
+              code: autoMatchedCode,
+              display: 'Automatically Matched',
             });
+          } else {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            resource.tag.push({
+              system: source1System,
+              code: manualllyMatchedCode,
+              display: 'Manually Matched',
+            });
+          }
+          entry.push({
+            resource,
+          });
+          fhir.entry = fhir.entry.concat(entry);
+          me.saveLocations(fhir, mappingDB, (err, res) => {
+            if (err) {
+              winston.error(err);
+            }
+            callback(err);
           });
         });
+      });
     },
     acceptFlag(source2Id, mappingDB, callback) {
       this.getLocationByID(mappingDB, source2Id, false, (flagged) => {

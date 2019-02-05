@@ -980,59 +980,75 @@ export default {
       this.searchPotential = ''
       this.dialog = false
     },
+    matchedLocations (type) {
+      let userID = this.$store.state.auth.userID
+      let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
+      let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
+      return axios.get(`${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, {params: {
+        levelMapping1,
+        levelMapping2
+      }})
+    },
+    unMatchedLocations (type) {
+      let userID = this.$store.state.auth.userID
+      let levelMapping1 = this.$store.state.levelMapping.source1
+      let levelMapping2 = this.$store.state.levelMapping.source2
+      return axios.get(`${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, {params: {
+        levelMapping1,
+        levelMapping2
+      }})
+    },
     csvExport () {
       this.loadingCSV = true
-      let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV/' + userID).then((matchResponse) => {
-        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/CSV/' + userID).then((unmatchResponse) => {
-          this.loadingCSV = false
+      let me = this
+      axios.all([this.matchedLocations('CSV'), this.unMatchedLocations('CSV')])
+        .then(axios.spread(function (matchResponse, unmatchResponse) {
+          me.loadingCSV = false
           // matched CSV
           const matchedData = encodeURI('data:text/csv;charset=utf-8,' + matchResponse.data)
           const link = document.createElement('a')
           link.setAttribute('href', matchedData)
-          link.setAttribute('download', `matched${this.getSource1()}${this.getSource2()}.csv`)
+          link.setAttribute('download', `matched${me.getSource1()}${me.getSource2()}.csv`)
           link.click()
 
           // unmatched source1 CSV
           const unmatchedSource1Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource1CSV)
           link.setAttribute('href', unmatchedSource1Data)
-          link.setAttribute('download', `unmatched${this.getSource1()}.csv`)
+          link.setAttribute('download', `unmatched${me.getSource1()}.csv`)
           link.click()
 
           // unmatched source2 CSV
           const unmatchedSource2Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource2CSV)
           link.setAttribute('href', unmatchedSource2Data)
-          link.setAttribute('download', `unmatched${this.getSource2()}.csv`)
+          link.setAttribute('download', `unmatched${me.getSource2()}.csv`)
           link.click()
-        })
-      })
+        }))
     },
     fhirExport () {
       this.loadingFHIR = true
-      let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/matchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR/' + userID).then((matchResponse) => {
-        axios.get(backendServer + '/unmatchedLocations/' + this.getSource1() + '/' + this.getSource2() + '/FHIR/' + userID).then((unmatchResponse) => {
-          this.loadingFHIR = false
+      let me = this
+      axios.all([this.matchedLocations('FHIR'), this.unMatchedLocations('FHIR')])
+        .then(axios.spread(function (matchResponse, unmatchResponse) {
+          me.loadingFHIR = false
           // matched CSV
           const matchedData = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(matchResponse.data))
           const link = document.createElement('a')
           link.setAttribute('href', matchedData)
-          link.setAttribute('download', `matched${this.getSource1()}${this.getSource2()}.json`)
+          link.setAttribute('download', `matched${me.getSource1()}${me.getSource2()}.json`)
           link.click()
 
           // unmatched source1 CSV
           const unmatchedSource1Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource1mCSD))
           link.setAttribute('href', unmatchedSource1Data)
-          link.setAttribute('download', `unmatched${this.getSource1()}.json`)
+          link.setAttribute('download', `unmatched${me.getSource1()}.json`)
           link.click()
 
           // unmatched source2 CSV
           const unmatchedSource2Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource2mCSD))
           link.setAttribute('href', unmatchedSource2Data)
-          link.setAttribute('download', `unmatched${this.getSource2()}.json`)
+          link.setAttribute('download', `unmatched${me.getSource2()}.json`)
           link.click()
-        })
-      })
+        }))
     }
   },
   computed: {

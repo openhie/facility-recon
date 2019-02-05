@@ -66,7 +66,7 @@
           </v-flex>
           <v-spacer></v-spacer>
           <v-flex xs3>
-            <b>Level {{recoLevel-1}} Only</b>
+            <b>{{currentLevelText}} Only</b>
           </v-flex>
         </v-layout>
       </v-flex>
@@ -443,6 +443,9 @@ export default {
     }
   },
   computed: {
+    currentLevelText () {
+      return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+    },
     source1 () {
       let source = this.$store.state.activePair.source1.name
       if (source) {
@@ -562,8 +565,9 @@ export default {
   created () {
     this.mappingStatus()
     for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {
+      let text = this.translateDataHeader('source1', k)
       this.locationLevels.push({
-        text: 'Level ' + k,
+        text: text,
         value: k + 1
       })
     }
