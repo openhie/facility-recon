@@ -47,17 +47,13 @@ module.exports = function () {
       } else {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
-      mongoose.connect(uri)
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", function callback() {
+      mongoose.connect(uri, {}, () => {
         models.MetaDataSchema.findOne({}, (err, data) => {
           if (!data) {
             const MetaData = new models.MetaDataSchema({
               levelMapping: dbLevel
             });
             MetaData.save((err, data) => {
-              db.close()
               if (err) {
                 winston.error(err)
                 winston.error("Failed to save level data")
@@ -71,7 +67,6 @@ module.exports = function () {
             models.MetaDataSchema.findByIdAndUpdate(data.id, {
               levelMapping: dbLevel
             }, (err, data) => {
-              db.close()
               if (err) {
                 winston.error(err)
                 winston.error("Failed to save level data")
@@ -92,10 +87,7 @@ module.exports = function () {
       } else {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.MetaDataSchema.findOne({}, (err, data) => {
           if (data && data.levelMapping) {
             return callback(data.levelMapping)
@@ -112,10 +104,7 @@ module.exports = function () {
       if (fields.password) {
         password = this.encrypt(fields.password)
       }
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcesSchema.findOne({
           host: fields.name,
         }, (err, data) => {
@@ -135,7 +124,6 @@ module.exports = function () {
               userID: fields.userID
             });
             syncServer.save((err, data) => {
-              db.close()
               if (err) {
                 winston.error(err)
                 winston.error('Unexpected error occured,please retry')
@@ -153,7 +141,6 @@ module.exports = function () {
               username: fields.username,
               password: password,
             }, (err, data) => {
-              db.close()
               if (err) {
                 winston.error(err)
                 winston.error('Unexpected error occured,please retry');
@@ -168,10 +155,7 @@ module.exports = function () {
     editDataSource(fields, callback) {
       const mongoose = require('mongoose')
       let password = this.encrypt(fields.password)
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcesSchema.findByIdAndUpdate(fields.id, {
           name: fields.name,
           host: fields.host,
@@ -180,7 +164,6 @@ module.exports = function () {
           username: fields.username,
           password: password,
         }, (err, data) => {
-          db.close()
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -192,14 +175,10 @@ module.exports = function () {
 
     changeAccountStatus(status, id, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.UsersSchema.findByIdAndUpdate(id, {
           status: status
         }, (err, data) => {
-          db.close()
           if (err) {
             return callback(err);
           }
@@ -210,14 +189,10 @@ module.exports = function () {
 
     resetPassword(id, password, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.UsersSchema.findByIdAndUpdate(id, {
           password: password
         }, (err, data) => {
-          db.close()
           if (err) {
             return callback(err);
           }
@@ -234,7 +209,6 @@ module.exports = function () {
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
         mongoose.connection.db.admin().command({listDatabases: 1}, (error, results) => {
-          db.close()
           async.eachSeries(results.databases, (database, nxtDB) => {
             let dbName1 = database.name
             if (dbName1.includes(name) && dbName1.includes(userID)) {
@@ -275,13 +249,9 @@ module.exports = function () {
             return nxtDB()
           })
         }, () => {
-          mongoose.connect(uri);
-          let db = mongoose.connection
-          db.on("error", console.error.bind(console, "connection error:"))
-          db.once("open", () => {
+          mongoose.connect(uri, {}, () => {
             models.DataSourcesSchema.deleteOne({_id: id}, (err, data) => {
               models.DataSourcePairSchema.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
-                db.close()
                 return callback(err, data);
               });
             });
@@ -292,12 +262,8 @@ module.exports = function () {
 
     getDataSources(userID, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcesSchema.find({userID: userID}).lean().exec({}, (err, data) => {
-          db.close()
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -309,14 +275,10 @@ module.exports = function () {
 
     getDataPairs(userID, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.find({
           userID: userID
         }).populate("source1").populate("source2").populate("shared").populate("userID").lean().exec({}, (err, data) => {
-          db.close()
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -328,10 +290,7 @@ module.exports = function () {
 
     addDataSourcePair(sources, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
@@ -340,13 +299,11 @@ module.exports = function () {
               })
             }, () => {
               add(sources, (err, res) => {
-                db.close()
                 return callback(err, res)
               })
             })
           } else {
             add(sources, (err, res) => {
-              db.close()
               return callback(err, res)
             })
           }
@@ -391,10 +348,7 @@ module.exports = function () {
 
     activateSharedPair(pairID, userID, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
@@ -403,13 +357,11 @@ module.exports = function () {
               })
             }, () => {
               models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
-                db.close()
                 return callback(err, data)
               })
             })
           } else {
             models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
-              db.close()
               return callback(err, data)
             })
           }
@@ -419,38 +371,26 @@ module.exports = function () {
 
     shareSourcePair(sharePair, users, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.findByIdAndUpdate(sharePair, {'shared.users': users}, (err, data) => {
-          db.close()
           return callback(err, data)
         })
       })
     },
     resetDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
-          db.close()
           return callback(err,data)
         })
       })
     },
     getDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
-      mongoose.connect(uri);
-      let db = mongoose.connection
-      db.on("error", console.error.bind(console, "connection error:"))
-      db.once("open", () => {
+      mongoose.connect(uri, {}, () => {
         models.DataSourcePairSchema.find({ $or: [{'userID': userID}, {'shared.users': userID}]
           
         }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
-          db.close()
           return callback(err, data)
         })
       })

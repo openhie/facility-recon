@@ -266,13 +266,13 @@
             <v-text-field v-model="searchMatched" append-icon="search" label="Search" single-line hide-details></v-text-field>
           </v-flex>
           <v-spacer></v-spacer>
-          <!--
           <v-flex xs2>
-            <v-btn color="success" round @click='markRecoDone' v-if="$store.state.recoStatus.status !== 'done'"><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
-            <v-btn color="success" round @click='markRecoUnDone' v-else><v-icon>lock_open</v-icon>Mark Reconciliation UnDone</v-btn>
+            <template v-if="this.$store.state.activePair.userID._id === this.$store.state.auth.userID">
+              <v-btn color="success" round @click='markRecoDone' v-if="$store.state.recoStatus !== 'Done'"><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
+              <v-btn color="success" round @click='markRecoUnDone' v-else><v-icon>lock_open</v-icon>Mark Reconciliation UnDone</v-btn>
+            </template>
           </v-flex>
           <v-spacer></v-spacer>
-          -->
           <v-flex xs1 sm2 md2 right>
             <v-select :items="locationLevels" v-model="recoLevel" :item-value='locationLevels.value' :item-name='locationLevels.text' label="Level" class="input-group--focused" height='1' full-width @change="levelChanged" single-line>
             </v-select>
@@ -424,18 +424,20 @@ export default {
       this.mappingStatus()
     },
     markRecoDone () {
-      axios.get(backendServer + '/markRecoDone/' + this.source1 + '/' + this.source2).then((status) => {
+      let userID = this.$store.state.activePair.userID._id
+      axios.get(backendServer + '/markRecoDone/' + this.source1 + '/' + this.source2 + '/' + userID).then((status) => {
         if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
+          this.$store.state.recoStatus = status.data.status
         }
       }).catch((err) => {
         console.log(err.response.data.error)
       })
     },
     markRecoUnDone () {
-      axios.get(backendServer + '/markRecoUnDone/' + this.source1 + '/' + this.source2).then((status) => {
+      let userID = this.$store.state.activePair.userID._id
+      axios.get(backendServer + '/markRecoUnDone/' + this.source1 + '/' + this.source2 + '/' + userID).then((status) => {
         if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
+          this.$store.state.recoStatus = status.data.status
         }
       }).catch((err) => {
         console.log(err.response.data.error)

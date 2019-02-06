@@ -348,7 +348,7 @@
               <liquor-tree :data="source1Tree" ref="source1Tree" :key="source1TreeUpdate" />
               <v-data-table :headers="source1GridHeaders" :items="source1Grid" :search="searchUnmatchedSource1" light class="elevation-1">
                 <template slot="items" slot-scope="props">
-                  <td v-if="$store.state.recoStatus.status === 'done'" :key='props.item.id'>{{props.item.name}}</td>
+                  <td v-if="$store.state.recoStatus === 'Done'" :key='props.item.id'>{{props.item.name}}</td>
                   <td v-else @click="getPotentialMatch(props.item.id)" style="cursor: pointer" :key='props.item.id'>{{props.item.name}}</td>
                   <td v-for="(parent,index) in props.item.parents" v-if='index !=props.item.parents.length-1' :key='props.item.id+index'>
                     {{parent}}
@@ -500,7 +500,7 @@
                   <td>{{props.item.source2Name}}</td>
                   <td>{{props.item.source2Id}}</td>
                   <td>
-                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='breakMatch(props.item.source2Id)'>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakMatch(props.item.source2Id)'>
                       <v-icon>undo</v-icon>Break Match</v-btn>
                     <v-btn v-else color="error" style='text-transform: none' small @click='breakMatch(props.item.source2Id)'>
                       <v-icon>undo</v-icon>Break Match</v-btn>
@@ -521,7 +521,7 @@
                   <td>{{props.item.source1Id}}</td>
                   <td>{{props.item.parents.join('->')}}</td>
                   <td>
-                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id)'>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id)'>
                       <v-icon>cached</v-icon>Break No Match
                     </v-btn>
                     <v-btn v-else color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id)'>
@@ -545,13 +545,13 @@
                   <td>{{props.item.source2Name}}</td>
                   <td>{{props.item.source2Id}}</td>
                   <td>
-                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="primary" style='text-transform: none' small @click='acceptFlag(props.item.source2Id)'>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="primary" style='text-transform: none' small @click='acceptFlag(props.item.source2Id)'>
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
                     <v-btn v-else color="primary" style='text-transform: none' small @click='acceptFlag(props.item.source2Id)'>
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
-                    <v-btn v-if="$store.state.recoStatus.status == 'done'" disabled color="error" style='text-transform: none' small @click='unFlag(props.item.source2Id)'>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='unFlag(props.item.source2Id)'>
                       <v-icon>cached</v-icon>Release
                     </v-btn>
                     <v-btn v-else color="error" style='text-transform: none' small @click='unFlag(props.item.source2Id)'>
@@ -745,7 +745,7 @@ export default {
       formData.append('source2DB', this.getSource2())
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
-      formData.append('userID', this.$store.state.auth.userID)
+      formData.append('userID', this.$store.state.activePair.userID._id)
       axios
         .post(backendServer + '/match/' + type, formData, {
           headers: {
@@ -805,138 +805,179 @@ export default {
         })
     },
     acceptFlag (source2Id) {
-      // Add from a list of Source 1 Matched and remove from list of Flagged
-      for (let k in this.$store.state.flagged) {
-        if (this.$store.state.flagged[k].source2Id === source2Id) {
-          this.$store.state.matchedContent.push({
-            source1Name: this.$store.state.flagged[k].source1Name,
-            source1Id: this.$store.state.flagged[k].source1Id,
-            source1Parents: this.$store.state.flagged[k].source1Parents,
-            source2Name: this.$store.state.flagged[k].source2Name,
-            source2Id: this.$store.state.flagged[k].source2Id,
-            source2Parents: this.$store.state.flagged[k].source2Parents
-          })
-          this.$store.state.flagged.splice(k, 1)
-          ++this.$store.state.totalAllMapped
-          --this.$store.state.totalAllFlagged
-        }
-      }
+      this.$store.state.progressTitle = 'Accepting flag'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
       formData.append('source2Id', source2Id)
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       axios
         .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then(() => { })
+        .then(() => {
+          this.$store.state.dynamicProgress = false
+          // Add from a list of Source 1 Matched and remove from list of Flagged
+          for (let k in this.$store.state.flagged) {
+            if (this.$store.state.flagged[k].source2Id === source2Id) {
+              this.$store.state.matchedContent.push({
+                source1Name: this.$store.state.flagged[k].source1Name,
+                source1Id: this.$store.state.flagged[k].source1Id,
+                source1Parents: this.$store.state.flagged[k].source1Parents,
+                source2Name: this.$store.state.flagged[k].source2Name,
+                source2Id: this.$store.state.flagged[k].source2Id,
+                source2Parents: this.$store.state.flagged[k].source2Parents
+              })
+              this.$store.state.flagged.splice(k, 1)
+              ++this.$store.state.totalAllMapped
+              --this.$store.state.totalAllFlagged
+            }
+          }
+        })
         .catch(err => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.selectedSource1Id = null
+          this.selectedSource1Name = null
+          this.dialog = false
           console.log(err)
         })
     },
     breakMatch (source2Id) {
-      this.alert = true
-      this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+      this.$store.state.progressTitle = 'Breaking match'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       formData.append('source2Id', source2Id)
       axios
         .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        })
-        .catch(err => {
+        }).then((data) => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Information'
+          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          for (let k in this.$store.state.matchedContent) {
+            if (this.$store.state.matchedContent[k].source2Id === source2Id) {
+              this.$store.state.source1UnMatched.push({
+                name: this.$store.state.matchedContent[k].source1Name,
+                id: this.$store.state.matchedContent[k].source1Id,
+                parents: this.$store.state.matchedContent[k].source1Parents
+              })
+              this.$store.state.source2UnMatched.push({
+                name: this.$store.state.matchedContent[k].source2Name,
+                id: this.$store.state.matchedContent[k].source2Id,
+                parents: this.$store.state.matchedContent[k].source2Parents
+              })
+              this.$store.state.matchedContent.splice(k, 1)
+              --this.$store.state.totalAllMapped
+            }
+          }
+        }).catch(err => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.selectedSource1Id = null
+          this.selectedSource1Name = null
+          this.dialog = false
           console.log(err)
         })
-
-      for (let k in this.$store.state.matchedContent) {
-        if (this.$store.state.matchedContent[k].source2Id === source2Id) {
-          this.$store.state.source1UnMatched.push({
-            name: this.$store.state.matchedContent[k].source1Name,
-            id: this.$store.state.matchedContent[k].source1Id,
-            parents: this.$store.state.matchedContent[k].source1Parents
-          })
-          this.$store.state.source2UnMatched.push({
-            name: this.$store.state.matchedContent[k].source2Name,
-            id: this.$store.state.matchedContent[k].source2Id,
-            parents: this.$store.state.matchedContent[k].source2Parents
-          })
-          this.$store.state.matchedContent.splice(k, 1)
-          --this.$store.state.totalAllMapped
-        }
-      }
     },
     unFlag (source2Id) {
-      this.alert = true
-      this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.$store.state.progressTitle = 'Unflagging match'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       formData.append('source2Id', source2Id)
       axios
         .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
+        }).then((data) => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Information'
+          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          for (let k in this.$store.state.flagged) {
+            if (this.$store.state.flagged[k].source2Id === source2Id) {
+              this.$store.state.source1UnMatched.push({
+                name: this.$store.state.flagged[k].source1Name,
+                id: this.$store.state.flagged[k].source1Id,
+                parents: this.$store.state.flagged[k].source1Parents
+              })
+              this.$store.state.source2UnMatched.push({
+                name: this.$store.state.flagged[k].source2Name,
+                id: this.$store.state.flagged[k].source2Id,
+                parents: this.$store.state.flagged[k].source2Parents
+              })
+              this.$store.state.flagged.splice(k, 1)
+              --this.$store.state.totalAllFlagged
+            }
+          }
         })
         .catch(err => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.selectedSource1Id = null
+          this.selectedSource1Name = null
+          this.dialog = false
           console.log(err)
         })
-
-      for (let k in this.$store.state.flagged) {
-        if (this.$store.state.flagged[k].source2Id === source2Id) {
-          this.$store.state.source1UnMatched.push({
-            name: this.$store.state.flagged[k].source1Name,
-            id: this.$store.state.flagged[k].source1Id,
-            parents: this.$store.state.flagged[k].source1Parents
-          })
-          this.$store.state.source2UnMatched.push({
-            name: this.$store.state.flagged[k].source2Name,
-            id: this.$store.state.flagged[k].source2Id,
-            parents: this.$store.state.flagged[k].source2Parents
-          })
-          this.$store.state.flagged.splice(k, 1)
-          --this.$store.state.totalAllFlagged
-        }
-      }
     },
     breakNoMatch (source1Id) {
-      this.alert = true
-      this.alertTitle = 'Information'
-      this.alertText = 'Scores for this Location may no be available unless you recalculate scores'
+      this.$store.state.progressTitle = 'Breaking no match'
+      this.$store.state.dynamicProgress = true
       let formData = new FormData()
       formData.append('source1Id', source1Id)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       axios
         .post(backendServer + '/breakNoMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
+        }).then((data) => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Information'
+          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          for (var k in this.$store.state.noMatchContent) {
+            if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
+              this.$store.state.source1UnMatched.push({
+                name: this.$store.state.noMatchContent[k].source1Name,
+                id: this.$store.state.noMatchContent[k].source1Id,
+                parents: this.$store.state.noMatchContent[k].parents
+              })
+              this.$store.state.noMatchContent.splice(k, 1)
+              --this.$store.state.totalAllNoMatch
+            }
+          }
         })
         .catch(err => {
+          this.$store.state.dynamicProgress = false
+          this.alert = true
+          this.alertTitle = 'Error'
+          this.alertText = err.response.data.error
+          this.selectedSource1Id = null
+          this.selectedSource1Name = null
+          this.dialog = false
           console.log(err)
         })
-      for (var k in this.$store.state.noMatchContent) {
-        if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
-          this.$store.state.source1UnMatched.push({
-            name: this.$store.state.noMatchContent[k].source1Name,
-            id: this.$store.state.noMatchContent[k].source1Id,
-            parents: this.$store.state.noMatchContent[k].parents
-          })
-          this.$store.state.noMatchContent.splice(k, 1)
-          --this.$store.state.totalAllNoMatch
-        }
-      }
     },
     noMatch () {
       this.$store.state.progressTitle = 'Saving as no match'
       this.$store.state.dynamicProgress = true
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let formData = new FormData()
       formData.append('source1Id', this.selectedSource1Id)
       formData.append('recoLevel', this.$store.state.recoLevel)
@@ -981,7 +1022,7 @@ export default {
       this.dialog = false
     },
     matchedLocations (type) {
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
       let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
       return axios.get(`${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, {params: {
@@ -990,7 +1031,7 @@ export default {
       }})
     },
     unMatchedLocations (type) {
-      let userID = this.$store.state.auth.userID
+      let userID = this.$store.state.activePair.userID._id
       let levelMapping1 = this.$store.state.levelMapping.source1
       let levelMapping2 = this.$store.state.levelMapping.source2
       return axios.get(`${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, {params: {

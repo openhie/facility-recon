@@ -106,6 +106,9 @@ let MetaData = new mongoose.Schema({
   lastUpdated: {
     type: String
   },
+  recoStatus: {
+    type: String
+  },
   levelMapping:{
     facility: {
       type: String

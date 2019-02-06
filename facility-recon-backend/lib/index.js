@@ -29,6 +29,11 @@ const dhis = require('./dhis')();
 const fhir = require('./fhir')();
 const scores = require('./scores')();
 
+const mongoUser = config.getConf("DB_USER")
+const mongoPasswd = config.getConf("DB_PASSWORD")
+const mongoHost = config.getConf("DB_HOST")
+const mongoPort = config.getConf("DB_PORT")
+
 const app = express();
 const server = require('http').createServer(app);
 
@@ -136,7 +141,6 @@ if (cluster.isMaster) {
               password: bcrypt.hashSync("gofr", 8)
             })
             User.save((err, data) => {
-              db.close()
               if (err) {
                 winston.error(err)
                 winston.error('Unexpected error occured,please retry')
@@ -278,7 +282,6 @@ if (cluster.isMaster) {
               models.RolesSchema.find({
                 _id: data[0].role
               }).lean().exec((err, roles) => {
-                db.close()
                 let role = null
                 if (roles.length === 1) {
                   role = roles[0].name
@@ -341,7 +344,6 @@ if (cluster.isMaster) {
           status: 'Active'
         })
         User.save((err, data) => {
-          db.close()
           if (err) {
             winston.error(err)
             winston.error('Unexpected error occured,please retry')
@@ -373,7 +375,6 @@ if (cluster.isMaster) {
     db.on("error", console.error.bind(console, "connection error:"))
     db.once("open", () => {
       models.UsersSchema.find({}).populate("role").lean().exec((err, users) => {
-        db.close()
         winston.info(`sending back a list of ${users.length} users`)
         res.status(200).json(users)
       })
@@ -475,7 +476,6 @@ if (cluster.isMaster) {
         idFilter = {}
       }
       models.RolesSchema.find(idFilter).lean().exec((err, roles) => {
-        db.close()
         winston.info(`sending back a list of ${roles.length} roles`)
         res.status(200).json(roles)
       })
@@ -1481,7 +1481,6 @@ if (cluster.isMaster) {
         winston.error({
           error: 'Missing Source1 or Source2'
         });
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
           error: 'Missing Source1 or Source2'
         });
@@ -1499,24 +1498,38 @@ if (cluster.isMaster) {
         winston.error({
           error: 'Missing either Source1ID or Source2ID or both'
         });
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
           error: 'Missing either Source1ID or Source2ID or both'
         });
         return;
       }
-      mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, (err) => {
-        winston.info('Done matching');
-        res.set('Access-Control-Allow-Origin', '*');
-        if (err) {
-          winston.error(err)
-          res.status(400).send({
-            error: err
-          });
-        } else {
-          res.status(200).send();
-        }
-      });
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data.recoStatus === 'on-progress') {
+            mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, (err) => {
+              winston.info('Done matching');
+              if (err) {
+                winston.error(err)
+                res.status(400).send({
+                  error: err
+                });
+              } else {
+                res.status(200).send();
+              }
+            });
+          } else {
+            res.status(400).send({
+              error: "Reconciliation closed"
+            });
+          }
+        })
+      })
     });
   });
 
@@ -1547,14 +1560,29 @@ if (cluster.isMaster) {
         });
         return;
       }
-      mcsd.acceptFlag(source2Id, mappingDB, (err) => {
-        winston.info('Done marking flag as a match');
-        res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(400).send({
-          error: err
-        });
-        else res.status(200).send();
-      });
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data.recoStatus === 'on-progress') {
+            mcsd.acceptFlag(source2Id, mappingDB, (err) => {
+              winston.info('Done marking flag as a match');
+              if (err) res.status(400).send({
+                error: err
+              });
+              else res.status(200).send();
+            });
+          } else {
+            res.status(400).send({
+              error: "Reconciliation closed"
+            });
+          }
+        })
+      })
     });
   });
 
@@ -1589,14 +1617,30 @@ if (cluster.isMaster) {
         });
         return;
       }
-      mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, (err) => {
-        winston.info('Done matching');
-        res.set('Access-Control-Allow-Origin', '*');
-        if (err) res.status(400).send({
-          error: err
-        });
-        else res.status(200).send();
-      });
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data.recoStatus === 'on-progress') {
+            mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, (err) => {
+              winston.info('Done matching');
+              res.set('Access-Control-Allow-Origin', '*');
+              if (err) res.status(400).send({
+                error: err
+              });
+              else res.status(200).send();
+            });
+          } else {
+            res.status(400).send({
+              error: "Reconciliation closed"
+            });
+          }
+        })
+      })
     });
   });
 
@@ -1618,11 +1662,27 @@ if (cluster.isMaster) {
     form.parse(req, (err, fields, files) => {
       winston.info(`Received break match request for ${fields.source2Id}`);
       const source2Id = fields.source2Id;
-      mcsd.breakMatch(source2Id, mappingDB, source1DB, (err, results) => {
-        winston.info(`break match done for ${fields.source2Id}`);
-        res.set('Access-Control-Allow-Origin', '*');
-        res.status(200).send(err);
-      });
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data.recoStatus === 'on-progress') {
+            mcsd.breakMatch(source2Id, mappingDB, source1DB, (err, results) => {
+              winston.info(`break match done for ${fields.source2Id}`);
+              res.set('Access-Control-Allow-Origin', '*');
+              res.status(200).send(err);
+            });
+          } else {
+            res.status(400).send({
+              error: "Reconciliation closed"
+            });
+          }
+        })
+      })
     });
   });
 
@@ -1632,7 +1692,7 @@ if (cluster.isMaster) {
         error: 'Missing Source1'
       });
       res.set('Access-Control-Allow-Origin', '*');
-      res.status(400).json({
+      res.status(500).json({
         error: 'Missing Source1'
       });
       return;
@@ -1646,214 +1706,171 @@ if (cluster.isMaster) {
           'error': 'Missing Source1 ID'
         })
         res.set('Access-Control-Allow-Origin', '*');
-        res.status(400).json({
+        res.status(500).json({
           error: 'Missing Source1 ID'
         });
         return
       }
       const userID = req.params.userID;
       const mappingDB = req.params.source1 + userID + req.params.source2
-      mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
-        winston.info(`break no match done for ${fields.source1Id}`);
-        res.set('Access-Control-Allow-Origin', '*');
-        res.status(200).send(err);
-      });
+
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({}, (err, data) => {
+          if (data.recoStatus === 'on-progress') {
+            mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
+              winston.info(`break no match done for ${fields.source1Id}`);
+              res.set('Access-Control-Allow-Origin', '*');
+              res.status(200).send(err);
+            });
+          } else {
+            res.status(400).send({
+              error: "Reconciliation closed"
+            });
+          }
+        })
+      })
     });
   });
 
-  app.get('/markRecoUnDone/:orgid', (req, res) => {
+  app.get('/markRecoUnDone/:source1/:source2/:userID', (req, res) => {
     winston.info(`received a request to mark reconciliation for ${req.params.orgid} as undone`)
-    const mongoUser = config.getConf('mCSD:databaseUser')
-    const mongoPasswd = config.getConf('mCSD:databasePassword')
-    const mongoHost = config.getConf('mCSD:databaseHost')
-    const mongoPort = config.getConf('mCSD:databasePort')
-    const orgid = req.params.orgid
-    const database = config.getConf('mapping:dbPrefix') + orgid
+    
+    const source1 = req.params.source1
+    const source2 = req.params.source2
+    const userID = req.params.userID
+    const database = source1 + userID + source2
+
     if (mongoUser && mongoPasswd) {
       var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`
     } else {
       var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`
     }
-    mongoose.connect(uri)
-    const Schema = mongoose.Schema
-    let ReconciliationStatusModel
-    try {
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    } catch (e) {
-      mongoose.model('ReconciliationStatus', new Schema({
-        status: {
-          type: Object
+    mongoose.connect(uri, {}, () => {
+      models.MetaDataSchema.findOne({}, (err, data) => {
+        if (!data) {
+          const MetaData = new models.MetaDataSchema({
+            recoStatus: "on-progress"
+          });
+          MetaData.save((err, data) => {
+            if (err) {
+              winston.error(err)
+              winston.error("Failed to save reco status")
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry'
+              });
+            } else {
+              winston.info("Reco status saved successfully")
+              res.status(200).json({
+                status: 'on-progress'
+              });
+            }
+          })
+        } else {
+          models.MetaDataSchema.findByIdAndUpdate(data.id, {
+            recoStatus: "on-progress"
+          }, (err, data) => {
+            if (err) {
+              winston.error(err)
+              winston.error("Failed to save reco status")
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry'
+              });
+            } else {
+              winston.info("Reco status saved successfully")
+              res.status(200).json({
+                status: 'on-progress'
+              });
+            }
+          })
         }
-      }))
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    }
-
-    const recoStatusCode = config.getConf('mapping:recoStatusCode');
-    const query = {
-      status: {
-        code: recoStatusCode,
-        text: 'Done'
-      }
-    }
-    const update = {
-      status: {
-        code: recoStatusCode,
-        text: 'on-progress'
-      }
-    }
-    ReconciliationStatusModel.findOneAndUpdate(query, update, (err, data) => {
-      res.set('Access-Control-Allow-Origin', '*');
-      if (err) {
-        res.status(500).json({
-          error: 'An error occured while processing request'
-        });
-      } else {
-        res.status(200).json({
-          status: 'on-progresss'
-        });
-      }
+      })
     })
   })
 
-  app.get('/markRecoDone/:orgid', (req, res) => {
+  app.get('/markRecoDone/:source1/:source2/:userID', (req, res) => {
     winston.info(`received a request to mark reconciliation for ${req.params.orgid} as done`)
-    const mongoUser = config.getConf('mCSD:databaseUser')
-    const mongoPasswd = config.getConf('mCSD:databasePassword')
-    const mongoHost = config.getConf('mCSD:databaseHost')
-    const mongoPort = config.getConf('mCSD:databasePort')
-    const orgid = req.params.orgid
-    const database = config.getConf('mapping:dbPrefix') + orgid
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`
-    }
-    mongoose.connect(uri)
-    const Schema = mongoose.Schema
-    let ReconciliationStatusModel
-    try {
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    } catch (e) {
-      mongoose.model('ReconciliationStatus', new Schema({
-        status: {
-          type: Object
-        }
-      }))
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    }
-
-    const recoStatusCode = config.getConf('mapping:recoStatusCode');
-
-    ReconciliationStatusModel.findOne({
-      status: {
-        code: recoStatusCode,
-        text: 'on-progress'
-      }
-    }, (err, data) => {
-      if (err) {
-        winston.error('Unexpected error occured,please retry')
-        res.status(500).json({
-          error: 'Unexpected error occured,please retry'
-        });
-        return
-      }
-      if (!data) {
-        var recoStatus = new ReconciliationStatusModel({
-          status: {
-            code: recoStatusCode,
-            text: 'Done'
-          }
-        })
-        recoStatus.save(function (err, data) {
-          if (err) {
-            winston.error('Unexpected error occured,please retry')
-            res.set('Access-Control-Allow-Origin', '*');
-            res.status(500).json({
-              error: 'Unexpected error occured,please retry'
-            });
-          }
-          winston.info(`${orgid} marked as done with reconciliation`)
-          res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({
-            status: 'done'
-          });
-        })
-      } else {
-        ReconciliationStatusModel.findByIdAndUpdate(data.id, {
-          status: {
-            code: recoStatusCode,
-            text: 'Done'
-          }
-        }, (err, data) => {
-          if (err) {
-            winston.error('Unexpected error occured,please retry')
-            res.set('Access-Control-Allow-Origin', '*');
-            res.status(500).json({
-              error: 'Unexpected error occured,please retry'
-            });
-            return
-          }
-          winston.info(`${orgid} already marked as done with reconciliation`)
-          res.set('Access-Control-Allow-Origin', '*');
-          res.status(200).json({
-            status: 'done'
-          });
-        })
-      }
-    })
-  })
-
-  app.get('/recoStatus/:source1/:source2', (req, res) => {
-    const mongoUser = config.getConf("DB_USER")
-    const mongoPasswd = config.getConf("DB_PASSWORD")
-    const mongoHost = config.getConf("DB_HOST")
-    const mongoPort = config.getConf("DB_PORT")
 
     const source1 = req.params.source1
     const source2 = req.params.source2
-    const database = source1 + source2
+    const userID = req.params.userID
+    const database = source1 + userID + source2
+    
+    const mongoose = require('mongoose')
+    if (mongoUser && mongoPasswd) {
+      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    } else {
+      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    }
+    mongoose.connect(uri, {}, () => {
+      models.MetaDataSchema.findOne({}, (err, data) => {
+        if (!data) {
+          const MetaData = new models.MetaDataSchema({
+            recoStatus: "Done"
+          });
+          MetaData.save((err, data) => {
+            if (err) {
+              winston.error(err)
+              winston.error("Failed to save reco status")
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry'
+              });
+            } else {
+              winston.info("Reco status saved successfully")
+              res.status(200).json({
+                status: 'Done'
+              });
+            }
+          })
+        } else {
+          models.MetaDataSchema.findByIdAndUpdate(data.id, {
+            recoStatus: "Done"
+          }, (err, data) => {
+            if (err) {
+              winston.error(err)
+              winston.error("Failed to save reco status")
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry'
+              });
+            } else {
+              winston.info("Reco status saved successfully")
+              res.status(200).json({
+                status: 'Done'
+              });
+            }
+          })
+        }
+      })
+    })
+  })
+
+  app.get('/recoStatus/:source1/:source2/:userID', (req, res) => {
+    const source1 = req.params.source1
+    const source2 = req.params.source2
+    const userID = req.params.userID
+    const database = source1 + userID + source2
     if (mongoUser && mongoPasswd) {
       var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`
     } else {
       var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`
     }
-    mongoose.connect(uri)
-    const Schema = mongoose.Schema
 
-    const recoStatusCode = config.getConf('mapping:recoStatusCode');
-    let ReconciliationStatusModel
-    try {
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    } catch (e) {
-      mongoose.model('ReconciliationStatus', new Schema({
-        status: {
-          type: Object
+    mongoose.connect(uri, {}, () => {
+      models.MetaDataSchema.findOne({}, (err, data) => {
+        if (data && data.recoStatus) {
+          res.status(200).json({
+            status: data.recoStatus
+          });
+        } else {
+          res.status(200).json({
+            status: 'on-progress'
+          });
         }
-      }))
-      ReconciliationStatusModel = mongoose.model('ReconciliationStatus')
-    }
-
-    ReconciliationStatusModel.findOne({
-      status: {
-        code: recoStatusCode,
-        text: 'Done'
-      }
-    }, (err, data) => {
-      if (err) {
-        res.status(500).json({
-          error: 'Unexpected error occured,please retry'
-        });
-        return
-      }
-      if (data) {
-        res.status(200).json({
-          status: 'done'
-        });
-      } else {
-        res.status(200).json({
-          status: 'on-progress'
-        });
-      }
+      })
     })
   })
 

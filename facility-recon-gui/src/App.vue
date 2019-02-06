@@ -142,7 +142,9 @@
       <v-layout row wrap>
         <v-flex xs6>
           <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
-           {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>
+           {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
+           &nbsp; &nbsp; Reco Status: <v-icon small v-if="$store.state.recoStatus === 'on-progress'">lock_open</v-icon>
+           <v-icon small v-else>lock</v-icon> <b>{{$store.state.recoStatus}}</b>
           </template>
         </v-flex>
         <v-spacer></v-spacer>
@@ -246,9 +248,10 @@ export default {
       }
       let source1 = this.toTitleCase(this.$store.state.activePair.source1.name)
       let source2 = this.toTitleCase(this.$store.state.activePair.source2.name)
-      axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2).then((status) => {
+      let userID = this.$store.state.activePair.userID._id
+      axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2 + '/' + userID).then((status) => {
         if (status.data.status) {
-          this.$store.state.recoStatus.status = status.data.status
+          this.$store.state.recoStatus = status.data.status
         }
       }).catch((err) => {
         console.log(err.response.data.error)
