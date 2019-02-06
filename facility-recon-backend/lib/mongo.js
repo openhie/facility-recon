@@ -252,11 +252,35 @@ module.exports = function () {
           mongoose.connect(uri, {}, () => {
             models.DataSourcesSchema.deleteOne({_id: id}, (err, data) => {
               models.DataSourcePairSchema.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
-                return callback(err, data);
+                const filter = function (stat, path) {
+                  if (path.includes(`${userID}+${name}+`)) {
+                    return true;
+                  } else {
+                    return false;
+                  }
+                };
+                fsFinder.from(`${__dirname}/csvUploads/`).filter(filter).findFiles((files) => {
+                  this.deleteFile(files, () => {
+                    return callback(err, data);
+                  })
+                })
               });
             });
           })
         })
+      })
+    },
+
+    deleteFile(path, callback) {
+      async.each(path, (file, nxtFile) => {
+        fs.unlink(file, (err) => {
+          if (err) {
+            winston.error(err);
+          }
+          return nxtFile()
+        });
+      }, () => {
+        return callback()
       })
     },
 

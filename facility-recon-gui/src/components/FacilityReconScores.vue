@@ -125,18 +125,26 @@
           </v-card-text>
           <v-card-actions style='float: center'>
             <v-layout row wrap>
-              <v-flex xs4 text-sm-left>
+              <v-flex xs2>
                 <v-tooltip top>
-                  <v-btn color="green" small dark @click.native="noMatch" slot="activator">
+                  <v-btn color="green" dark @click.native="noMatch('nomatch')" slot="activator">
                     <v-icon left>thumb_down</v-icon>No Match
                   </v-btn>
                   <span>Save this Source 1 location as having no match</span>
                 </v-tooltip>
               </v-flex>
-              <v-flex xs4 text-xs-center>
+              <v-flex xs2 >
+                <v-tooltip top>
+                  <v-btn color="error" dark @click.native="noMatch('ignore')" slot="activator">
+                    <v-icon left>thumb_down</v-icon>Ignore
+                  </v-btn>
+                  <span>Save this Source 1 location as having no match</span>
+                </v-tooltip>
+              </v-flex>
+              <v-flex xs2 >
                 <v-tooltip top>
                   <v-btn-toggle v-if='potentialAvailable' v-model="showAllPotential" slot="activator">
-                    <v-btn color="teal darken-2" style="color: white;" value="all">
+                    <v-btn color="teal darken-2" round style="color: white;" value="all">
                       <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
                       <template v-else>Show All Suggestions</template>
                     </v-btn>
@@ -145,7 +153,7 @@
                   <span v-else>See all possible choices ignoring the score</span>
                 </v-tooltip>
               </v-flex>
-              <v-flex xs4 text-sm-right>
+              <v-flex xs6 text-sm-right>
                 <v-tooltip top>
                   <v-btn color="orange darken-2" @click.native="back" style="color: white" slot="activator">
                     <v-icon dark left>arrow_back</v-icon>Back
@@ -486,6 +494,10 @@
             NO MATCH ({{source1TotalNoMatch}})
             <v-icon color="white" right>thumb_down</v-icon>
           </v-tab>
+          <v-tab key="ignore">
+            IGNORED ({{source1TotalIgnore}})
+            <v-icon color="white" right>thumb_down</v-icon>
+          </v-tab>
           <v-tab key="flagged">
             FLAGGED ({{totalFlagged}})
             <v-icon color="white" right>notification_important</v-icon>
@@ -521,11 +533,34 @@
                   <td>{{props.item.source1Id}}</td>
                   <td>{{props.item.parents.join('->')}}</td>
                   <td>
-                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id)'>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id, "nomatch")'>
                       <v-icon>cached</v-icon>Break No Match
                     </v-btn>
-                    <v-btn v-else color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id)'>
+                    <v-btn v-else color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id, "nomatch")'>
                       <v-icon>cached</v-icon>Break No Match
+                    </v-btn>
+                  </td>
+                </template>
+              </v-data-table>
+            </template>
+            <template v-else>
+              <v-progress-linear :size="70" indeterminate color="amber"></v-progress-linear>
+            </template>
+          </v-tab-item>
+          <v-tab-item key="ignore">
+            <template v-if='$store.state.ignoreContent != null'>
+              <v-text-field v-model="searchIgnore" append-icon="search" label="Search" single-line hide-details></v-text-field>
+              <v-data-table :headers="noMatchHeaders" :items="$store.state.ignoreContent" :search="searchIgnore" class="elevation-1">
+                <template slot="items" slot-scope="props">
+                  <td>{{props.item.source1Name}}</td>
+                  <td>{{props.item.source1Id}}</td>
+                  <td>{{props.item.parents.join('->')}}</td>
+                  <td>
+                    <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id, "ignore")'>
+                      <v-icon>cached</v-icon>Break Ignore
+                    </v-btn>
+                    <v-btn v-else color="error" style='text-transform: none' small @click='breakNoMatch(props.item.source1Id, "ignore")'>
+                      <v-icon>cached</v-icon>Break Ignore
                     </v-btn>
                   </td>
                 </template>
@@ -601,6 +636,7 @@ export default {
       searchPotential: '',
       searchMatched: '',
       searchNotMatched: '',
+      searchIgnore: '',
       searchFlagged: '',
       potentialMatches: [],
       showAllPotential: null,
@@ -933,7 +969,7 @@ export default {
           console.log(err)
         })
     },
-    breakNoMatch (source1Id) {
+    breakNoMatch (source1Id, type) {
       this.$store.state.progressTitle = 'Breaking no match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
@@ -942,7 +978,7 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       let userID = this.$store.state.activePair.userID._id
       axios
-        .post(backendServer + '/breakNoMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(backendServer + '/breakNoMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -951,15 +987,29 @@ export default {
           this.alert = true
           this.alertTitle = 'Information'
           this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
-          for (var k in this.$store.state.noMatchContent) {
-            if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
-              this.$store.state.source1UnMatched.push({
-                name: this.$store.state.noMatchContent[k].source1Name,
-                id: this.$store.state.noMatchContent[k].source1Id,
-                parents: this.$store.state.noMatchContent[k].parents
-              })
-              this.$store.state.noMatchContent.splice(k, 1)
-              --this.$store.state.totalAllNoMatch
+          if (type === 'nomatch') {
+            for (let k in this.$store.state.noMatchContent) {
+              if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
+                this.$store.state.source1UnMatched.push({
+                  name: this.$store.state.noMatchContent[k].source1Name,
+                  id: this.$store.state.noMatchContent[k].source1Id,
+                  parents: this.$store.state.noMatchContent[k].parents
+                })
+                this.$store.state.noMatchContent.splice(k, 1)
+                --this.$store.state.totalAllNoMatch
+              }
+            }
+          } else if (type === 'ignore') {
+            for (let k in this.$store.state.ignoreContent) {
+              if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
+                this.$store.state.source1UnMatched.push({
+                  name: this.$store.state.ignoreContent[k].source1Name,
+                  id: this.$store.state.ignoreContent[k].source1Id,
+                  parents: this.$store.state.ignoreContent[k].parents
+                })
+                this.$store.state.ignoreContent.splice(k, 1)
+                --this.$store.state.totalAllIgnore
+              }
             }
           }
         })
@@ -974,7 +1024,7 @@ export default {
           console.log(err)
         })
     },
-    noMatch () {
+    noMatch (type) {
       this.$store.state.progressTitle = 'Saving as no match'
       this.$store.state.dynamicProgress = true
       let userID = this.$store.state.activePair.userID._id
@@ -984,7 +1034,7 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + '/noMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(backendServer + '/noMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -992,15 +1042,29 @@ export default {
         .then(() => {
           this.$store.state.dynamicProgress = false
           // remove from Source 1 Unmatched
-          for (let k in this.$store.state.source1UnMatched) {
-            if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
-              this.$store.state.noMatchContent.push({
-                source1Name: this.selectedSource1Name,
-                source1Id: this.selectedSource1Id,
-                parents: this.$store.state.source1UnMatched[k].parents
-              })
-              ++this.$store.state.totalAllNoMatch
-              this.$store.state.source1UnMatched.splice(k, 1)
+          if (type === 'nomatch') {
+            for (let k in this.$store.state.source1UnMatched) {
+              if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
+                this.$store.state.noMatchContent.push({
+                  source1Name: this.selectedSource1Name,
+                  source1Id: this.selectedSource1Id,
+                  parents: this.$store.state.source1UnMatched[k].parents
+                })
+                ++this.$store.state.totalAllNoMatch
+                this.$store.state.source1UnMatched.splice(k, 1)
+              }
+            }
+          } else if (type === 'ignore') {
+            for (let k in this.$store.state.source1UnMatched) {
+              if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
+                this.$store.state.ignoreContent.push({
+                  source1Name: this.selectedSource1Name,
+                  source1Id: this.selectedSource1Id,
+                  parents: this.$store.state.source1UnMatched[k].parents
+                })
+                ++this.$store.state.totalAllIgnore
+                this.$store.state.source1UnMatched.splice(k, 1)
+              }
             }
           }
           this.dialog = false
@@ -1294,6 +1358,13 @@ export default {
         return 0
       }
     },
+    source1TotalIgnore () {
+      if (this.$store.state.ignoreContent) {
+        return this.$store.state.ignoreContent.length
+      } else {
+        return 0
+      }
+    },
     source1PercentNoMatch () {
       if (this.$store.state.scoreResults.length === 0) {
         return 0
@@ -1301,6 +1372,21 @@ export default {
         return parseFloat(
           (
             this.$store.state.noMatchContent.length *
+            100 /
+            this.$store.state.scoreResults.length
+          ).toFixed(1)
+        )
+      } else {
+        return 0
+      }
+    },
+    source1PercentIgnore () {
+      if (this.$store.state.scoreResults.length === 0) {
+        return 0
+      } else if (this.$store.state.ignoreContent) {
+        return parseFloat(
+          (
+            this.$store.state.ignoreContent.length *
             100 /
             this.$store.state.scoreResults.length
           ).toFixed(1)

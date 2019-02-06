@@ -113,6 +113,7 @@ module.exports = function () {
           // if this Source1 Org is already mapped
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
+            const ignoreCode = config.getConf('mapping:ignoreCode');
             var entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
               entityParent = source1Entry.resource.partOf.reference;
@@ -127,12 +128,21 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let noMatch = null;
+              let ignore = null;
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
               }
+              if (match.resource.hasOwnProperty('tag')) {
+                ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+              }
               // in case this is marked as no match then process next Source1
-              if (noMatch) {
-                thisRanking.source1.tag = 'noMatch';
+              if (noMatch || ignore) {
+                if(noMatch) {
+                  thisRanking.source1.tag = 'noMatch';
+                }
+                if (ignore) {
+                  thisRanking.source1.tag = 'ignore';
+                }
                 scoreResults.push(thisRanking);
                 count++;
                 let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
@@ -428,6 +438,7 @@ module.exports = function () {
           const thisRanking = {};
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
+            const ignoreCode = config.getConf('mapping:ignoreCode');
             var entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
               entityParent = source1Entry.resource.partOf.reference;
@@ -450,12 +461,21 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let noMatch = null;
+              let ignore = null;
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
               }
+              if (match.resource.hasOwnProperty('tag')) {
+                ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+              }
               // in case this is marked as no match then process next Source1
-              if (noMatch) {
-                thisRanking.source1.tag = 'noMatch';
+              if (noMatch || ignore) {
+                if(noMatch) {
+                  thisRanking.source1.tag = 'noMatch';
+                }
+                if (ignore) {
+                  thisRanking.source1.tag = 'ignore';
+                }
                 scoreResults.push(thisRanking);
                 count++
                 let percent = parseFloat((count * 100 / totalRecords).toFixed(2))
@@ -741,6 +761,7 @@ module.exports = function () {
         "entry": []
       };
       const noMatchCode = config.getConf('mapping:noMatchCode');
+      const ignoreCode = config.getConf('mapping:ignoreCode');
       mcsd.getLocations(mappingDB, (mappedLocations) => {
         let parentCache = {}
         async.each(mcsdFiltered.entry, (filteredEntry, filteredCallback) => {
@@ -819,12 +840,14 @@ module.exports = function () {
     },
     getMappingStatus(source1Locations, source2Locations, mappedLocations, source1DB, clientId, callback) {
       const noMatchCode = config.getConf('mapping:noMatchCode');
+      const ignoreCode = config.getConf('mapping:ignoreCode');
       const flagCode = config.getConf('mapping:flagCode');
       var mappingStatus = {}
       mappingStatus.mapped = []
       mappingStatus.notMapped = []
       mappingStatus.flagged = []
       mappingStatus.noMatch = []
+      mappingStatus.ignore = []
       let count = 0
       async.each(source1Locations.entry, (entry, source1Callback) => {
         const ident = entry.resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
@@ -844,13 +867,14 @@ module.exports = function () {
             var source2Entry = source2Locations.entry.find((source2Entry) => {
               return source2Entry.resource.id === mapped.resource.id
             })
-            let nomatch, flagged
+            let nomatch, ignore, flagged
             if (mapped.resource.hasOwnProperty('tag')) {
               nomatch = mapped.resource.tag.find((tag) => {
                 return tag.code === noMatchCode
               })
-            }
-            if (mapped.resource.hasOwnProperty('tag')) {
+              ignore = mapped.resource.tag.find((tag) => {
+                return tag.code === ignoreCode
+              })
               flagged = mapped.resource.tag.find((tag) => {
                 return tag.code === flagCode
               })
@@ -864,6 +888,11 @@ module.exports = function () {
               })
             } else if (nomatch) {
               mappingStatus.noMatch.push({
+                source1Name: entry.resource.name,
+                source1Id: source1UploadedId
+              })
+            } else if (ignore) {
+              mappingStatus.ignore.push({
                 source1Name: entry.resource.name,
                 source1Id: source1UploadedId
               })

@@ -8,6 +8,8 @@ const winston = require('winston');
 const https = require('https');
 const http = require('http');
 const os = require("os");
+const fs = require("fs");
+const fsFinder = require('fs-finder')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -15,6 +17,7 @@ const redis = require('redis');
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
 });
+const moment = require("moment")
 const json2csv = require('json2csv').parse;
 const csv = require('fast-csv');
 const url = require('url');
@@ -941,7 +944,7 @@ if (cluster.isMaster) {
             totalSource1Levels,
             clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
               scoreResData = JSON.stringify({
                 status: 'Done',
                 error: null,
@@ -957,6 +960,7 @@ if (cluster.isMaster) {
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
+                totalAllIgnored: totalAllIgnored,
                 source1TotalAllNotMapped: source1TotalAllNotMapped,
                 source1TotalAllRecords: mcsdSource1All.entry.length - 1
               });
@@ -977,7 +981,7 @@ if (cluster.isMaster) {
             totalSource1Levels, 
             clientId, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
-            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllFlagged) => {
+            recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
               var source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped
               res.status(200).json({
                 scoreResults,
@@ -987,6 +991,7 @@ if (cluster.isMaster) {
                 totalAllMapped: totalAllMapped,
                 totalAllFlagged: totalAllFlagged,
                 totalAllNoMatch: totalAllNoMatch,
+                totalAllIgnored: totalAllIgnored,
                 source1TotalAllNotMapped: source1TotalAllNotMapped,
                 source1TotalAllRecords: mcsdSource1All.entry.length - 1
               });
@@ -1002,27 +1007,36 @@ if (cluster.isMaster) {
       var database = source1 + userID + source2;
       var totalAllMapped = 0
       var totalAllNoMatch = 0
+      var totalAllIgnored = 0
       var totalAllFlagged = 0
       var source1TotalAllNotMapped = 0
       const noMatchCode = config.getConf('mapping:noMatchCode');
+      const ignoreCode = config.getConf('mapping:ignoreCode');
       const flagCode = config.getConf('mapping:flagCode');
       setTimeout(() => {
         mcsd.getLocations(database, (body) => {
           if (!body.hasOwnProperty('entry') || body.length === 0) {
             totalAllNoMatch = 0
+            totalAllIgnored = 0
             totalAllMapped = 0
-            return callback(totalAllMapped, source1TotalAllNotMapped, totalAllNoMatch, totalAllFlagged)
+            return callback(totalAllMapped, source1TotalAllNotMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged)
           }
           async.each(body.entry, (entry, nxtEntry) => {
             if (entry.resource.hasOwnProperty('tag')) {
               var nomatch = entry.resource.tag.find((tag) => {
                 return tag.code === noMatchCode
               })
+              var ignore = entry.resource.tag.find((tag) => {
+                return tag.code === ignoreCode
+              })
               var flagged = entry.resource.tag.find((tag) => {
                 return tag.code === flagCode
               })
               if (nomatch) {
                 totalAllNoMatch++
+              }
+              if (ignore) {
+                totalAllIgnored++
               }
               if (flagged) {
                 totalAllFlagged++
@@ -1032,8 +1046,8 @@ if (cluster.isMaster) {
               return nxtEntry()
             }
           }, () => {
-            totalAllMapped = body.entry.length - totalAllNoMatch - totalAllFlagged
-            return callback(totalAllMapped, totalAllNoMatch, totalAllFlagged)
+            totalAllMapped = body.entry.length - totalAllNoMatch - totalAllIgnored - totalAllFlagged
+            return callback(totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged)
           })
         })
       }, 1000)
@@ -1060,6 +1074,7 @@ if (cluster.isMaster) {
     let matched = []
     const flagCode = config.getConf('mapping:flagCode');
     const noMatchCode = config.getConf('mapping:noMatchCode');
+    const ignoreCode = config.getConf('mapping:ignoreCode');
     const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
     const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
     let fields = ['source 1 name','source 1 ID','source 2 name','source 2 ID', "Status"]
@@ -1076,7 +1091,10 @@ if (cluster.isMaster) {
             noMatch = entry.resource.tag.find((tag) => {
               return tag.code == noMatchCode
             })
-            if (noMatch) {
+            ignore = entry.resource.tag.find((tag) => {
+              return tag.code == ignoreCode
+            })
+            if (noMatch || ignore) {
               delete mapped.entry[key]
             }
             return nxtEntry()
@@ -1088,7 +1106,7 @@ if (cluster.isMaster) {
         })
       } else {
         async.each(mapped.entry, (entry, nxtmCSD) => {
-          let status, flagged, noMatch, autoMatched, manuallyMatched
+          let status, flagged, noMatch, ignore, autoMatched, manuallyMatched
           if (entry.resource.hasOwnProperty('tag')) {
             flagged = entry.resource.tag.find((tag) => {
               return tag.code == flagCode
@@ -1096,14 +1114,17 @@ if (cluster.isMaster) {
             noMatch = entry.resource.tag.find((tag) => {
               return tag.code == noMatchCode
             })
+            ignore = entry.resource.tag.find((tag) => {
+              return tag.code == ignoreCode
+            })
             autoMatched = entry.resource.tag.find((tag) => {
               return tag.code == autoMatchedCode
             })
-            manualMatched = entry.resource.tag.find((tag) => {
+            manuallyMatched = entry.resource.tag.find((tag) => {
               return tag.code == manualllyMatchedCode
             })
           }
-          if (noMatch) {
+          if (noMatch || ignore) {
             return nxtmCSD()
           }
           if (flagged) {
@@ -1586,7 +1607,7 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/noMatch/:source1/:source2/:userID', (req, res) => {
+  app.post('/noMatch/:type/:source1/:source2/:userID', (req, res) => {
     winston.info('Received data for matching');
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
@@ -1599,6 +1620,7 @@ if (cluster.isMaster) {
       return;
     }
     const userID = req.params.userID;
+    const type = req.params.type;
     const source1DB = req.params.source1 + userID;
     const source2DB = req.params.source2 + userID;
     const mappingDB = req.params.source1 + userID + req.params.source2
@@ -1626,7 +1648,7 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataSchema.findOne({}, (err, data) => {
           if (data.recoStatus === 'on-progress') {
-            mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, (err) => {
+            mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, (err) => {
               winston.info('Done matching');
               res.set('Access-Control-Allow-Origin', '*');
               if (err) res.status(400).send({
@@ -1686,7 +1708,7 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/breakNoMatch/:source1/:source2/:userID', (req, res) => {
+  app.post('/breakNoMatch/:type/:source1/:source2/:userID', (req, res) => {
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1'
@@ -1712,6 +1734,7 @@ if (cluster.isMaster) {
         return
       }
       const userID = req.params.userID;
+      const type = req.params.type;
       const mappingDB = req.params.source1 + userID + req.params.source2
 
       if (mongoUser && mongoPasswd) {
@@ -2158,6 +2181,41 @@ if (cluster.isMaster) {
     })
   })
 
+  app.get('/getUploadedCSV/:userID/:name', (req, res) => {
+    let userID = req.params.userID
+    let name = mixin.toTitleCase(req.params.name)
+    const filter = function (stat, path) {
+      if (path.includes(`${userID}+${name}+`) ) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+    let filePath, timeStamp0
+    const files = fsFinder.from(`${__dirname}/csvUploads/`).filter(filter).findFiles((files) => {
+      async.eachSeries(files, (file, nxtFile) => {
+        timeStamp1 = file.split('/').pop().replace('.csv', '').replace(`${userID}_${name}_`, '');
+        if (!timeStamp0) {
+          timeStamp0 = timeStamp1
+          filePath = file
+        } else {
+          if (moment(timeStamp1).isAfter(timeStamp0)) {
+            timeStamp0 = timeStamp1
+            filePath = file
+          }
+        }
+        return nxtFile();
+      }, () => {
+        if(filePath) {
+          fs.readFile(filePath, function (err, data) {
+            res.status(200).send(data)
+          })
+        } else {
+          res.status(404).send("CSV file not found")
+        }
+      });
+    });
+  })
   app.post('/uploadCSV', (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
@@ -2210,16 +2268,27 @@ if (cluster.isMaster) {
       validateCSV(files[fileName].path, fields, (valid, invalid) => {
         if (invalid.length > 0) {
           winston.error("Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),execution stopped");
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(400).json({
             error: invalid
           });
           res.end();
           return;
         } else {
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(200).end();
         }
+        let oldPath = files[fileName].path
+
+        let newPath = `${__dirname}/csvUploads/${fields.userID}+${mixin.toTitleCase(fields.csvName)}+${moment().format()}.csv`
+        fs.readFile(oldPath, function (err, data) {
+          if (err) {
+            winston.error(err)
+          }
+          fs.writeFile(newPath, data, function (err) {
+            if(err) {
+              winston.error(err)
+            }
+          });
+        });
         winston.info('CSV File Passed Validation');
         winston.info(`Uploading data for ${database} now`)
         let uploadReqPro = JSON.stringify({

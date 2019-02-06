@@ -769,9 +769,10 @@ module.exports = function () {
         });
       });
     },
-    saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, callback) {
+    saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, callback) {
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const noMatchCode = config.getConf('mapping:noMatchCode');
+      const ignoreCode = config.getConf('mapping:ignoreCode');
 
       const me = this;
       async.parallel({
@@ -835,11 +836,19 @@ module.exports = function () {
             });
 
             resource.tag = [];
-            resource.tag.push({
-              system: source1System,
-              code: noMatchCode,
-              display: 'No Match',
-            });
+            if (type == 'nomatch') {
+              resource.tag.push({
+                system: source1System,
+                code: noMatchCode,
+                display: 'No Match',
+              });
+            } else if (type == 'ignore') {
+              resource.tag.push({
+                system: source1System,
+                code: ignoreCode,
+                display: 'Ignore',
+              });
+            }
             entry.push({
               resource,
             });

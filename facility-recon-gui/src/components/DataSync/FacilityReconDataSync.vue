@@ -204,6 +204,15 @@
             </v-toolbar>
           </v-card-title>
           <v-card-actions>
+            <v-tooltip top>
+              <v-btn color="success" @click="exportCSV" round v-if="uploadedSources.length > 0" slot="activator">
+                <v-icon left>file_copy</v-icon>Export
+              </v-btn>
+              <v-btn color="success" @click="exportCSV" round disabled v-else slot="activator">
+                <v-icon left>file_copy</v-icon>Export
+              </v-btn>
+              <span>Export Original CSV</span>
+            </v-tooltip>
             <v-spacer></v-spacer>
             <v-btn color="error" @click="validateDelete" round v-if="uploadedSources.length > 0">
               <v-icon left>delete</v-icon>Delete
@@ -336,6 +345,20 @@ export default {
       axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name + '/' + userID).then((resp) => {
         this.server = {}
         eventBus.$emit('getDataSources')
+      })
+    },
+    exportCSV () {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/getUploadedCSV/' + userID + '/' + this.server.name).then((resp) => {
+        let csvData = encodeURI('data:text/csv;charset=utf-8,' + resp.data)
+        const link = document.createElement('a')
+        link.setAttribute('href', csvData)
+        link.setAttribute('download', `${this.server.name}.csv`)
+        link.click()
+      }).catch((err) => {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = err.response.data
       })
     },
     sync (mode) {

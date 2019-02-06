@@ -294,6 +294,10 @@
             Source 1 NO MATCH ({{totalNoMatch}})
             <v-icon color="white" right>thumb_down</v-icon>
           </v-tab>
+          <v-tab key="ignore">
+            Source 1 IGNORED ({{totalIgnore}})
+            <v-icon color="white" right>thumb_down</v-icon>
+          </v-tab>
           <v-tab key="flagged">
             FLAGGED ({{totalFlagged}})
             <v-icon color="white" right>notification_important</v-icon>
@@ -318,6 +322,14 @@
           </v-tab-item>
           <v-tab-item key="nomatch">
             <v-data-table :headers="noMatchHeaders" :items="mappingData.noMatch" :search="searchMatched" class="elevation-1">
+              <template slot="items" slot-scope="props">
+                <td>{{props.item.source1Name}}</td>
+                <td>{{props.item.source1Id}}</td>
+              </template>
+            </v-data-table>
+          </v-tab-item>
+          <v-tab-item key="ignore">
+            <v-data-table :headers="noMatchHeaders" :items="mappingData.ignore" :search="searchMatched" class="elevation-1">
               <template slot="items" slot-scope="props">
                 <td>{{props.item.source1Name}}</td>
                 <td>{{props.item.source1Id}}</td>
@@ -483,11 +495,25 @@ export default {
         return parseFloat((this.$store.state.totalAllNoMatch * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
       }
     },
+    source1PercentIgnore () {
+      if (this.$store.state.source1TotalAllRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.$store.state.totalAllIgnore * 100 / this.$store.state.source1TotalAllRecords).toFixed(2))
+      }
+    },
     source1PercentNoMatchLevel () {
       if (this.totalRecords === 0) {
         return 0
       } else {
         return parseFloat((this.totalNoMatch * 100 / this.totalRecords).toFixed(2))
+      }
+    },
+    source1PercentIgnoreLevel () {
+      if (this.totalRecords === 0) {
+        return 0
+      } else {
+        return parseFloat((this.totalIgnore * 100 / this.totalRecords).toFixed(2))
       }
     },
     source1PercentFlagged () {
@@ -553,6 +579,13 @@ export default {
         return 0
       }
     },
+    totalIgnore () {
+      if (this.mappingData && this.mappingData.hasOwnProperty('ignore')) {
+        return this.mappingData.ignore.length
+      } else {
+        return 0
+      }
+    },
     totalFlagged () {
       if (this.mappingData && this.mappingData.hasOwnProperty('flagged')) {
         return this.mappingData.flagged.length
@@ -561,7 +594,7 @@ export default {
       }
     },
     totalRecords () {
-      return this.totalMapped + this.totalNotMapped + this.totalNoMatch + this.totalFlagged
+      return this.totalMapped + this.totalNotMapped + this.totalNoMatch + this.totalIgnore + this.totalFlagged
     }
   },
   created () {

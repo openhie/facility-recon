@@ -47,11 +47,13 @@ export const scoresMixin = {
       this.$store.state.source2UnMatched = []
       this.$store.state.matchedContent = []
       this.$store.state.noMatchContent = []
+      this.$store.state.ignoreContent = []
       this.$store.state.flagged = []
       this.$store.state.source1TotalAllRecords = 0
       this.$store.state.totalAllMapped = 0
       this.$store.state.totalAllFlagged = 0
       this.$store.state.totalAllNoMatch = 0
+      this.$store.state.totalAllIgnore = 0
       this.$store.state.source2TotalRecords = 0
       this.$store.state.scoreResults = []
       if (!source1 || !source2) {
@@ -90,6 +92,7 @@ export const scoresMixin = {
         this.$store.state.source1UnMatched = []
         this.$store.state.matchedContent = []
         this.$store.state.noMatchContent = []
+        this.$store.state.ignoreContent = []
         this.$store.state.flagged = []
         this.$store.state.scoreResults = scores.data.scoreResults
         this.$store.state.source2TotalRecords = scores.data.source2TotalRecords
@@ -97,6 +100,7 @@ export const scoresMixin = {
         this.$store.state.totalAllMapped = scores.data.totalAllMapped
         this.$store.state.totalAllFlagged = scores.data.totalAllFlagged
         this.$store.state.totalAllNoMatch = scores.data.totalAllNoMatch
+        this.$store.state.totalAllIgnore = scores.data.totalAllIgnore
         this.$store.state.source1TotalAllNotMapped = scores.data.source1TotalAllNotMapped
         this.$store.state.source1TotalAllRecords = scores.data.source1TotalAllRecords
         for (let scoreResult of this.$store.state.scoreResults) {
@@ -112,6 +116,13 @@ export const scoresMixin = {
           } else if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'noMatch') {
             let parents = scoreResult.source1.parents
             this.$store.state.noMatchContent.push({
+              source1Name: scoreResult.source1.name,
+              source1Id: scoreResult.source1.id,
+              parents: parents
+            })
+          } else if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'ignore') {
+            let parents = scoreResult.source1.parents
+            this.$store.state.ignoreContent.push({
               source1Name: scoreResult.source1.name,
               source1Id: scoreResult.source1.id,
               parents: parents
