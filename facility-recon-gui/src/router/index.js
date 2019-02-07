@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import FacilityReconUpload from '@/components/DataSync/FacilityReconUpload'
 import Login from '@/components/Login.vue'
+import Configure from '@/components/Configure.vue'
 import Logout from '@/components/Logout.vue'
 import UsersList from '@/components/UsersList.vue'
 import AddUser from '@/components/AddUser.vue'
@@ -42,6 +43,11 @@ let router = new Router({
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/Configure',
+    name: 'Configure',
+    component: Configure
   },
   {
     path: '/logout',

@@ -18,7 +18,7 @@
         </v-tooltip>
         <v-menu open-on-hover bottom offset-y>
           <v-btn slot="activator" flat>
-            {{ $t('App.menu.recoParent.msg')}}
+            <v-icon>find_in_page</v-icon>{{ $t('App.menu.recoParent.msg')}}
           </v-btn>
           <v-list>
             <v-tooltip top>
@@ -98,6 +98,9 @@
             </v-list-tile>
           </v-list>
         </v-menu>
+        <v-btn flat to="configure" v-if='!$store.state.denyAccess'>
+          <v-icon>settings</v-icon> {{ $t('App.menu.configure.msg') }}
+        </v-btn>
         <v-btn flat to="logout" v-if='!$store.state.denyAccess'>
           <v-icon>logout</v-icon> {{ $t('App.menu.logout.msg') }}
         </v-btn>
@@ -143,7 +146,7 @@
         <v-flex xs6>
           <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
            {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
-           &nbsp; &nbsp; Reco Status: <v-icon small v-if="$store.state.recoStatus === 'on-progress'">lock_open</v-icon>
+           &nbsp; &nbsp; Recon Status: <v-icon small v-if="$store.state.recoStatus === 'on-progress'">lock_open</v-icon>
            <v-icon small v-else>lock</v-icon> <b>{{$store.state.recoStatus}}</b>
           </template>
         </v-flex>
@@ -252,6 +255,14 @@ export default {
       axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2 + '/' + userID).then((status) => {
         if (status.data.status) {
           this.$store.state.recoStatus = status.data.status
+        } else {
+          axios.get(backendServer + '/markRecoUnDone/' + source1 + '/' + source2 + '/' + userID).then((status) => {
+            if (status.data.status) {
+              this.$store.state.recoStatus = status.data.status
+            }
+          }).catch((err) => {
+            console.log(err.response.data.error)
+          })
         }
       }).catch((err) => {
         console.log(err.response.data.error)
@@ -268,6 +279,15 @@ export default {
       }).catch((err) => {
         this.$store.state.loadingServers = false
         console.log(JSON.stringify(err))
+      })
+    },
+    getConfig () {
+      let userID = this.$store.state.auth.userID
+      axios.get(backendServer + '/getConfig/' + userID).then((config) => {
+        this.$store.state.config = config.data.config
+        this.getDataSources()
+      }).catch(() => {
+        this.getDataSources()
       })
     },
     getDataSourcePair () {
@@ -328,7 +348,7 @@ export default {
         this.$store.state.clientId = uuid.v4()
         this.$store.state.initializingApp = true
         this.$store.state.denyAccess = false
-        this.getDataSources()
+        this.getConfig()
       })
     }
     eventBus.$on('refreshApp', () => {

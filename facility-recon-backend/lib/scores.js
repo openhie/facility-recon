@@ -332,6 +332,7 @@ module.exports = function () {
       recoLevel, 
       totalLevels, 
       clientId, 
+      parentConstraint,
       callback
     ) {
       const scoreRequestId = `scoreResults${clientId}`
@@ -561,10 +562,14 @@ module.exports = function () {
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
-              var source2Filtered = mcsdSource2.entry.filter((entry) => {
-                // in case there are different levels of parents (only Source2 can have more levels due to import)
-                return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
-              })
+              let source2Filtered
+              if(parentConstraint) {
+                source2Filtered = mcsdSource2.entry.filter((entry) => {
+                  return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
+                })
+              } else {
+                source2Filtered = mcsdSource2.entry
+              }
               async.eachSeries(source2Filtered, (source2Entry, source2Callback) => {
                 if (Object.keys(thisRanking.exactMatch).length > 0) {
                   return source2Callback()
@@ -604,7 +609,7 @@ module.exports = function () {
                 }
                 source2IdPromises = [];
                 // check if IDS are the same and mark as exact match
-                const matchingIdent = source2Identifiers.find(datIdent => source1Identifiers.find(source1Ident => datIdent.value == source1Ident.value));
+                const matchingIdent = source2Identifiers.find(source2Ident => source1Identifiers.find(source1Ident => source2Ident.value == source1Ident.value));
                 if (matchingIdent && !matchBroken) {
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {

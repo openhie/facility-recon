@@ -37,6 +37,9 @@
       "logout": {
         "msg": "Logout"
       },
+      "configure": {
+        "msg": "configure System"
+      },
       "dataSources": {
         "msg": "Data Sources",
         "tooltip": "Upload CSV data or synhronize remote server data"

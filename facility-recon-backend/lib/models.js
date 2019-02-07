@@ -106,6 +106,21 @@ let MetaData = new mongoose.Schema({
   lastUpdated: {
     type: String
   },
+  config: {
+    userID: {
+      type: Schema.Types.ObjectId,
+      ref: 'Users',
+      required: true
+    },
+    reconciliation: {
+      useCSVHeader: {
+        type: Boolean
+      },
+      parentConstraint: {
+        type: Boolean
+      }
+    },
+  },
   recoStatus: {
     type: String
   },

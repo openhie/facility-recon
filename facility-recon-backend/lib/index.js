@@ -455,13 +455,93 @@ if (cluster.isMaster) {
     })
   })
 
+  app.post('/updateConfig', (req, res) => {
+    winston.info("Received updated configurations")
+    const database = config.getConf("DB_NAME")
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      const mongoose = require('mongoose')
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      let userConfig
+      try {
+        userConfig = JSON.parse(fields.config)
+      } catch (error) {
+        userConfig = fields.config
+      }
+      userConfig.userID = fields.userID
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({'config.userID': fields.userID}, (err, data) => {
+          if (!data) {
+            const MetaData = new models.MetaDataSchema({
+              config: userConfig
+            });
+            MetaData.save((err, data) => {
+              if (err) {
+                winston.error(err)
+                winston.error("Failed to save reco status")
+                res.status(500).json({
+                  error: 'Unexpected error occured,please retry'
+                });
+              } else {
+                winston.info("Reco status saved successfully")
+                res.status(200).json({
+                  status: 'Done'
+                });
+              }
+            })
+          } else {
+            models.MetaDataSchema.findByIdAndUpdate(data.id, {
+              config: userConfig
+            }, (err, data) => {
+              if (err) {
+                winston.error(err)
+                winston.error("Failed to save reco status")
+                res.status(500).json({
+                  error: 'Unexpected error occured,please retry'
+                });
+              } else {
+                winston.info("Reco status saved successfully")
+                res.status(200).json({
+                  status: 'Done'
+                });
+              }
+            })
+          }
+        })
+      })
+    })
+  })
+
+  app.get('/getConfig/:userID', (req, res) => {
+    let database = config.getConf("DB_NAME")
+    let userID = req.params.userID
+    const mongoose = require('mongoose')
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataSchema.findOne({'config.userID': userID}, (err, data) => {
+          if(err) {
+            winston.error(err)
+            res.status(500).json({error: 'internal error occured while getting configurations'})
+          } else {
+            delete data._id
+            delete data.config.userID
+            res.status(200).json(data)
+          }
+        })
+      })
+  })
+
   app.get('/getRoles/:id?', (req, res) => {
     winston.info("Received a request to get roles")
     const database = config.getConf("DB_NAME")
-    const mongoUser = config.getConf("DB_USER")
-    const mongoPasswd = config.getConf("DB_PASSWORD")
-    const mongoHost = config.getConf("DB_HOST")
-    const mongoPort = config.getConf("DB_PORT")
 
     if (mongoUser && mongoPasswd) {
       var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
@@ -870,6 +950,12 @@ if (cluster.isMaster) {
     let userID = req.query.userID
     let source1 = req.query.source1
     let source2 = req.query.source2
+    let parentConstraint
+    try {
+      parentConstraint = JSON.parse(req.query.parentConstraint)
+    } catch (error) {
+      parentConstraint = req.query.parentConstraint
+    }
     if (!source1 || !source2 || !recoLevel || !userID) {
       winston.error({
         error: 'Missing source1 or source2 or reconciliation Level or userID'
@@ -942,7 +1028,8 @@ if (cluster.isMaster) {
             mappingDB,
             recoLevel,
             totalSource1Levels,
-            clientId, (scoreResults) => {
+            clientId,
+            parentConstraint, (scoreResults) => {
             res.set('Access-Control-Allow-Origin', '*');
             recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
               scoreResData = JSON.stringify({
@@ -1890,7 +1977,7 @@ if (cluster.isMaster) {
           });
         } else {
           res.status(200).json({
-            status: 'on-progress'
+            status: false
           });
         }
       })

@@ -7,10 +7,6 @@ import VueCookies from 'vue-cookies'
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
-  // Nigeria PqlFzhuPcF1
-  // Malawi lZsCb6y0KDX
-  // Tanzania mdXu6iCbn2G
-  // Global ybg3MO3hcf4
   state: {
     auth: {
       username: '',
@@ -24,7 +20,8 @@ export const store = new Vuex.Store({
     },
     config: {
       reconciliation: {
-        useCSVHeader: true
+        useCSVHeader: true,
+        parentConstraint: true
       }
     },
     recoStatus: {

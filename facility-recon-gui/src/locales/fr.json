@@ -37,6 +37,9 @@
       "logout": {
         "msg": "Connectez - Out"
       },
+      "configure": {
+        "msg": "configurer le système"
+      },
       "dataSources": {
         "msg": "Les sources de données",
         "tooltip": "Téléchargez des données CSV ou synchronisez des données de serveur distant"
