@@ -620,6 +620,7 @@ import axios from 'axios'
 import LiquorTree from 'liquor-tree'
 import { scoresMixin } from '../mixins/scoresMixin'
 import {generalMixin} from '../mixins/generalMixin'
+import { eventBus } from '../main'
 
 const backendServer = process.env.BACKEND_SERVER
 
@@ -1157,11 +1158,17 @@ export default {
     }
   },
   computed: {
-    nextLevelText () {
-      return this.translateDataHeader('source1', this.$store.state.recoLevel)
+    nextLevelText: {
+      get: function () {
+        return this.translateDataHeader('source1', this.$store.state.recoLevel)
+      },
+      set: function (newVal) { }
     },
-    currentLevelText () {
-      return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+    currentLevelText: {
+      get: function () {
+        return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+      },
+      set: function (newVal) { }
     },
     matchedHeaders () {
       let header = [
@@ -1475,7 +1482,11 @@ export default {
     }
   },
   created () {
-    // this.$i18n.locale = "ja"
+    eventBus.$on('changeCSVHeaderNames', () => {
+      let levelName = this.translateDataHeader('source1', this.$store.state.recoLevel)
+      this.nextLevelText = levelName
+      this.currentLevelText = levelName
+    })
     this.addListener()
     if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
       this.dialogWidth = 'auto'

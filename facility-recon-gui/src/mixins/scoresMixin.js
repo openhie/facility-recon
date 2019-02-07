@@ -1,5 +1,6 @@
 import axios from 'axios'
 import {generalMixin} from './generalMixin'
+import { eventBus } from '../main'
 const backendServer = process.env.BACKEND_SERVER
 export const scoresMixin = {
   mixins: [generalMixin],
@@ -196,6 +197,20 @@ export const scoresMixin = {
     }
   },
   created () {
+    eventBus.$on('changeCSVHeaderNames', () => {
+      this.$store.state.levelArray = []
+      for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {
+        let text
+        if (k + 1 > this.$store.state.recoLevel) {
+          continue
+        }
+        text = this.translateDataHeader('source1', k)
+        this.$store.state.levelArray.push({
+          text: text,
+          value: k + 1
+        })
+      }
+    })
     this.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
     this.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
     if (this.$store.state.scoresProgressData.scoreDialog) {

@@ -14,6 +14,7 @@
 </template>
 <script>
 import axios from 'axios'
+import { eventBus } from '../main'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   data () {
@@ -31,6 +32,8 @@ export default {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
+      }).then(() => {
+        eventBus.$emit('changeCSVHeaderNames')
       })
     }
   }
