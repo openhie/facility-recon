@@ -40,9 +40,15 @@
       "configure": {
         "msg": "configurer le système"
       },
-      "dataSources": {
+      "dataSourcesParent": {
         "msg": "Les sources de données",
-        "tooltip": "Téléchargez des données CSV ou synchronisez des données de serveur distant"
+        "tooltip": "Télécharger des données CSV et ajouter des serveurs DHIS2 ou FHIR distants"
+      },
+      "viewDataSources": {
+        "msg": "Afficher les sources de données"
+      },
+      "addDataSources": {
+        "msg": "Ajouter des sources de données"
       },
       "view": {
         "msg": "Vue",

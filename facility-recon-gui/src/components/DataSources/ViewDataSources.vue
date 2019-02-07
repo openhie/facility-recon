@@ -83,30 +83,15 @@
           </v-btn>
         </v-toolbar>
         <v-card-text>
-          This page let you load data from various sources into the app for reconciliation
-          <v-list>1. Select to add remote source if you have a DHIS2 or FHIR server that you want to use its data on this app</v-list>
-          <v-list>2. Select Upload CSV if you have a CSV file and want to upload its data on the app</v-list>
-          <v-list>3. The system requires CSV data to have atleast 2 levels above facility</v-list>
-          <v-list>4. Level 1 is the highest level on the hierarchy i.e Country</v-list>
-          <v-list>
-            5. Base URL under remote sources section refer to the URL i.e http://localhost:3447/fhir and not http://localhost:3447/fhir/Location.
-            Same applies to DHIS2 base URL
-          </v-list>
-          <v-list>6. Use Force Full Sync to fetch all data from the remote server and update the app</v-list>
-          <v-list>8. Use Sync (Update) to pull updated records from the remote server and update the app</v-list>
-          <v-list>9. You may proceed to the 'Data Source Pair' page after you have added atleast two data sources</v-list>
-          <v-list>10. You may come back to this page and add more sources at any time</v-list>
+          This page let you visualize various data sets you have added into the app as well as synchronize remote servers with the app
+          <v-list>1. Use Force Full Sync to fetch all data from the remote server and update the app</v-list>
+          <v-list>2. Use Sync (Update) to pull updated records from the remote server and update the app</v-list>
+          <v-list>3. You may proceed to the 'Data Source Pair' page after you have added atleast two data sources</v-list>
+          <v-list>4. You may come back to this page and add more sources at any time</v-list>
         </v-card-text>
       </v-card>
     </v-dialog>
     <v-layout row wrap>
-      <v-spacer></v-spacer>
-      <v-flex xs2>
-        <v-subheader>Add Source</v-subheader>
-      </v-flex>
-      <v-flex xs2>
-        <v-select :items="dataSources" v-model="dataSource" item-text='text' item-value='value' @change="sourceSelected" />
-      </v-flex>
       <v-spacer></v-spacer>
       <v-flex xs1 text-xs-right>
         <v-tooltip top>
@@ -137,9 +122,6 @@
         >
           {{alertMsg}}
         </v-alert>
-      </v-flex>
-      <v-flex>
-        <component :is="selectedComponent" v-if='addDataSource' />
       </v-flex>
     </v-layout>
     <v-layout row wrap>
@@ -271,7 +253,6 @@ export default {
           value: 'name'
         }
       ],
-      selectedComponent: '',
       dataSources: [
         { text: 'Upload CSV', value: 'upload' },
         { text: 'Remote Source', value: 'remote' }

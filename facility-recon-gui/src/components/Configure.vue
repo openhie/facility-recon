@@ -5,7 +5,7 @@
         <v-layout column>
           <v-flex background-color="primary">
             <v-switch @change="configChanged" color="success" label="Use CSV header for display" v-model="$store.state.config.reconciliation.useCSVHeader"></v-switch>
-            <v-switch @change="configChanged" color="success" label="Perform match based on parent" v-model="$store.state.config.reconciliation.parentConstraint"></v-switch>
+            <v-switch @change="configChanged" color="success" label="Perform match based on parent constraint" v-model="$store.state.config.reconciliation.parentConstraint"></v-switch>
           </v-flex>
         </v-layout>
       </v-card-text>

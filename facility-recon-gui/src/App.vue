@@ -4,17 +4,28 @@
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="$store.state.auth.token">
-        <v-tooltip bottom>
-          <v-btn to="dataSync" flat v-if='!$store.state.denyAccess' slot="activator">
-            <v-icon>sync</v-icon>{{ $t('App.menu.dataSources.msg')}}
+        <v-menu open-on-hover bottom offset-y>
+          <v-btn slot="activator" flat>
+            <v-icon>sync</v-icon>{{ $t('App.menu.dataSourcesParent.msg')}}
           </v-btn>
-          <span>{{ $t('App.menu.dataSources.tooltip')}}</span>
-        </v-tooltip>
+          <v-list>
+            <v-list-tile to="AddDataSources">
+              <v-list-tile-title>
+                <v-icon>compare_arrows</v-icon>{{ $t('App.menu.addDataSources.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+            <v-list-tile to="ViewDataSources">
+              <v-list-tile-title>
+                <v-icon>list</v-icon>{{ $t('App.menu.viewDataSources.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-menu>
         <v-tooltip bottom>
           <v-btn to="view" flat v-if='!$store.state.denyAccess' slot="activator">
             <v-icon>list</v-icon>{{ $t('App.menu.view.msg')}}
           </v-btn>
-          <span>{{ $t('App.menu.view.tooltip')}</span>
+          <span>{{ $t('App.menu.view.tooltip') }}</span>
         </v-tooltip>
         <v-menu open-on-hover bottom offset-y>
           <v-btn slot="activator" flat>
@@ -22,12 +33,12 @@
           </v-btn>
           <v-list>
             <v-tooltip top>
-              <v-list-tile to="dataSourcePair" slot="activator" v-if="$store.state.dataSources.length > 1">
+              <v-list-tile to="dataSourcesPair" slot="activator" v-if="$store.state.dataSources.length > 1">
                 <v-list-tile-title>
                   <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>
               </v-list-tile>
-              <v-list-tile to="dataSourcePair" slot="activator" disabled v-else>
+              <v-list-tile to="dataSourcesPair" slot="activator" disabled v-else>
                 <v-list-tile-title>
                   <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>

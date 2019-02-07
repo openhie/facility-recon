@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import FacilityReconUpload from '@/components/DataSync/FacilityReconUpload'
 import Login from '@/components/Login.vue'
 import Configure from '@/components/Configure.vue'
 import Logout from '@/components/Logout.vue'
@@ -11,8 +10,9 @@ import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
 import FacilityRecoStatus from '@/components/FacilityRecoStatus'
 import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
-import FacilityReconDataSync from '@/components/DataSync/FacilityReconDataSync'
-import FacilityReconDataSourcePair from '@/components/DataSources/FacilityReconDataSourcePair'
+import AddDataSources from '@/components/DataSources/AddDataSources'
+import ViewDataSources from '@/components/DataSources/ViewDataSources'
+import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourcePair'
 import {store} from '../store/store.js'
 import VueCookies from 'vue-cookies'
 
@@ -55,19 +55,19 @@ let router = new Router({
     component: Logout
   },
   {
-    path: '/upload',
-    name: 'FacilityReconUpload',
-    component: FacilityReconUpload
+    path: '/ViewDataSources',
+    name: 'ViewDataSources',
+    component: ViewDataSources
   },
   {
-    path: '/dataSync',
-    name: 'FacilityReconDataSync',
-    component: FacilityReconDataSync
+    path: '/AddDataSources',
+    name: 'AddDataSources',
+    component: AddDataSources
   },
   {
-    path: '/dataSourcePair',
-    name: 'FacilityReconDataSourcePair',
-    component: FacilityReconDataSourcePair
+    path: '/dataSourcesPair',
+    name: 'DataSourcesPair',
+    component: DataSourcesPair
   },
   {
     path: '/view',

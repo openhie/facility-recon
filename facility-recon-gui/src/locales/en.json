@@ -40,9 +40,15 @@
       "configure": {
         "msg": "configure System"
       },
-      "dataSources": {
+      "dataSourcesParent": {
         "msg": "Data Sources",
-        "tooltip": "Upload CSV data or synhronize remote server data"
+        "tooltip": "Upload CSV data and add remote DHIS2 or FHIR servers"
+      },
+      "viewDataSources": {
+        "msg": "View Data Sources"
+      },
+      "addDataSources": {
+        "msg": "Add Data Sources"
       },
       "view": {
         "msg": "View",
