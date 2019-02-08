@@ -673,7 +673,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
 
                   });
                   return source2Callback();
