@@ -511,6 +511,8 @@
                   <td>{{props.item.source1Id}}</td>
                   <td>{{props.item.source2Name}}</td>
                   <td>{{props.item.source2Id}}</td>
+                  <td v-if='props.item.matchComments'>{{props.item.matchComments.join(', ')}}</td>
+                  <td v-else></td>
                   <td>
                     <v-btn v-if="$store.state.recoStatus == 'Done'" disabled color="error" style='text-transform: none' small @click='breakMatch(props.item.source2Id)'>
                       <v-icon>undo</v-icon>Break Match</v-btn>
@@ -1175,7 +1177,8 @@ export default {
         { text: 'Source1 Location', value: 'source1Name' },
         { text: 'Source1 ID', value: 'source1Id' },
         { text: 'Source2 Location', value: 'source2Name' },
-        { text: 'Source2 ID', value: 'source2Id' }
+        { text: 'Source2 ID', value: 'source2Id' },
+        { text: 'Match Comment', value: 'matchComments' }
       ]
       return header
     },
@@ -1499,6 +1502,5 @@ export default {
   }
 }
 </script>
-
 <style>
 </style>

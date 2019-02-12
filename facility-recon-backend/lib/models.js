@@ -109,8 +109,7 @@ let MetaData = new mongoose.Schema({
   config: {
     userID: {
       type: Schema.Types.ObjectId,
-      ref: 'Users',
-      required: true
+      ref: 'Users'
     },
     reconciliation: {
       useCSVHeader: {

@@ -7,6 +7,8 @@ const winston = require('winston');
 const async = require('async');
 const csv = require('fast-csv');
 const isJSON = require('is-json');
+const levenshtein = require('fast-levenshtein');
+const geodist = require('geodist');
 const redis = require('redis');
 const mongo = require('./mongo')();
 
@@ -183,14 +185,13 @@ module.exports = function () {
       });
     },
 
-    getLocationParentsFromDB(source, database, entityParent, topOrg, details, callback) {
+    getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
       const parents = [];
       if (entityParent == null ||
         entityParent == false ||
         entityParent == undefined ||
         !topOrg ||
-        !database ||
-        !source
+        !database
       ) {
         return callback(parents);
       }
@@ -533,7 +534,7 @@ module.exports = function () {
       })
     },
 
-    deleteLocation (id, source, userID, callback) {
+    deleteLocation(id, source, userID, callback) {
       let db = source + userID
       mongo.getMappingDBs(source, userID, (dbs) => {
         dbs.push(db)
@@ -550,7 +551,7 @@ module.exports = function () {
 
           })
         })
-        
+
       })
     },
 
@@ -591,6 +592,7 @@ module.exports = function () {
       const flagCode = config.getConf('mapping:flagCode');
       const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
       const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
+      const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
@@ -630,7 +632,17 @@ module.exports = function () {
         },
         source1mCSD(callback) {
           me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-            return callback(null,mcsd)
+            return callback(null, mcsd)
+          })
+        },
+        source1Parents(callback) {
+          me.getLocationParentsFromDB(source1DB, source1Id, fakeOrgId, "id", (parents) => {
+            return callback(null, parents)
+          })
+        },
+        source2Parents(callback) {
+          me.getLocationParentsFromDB(source2DB, source2Id, fakeOrgId, "id", (parents) => {
+            return callback(null, parents)
           })
         }
       }, (err, res) => {
@@ -640,7 +652,55 @@ module.exports = function () {
         if (res.source2Mapped !== null) {
           return callback(res.source2Mapped);
         }
+
         me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
+          // Handle match comments
+          let matchComments = []
+          if (!res.source2Parents.includes(res.source1Parents[0])) {
+            matchComments.push("Parents differ")
+          }
+          let source1Name = mcsd.entry[0].resource.name;
+          let source2Name = res.source1mCSD.entry[0].resource.name
+          lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+          if (lev !== 0) {
+            matchComments.push('Names differ')
+          }
+          if (recoLevel == totalLevels) {
+            if (source1Id !== source2Id) {
+              matchComments.push('ID differ')
+            }
+            let source2Latitude = null;
+            let source2Longitude = null;
+            let source1Latitude = null;
+            let source1Longitude = null;
+            if (res.source1mCSD.entry[0].resource.hasOwnProperty('position')) {
+              source2Latitude = res.source1mCSD.entry[0].resource.position.latitude;
+              source2Longitude = res.source1mCSD.entry[0].resource.position.longitude;
+            }
+            if (mcsd.entry[0].resource.hasOwnProperty('position')) {
+              source1Latitude = mcsd.entry[0].resource.position.latitude;
+              source1Longitude = mcsd.entry[0].resource.position.longitude;
+            }
+            if (source2Latitude && source2Longitude) {
+              var dist = geodist({
+                source2Latitude,
+                source2Longitude
+              }, {
+                source1Latitude,
+                source1Longitude
+              }, {
+                exact: false,
+                unit: 'miles'
+              });
+              if (dist !== 0) {
+                matchComments.push('Coordinates differ')
+              }
+            } else {
+              matchComments.push('Coordinates missing')
+            }
+          }
+          // End of handling match comments
+
           const fhir = {};
           fhir.entry = [];
           fhir.type = 'document';
@@ -688,6 +748,16 @@ module.exports = function () {
               system: 'http://hl7.org/fhir/location-physical-type',
             }],
           };
+          if (matchComments.length > 0) {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            resource.tag.push({
+              system: source1System,
+              code: matchCommentsCode,
+              display: matchComments,
+            });
+          }
           if (type == 'flag') {
             if (!resource.hasOwnProperty('tag')) {
               resource.tag = [];
@@ -699,7 +769,7 @@ module.exports = function () {
             });
           }
           if (autoMatch) {
-            if(!resource.hasOwnProperty('tag')) {
+            if (!resource.hasOwnProperty('tag')) {
               resource.tag = [];
             }
             resource.tag.push({
@@ -1080,7 +1150,8 @@ module.exports = function () {
             recordCount++
             this.buildBuilding(building, saveBundle)
             if (recordCount >= 250) {
-              const tmpBundle = { ...saveBundle
+              const tmpBundle = {
+                ...saveBundle
               }
               saveBundle = {
                 id: uuid4(),

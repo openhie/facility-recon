@@ -14,17 +14,18 @@ const mcsd = require('./mcsd')();
 module.exports = function () {
   return {
     getJurisdictionScore(
-      mcsdSource1, 
-      mcsdSource2, 
-      mcsdMapped, 
-      mcsdSource2All, 
-      mcsdSource1All, 
-      source1DB, 
-      source2DB, 
+      mcsdSource1,
+      mcsdSource2,
+      mcsdMapped,
+      mcsdSource2All,
+      mcsdSource1All,
+      source1DB,
+      source2DB,
       mappingDB,
-      recoLevel, 
-      totalLevels, 
-      clientId, 
+      recoLevel,
+      totalLevels,
+      clientId,
+      parentConstraint,
       callback
     ) {
       const scoreRequestId = `scoreResults${clientId}`
@@ -45,7 +46,7 @@ module.exports = function () {
       var source2ParentNames = {}
       var source2MappedParentIds = {}
       winston.info('Populating parents')
-      
+
       var totalRecords = mcsdSource2.entry.length
       for (entry of mcsdSource2.entry) {
         if (entry.resource.hasOwnProperty('partOf')) {
@@ -114,6 +115,7 @@ module.exports = function () {
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             const ignoreCode = config.getConf('mapping:ignoreCode');
+            const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
             var entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
               entityParent = source1Entry.resource.partOf.reference;
@@ -122,22 +124,22 @@ module.exports = function () {
               const thisRanking = {};
               thisRanking.source1 = {
                 name: source1Entry.resource.name,
-                parents: source1Parents.slice(0, source1Parents.length-1),
+                parents: source1Parents.slice(0, source1Parents.length - 1),
                 id: source1Entry.resource.id,
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let noMatch = null;
               let ignore = null;
+              let matchCommentsTag = {}
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-              }
-              if (match.resource.hasOwnProperty('tag')) {
                 ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+                matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
               }
               // in case this is marked as no match then process next Source1
               if (noMatch || ignore) {
-                if(noMatch) {
+                if (noMatch) {
                   thisRanking.source1.tag = 'noMatch';
                 }
                 if (ignore) {
@@ -155,7 +157,6 @@ module.exports = function () {
                 return source1Callback();
               }
               // if no macth then this is already marked as a match
-
               const flagCode = config.getConf('mapping:flagCode');
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
@@ -167,10 +168,15 @@ module.exports = function () {
                 return entry.resource.id == match.resource.id
               })
               if (matchInSource2) {
+                let matchComments = []
+                if (matchCommentsTag && matchCommentsTag.hasOwnProperty("display")) {
+                  matchComments = matchCommentsTag.display
+                }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
-                  parents: source2ParentNames[match.resource.id].slice(0, source2ParentNames[match.resource.id].length-1),
+                  parents: source2ParentNames[match.resource.id].slice(0, source2ParentNames[match.resource.id].length - 1),
                   id: match.resource.id,
+                  matchComments: matchComments
                 };
               }
               scoreResults.push(thisRanking);
@@ -220,10 +226,16 @@ module.exports = function () {
               };
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
-              var source2Filtered = mcsdSource2.entry.filter((entry) => {
-                return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
-              })
+              let source2Filtered
+              if (parentConstraint) {
+                source2Filtered = mcsdSource2.entry.filter((entry) => {
+                  return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
+                })
+              } else {
+                source2Filtered = mcsdSource2.entry
+              }
               async.each(source2Filtered, (source2Entry, source2Callback) => {
+                let matchComments = []
                 const id = source2Entry.resource.id;
                 var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
@@ -237,6 +249,9 @@ module.exports = function () {
                     ignore.push(source2Entry.resource.id)
                     return source2Callback();
                   }
+                  if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0])) {
+                    matchComments.push("Parents differ")
+                  }
                   const source2Name = source2Entry.resource.name;
                   const source2Id = source2Entry.resource.id
 
@@ -245,12 +260,13 @@ module.exports = function () {
                     ignore.push(source2Entry.resource.id)
                     thisRanking.exactMatch = {
                       name: source2Name,
-                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length-1),
+                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                       id: source2Entry.resource.id,
+                      matchComments: matchComments
                     };
                     thisRanking.potentialMatches = {};
                     mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
-                      
+
                     });
                     // we will need to break here and start processing nxt Source1
                     return source2Callback();
@@ -273,7 +289,7 @@ module.exports = function () {
                       }
                       thisRanking.potentialMatches[lev].push({
                         name: source2Name,
-                        parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length-1),
+                        parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                         id: source2Entry.resource.id,
                       });
                     } else {
@@ -321,17 +337,17 @@ module.exports = function () {
     },
 
     getBuildingsScores(
-      mcsdSource1, 
-      mcsdSource2, 
-      mcsdMapped, 
-      mcsdSource2All, 
-      mcsdSource1All, 
-      source1DB, 
-      source2DB, 
+      mcsdSource1,
+      mcsdSource2,
+      mcsdMapped,
+      mcsdSource2All,
+      mcsdSource1All,
+      source1DB,
+      source2DB,
       mappingDB,
-      recoLevel, 
-      totalLevels, 
-      clientId, 
+      recoLevel,
+      totalLevels,
+      clientId,
       parentConstraint,
       callback
     ) {
@@ -440,6 +456,7 @@ module.exports = function () {
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             const ignoreCode = config.getConf('mapping:ignoreCode');
+            const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
             var entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
               entityParent = source1Entry.resource.partOf.reference;
@@ -463,15 +480,15 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               let noMatch = null;
               let ignore = null;
+              let matchCommentsTag = {}
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-              }
-              if (match.resource.hasOwnProperty('tag')) {
                 ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+                matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
               }
               // in case this is marked as no match then process next Source1
               if (noMatch || ignore) {
-                if(noMatch) {
+                if (noMatch) {
                   thisRanking.source1.tag = 'noMatch';
                 }
                 if (ignore) {
@@ -502,10 +519,15 @@ module.exports = function () {
                 return entry.resource.id == match.resource.id
               })
               if (matchInSource2) {
+                let matchComments = []
+                if (matchCommentsTag && matchCommentsTag.hasOwnProperty("display")) {
+                  matchComments = matchCommentsTag.display
+                }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
                   parents: source2ParentNames[match.resource.id],
                   id: match.resource.id,
+                  matchComments: matchComments
                 };
               }
               scoreResults.push(thisRanking);
@@ -563,7 +585,7 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let source2Filtered
-              if(parentConstraint) {
+              if (parentConstraint) {
                 source2Filtered = mcsdSource2.entry.filter((entry) => {
                   return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
                 })
@@ -574,6 +596,7 @@ module.exports = function () {
                 if (Object.keys(thisRanking.exactMatch).length > 0) {
                   return source2Callback()
                 }
+                let matchComments = []
                 const id = source2Entry.resource.id;
                 const source2Identifiers = source2Entry.resource.identifier;
                 //if this source2 is already mapped then skip it
@@ -588,6 +611,9 @@ module.exports = function () {
                   return source2Callback();
                 }
 
+                if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0])) {
+                  matchComments.push("Parents differ")
+                }
                 const source2Name = source2Entry.resource.name;
                 let source2Latitude = null;
                 let source2Longitude = null;
@@ -606,18 +632,29 @@ module.exports = function () {
                     exact: false,
                     unit: 'miles'
                   });
+                  if (dist !== 0) {
+                    winston.error(dist + " " + source1Latitude + " " + source2Latitude + " " + source1Longitude + " " + source2Longitude)
+                    matchComments.push('Coordinates differ')
+                  }
+                } else {
+                  matchComments.push('Coordinates missing')
                 }
                 source2IdPromises = [];
                 // check if IDS are the same and mark as exact match
                 const matchingIdent = source2Identifiers.find(source2Ident => source1Identifiers.find(source1Ident => source2Ident.value == source1Ident.value));
                 if (matchingIdent && !matchBroken) {
+                  lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+                  if (lev !== 0) {
+                    matchComments.push('Names differ')
+                  }
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
+                    matchComments: matchComments,
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
@@ -631,7 +668,7 @@ module.exports = function () {
                   }
                   thisRanking.potentialMatches['0'].push({
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -645,13 +682,15 @@ module.exports = function () {
                   for (let abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr])
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
+                      matchComments.push('Names differ')
                       ignore.push(source2Entry.resource.id)
                       thisRanking.exactMatch = {
                         name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                         lat: source2Latitude,
                         long: source2Longitude,
                         geoDistance: dist,
+                        matchComments: matchComments,
                         id: source2Entry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
@@ -666,10 +705,11 @@ module.exports = function () {
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
+                    matchComments: matchComments,
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
@@ -683,7 +723,7 @@ module.exports = function () {
                   }
                   thisRanking.potentialMatches['0'].push({
                     name: source2Name,
-                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                    parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                     lat: source2Latitude,
                     long: source2Longitude,
                     geoDistance: dist,
@@ -698,7 +738,7 @@ module.exports = function () {
                     }
                     thisRanking.potentialMatches[lev].push({
                       name: source2Name,
-                      parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                      parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                       lat: source2Latitude,
                       long: source2Longitude,
                       geoDistance: dist,
@@ -712,7 +752,7 @@ module.exports = function () {
                       thisRanking.potentialMatches[lev] = [];
                       thisRanking.potentialMatches[lev].push({
                         name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length-1),
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
                         lat: source2Latitude,
                         long: source2Longitude,
                         geoDistance: dist,
@@ -774,11 +814,11 @@ module.exports = function () {
             return filteredCallback()
           }
           let matched
-          if(source === 'source2') {
+          if (source === 'source2') {
             matched = mappedLocations.entry.find((entry) => {
               return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
             })
-          } else if(source === 'source1') {
+          } else if (source === 'source1') {
             matched = mappedLocations.entry.find((entry) => {
               let matched1 = entry.resource.identifier.find((identifier) => {
                 return identifier.system.endsWith('source1') && identifier.value.endsWith("Location/" + filteredEntry.resource.id)
@@ -799,7 +839,7 @@ module.exports = function () {
             if (!parentCache[entityParent]) {
               parentCache[entityParent] = []
               mcsd.getLocationParentsFromData(entityParent, mcsdAll, 'names', (parents) => {
-                parentCache[entityParent] = parents.slice(0,parents.length-1)
+                parentCache[entityParent] = parents.slice(0, parents.length - 1)
                 let reversedParents = []
                 reversedParents = reversedParents.concat(parentCache[entityParent])
                 reversedParents.reverse()
@@ -807,7 +847,7 @@ module.exports = function () {
                   id,
                   name
                 }
-                if(parentsFields) {
+                if (parentsFields) {
                   async.eachOf(parentsFields, (parent, key, nxtParnt) => {
                     data[parent] = reversedParents[key]
                   })

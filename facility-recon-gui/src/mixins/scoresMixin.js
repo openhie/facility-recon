@@ -1,6 +1,7 @@
 import axios from 'axios'
 import {generalMixin} from './generalMixin'
 import { eventBus } from '../main'
+
 const backendServer = process.env.BACKEND_SERVER
 export const scoresMixin = {
   mixins: [generalMixin],
@@ -135,7 +136,8 @@ export const scoresMixin = {
               source1Parents: scoreResult.source1.parents,
               source2Name: scoreResult.exactMatch.name,
               source2Id: scoreResult.exactMatch.id,
-              source2Parents: scoreResult.exactMatch.parents
+              source2Parents: scoreResult.exactMatch.parents,
+              matchComments: scoreResult.exactMatch.matchComments
             })
           } else {
             let addTree = topTree
