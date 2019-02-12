@@ -1052,7 +1052,6 @@ if (cluster.isMaster) {
             totalSource1Levels,
             clientId,
             parentConstraint, (scoreResults) => {
-              res.set('Access-Control-Allow-Origin', '*');
               recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
                 scoreResData = JSON.stringify({
                   status: 'Done',
@@ -1091,7 +1090,6 @@ if (cluster.isMaster) {
             clientId,
             parentConstraint,
             (scoreResults) => {
-              res.set('Access-Control-Allow-Origin', '*');
               recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
                 var source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped
                 res.status(200).json({
@@ -1623,6 +1621,7 @@ if (cluster.isMaster) {
       const recoLevel = fields.recoLevel;
       const totalLevels = fields.totalLevels;
       const userID = fields.userID;
+      let flagComment = fields.flagComment
       let source1DB = fields.source1DB + userID
       let source2DB = fields.source2DB + userID
       let mappingDB = fields.source1DB + userID + fields.source2DB
@@ -1644,7 +1643,7 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataSchema.findOne({}, (err, data) => {
           if (data.recoStatus === 'on-progress') {
-            mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, (err) => {
+            mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, flagComment, (err, matchComments) => {
               winston.info('Done matching');
               if (err) {
                 winston.error(err)
@@ -1652,7 +1651,9 @@ if (cluster.isMaster) {
                   error: err
                 });
               } else {
-                res.status(200).send();
+                res.status(200).json({
+                  matchComments: matchComments
+                });
               }
             });
           } else {

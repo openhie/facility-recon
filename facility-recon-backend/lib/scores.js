@@ -158,10 +158,16 @@ module.exports = function () {
               }
               // if no macth then this is already marked as a match
               const flagCode = config.getConf('mapping:flagCode');
+              let flagCommentCode = config.getConf('mapping:flagCommentCode');
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
                 if (flag) {
                   thisRanking.source1.tag = 'flagged';
+                }
+
+                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                if (flagComment) {
+                  thisRanking.source1.flagComment = flagComment.display;
                 }
               }
               var matchInSource2 = mcsdSource2.entry.find((entry) => {
@@ -265,7 +271,7 @@ module.exports = function () {
                       matchComments: matchComments
                     };
                     thisRanking.potentialMatches = {};
-                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
+                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                     });
                     // we will need to break here and start processing nxt Source1
@@ -508,10 +514,16 @@ module.exports = function () {
 
               //if this is flagged then process next Source1
               const flagCode = config.getConf('mapping:flagCode');
+              const flagCommentCode = config.getConf('mapping:flagCommentCode');
               if (match.resource.hasOwnProperty('tag')) {
                 const flag = match.resource.tag.find(tag => tag.code == flagCode);
                 if (flag) {
                   thisRanking.source1.tag = 'flagged';
+                }
+
+                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                if (flagComment) {
+                  thisRanking.source1.flagComment = flagComment.display;
                 }
               }
 
@@ -658,7 +670,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                   });
                   return source2Callback();
@@ -694,7 +706,7 @@ module.exports = function () {
                         id: source2Entry.resource.id,
                       };
                       thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {});
+                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {});
                       return source2Callback();
                     }
                   }
@@ -713,7 +725,7 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, () => {
+                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                   });
                   return source2Callback();

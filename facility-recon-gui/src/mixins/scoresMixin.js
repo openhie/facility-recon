@@ -113,7 +113,8 @@ export const scoresMixin = {
               source1Parents: scoreResult.source1.parents,
               source2Name: scoreResult.exactMatch.name,
               source2Id: scoreResult.exactMatch.id,
-              source2Parents: scoreResult.exactMatch.parents
+              source2Parents: scoreResult.exactMatch.parents,
+              flagComment: scoreResult.source1.flagComment
             })
           } else if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'noMatch') {
             let parents = scoreResult.source1.parents

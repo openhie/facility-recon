@@ -588,11 +588,12 @@ module.exports = function () {
         });
       }
     },
-    saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, autoMatch, callback) {
+    saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, autoMatch, flagComment, callback) {
       const flagCode = config.getConf('mapping:flagCode');
       const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
       const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
       const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
+      const flagCommentCode = config.getConf('mapping:flagCommentCode');
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
@@ -762,6 +763,13 @@ module.exports = function () {
             if (!resource.hasOwnProperty('tag')) {
               resource.tag = [];
             }
+            if (flagComment) {
+              resource.tag.push({
+                system: source1System,
+                code: flagCommentCode,
+                display: flagComment,
+              });
+            }
             resource.tag.push({
               system: source1System,
               code: flagCode,
@@ -795,7 +803,7 @@ module.exports = function () {
             if (err) {
               winston.error(err);
             }
-            callback(err);
+            callback(err, matchComments);
           });
         });
       });
@@ -808,10 +816,18 @@ module.exports = function () {
         delete flagged.total;
         delete flagged.link;
         const flagCode = config.getConf('mapping:flagCode');
+        const flagCommentCode = config.getConf('mapping:flagCommentCode');
         // remove the flag tag
         for (const k in flagged.entry[0].resource.tag) {
           const tag = flagged.entry[0].resource.tag[k];
           if (tag.code === flagCode) {
+            flagged.entry[0].resource.tag.splice(k, 1);
+          }
+        }
+
+        for (const k in flagged.entry[0].resource.tag) {
+          const tag = flagged.entry[0].resource.tag[k];
+          if (tag.code === flagCommentCode) {
             flagged.entry[0].resource.tag.splice(k, 1);
           }
         }
