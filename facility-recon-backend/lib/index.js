@@ -1182,11 +1182,13 @@ if (cluster.isMaster) {
     let mappingDB = source1 + userID + source2
     let matched = []
     const flagCode = config.getConf('mapping:flagCode');
+    const flagCommentCode = config.getConf('mapping:flagCommentCode');
+    const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
     const noMatchCode = config.getConf('mapping:noMatchCode');
     const ignoreCode = config.getConf('mapping:ignoreCode');
     const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
     const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
-    let fields = ['source 1 name', 'source 1 ID', 'source 2 name', 'source 2 ID', "Status"]
+    let fields = ['source 1 name', 'source 1 ID', 'source 2 name', 'source 2 ID', "Status", "Comments"]
     mcsd.getLocations(mappingDB, (mapped) => {
       if (type === 'FHIR') {
         winston.info('Sending back matched locations in FHIR specification')
@@ -1215,7 +1217,7 @@ if (cluster.isMaster) {
         })
       } else {
         async.each(mapped.entry, (entry, nxtmCSD) => {
-          let status, flagged, noMatch, ignore, autoMatched, manuallyMatched
+          let status, flagged, noMatch, ignore, autoMatched, manuallyMatched, matchCommentsTag, flagCommentsTag
           if (entry.resource.hasOwnProperty('tag')) {
             flagged = entry.resource.tag.find((tag) => {
               return tag.code == flagCode
@@ -1232,9 +1234,22 @@ if (cluster.isMaster) {
             manuallyMatched = entry.resource.tag.find((tag) => {
               return tag.code == manualllyMatchedCode
             })
+            matchCommentsTag = entry.resource.tag.find((tag) => {
+              return tag.code == matchCommentsCode
+            })
+            flagCommentsTag = entry.resource.tag.find((tag) => {
+              return tag.code == flagCommentCode
+            })
           }
           if (noMatch || ignore) {
             return nxtmCSD()
+          }
+          let matchComments, flagComments, comment
+          if (matchCommentsTag && matchCommentsTag.hasOwnProperty("display")) {
+            comment = matchCommentsTag.display.join(', ')
+          }
+          if (flagCommentsTag && flagCommentsTag.hasOwnProperty("display")) {
+            comment = flagCommentsTag.display
           }
           if (flagged) {
             status = 'Flagged'
@@ -1256,7 +1271,8 @@ if (cluster.isMaster) {
             'source 1 ID': source1ID,
             'source 2 name': entry.resource.name,
             'source 2 ID': entry.resource.id,
-            'Status': status
+            'Status': status,
+            'Comments': comment
           })
           return nxtmCSD()
         }, () => {

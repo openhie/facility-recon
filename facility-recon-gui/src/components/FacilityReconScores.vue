@@ -372,8 +372,6 @@
             :item-value='$store.state.levelArray.value'
             :item-name='$store.state.levelArray.text'
             label="Level"
-            class="input-group--focused"
-            height='1'
             single-line
             @change="levelChanged"
           >
