@@ -1165,11 +1165,285 @@ if (cluster.isMaster) {
   });
   app.get('/matchedLocations/:source1/:source2/:type/:userID', (req, res) => {
     winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
+    let userID = req.params.userID
+    let source1DB = req.params.source1 + userID
+    let source2DB = req.params.source2 + userID
+    let mappingDB = req.params.source1 + userID + req.params.source2
+    let type = req.params.type
+    let matched = []
+
+    const flagCode = config.getConf('mapping:flagCode');
+    const flagCommentCode = config.getConf('mapping:flagCommentCode');
+    const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
+    const noMatchCode = config.getConf('mapping:noMatchCode');
+    const ignoreCode = config.getConf('mapping:ignoreCode');
+    const autoMatchedCode = config.getConf('mapping:autoMatchedCode');
+    const manualllyMatchedCode = config.getConf('mapping:manualllyMatchedCode');
+
+    mcsd.getLocations(mappingDB, (mapped) => {
+      if (type === 'FHIR') {
+        winston.info('Sending back matched locations in FHIR specification')
+        let mappedmCSD = {
+          "resourceType": "Bundle",
+          "type": "document",
+          "entry": []
+        }
+        async.eachOf(mapped.entry, (entry, key, nxtEntry) => {
+          if (entry.resource.hasOwnProperty('tag')) {
+            noMatch = entry.resource.tag.find((tag) => {
+              return tag.code == noMatchCode
+            })
+            ignore = entry.resource.tag.find((tag) => {
+              return tag.code == ignoreCode
+            })
+            if (noMatch || ignore) {
+              delete mapped.entry[key]
+            }
+            return nxtEntry()
+          }
+          return nxtEntry()
+        }, () => {
+          mappedmCSD.entry = mappedmCSD.entry.concat(mapped.entry)
+          return res.status(200).json(mappedmCSD)
+        })
+      } else {
+        let source1Fields = ['source 1 name', 'source 1 ID']
+        let source2Fields = ['source 2 name', 'source 2 ID']
+        let levelMapping1 = JSON.parse(req.query.levelMapping1)
+        let levelMapping2 = JSON.parse(req.query.levelMapping2)
+        async.each(mapped.entry, (entry, nxtmCSD) => {
+          let status, flagged, noMatch, ignore, autoMatched, manuallyMatched, matchCommentsTag, flagCommentsTag
+          if (entry.resource.hasOwnProperty('tag')) {
+            flagged = entry.resource.tag.find((tag) => {
+              return tag.code == flagCode
+            })
+            noMatch = entry.resource.tag.find((tag) => {
+              return tag.code == noMatchCode
+            })
+            ignore = entry.resource.tag.find((tag) => {
+              return tag.code == ignoreCode
+            })
+            autoMatched = entry.resource.tag.find((tag) => {
+              return tag.code == autoMatchedCode
+            })
+            manuallyMatched = entry.resource.tag.find((tag) => {
+              return tag.code == manualllyMatchedCode
+            })
+            matchCommentsTag = entry.resource.tag.find((tag) => {
+              return tag.code == matchCommentsCode
+            })
+            flagCommentsTag = entry.resource.tag.find((tag) => {
+              return tag.code == flagCommentCode
+            })
+          }
+          if (noMatch || ignore) {
+            return nxtmCSD()
+          }
+          let matchComments, flagComments, comment
+          if (matchCommentsTag && matchCommentsTag.hasOwnProperty("display")) {
+            comment = matchCommentsTag.display.join(', ')
+          }
+          if (flagCommentsTag && flagCommentsTag.hasOwnProperty("display")) {
+            comment = flagCommentsTag.display
+          }
+          if (flagged) {
+            status = 'Flagged'
+          } else if (autoMatched) {
+            status = "Automatically Matched"
+          } else {
+            status = "Manually Matched"
+          }
+          let source1ID = entry.resource.identifier.find((id) => {
+            return id.system === 'https://digitalhealth.intrahealth.org/source1'
+          })
+          if (source1ID) {
+            source1ID = source1ID.value.split('/').pop()
+          } else {
+            source1ID = ''
+          }
+          matched.push({
+            'source 1 name': entry.resource.alias,
+            'source 1 ID': source1ID,
+            'source 2 name': entry.resource.name,
+            'source 2 ID': entry.resource.id,
+            'Status': status,
+            'Comments': comment
+          })
+          return nxtmCSD()
+        }, () => {
+          async.parallel({
+            source1mCSD: function (callback) {
+              mcsd.getLocations(source1DB, (mcsd) => {
+                return callback(null, mcsd)
+              })
+            },
+            source2mCSD: function (callback) {
+              mcsd.getLocations(source2DB, (mcsd) => {
+                return callback(null, mcsd)
+              })
+            }
+          }, (error, response) => {
+            // remove unmapped levels
+            let levels1 = Object.keys(levelMapping1)
+            async.each(levels1, (level, nxtLevel) => {
+              if (!levelMapping1[level] || levelMapping1[level] == 'null' || levelMapping1[level] == 'undefined' || levelMapping1[level] == 'false') {
+                delete levelMapping1[level]
+              }
+            })
+
+            let levels2 = Object.keys(levelMapping2)
+            async.each(levels2, (level, nxtLevel) => {
+              if (!levelMapping2[level] || levelMapping2[level] == 'null' || levelMapping2[level] == 'undefined' || levelMapping2[level] == 'false') {
+                delete levelMapping2[level]
+              }
+            })
+            // end of removing unmapped levels
+
+            // get level of a facility
+            let levelsArr1 = []
+            async.eachOf(levelMapping1, (level, key, nxtLevel) => {
+              if (key.startsWith('level')) {
+                levelsArr1.push(parseInt(key.replace('level', '')))
+              }
+              return nxtLevel()
+            })
+            let source1FacilityLevel = levelsArr1.length + 1
+            levelsArr1.push(source1FacilityLevel)
+
+            let levelsArr2 = []
+            async.eachOf(levelMapping2, (level, key, nxtLevel) => {
+              if (key.startsWith('level')) {
+                levelsArr2.push(parseInt(key.replace('level', '')))
+              }
+              return nxtLevel()
+            })
+            let source2FacilityLevel = levelsArr2.length + 1
+            levelsArr2.push(source2FacilityLevel)
+            // end of getting level of a facility
+
+            let matchedCSV
+            async.each(levelsArr1, (srcLevel, nxtLevel) => {
+              // increment level by one, because level 1 is a fake country/location
+              level = srcLevel + 1
+              let thisFields = []
+              let parentsFields1 = []
+              let parentsFields2 = []
+              thisFields = thisFields.concat(source1Fields)
+              //push other headers
+              async.eachOf(levelMapping1, (level, key, nxtLevel) => {
+                if (!key.startsWith('level')) {
+                  return nxtLevel()
+                }
+                let keyNum = key.replace('level', '')
+                keyNum = parseInt(keyNum)
+                if (keyNum >= srcLevel) {
+                  return nxtLevel()
+                }
+                parentsFields1.push('Source1 ' + level)
+                thisFields.push('Source1 ' + level)
+              })
+
+              thisFields = thisFields.concat(source2Fields)
+              async.eachOf(levelMapping2, (level, key, nxtLevel) => {
+                if (!key.startsWith('level')) {
+                  return nxtLevel()
+                }
+                let keyNum = key.replace('level', '')
+                keyNum = parseInt(keyNum)
+                if (keyNum >= srcLevel) {
+                  return nxtLevel()
+                }
+                parentsFields2.push('Source2 ' + level)
+                thisFields.push('Source2 ' + level)
+              })
+              thisFields = thisFields.concat(["Status", "Comments"])
+              //end of pushing other headers
+              let levelMatched = []
+              mcsd.filterLocations(response.source1mCSD, topOrgId, level, (mcsdLevel) => {
+                async.each(mcsdLevel.entry, (source1Entry, nxtEntry) => {
+                  let thisMatched = matched.filter((mapped) => {
+                    return mapped["source 1 ID"] === source1Entry.resource.id
+                  })
+                  let thisMatched1 = {}
+                  let thisMatched2 = {}
+                  // spliting content of thisMatched so that we can append source1 parents after source 1 data and source2 parents
+                  // after source2 data
+                  thisMatched1["source 1 ID"] = thisMatched[0]["source 1 ID"]
+                  thisMatched1["source 1 name"] = thisMatched[0]["source 1 name"]
+                  thisMatched2["source 2 ID"] = thisMatched[0]["source 2 ID"]
+                  thisMatched2["source 2 name"] = thisMatched[0]["source 2 name"]
+                  //end of splitting content of thisMatched
+
+                  //getting parents
+                  async.series({
+                    source1Parents: function(callback) {
+                      mcsd.getLocationParentsFromData(source1Entry.resource.id, response.source1mCSD, 'names', (parents) => {
+                        parents = parents.slice(0, parents.length - 1)
+                        parents.reverse()
+                        async.eachOf(parentsFields1, (parent, key, nxtParnt) => {
+                          thisMatched1[parent] = parents[key]
+                          return nxtParnt()
+                        }, () => {
+                          return callback(null, thisMatched1)
+                        })
+                      })
+                    },
+                    source2Parents: function(callback) {
+                      mcsd.getLocationParentsFromData(thisMatched[0]["source 2 ID"], response.source2mCSD, 'names', (parents) => {
+                        parents = parents.slice(0, parents.length - 1)
+                        parents.reverse()
+                        async.eachOf(parentsFields2, (parent, key, nxtParnt) => {
+                          thisMatched2[parent] = parents[key]
+                          return nxtParnt()
+                        }, () => {
+                          winston.error(JSON.stringify(thisMatched2))
+                          thisMatched2["Status"] = thisMatched[0]["Status"]
+                          thisMatched2["Comments"] = thisMatched[0]["Comments"]
+                          return callback(null, thisMatched2)
+                        })
+                      })
+                    }
+                  }, (error, respo) => {
+                    levelMatched.push(Object.assign(respo.source1Parents, respo.source2Parents))
+                    return nxtEntry()
+                  })
+                }, () => {
+                  if (levelMatched.length > 0) {
+                    let csvString = json2csv(levelMatched, {
+                      thisFields
+                    });
+                    let colHeader
+                    if (levelMapping1['level' + srcLevel]) {
+                      colHeader = levelMapping1['level' + srcLevel]
+                    } else {
+                      colHeader = "Facilities"
+                    }
+                    if (!matchedCSV) {
+                      matchedCSV = colHeader + os.EOL + matchedCSV + csvString + os.EOL
+                    } else {
+                      matchedCSV = matchedCSV + os.EOL + os.EOL + colHeader + os.EOL + csvString + os.EOL
+                    }
+                  }
+                  return nxtLevel()
+                })
+              })
+            }, () =>{
+              res.status(200).send(matchedCSV)
+            })
+          })
+
+        })
+      }
+    })
+
+  })
+
+  app.get('/matchedLocations1/:source1/:source2/:type/:userID', (req, res) => {
+    winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
     if (!req.params.source1 || !req.params.source2) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
@@ -1291,35 +1565,6 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getCSV', (req, res) => {
-    let locations = []
-    let fields = ['ID', 'Facility', 'Chiefdom', 'District', 'Country']
-    mcsd.getLocations("Dhis2OnlineDemoServer5c09e731a455b7490508e3c9", (mcsdData) => {
-      mcsd.filterLocations(mcsdData, topOrgId, 5, (mcsdLevel) => {
-        async.eachSeries(mcsdLevel.entry, (dt, nxt) => {
-          let entityParent = dt.resource.partOf.reference
-          mcsd.getLocationParentsFromData(entityParent, mcsdData, "names", (parents) => {
-            if (parents.length == 4) {
-              locations.push({
-                "ID": dt.resource.id,
-                "Facility": dt.resource.name,
-                "Chiefdom": parents[0],
-                "District": parents[1],
-                "Country": parents[2]
-              })
-            }
-            return nxt()
-          })
-        }, () => {
-          let csvdata = json2csv(locations, {
-            fields
-          });
-          res.send(csvdata)
-        })
-      })
-    })
-  })
-
   app.get('/unmatchedLocations/:source1/:source2/:type/:userID', (req, res) => {
     let userID = req.params.userID
     let source1DB = req.params.source1 + userID
@@ -1339,7 +1584,7 @@ if (cluster.isMaster) {
           mcsd.getLocations(source2DB, (mcsd) => {
             return callback(null, mcsd)
           })
-        },
+        }
       }, (error, response) => {
         let mappingDB = req.params.source1 + userID + req.params.source2
         async.parallel({
