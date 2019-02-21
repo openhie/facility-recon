@@ -337,11 +337,11 @@ export default {
         (this.$store.state.dataSources.length > 1 ||
           this.$store.state.dataSourcePairs.length > 0)
       ) {
-        this.$router.push({ name: 'FacilityReconDataSourcePair' })
+        this.$router.push({ name: 'DataSourcesPair' })
         return
       }
       if (!source1 || !source2) {
-        this.$router.push({ name: 'FacilityReconDataSync' })
+        this.$router.push({ name: 'AddDataSources' })
         return
       }
       source1 = this.toTitleCase(source1)
