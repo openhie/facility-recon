@@ -79,7 +79,7 @@
         <v-card-actions>
           <v-toolbar>
             <v-btn
-              v-if="signupEnabled"
+              v-if="$store.state.config.generalConfig.selfRegistration"
               color="success"
               @click="displaySignup"
             >Signup</v-btn>
@@ -187,6 +187,11 @@ export default {
         VueCookies.set('customSignupFields', resp.data.customSignupFields, 'infinity')
       }
     })
+    axios
+      .get(backendServer + '/getGeneralConfig')
+      .then(config => {
+        this.$store.state.config.generalConfig = config.data.config.generalConfig
+      })
   }
 }
 </script>

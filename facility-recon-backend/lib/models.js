@@ -107,21 +107,25 @@ let MetaData = new mongoose.Schema({
     type: String
   },
   config: {
-    userID: {
-      type: Schema.Types.ObjectId,
-      ref: 'Users'
+    userConfig: {
+      userID: {
+        type: Schema.Types.ObjectId,
+        ref: 'Users'
+      },
+      reconciliation: {
+        useCSVHeader: {
+          type: Boolean
+        },
+        parentConstraint: {
+          type: Boolean
+        }
+      }
     },
-    reconciliation: {
-      useCSVHeader: {
-        type: Boolean
-      },
-      parentConstraint: {
-        type: Boolean
-      },
+    generalConfig: {
       selfRegistration: {
         type: Boolean
       }
-    },
+    }
   },
   recoStatus: {
     type: String

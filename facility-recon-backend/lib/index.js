@@ -52,6 +52,7 @@ let jwtValidator = function (req, res, next) {
   if (req.method == "OPTIONS" ||
     req.path == "/authenticate/" ||
     req.path == "/getSignupConf" ||
+    req.path == "/getGeneralConfig" ||
     req.path == "/signup/" ||
     req.path == "/gofr" ||
     req.path.startsWith("/static/js") ||
@@ -160,50 +161,6 @@ if (cluster.isMaster) {
           })
         })
       }
-    })
-
-    //check if signup fields are in DB
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({
-        "forms.name": "signup"
-      }, (err, data) => {
-        if (!data) {
-          winston.info("signup form was not found, adding")
-          const MetaData = new models.MetaDataModel({
-            forms: [{
-              name: "signup",
-              fields: {
-                firstName: {
-                  type: "String",
-                  required: true,
-                },
-                surname: {
-                  type: "String",
-                  required: true,
-                },
-                otherName: {
-                  type: "String"
-                },
-                userName: {
-                  type: "String",
-                  required: true,
-                },
-                password: {
-                  type: "String",
-                  required: true,
-                }
-              }
-            }]
-          })
-          MetaData.save((err, data) => {
-            if (err) {
-              winston.error(err)
-            } else {
-              winston.info("signup form added successfully")
-            }
-          })
-        }
-      })
     })
   })
   var numWorkers = require('os').cpus().length;
@@ -586,10 +543,10 @@ if (cluster.isMaster) {
       } catch (error) {
         userConfig = fields.config
       }
-      userConfig.userID = fields.userID
+      userConfig.userConfig.userID = fields.userID
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({
-          'config.userID': fields.userID
+          'config.userConfig.userID': fields.userID
         }, (err, data) => {
           if (!data) {
             const MetaData = new models.MetaDataModel({
@@ -632,7 +589,7 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getConfig/:userID', (req, res) => {
+  app.get('/getUserConfig/:userID', (req, res) => {
     let database = config.getConf("DB_NAME")
     let userID = req.params.userID
     const mongoose = require('mongoose')
@@ -643,7 +600,7 @@ if (cluster.isMaster) {
     }
     mongoose.connect(uri, {}, () => {
       models.MetaDataModel.findOne({
-        'config.userID': userID
+        'config.userConfig.userID': userID
       }, (err, data) => {
         if (err) {
           winston.error(err)
@@ -651,8 +608,33 @@ if (cluster.isMaster) {
             error: 'internal error occured while getting configurations'
           })
         } else {
-          delete data._id
-          delete data.config.userID
+          if(data) {
+            delete data._id
+            delete data.config.userConfig.userID
+          }
+          res.status(200).json(data)
+        }
+      })
+    })
+  })
+
+  app.get('/getGeneralConfig', (req, res) => {
+    let database = config.getConf("DB_NAME")
+    let userID = req.params.userID
+    const mongoose = require('mongoose')
+    if (mongoUser && mongoPasswd) {
+      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    } else {
+      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    }
+    mongoose.connect(uri, {}, () => {
+      models.MetaDataModel.findOne({}, {'config.generalConfig': 1}, (err, data) => {
+        if (err) {
+          winston.error(err)
+          res.status(500).json({
+            error: 'internal error occured while getting configurations'
+          })
+        } else {
           res.status(200).json(data)
         }
       })
@@ -745,10 +727,14 @@ if (cluster.isMaster) {
             error: 'internal error occured while getting configurations'
           })
         } else {
+          let customFields = {}
+          if(form) {
+            customFields = form.forms[0].fields
+          }
           let allFields = Object.assign({}, models.usersFields)
-          allFields = Object.assign(allFields, form.forms[0].fields)
+          allFields = Object.assign(allFields, customFields)
           res.status(200).json({
-            customSignupFields: form.forms[0].fields,
+            customSignupFields: customFields,
             originalSignupFields: models.usersFields,
             allSignupFields: allFields
           })
@@ -2987,12 +2973,12 @@ if (cluster.isMaster) {
       "forms.name": "signup"
     }, (err, data) => {
       let Users
-      if (data) {
+      if (data && data.length > 0) {
         let signupFields = Object.assign({}, data[0].forms[0].fields)
         signupFields = Object.assign(signupFields, models.usersFields)
         Users = new mongoose.Schema(signupFields)
       } else {
-        Users = new mongoose.Schema(usersFields)
+        Users = new mongoose.Schema(models.usersFields)
       }
       delete mongoose.connection.models['Users']
       models.UsersModel = mongoose.model('Users', Users)

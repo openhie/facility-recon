@@ -475,7 +475,7 @@ export default {
     getConfig () {
       let userID = this.$store.state.auth.userID
       axios
-        .get(backendServer + '/getConfig/' + userID)
+        .get(backendServer + '/getUserConfig/' + userID)
         .then(config => {
           this.$store.state.config = config.data.config
           this.getDataSources()

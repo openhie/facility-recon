@@ -87,7 +87,7 @@ export const scoresMixin = {
       }
       let userID = this.$store.state.activePair.userID._id
       let path = `source1=${source1}&source2=${source2}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.reconciliation.parentConstraint
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.userConfig.reconciliation.parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
         this.loadingSource1Unmatched = false
         this.getSource2Unmached()

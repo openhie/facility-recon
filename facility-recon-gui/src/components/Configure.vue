@@ -10,7 +10,7 @@
                   @change="configChanged"
                   color="success"
                   label="Use CSV header for display"
-                  v-model="$store.state.config.reconciliation.useCSVHeader"
+                  v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
                 >
                 </v-switch>
               </v-flex>
@@ -19,7 +19,7 @@
                   @change="configChanged"
                   color="success"
                   label="Perform match based on parent constraint"
-                  v-model="$store.state.config.reconciliation.parentConstraint"
+                  v-model="$store.state.config.userConfig.reconciliation.parentConstraint"
                 >
                 </v-switch>
               </v-flex>
@@ -28,13 +28,13 @@
                   @change="configChanged"
                   color="success"
                   label="Enable self registration"
-                  v-model="$store.state.config.reconciliation.selfRegistration"
+                  v-model="$store.state.config.generalConfig.selfRegistration"
                 >
                 </v-switch>
                 <v-layout
                   row
                   wrap
-                  v-if='$store.state.config.reconciliation.selfRegistration'
+                  v-if='$store.state.config.generalConfig.selfRegistration'
                 >
                   <v-flex xs3>
                     <v-treeview :items="signupFields"></v-treeview>

@@ -4,7 +4,7 @@ export const generalMixin = {
       return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('')
     },
     translateDataHeader (source, level) {
-      if (!this.$store.state.config.reconciliation.useCSVHeader) {
+      if (!this.$store.state.config.userConfig.reconciliation.useCSVHeader) {
         return 'Level ' + level
       }
       if (this.$store.state.levelMapping[source]) {
