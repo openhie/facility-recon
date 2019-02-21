@@ -1,11 +1,23 @@
 <template>
   <v-app>
-    <v-toolbar color="primary" dark app>
+    <v-toolbar
+      color="primary"
+      dark
+      app
+    >
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="$store.state.auth.token">
-        <v-menu open-on-hover bottom offset-y>
-          <v-btn slot="activator" flat>
+        <v-menu
+          open-on-hover
+          bottom
+          offset-y
+          v-if='!$store.state.denyAccess'
+        >
+          <v-btn
+            slot="activator"
+            flat
+          >
             <v-icon>sync</v-icon>{{ $t('App.menu.dataSourcesParent.msg')}}
           </v-btn>
           <v-list>
@@ -22,23 +34,45 @@
           </v-list>
         </v-menu>
         <v-tooltip bottom>
-          <v-btn to="view" flat v-if='!$store.state.denyAccess' slot="activator">
+          <v-btn
+            to="view"
+            flat
+            v-if='!$store.state.denyAccess'
+            slot="activator"
+          >
             <v-icon>list</v-icon>{{ $t('App.menu.view.msg')}}
           </v-btn>
           <span>{{ $t('App.menu.view.tooltip') }}</span>
         </v-tooltip>
-        <v-menu open-on-hover bottom offset-y>
-          <v-btn slot="activator" flat>
+        <v-menu
+          open-on-hover
+          bottom
+          offset-y
+          v-if='!$store.state.denyAccess'
+        >
+          <v-btn
+            slot="activator"
+            flat
+          >
             <v-icon>find_in_page</v-icon>{{ $t('App.menu.recoParent.msg')}}
           </v-btn>
           <v-list>
             <v-tooltip top>
-              <v-list-tile to="dataSourcesPair" slot="activator" v-if="$store.state.dataSources.length > 1">
+              <v-list-tile
+                to="dataSourcesPair"
+                slot="activator"
+                v-if="$store.state.dataSources.length > 1"
+              >
                 <v-list-tile-title>
                   <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>
               </v-list-tile>
-              <v-list-tile to="dataSourcesPair" slot="activator" disabled v-else>
+              <v-list-tile
+                to="dataSourcesPair"
+                slot="activator"
+                disabled
+                v-else
+              >
                 <v-list-tile-title>
                   <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
                 </v-list-tile-title>
@@ -46,12 +80,21 @@
               <span>{{ $t('App.menu.createPair.tooltip')}}</span>
             </v-tooltip>
             <v-tooltip top>
-              <v-list-tile to="scores" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
+              <v-list-tile
+                to="scores"
+                slot="activator"
+                disabled
+                v-if='Object.keys($store.state.activePair.source1).length === 0'
+              >
                 <v-list-tile-title>
                   <v-icon>find_in_page</v-icon>{{ $t('App.menu.reconcile.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
-              <v-list-tile to="scores" slot="activator" v-else>
+              <v-list-tile
+                to="scores"
+                slot="activator"
+                v-else
+              >
                 <v-list-tile-title>
                   <v-icon>find_in_page</v-icon>{{ $t('App.menu.reconcile.msg') }}
                 </v-list-tile-title>
@@ -59,12 +102,21 @@
               <span>{{ $t('App.menu.reconcile.tooltip') }}</span>
             </v-tooltip>
             <v-tooltip bottom>
-              <v-list-tile to="recoStatus" slot="activator" disabled v-if='Object.keys($store.state.activePair.source1).length === 0'>
+              <v-list-tile
+                to="recoStatus"
+                slot="activator"
+                disabled
+                v-if='Object.keys($store.state.activePair.source1).length === 0'
+              >
                 <v-list-tile-title>
                   <v-icon>dashboard</v-icon> {{ $t('App.menu.recoStatus.msg') }}
                 </v-list-tile-title>
               </v-list-tile>
-              <v-list-tile to="recoStatus" slot="activator" v-else>
+              <v-list-tile
+                to="recoStatus"
+                slot="activator"
+                v-else
+              >
                 <v-list-tile-title>
                   <v-icon>dashboard</v-icon> {{ $t('App.menu.recoStatus.msg') }}
                 </v-list-tile-title>
@@ -72,7 +124,10 @@
               <span>{{ $t('App.menu.recoStatus.tooltip') }}</span>
             </v-tooltip>
             <v-tooltip bottom>
-              <v-list-tile to="dbAdmin" slot="activator">
+              <v-list-tile
+                to="dbAdmin"
+                slot="activator"
+              >
                 <v-list-tile-title>
                   <v-icon>archive</v-icon> {{ $t('App.menu.archive.msg') }}
                 </v-list-tile-title>
@@ -81,13 +136,25 @@
             </v-tooltip>
           </v-list>
         </v-menu>
-        <v-menu open-on-hover bottom offset-y v-if='!$store.state.denyAccess'>
-          <v-btn slot="activator" flat>
+        <v-menu
+          open-on-hover
+          bottom
+          offset-y
+          v-if='!$store.state.denyAccess'
+        >
+          <v-btn
+            slot="activator"
+            flat
+          >
             <v-icon>perm_identity</v-icon>{{ $t('App.menu.account.msg')}}
           </v-btn>
           <v-list>
             <v-tooltip top>
-              <v-list-tile to="addUser" slot="activator" v-if='$store.state.auth.role === "Admin"'>
+              <v-list-tile
+                to="addUser"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
                 <v-list-tile-title>
                   <v-icon>perm_identity</v-icon>{{ $t('App.menu.addUser.msg')}}
                 </v-list-tile-title>
@@ -95,7 +162,11 @@
               <span>{{ $t('App.menu.addUser.tooltip')}}</span>
             </v-tooltip>
             <v-tooltip bottom>
-              <v-list-tile to="usersList" slot="activator" v-if='$store.state.auth.role === "Admin"'>
+              <v-list-tile
+                to="usersList"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
                 <v-list-tile-title>
                   <v-icon>perm_identity</v-icon>{{ $t('App.menu.usersList.msg')}}
                 </v-list-tile-title>
@@ -109,10 +180,18 @@
             </v-list-tile>
           </v-list>
         </v-menu>
-        <v-btn flat to="configure" v-if='!$store.state.denyAccess'>
+        <v-btn
+          flat
+          to="configure"
+          v-if='!$store.state.denyAccess'
+        >
           <v-icon>settings</v-icon> {{ $t('App.menu.configure.msg') }}
         </v-btn>
-        <v-btn flat to="logout" v-if='!$store.state.denyAccess'>
+        <v-btn
+          flat
+          to="logout"
+          v-if='!$store.state.denyAccess'
+        >
           <v-icon>logout</v-icon> {{ $t('App.menu.logout.msg') }}
         </v-btn>
       </v-toolbar-items>
@@ -122,17 +201,35 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
-      <v-dialog v-model="$store.state.dynamicProgress" persistent width="300">
-        <v-card color="primary" dark>
+      <v-dialog
+        v-model="$store.state.dynamicProgress"
+        persistent
+        width="300"
+      >
+        <v-card
+          color="primary"
+          dark
+        >
           <v-card-text>
             {{$store.state.progressTitle}}
-            <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+            <v-progress-linear
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-linear>
           </v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="$store.state.dialogError" max-width="500px">
+      <v-dialog
+        persistent
+        v-model="$store.state.dialogError"
+        max-width="500px"
+      >
         <v-card>
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               {{$store.state.errorTitle}}
             </v-toolbar-title>
@@ -141,24 +238,47 @@
             {{$store.state.errorDescription}}
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary" @click.native="$store.state.dialogError = false">Ok</v-btn>
+            <v-btn
+              color="primary"
+              @click.native="$store.state.dialogError = false"
+            >Ok</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog v-model="$store.state.initializingApp" persistent width="300">
-        <v-card color="primary" dark>
+      <v-dialog
+        v-model="$store.state.initializingApp"
+        persistent
+        width="300"
+      >
+        <v-card
+          color="primary"
+          dark
+        >
           <v-card-text>
             {{ $t('App.initApp') }}
-            <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+            <v-progress-linear
+              indeterminate
+              color="white"
+              class="mb-0"
+            ></v-progress-linear>
           </v-card-text>
         </v-card>
       </v-dialog>
-      <v-layout row wrap>
+      <v-layout
+        row
+        wrap
+      >
         <v-flex xs6>
           <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
-           {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
-           &nbsp; &nbsp; Recon Status: <v-icon small v-if="$store.state.recoStatus === 'on-progress'">lock_open</v-icon>
-           <v-icon small v-else>lock</v-icon> <b>{{$store.state.recoStatus}}</b>
+            {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
+            &nbsp; &nbsp; Recon Status: <v-icon
+              small
+              v-if="$store.state.recoStatus === 'on-progress'"
+            >lock_open</v-icon>
+            <v-icon
+              small
+              v-else
+            >lock</v-icon> <b>{{$store.state.recoStatus}}</b>
           </template>
         </v-flex>
         <v-spacer></v-spacer>
@@ -171,7 +291,12 @@
       </v-layout>
       <router-view />
     </v-content>
-    <v-footer dark color="primary" :fixed="fixed" app>
+    <v-footer
+      dark
+      color="primary"
+      :fixed="fixed"
+      app
+    >
 
     </v-footer>
   </v-app>
@@ -193,8 +318,8 @@ export default {
       title: this.$t('App.title'),
       locale: 'en',
       locales: [
-      {text: 'English', value: 'en'},
-      {text: 'French', value: 'fr'}
+        { text: 'English', value: 'en' },
+        { text: 'French', value: 'fr' }
       ]
     }
   },
@@ -207,7 +332,11 @@ export default {
     renderInitialPage () {
       let source1 = this.$store.state.activePair.source1.name
       let source2 = this.$store.state.activePair.source2.name
-      if ((!source1 || !source2) && (this.$store.state.dataSources.length > 1 || this.$store.state.dataSourcePairs.length > 0)) {
+      if (
+        (!source1 || !source2) &&
+        (this.$store.state.dataSources.length > 1 ||
+          this.$store.state.dataSourcePairs.length > 0)
+      ) {
         this.$router.push({ name: 'FacilityReconDataSourcePair' })
         return
       }
@@ -219,16 +348,27 @@ export default {
       source2 = this.toTitleCase(source2)
       // if this is a shared data pair then it will automatically use userid of the owner
       let userID = this.$store.state.activePair.userID._id
-      axios.get(backendServer + '/uploadAvailable/' + source1 + '/' + source2 + '/' + userID).then((results) => {
-        if (results.data.dataUploaded) {
-          this.$router.push({ name: 'FacilityReconScores' })
-        } else {
+      axios
+        .get(
+          backendServer +
+            '/uploadAvailable/' +
+            source1 +
+            '/' +
+            source2 +
+            '/' +
+            userID
+        )
+        .then(results => {
+          if (results.data.dataUploaded) {
+            this.$router.push({ name: 'FacilityReconScores' })
+          } else {
+            this.$router.push({ name: 'FacilityReconDataSync' })
+          }
+        })
+        .catch(err => {
+          console.log(err)
           this.$router.push({ name: 'FacilityReconDataSync' })
-        }
-      }).catch((err) => {
-        console.log(err)
-        this.$router.push({ name: 'FacilityReconDataSync' })
-      })
+        })
     },
     getTotalLevels () {
       let source1 = this.$store.state.activePair.source1.name
@@ -245,100 +385,155 @@ export default {
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
       let userID = this.$store.state.activePair.userID._id
-      axios.get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + userID).then((levels) => {
-        this.$store.state.initializingApp = false
-        this.$store.state.levelMapping.source1 = levels.data.levelMapping.levelMapping1
-        this.$store.state.levelMapping.source2 = levels.data.levelMapping.levelMapping2
-        this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
-        this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
-        this.getScores()
-        this.$store.state.recoLevel = 2
-        this.getRecoStatus()
-      })
+      axios
+        .get(
+          backendServer +
+            '/countLevels/' +
+            source1 +
+            '/' +
+            source2 +
+            '/' +
+            userID
+        )
+        .then(levels => {
+          this.$store.state.initializingApp = false
+          this.$store.state.levelMapping.source1 =
+            levels.data.levelMapping.levelMapping1
+          this.$store.state.levelMapping.source2 =
+            levels.data.levelMapping.levelMapping2
+          this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
+          this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
+          this.getScores()
+          this.$store.state.recoLevel = 2
+          this.getRecoStatus()
+        })
     },
     getRecoStatus () {
-      if (Object.keys(this.$store.state.activePair.source1).length === 0 || Object.keys(this.$store.state.activePair.source2).length === 0) {
+      if (
+        Object.keys(this.$store.state.activePair.source1).length === 0 ||
+        Object.keys(this.$store.state.activePair.source2).length === 0
+      ) {
         return
       }
       let source1 = this.toTitleCase(this.$store.state.activePair.source1.name)
       let source2 = this.toTitleCase(this.$store.state.activePair.source2.name)
       let userID = this.$store.state.activePair.userID._id
-      axios.get(backendServer + '/recoStatus/' + source1 + '/' + source2 + '/' + userID).then((status) => {
-        if (status.data.status) {
-          this.$store.state.recoStatus = status.data.status
-        } else {
-          axios.get(backendServer + '/markRecoUnDone/' + source1 + '/' + source2 + '/' + userID).then((status) => {
-            if (status.data.status) {
-              this.$store.state.recoStatus = status.data.status
-            }
-          }).catch((err) => {
-            console.log(err.response.data.error)
-          })
-        }
-      }).catch((err) => {
-        console.log(err.response.data.error)
-      })
+      axios
+        .get(
+          backendServer +
+            '/recoStatus/' +
+            source1 +
+            '/' +
+            source2 +
+            '/' +
+            userID
+        )
+        .then(status => {
+          if (status.data.status) {
+            this.$store.state.recoStatus = status.data.status
+          } else {
+            axios
+              .get(
+                backendServer +
+                  '/markRecoUnDone/' +
+                  source1 +
+                  '/' +
+                  source2 +
+                  '/' +
+                  userID
+              )
+              .then(status => {
+                if (status.data.status) {
+                  this.$store.state.recoStatus = status.data.status
+                }
+              })
+              .catch(err => {
+                console.log(err.response.data.error)
+              })
+          }
+        })
+        .catch(err => {
+          console.log(err.response.data.error)
+        })
     },
     getDataSources () {
       this.$store.state.loadingServers = true
       this.$store.state.dataSources = []
       let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/getDataSources/' + userID).then((response) => {
-        this.$store.state.loadingServers = false
-        this.$store.state.dataSources = response.data.servers
-        this.getDataSourcePair()
-      }).catch((err) => {
-        this.$store.state.loadingServers = false
-        console.log(JSON.stringify(err))
-      })
+      axios
+        .get(backendServer + '/getDataSources/' + userID)
+        .then(response => {
+          this.$store.state.loadingServers = false
+          this.$store.state.dataSources = response.data.servers
+          this.getDataSourcePair()
+        })
+        .catch(err => {
+          this.$store.state.loadingServers = false
+          console.log(JSON.stringify(err))
+        })
     },
     getConfig () {
       let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/getConfig/' + userID).then((config) => {
-        this.$store.state.config = config.data.config
-        this.getDataSources()
-      }).catch(() => {
-        this.getDataSources()
-      })
+      axios
+        .get(backendServer + '/getConfig/' + userID)
+        .then(config => {
+          this.$store.state.config = config.data.config
+          this.getDataSources()
+        })
+        .catch(() => {
+          this.getDataSources()
+        })
     },
     getDataSourcePair () {
       this.$store.state.activePair.source1 = {}
       this.$store.state.activePair.source2 = {}
       let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/getDataSourcePair/' + userID).then((response) => {
-        this.$store.state.dataSourcePairs = response.data
-        let activeSource = this.getActivePair()
-        if (Object.keys(activeSource).length > 0) {
-          this.$store.state.activePair.source1.id = activeSource.source1._id
-          this.$store.state.activePair.source1.name = activeSource.source1.name
-          this.$store.state.activePair.source2.id = activeSource.source2._id
-          this.$store.state.activePair.source2.name = activeSource.source2.name
-          this.$store.state.activePair.shared = activeSource.shared
-          this.$store.state.activePair.userID = activeSource.userID
-        }
-        this.renderInitialPage()
-        this.getTotalLevels()
-      }).catch((err) => {
-        console.log(JSON.stringify(err))
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = 'An error occured while getting data source pairs, reload the app to retry'
-        this.renderInitialPage()
-        this.getTotalLevels()
-      })
+      axios
+        .get(backendServer + '/getDataSourcePair/' + userID)
+        .then(response => {
+          this.$store.state.dataSourcePairs = response.data
+          let activeSource = this.getActivePair()
+          if (Object.keys(activeSource).length > 0) {
+            this.$store.state.activePair.source1.id = activeSource.source1._id
+            this.$store.state.activePair.source1.name =
+              activeSource.source1.name
+            this.$store.state.activePair.source2.id = activeSource.source2._id
+            this.$store.state.activePair.source2.name =
+              activeSource.source2.name
+            this.$store.state.activePair.shared = activeSource.shared
+            this.$store.state.activePair.userID = activeSource.userID
+          }
+          this.renderInitialPage()
+          this.getTotalLevels()
+        })
+        .catch(err => {
+          console.log(JSON.stringify(err))
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription =
+            'An error occured while getting data source pairs, reload the app to retry'
+          this.renderInitialPage()
+          this.getTotalLevels()
+        })
     },
     getActivePair () {
       let shared
       let activeDataSourcePair = {}
-      this.$store.state.dataSourcePairs.forEach((pair) => {
-        if (pair.userID._id === this.$store.state.auth.userID && pair.status === 'active') {
+      this.$store.state.dataSourcePairs.forEach(pair => {
+        if (
+          pair.userID._id === this.$store.state.auth.userID &&
+          pair.status === 'active'
+        ) {
           activeDataSourcePair = pair
         }
         if (Object.keys(activeDataSourcePair).length > 0) {
           shared = undefined
           return
         }
-        if (pair.userID._id !== this.$store.state.auth.userID && pair.status === 'active') {
+        if (
+          pair.userID._id !== this.$store.state.auth.userID &&
+          pair.status === 'active'
+        ) {
           shared = pair
         }
       })
@@ -354,7 +549,11 @@ export default {
       this.$store.state.auth.userID = VueCookies.get('userID')
       this.$store.state.auth.username = VueCookies.get('username')
       this.$store.state.auth.role = VueCookies.get('role')
-      axios.get(backendServer + '/isTokenActive/').then((response) => {
+      this.$store.state.signupFields = VueCookies.get('signupFields')
+      this.$store.state.customSignupFields = VueCookies.get(
+        'customSignupFields'
+      )
+      axios.get(backendServer + '/isTokenActive/').then(response => {
         // will come here only if the token is active
         this.$store.state.clientId = uuid.v4()
         this.$store.state.initializingApp = true
@@ -370,6 +569,9 @@ export default {
     })
     eventBus.$on('getDataSources', () => {
       this.getDataSources()
+    })
+    eventBus.$on('getConfig', () => {
+      this.getConfig()
     })
     eventBus.$on('getDataSourcePair', () => {
       this.getDataSourcePair()

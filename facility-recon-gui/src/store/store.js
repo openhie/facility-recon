@@ -21,9 +21,12 @@ export const store = new Vuex.Store({
     config: {
       reconciliation: {
         useCSVHeader: true,
-        parentConstraint: true
+        parentConstraint: true,
+        selfRegistration: false
       }
     },
+    signupFields: {},
+    customSignupFields: {},
     recoStatus: {
       'status': 'on-progress'
     },

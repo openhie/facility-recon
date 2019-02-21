@@ -118,6 +118,53 @@
       </v-dialog>
       <v-dialog
         persistent
+        v-model="downloadDialog"
+        width="620px"
+      >
+        <v-card>
+          <v-toolbar
+            color="primary"
+            dark
+          >
+            <v-toolbar-title>
+              Select file type to download
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-icon @click='closeDownloadDialog'>close</v-icon>
+          </v-toolbar>
+          <v-card-text>
+            
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+              round
+              color="info"
+              @click='downloadMatched'
+            >
+            <v-icon left>file_copy</v-icon>
+            Matched</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              round
+              color="info"
+              @click='downloadSource1Unmatched'
+            >
+            <v-icon left>file_copy</v-icon>
+            Source1 Unmatched
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              round
+              color="info"
+              @click='downloadSource2Unmatched'
+            >
+            <v-icon left>file_copy</v-icon>
+            Source2 Unmatched</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog
+        persistent
         transition="scale-transition"
         v-model="dialog"
         :width="dialogWidth"
@@ -1164,6 +1211,11 @@ export default {
     return {
       flagCommentDialog: false,
       flagComment: '',
+      matchedDownloadData: '',
+      unmatchedSource1DownloadData: '',
+      unmatchedSource2DownloadData: '',
+      downloadType: '',
+      downloadDialog: false,
       helpDialog: false,
       type: '',
       source2Id: '',
@@ -1205,7 +1257,7 @@ export default {
         { text: 'Source 2 Location', value: 'source2Name' },
         { text: 'Source 2 ID', value: 'source2Id' },
         { text: 'Comment', value: 'flagComment' },
-        { }
+        {}
       ],
       loadingCSV: false,
       loadingFHIR: false
@@ -1261,7 +1313,9 @@ export default {
       }
       this.$store.state.recoLevel = level
       this.getScores()
-      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
+      if (
+        this.$store.state.recoLevel === this.$store.state.totalSource1Levels
+      ) {
         this.dialogWidth = '1440px'
       } else {
         this.dialogWidth = '1190px'
@@ -1314,7 +1368,8 @@ export default {
       if (source2Id === null) {
         this.alert = true
         this.alertTitle = 'Information'
-        this.alertText = 'Select Source 2 Location to match against Source 1 Location'
+        this.alertText =
+          'Select Source 2 Location to match against Source 1 Location'
         return
       }
       if (type === 'flag') {
@@ -1342,7 +1397,7 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         })
-        .then((response) => {
+        .then(response => {
           this.$store.state.dynamicProgress = false
           // remove from Source 2 Unmatched
           let source2Parents = null
@@ -1355,7 +1410,10 @@ export default {
 
           // Add from a list of Source 1 Matched and remove from list of Source 1 unMatched
           for (let k in this.$store.state.source1UnMatched) {
-            if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
+            if (
+              this.$store.state.source1UnMatched[k].id ===
+              this.selectedSource1Id
+            ) {
               if (this.matchType === 'match') {
                 ++this.$store.state.totalAllMapped
                 this.$store.state.matchedContent.push({
@@ -1405,11 +1463,21 @@ export default {
       formData.append('source2Id', source2Id)
       let userID = this.$store.state.activePair.userID._id
       axios
-        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(
+          backendServer +
+            '/acceptFlag/' +
+            this.getSource1() +
+            '/' +
+            this.getSource2() +
+            '/' +
+            userID,
+          formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        })
+        }
+        )
         .then(() => {
           this.$store.state.dynamicProgress = false
           // Add from a list of Source 1 Matched and remove from list of Flagged
@@ -1447,15 +1515,27 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(
+          backendServer +
+            '/breakMatch/' +
+            this.getSource1() +
+            '/' +
+            this.getSource2() +
+            '/' +
+            userID,
+          formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        }).then((data) => {
+        }
+        )
+        .then(data => {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
-          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          this.alertText =
+            'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.matchedContent) {
             if (this.$store.state.matchedContent[k].source2Id === source2Id) {
               this.$store.state.source1UnMatched.push({
@@ -1472,7 +1552,8 @@ export default {
               --this.$store.state.totalAllMapped
             }
           }
-        }).catch(err => {
+        })
+        .catch(err => {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Error'
@@ -1490,15 +1571,27 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       formData.append('source2Id', source2Id)
       axios
-        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(
+          backendServer +
+            '/breakMatch/' +
+            this.getSource1() +
+            '/' +
+            this.getSource2() +
+            '/' +
+            userID,
+          formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        }).then((data) => {
+        }
+        )
+        .then(data => {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
-          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          this.alertText =
+            'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.flagged) {
             if (this.$store.state.flagged[k].source2Id === source2Id) {
               this.$store.state.source1UnMatched.push({
@@ -1536,15 +1629,29 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       let userID = this.$store.state.activePair.userID._id
       axios
-        .post(backendServer + '/breakNoMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(
+          backendServer +
+            '/breakNoMatch/' +
+            type +
+            '/' +
+            this.getSource1() +
+            '/' +
+            this.getSource2() +
+            '/' +
+            userID,
+          formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        }).then((data) => {
+        }
+        )
+        .then(data => {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
-          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
+          this.alertText =
+            'Scores for this Location may not be available unless you recalculate scores'
           if (type === 'nomatch') {
             for (let k in this.$store.state.noMatchContent) {
               if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
@@ -1592,17 +1699,32 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + '/noMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        .post(
+          backendServer +
+            '/noMatch/' +
+            type +
+            '/' +
+            this.getSource1() +
+            '/' +
+            this.getSource2() +
+            '/' +
+            userID,
+          formData,
+        {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        })
+        }
+        )
         .then(() => {
           this.$store.state.dynamicProgress = false
           // remove from Source 1 Unmatched
           if (type === 'nomatch') {
             for (let k in this.$store.state.source1UnMatched) {
-              if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
+              if (
+                this.$store.state.source1UnMatched[k].id ===
+                this.selectedSource1Id
+              ) {
                 this.$store.state.noMatchContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
@@ -1614,7 +1736,10 @@ export default {
             }
           } else if (type === 'ignore') {
             for (let k in this.$store.state.source1UnMatched) {
-              if (this.$store.state.source1UnMatched[k].id === this.selectedSource1Id) {
+              if (
+                this.$store.state.source1UnMatched[k].id ===
+                this.selectedSource1Id
+              ) {
                 this.$store.state.ignoreContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
@@ -1647,71 +1772,126 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
       let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
-      return axios.get(`${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, { params: {
-        levelMapping1,
-        levelMapping2
-      }})
+      return axios.get(
+        `${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`,
+        {
+          params: {
+            levelMapping1,
+            levelMapping2
+          }
+        }
+      )
     },
     unMatchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
       let levelMapping1 = this.$store.state.levelMapping.source1
       let levelMapping2 = this.$store.state.levelMapping.source2
-      return axios.get(`${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`, { params: {
-        levelMapping1,
-        levelMapping2
-      }})
+      return axios.get(
+        `${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`,
+        {
+          params: {
+            levelMapping1,
+            levelMapping2
+          }
+        }
+      )
     },
     csvExport () {
       this.loadingCSV = true
       let me = this
-      axios.all([this.matchedLocations('CSV'), this.unMatchedLocations('CSV')])
-        .then(axios.spread(function (matchResponse, unmatchResponse) {
-          me.loadingCSV = false
-          // matched CSV
-          const matchedData = encodeURI('data:text/csv;charset=utf-8,' + matchResponse.data)
-          const link = document.createElement('a')
-          link.setAttribute('href', matchedData)
-          link.setAttribute('download', `matched${me.getSource1()}${me.getSource2()}.csv`)
-          link.click()
-
-          // unmatched source1 CSV
-          const unmatchedSource1Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource1CSV)
-          link.setAttribute('href', unmatchedSource1Data)
-          link.setAttribute('download', `unmatched${me.getSource1()}.csv`)
-          link.click()
-
-          // unmatched source2 CSV
-          const unmatchedSource2Data = encodeURI('data:text/csv;charset=utf-8,' + unmatchResponse.data.unmatchedSource2CSV)
-          link.setAttribute('href', unmatchedSource2Data)
-          link.setAttribute('download', `unmatched${me.getSource2()}.csv`)
-          link.click()
-        }))
+      axios
+        .all([this.matchedLocations('CSV'), this.unMatchedLocations('CSV')])
+        .then(
+          axios.spread(function (matchResponse, unmatchResponse) {
+            me.loadingCSV = false
+            me.downloadDialog = true
+            me.downloadType = 'csv'
+            // matched CSV
+            me.matchedDownloadData = matchResponse.data
+            me.unmatchedSource1DownloadData = unmatchResponse.data.unmatchedSource1CSV
+            me.unmatchedSource2DownloadData = unmatchResponse.data.unmatchedSource2CSV
+          })
+        )
     },
     fhirExport () {
       this.loadingFHIR = true
       let me = this
-      axios.all([this.matchedLocations('FHIR'), this.unMatchedLocations('FHIR')])
-        .then(axios.spread(function (matchResponse, unmatchResponse) {
-          me.loadingFHIR = false
-          // matched CSV
-          const matchedData = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(matchResponse.data))
-          const link = document.createElement('a')
-          link.setAttribute('href', matchedData)
-          link.setAttribute('download', `matched${me.getSource1()}${me.getSource2()}.json`)
-          link.click()
-
-          // unmatched source1 CSV
-          const unmatchedSource1Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource1mCSD))
-          link.setAttribute('href', unmatchedSource1Data)
-          link.setAttribute('download', `unmatched${me.getSource1()}.json`)
-          link.click()
-
-          // unmatched source2 CSV
-          const unmatchedSource2Data = encodeURI('data:text/json;charset=utf-8,' + JSON.stringify(unmatchResponse.data.unmatchedSource2mCSD))
-          link.setAttribute('href', unmatchedSource2Data)
-          link.setAttribute('download', `unmatched${me.getSource2()}.json`)
-          link.click()
-        }))
+      axios
+        .all([this.matchedLocations('FHIR'), this.unMatchedLocations('FHIR')])
+        .then(
+          axios.spread(function (matchResponse, unmatchResponse) {
+            me.loadingFHIR = false
+            me.downloadDialog = true
+            me.downloadType = 'fhir'
+            // matched CSV
+            me.matchedDownloadData = matchResponse.data
+            me.unmatchedSource1DownloadData = unmatchResponse.data.unmatchedSource1mCSD
+            me.unmatchedSource2DownloadData = unmatchResponse.data.unmatchedSource2mCSD
+          })
+        )
+    },
+    downloadMatched () {
+      let extension, encoding
+      if (this.downloadType === 'fhir') {
+        extension = 'json'
+        encoding = 'data:text/json;charset=utf-8,'
+        this.matchedDownloadData = JSON.stringify(this.matchedDownloadData)
+      } else {
+        extension = 'csv'
+        encoding = 'data:text/csv;charset=utf-8,'
+      }
+      const matchedData = encodeURI(
+        encoding + this.matchedDownloadData
+      )
+      const link = document.createElement('a')
+      link.setAttribute('href', matchedData)
+      link.setAttribute(
+        'download',
+        `matched${this.getSource1()}${this.getSource2()}.${extension}`
+      )
+      link.click()
+    },
+    downloadSource1Unmatched () {
+      let extension, encoding
+      if (this.downloadType === 'fhir') {
+        extension = 'json'
+        encoding = 'data:text/json;charset=utf-8,'
+        this.unmatchedSource1DownloadData = JSON.stringify(this.unmatchedSource1DownloadData)
+      } else {
+        extension = 'csv'
+        encoding = 'data:text/csv;charset=utf-8,'
+      }
+      const unmatchedSource1Data = encodeURI(
+        encoding + this.unmatchedSource1DownloadData
+      )
+      const link = document.createElement('a')
+      link.setAttribute('href', unmatchedSource1Data)
+      link.setAttribute('download', `unmatched${this.getSource1()}.${extension}`)
+      link.click()
+    },
+    downloadSource2Unmatched () {
+      let extension, encoding
+      if (this.downloadType === 'fhir') {
+        extension = 'json'
+        encoding = 'data:text/json;charset=utf-8,'
+        this.unmatchedSource2DownloadData = JSON.stringify(this.unmatchedSource2DownloadData)
+      } else {
+        extension = 'csv'
+        encoding = 'data:text/csv;charset=utf-8,'
+      }
+      const unmatchedSource2Data = encodeURI(
+        encoding + this.unmatchedSource2DownloadData
+      )
+      const link = document.createElement('a')
+      link.setAttribute('href', unmatchedSource2Data)
+      link.setAttribute('download', `unmatched${this.getSource2()}.${extension}`)
+      link.click()
+    },
+    closeDownloadDialog () {
+      this.downloadDialog = false
+      this.matchedDownloadData = ''
+      this.unmatchedSource1DownloadData = ''
+      this.unmatchedSource2DownloadData = ''
     }
   },
   computed: {
@@ -1719,13 +1899,16 @@ export default {
       get: function () {
         return this.translateDataHeader('source1', this.$store.state.recoLevel)
       },
-      set: function (newVal) { }
+      set: function (newVal) {}
     },
     currentLevelText: {
       get: function () {
-        return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+        return this.translateDataHeader(
+          'source1',
+          this.$store.state.recoLevel - 1
+        )
       },
-      set: function (newVal) { }
+      set: function (newVal) {}
     },
     matchedHeaders () {
       let header = [
@@ -1759,10 +1942,14 @@ export default {
         { text: 'ID', value: 'id', sortable: false },
         { text: 'Parent', value: 'source2Parent', sortable: false }
       )
-      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
-        results.push(
-          { text: 'Geo Dist (Miles)', value: 'geodist', sortable: false }
-        )
+      if (
+        this.$store.state.recoLevel === this.$store.state.totalSource1Levels
+      ) {
+        results.push({
+          text: 'Geo Dist (Miles)',
+          value: 'geodist',
+          sortable: false
+        })
       }
       results.push({ text: 'Score', value: 'score' })
       return results
@@ -1777,7 +1964,7 @@ export default {
       if (
         this.$store.state.source2UnMatched !== null &&
         this.$store.state.source2UnMatched.length >
-        this.potentialMatches.length &&
+          this.potentialMatches.length &&
         this.showAllPotential === 'all'
       ) {
         let results = []
@@ -1809,7 +1996,10 @@ export default {
         }
       }
       let results = []
-      if (Object.keys(this.$store.state.source1Parents).length === 1 && Object.keys(this.$store.state.source1Parents)[0] === 'null') {
+      if (
+        Object.keys(this.$store.state.source1Parents).length === 1 &&
+        Object.keys(this.$store.state.source1Parents)[0] === 'null'
+      ) {
         return results
       }
       createTree(this.$store.state.source1Parents, results)
@@ -1878,7 +2068,9 @@ export default {
         return 0
       } else {
         return parseFloat(
-          (this.source1TotalMatched * 100 / this.source1TotalRecords).toFixed(1)
+          ((this.source1TotalMatched * 100) / this.source1TotalRecords).toFixed(
+            1
+          )
         )
       }
     },
@@ -1890,7 +2082,10 @@ export default {
         return 0
       } else {
         return parseFloat(
-          (this.source1TotalUnMatched * 100 / this.source1TotalRecords).toFixed(1)
+          (
+            (this.source1TotalUnMatched * 100) /
+            this.source1TotalRecords
+          ).toFixed(1)
         )
       }
     },
@@ -1907,8 +2102,7 @@ export default {
       } else if (this.$store.state.flagged) {
         return parseFloat(
           (
-            this.$store.state.flagged.length *
-            100 /
+            (this.$store.state.flagged.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
         )
@@ -1936,8 +2130,7 @@ export default {
       } else if (this.$store.state.noMatchContent) {
         return parseFloat(
           (
-            this.$store.state.noMatchContent.length *
-            100 /
+            (this.$store.state.noMatchContent.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
         )
@@ -1951,8 +2144,7 @@ export default {
       } else if (this.$store.state.ignoreContent) {
         return parseFloat(
           (
-            this.$store.state.ignoreContent.length *
-            100 /
+            (this.$store.state.ignoreContent.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
         )
@@ -1983,8 +2175,7 @@ export default {
       } else {
         return parseFloat(
           (
-            this.source2TotalUnmatched *
-            100 /
+            (this.source2TotalUnmatched * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
         )
@@ -1996,8 +2187,7 @@ export default {
       } else if (this.$store.state.flagged) {
         return parseFloat(
           (
-            this.$store.state.flagged.length *
-            100 /
+            (this.$store.state.flagged.length * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
         )
@@ -2014,8 +2204,7 @@ export default {
       } else {
         return parseFloat(
           (
-            this.source2TotalMatched *
-            100 /
+            (this.source2TotalMatched * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
         )
@@ -2034,14 +2223,17 @@ export default {
         return 0
       }
       var percent = parseFloat(
-        (this.source2NotInSource1 * 100 / this.source2TotalRecords).toFixed(1)
+        ((this.source2NotInSource1 * 100) / this.source2TotalRecords).toFixed(1)
       )
       return parseFloat(percent)
     }
   },
   created () {
     eventBus.$on('changeCSVHeaderNames', () => {
-      let levelName = this.translateDataHeader('source1', this.$store.state.recoLevel)
+      let levelName = this.translateDataHeader(
+        'source1',
+        this.$store.state.recoLevel
+      )
       this.nextLevelText = levelName
       this.currentLevelText = levelName
     })

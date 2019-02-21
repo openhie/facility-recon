@@ -2,8 +2,9 @@
   <v-container>
     <v-layout
       row
-      wrap>
-      <v-spacer/>
+      wrap
+    >
+      <v-spacer />
       <v-flex xs6>
         <v-alert
           style="width: 500px"
@@ -25,34 +26,40 @@
         </v-alert>
         <v-card
           class="mx-auto"
-          style="max-width: 500px;">
+          style="max-width: 500px;"
+        >
           <v-system-bar
             color="deep-purple darken-4"
-            dark/>
+            dark
+          />
           <v-toolbar
             color="deep-purple accent-4"
             cards
             dark
-            flat>
-            <v-card-title class="title font-weight-regular">Add New User</v-card-title>
+            flat
+          >
+            <v-card-title class="title font-weight-regular">Create Account</v-card-title>
           </v-toolbar>
           <v-form
             ref="form"
-            class="pa-3 pt-4">
+            class="pa-3 pt-4"
+          >
             <v-text-field
               required
-              @blur="$v.firstName.$touch()"
-              @change="$v.firstName.$touch()"
+              @blur="$v.firstname.$touch()"
+              @change="$v.firstname.$touch()"
               :error-messages="firstnameErrors"
-              v-model="firstName"
+              v-model="firstname"
               box
               color="deep-purple"
-              label="First Name"/>
+              label="First Name"
+            />
             <v-text-field
-              v-model="otherName"
+              v-model="othername"
               box
               color="deep-purple"
-              label="Middle Names"/>
+              label="Middle Names"
+            />
             <v-text-field
               required
               @blur="$v.surname.$touch()"
@@ -61,16 +68,18 @@
               v-model="surname"
               box
               color="deep-purple"
-              label="Surname"/>
+              label="Surname"
+            />
             <v-text-field
               required
-              @blur="$v.userName.$touch()"
+              @blur="$v.username.$touch()"
               @change="$v.surname.$touch()"
               :error-messages="usernameErrors"
-              v-model="userName"
+              v-model="username"
               box
               color="deep-purple"
-              label="Username"/>  
+              label="Username"
+            />
             <label v-for='(type, name) in $store.state.customSignupFields' :key="name">
               <v-text-field
                 v-if='type.required'
@@ -98,7 +107,8 @@
               type="password"
               box
               color="deep-purple"
-              label="Password"/>  
+              label="Password"
+            />
             <v-text-field
               required
               @blur="$v.retype_password.$touch()"
@@ -108,122 +118,108 @@
               type="password"
               box
               color="deep-purple"
-              label="Re-type Password"/>
-            <v-select
-              required
-              :items="roles"
-              v-model="role"
-              single-line clearable
-              @blur="$v.role.$touch()"
-              @change="$v.role.$touch()"
-              :error-messages="roleErrors"
-              box
-              label="Role"
-            ></v-select>
+              label="Re-type Password"
+            />
           </v-form>
-          <v-divider/>
+          <v-divider />
           <v-card-actions>
             <v-btn
               flat
-              @click="$refs.form.reset()">
+              @click="$refs.form.reset()"
+            >
               <v-icon>clear</v-icon>Clear
             </v-btn>
-            <v-spacer/>
+            <v-spacer />
             <v-btn
-              @click="addUser()"
+              @click="signup()"
               :disabled="$v.$invalid"
               class="white--text"
               color="deep-purple accent-4"
-              depressed><v-icon left>how_to_reg</v-icon>Add</v-btn>
+              depressed
+            >
+              <v-icon left>how_to_reg</v-icon>Add
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
-      <v-spacer/>
+      <v-spacer />
     </v-layout>
   </v-container>
 </template>
 <script>
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
+import VueCookies from 'vue-cookies'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
   validations: {
-    userName: { required },
+    username: { required },
     retype_password: { required },
     password: { required },
-    role: { required },
-    firstName: { required },
+    firstname: { required },
     surname: { required }
   },
   data () {
     return {
-      firstName: '',
-      otherName: '',
+      firstname: '',
+      othername: '',
       surname: '',
-      userName: '',
+      username: '',
       password: '',
       retype_password: '',
-      role: '',
       customFields: [],
       alertFail: false,
       alertSuccess: false,
-      alertMsg: '',
-      roles: []
+      alertMsg: ''
     }
   },
   methods: {
-    addUser () {
+    signup () {
       if (this.password !== this.retype_password) {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
         this.$store.state.errorDescription = 'Password mismatch'
-        return
       }
       this.$store.state.dynamicProgress = true
-      this.$store.state.progressTitle = 'Saving User'
+      this.$store.state.progressTitle = 'Creating Account'
       let formData = new FormData()
-      formData.append('firstName', this.firstName)
-      formData.append('otherName', this.otherName)
+      formData.append('firstName', this.firstname)
+      formData.append('otherName', this.othername)
       formData.append('password', this.password)
-      formData.append('userName', this.userName)
+      formData.append('userName', this.username)
       formData.append('surname', this.surname)
-      formData.append('role', this.role)
       for (let field in this.customFields) {
-        console.log(field)
-        console.log(this.customFields[field])
         formData.append(field, this.customFields[field])
       }
-      axios.post(backendServer + '/addUser/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(() => {
-        /* this.firstName = ''
-        this.otherName = ''
-        this.surname = ''
-        this.password = ''
-        this.userName = ''
-        this.retype_password = ''
-        this.role = '' */
-        this.$store.state.dynamicProgress = false
-        this.alertSuccess = true
-        this.alertMsg = 'User added successfully'
-      }).catch((err) => {
-        this.$store.state.dynamicProgress = false
-        this.alertFail = true
-        this.alertMsg = 'This user was not added, ensure userName is not used'
-        console.log(err.response.data.error)
-      })
+      axios
+        .post(backendServer + '/signup/', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {
+          this.firstname = ''
+          this.othername = ''
+          this.surname = ''
+          this.password = ''
+          this.username = ''
+          this.retype_password = ''
+          this.$store.state.dynamicProgress = false
+          this.alertSuccess = true
+          this.alertMsg = 'Account created successfully'
+        })
+        .catch(err => {
+          this.$store.state.dynamicProgress = false
+          this.alertFail = true
+          this.alertMsg = 'This account was not added, try different username'
+          console.log(err.response.data.error)
+        })
     },
-    getRoles () {
-      axios.get(backendServer + '/getRoles').then((roles) => {
-        for (let role of roles.data) {
-          this.roles.push({text: role.name, value: role._id})
-        }
-      }).catch((err) => {
-        console.log(err.response.data)
-      })
+    isField (field) {
+      console.log(field)
+      console.log(JSON.stringify(this.customFields))
+      this.customFields[field] = 'required'
     }
   },
   computed: {
@@ -235,8 +231,8 @@ export default {
     },
     firstnameErrors () {
       const errors = []
-      if (!this.$v.firstName.$dirty) return errors
-      !this.$v.firstName.required && errors.push('First Name is required')
+      if (!this.$v.firstname.$dirty) return errors
+      !this.$v.firstname.required && errors.push('First Name is required')
       return errors
     },
     surnameErrors () {
@@ -247,8 +243,8 @@ export default {
     },
     usernameErrors () {
       const errors = []
-      if (!this.$v.userName.$dirty) return errors
-      !this.$v.userName.required && errors.push('Username is required')
+      if (!this.$v.username.$dirty) return errors
+      !this.$v.username.required && errors.push('Username is required')
       return errors
     },
     passwordErrors () {
@@ -262,16 +258,11 @@ export default {
       if (!this.$v.retype_password.$dirty) return errors
       !this.$v.retype_password.required && errors.push('Re-type Password')
       return errors
-    },
-    roleErrors () {
-      const errors = []
-      if (!this.$v.role.$dirty) return errors
-      !this.$v.role.required && errors.push('Role is required')
-      return errors
     }
   },
   created () {
-    this.getRoles()
+    this.$store.state.signupFields = VueCookies.get('signupFields')
+    this.$store.state.customSignupFields = VueCookies.get('customSignupFields')
   }
 }
 </script>

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-let Users = new mongoose.Schema({
+let usersFields = {
   firstName: {
     type: String,
     required: true
@@ -34,8 +34,8 @@ let Users = new mongoose.Schema({
   lastModified: {
     type: Date
   }
-})
-
+}
+let Users = new mongoose.Schema(usersFields)
 let Roles = new mongoose.Schema({
   name: {
     type: String,
@@ -117,20 +117,24 @@ let MetaData = new mongoose.Schema({
       },
       parentConstraint: {
         type: Boolean
+      },
+      selfRegistration: {
+        type: Boolean
       }
     },
   },
   recoStatus: {
     type: String
   },
-  levelMapping:{
+  forms: [{}],
+  levelMapping: {
     facility: {
       type: String
     },
     code: {
       type: String
     },
-    level1:{
+    level1: {
       type: String
     },
     level2: {
@@ -162,15 +166,16 @@ let MetaData = new mongoose.Schema({
     }
   }
 })
-let DataSourcesSchema = mongoose.model('DataSources', DataSources)
-let DataSourcePairSchema = mongoose.model('DataSourcePair', DataSourcePair)
-let MetaDataSchema = mongoose.model('MetaData', MetaData)
-let RolesSchema = mongoose.model('Roles', Roles)
-let UsersSchema = mongoose.model('Users', Users)
+let DataSourcesModel = mongoose.model('DataSources', DataSources)
+let DataSourcePairModel = mongoose.model('DataSourcePair', DataSourcePair)
+let MetaDataModel = mongoose.model('MetaData', MetaData)
+let RolesModel = mongoose.model('Roles', Roles)
+let UsersModel = mongoose.model('Users', Users)
 module.exports = {
-  DataSourcesSchema,
-  DataSourcePairSchema,
-  MetaDataSchema,
-  UsersSchema,
-  RolesSchema
+  DataSourcesModel,
+  DataSourcePairModel,
+  MetaDataModel,
+  UsersModel,
+  RolesModel,
+  usersFields
 }

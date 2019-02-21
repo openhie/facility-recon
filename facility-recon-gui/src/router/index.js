@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/components/Login.vue'
+import Signup from '@/components/Signup.vue'
 import Configure from '@/components/Configure.vue'
 import Logout from '@/components/Logout.vue'
 import UsersList from '@/components/UsersList.vue'
@@ -43,6 +44,11 @@ let router = new Router({
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/Signup',
+    name: 'Signup',
+    component: Signup
   },
   {
     path: '/Configure',
@@ -94,7 +100,7 @@ let router = new Router({
 
 router.beforeEach((to, from, next) => {
   if (!store.state.auth.token && (!VueCookies.get('token') || !VueCookies.get('userID'))) {
-    if (to.path !== '/Login') {
+    if (to.path !== '/Login' && to.path !== '/Signup') {
       next({
         path: '/Login'
       })

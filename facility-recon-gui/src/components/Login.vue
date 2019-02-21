@@ -1,31 +1,56 @@
 <template>
   <v-container>
     <center>
-    <v-layout row wrap>
-      <v-flex xs3></v-flex>
-      <v-flex xs6>
-        <v-alert type="error" :value="authStatus">
-          Authentication Failed
-        </v-alert>
-      </v-flex>
-    </v-layout>
-    <v-card width="430px" hover>
-      <v-card-title primary-title>
-        <v-toolbar color="primary" style="color: white">
-          <v-layout row wrap>
-            <v-flex xs2 text-xs-left>
-              <v-icon x-large color="white">lock</v-icon>
-            </v-flex>
-            <v-flex xs9 text-xs-right>
-              <b>Login</b>
-            </v-flex>
-          </v-layout>
-        </v-toolbar>
-      </v-card-title>
-      <v-card-text>
-        <v-form
+      <v-layout
+        row
+        wrap
+      >
+        <v-flex xs3></v-flex>
+        <v-flex xs6>
+          <v-alert
+            type="error"
+            :value="authStatus"
+          >
+            Authentication Failed
+          </v-alert>
+        </v-flex>
+      </v-layout>
+      <v-card
+        width="430px"
+        hover
+      >
+        <v-card-title primary-title>
+          <v-toolbar
+            color="primary"
+            style="color: white"
+          >
+            <v-layout
+              row
+              wrap
+            >
+              <v-flex
+                xs2
+                text-xs-left
+              >
+                <v-icon
+                  x-large
+                  color="white"
+                >lock</v-icon>
+              </v-flex>
+              <v-flex
+                xs9
+                text-xs-right
+              >
+                <b>Login</b>
+              </v-flex>
+            </v-layout>
+          </v-toolbar>
+        </v-card-title>
+        <v-card-text>
+          <v-form
             ref="form"
-            class="pa-3 pt-4">
+            class="pa-3 pt-4"
+          >
             <v-text-field
               required
               v-on:keyup.enter="authenticate()"
@@ -35,7 +60,8 @@
               v-model="username"
               box
               color="deep-purple"
-              label="Username"/>
+              label="Username"
+            />
             <v-text-field
               required
               v-on:keyup.enter="authenticate()"
@@ -46,21 +72,28 @@
               box
               type="password"
               color="deep-purple"
-              label="Password"/>
+              label="Password"
+            />
           </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-toolbar color="#5F6A6A">
-          <v-spacer></v-spacer>
-          <v-btn
-          @click="authenticate()"
-          :disabled="$v.$invalid"
-          class="white--text"
-          color="deep-purple accent-4"
-          depressed>Login</v-btn>
-        </v-toolbar>
-      </v-card-actions>
-    </v-card>
+        </v-card-text>
+        <v-card-actions>
+          <v-toolbar>
+            <v-btn
+              v-if="signupEnabled"
+              color="success"
+              @click="displaySignup"
+            >Signup</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              @click="authenticate()"
+              :disabled="$v.$invalid"
+              class="white--text"
+              color="success"
+              depressed
+            >Login</v-btn>
+          </v-toolbar>
+        </v-card-actions>
+      </v-card>
     </center>
   </v-container>
 </template>
@@ -81,7 +114,8 @@ export default {
     return {
       username: '',
       password: '',
-      authStatus: false
+      authStatus: false,
+      signupEnabled: false
     }
   },
   methods: {
@@ -89,38 +123,45 @@ export default {
       let formData = new FormData()
       formData.append('username', this.username)
       formData.append('password', this.password)
-      axios.post(backendServer + '/authenticate/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((authResp) => {
-        this.$store.state.auth.token = authResp.data.token
-        this.$store.state.auth.username = this.username
-        this.$store.state.auth.userID = authResp.data.userID
-        this.$store.state.auth.role = authResp.data.role
-        VueCookies.config('30d')
-        VueCookies.set('token', this.$store.state.auth.token, 'infinity')
-        VueCookies.set('userID', this.$store.state.auth.userID, 'infinity')
-        VueCookies.set('role', this.$store.state.auth.role, 'infinity')
-        VueCookies.set('username', this.$store.state.auth.username, 'infinity')
-        this.$store.state.auth.role = authResp.data.role
-        if (authResp.data.token) {
-          this.$store.state.clientId = uuid.v4()
-          this.$store.state.initializingApp = true
-          this.$store.state.denyAccess = false
-          eventBus.$emit('getDataSources')
-        } else {
-          this.authStatus = true
-        }
-      }).catch((err) => {
-        if (err.hasOwnProperty('response')) {
-          console.log(err.response.data.error)
-        }
-      })
+      axios
+        .post(backendServer + '/authenticate/', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(authResp => {
+          this.$store.state.auth.token = authResp.data.token
+          this.$store.state.auth.username = this.username
+          this.$store.state.auth.userID = authResp.data.userID
+          this.$store.state.auth.role = authResp.data.role
+          VueCookies.config('30d')
+          VueCookies.set('token', this.$store.state.auth.token, 'infinity')
+          VueCookies.set('userID', this.$store.state.auth.userID, 'infinity')
+          VueCookies.set('role', this.$store.state.auth.role, 'infinity')
+          VueCookies.set(
+            'username',
+            this.$store.state.auth.username,
+            'infinity'
+          )
+          this.$store.state.auth.role = authResp.data.role
+          if (authResp.data.token) {
+            this.$store.state.clientId = uuid.v4()
+            this.$store.state.initializingApp = true
+            this.$store.state.denyAccess = false
+            eventBus.$emit('getConfig')
+          } else {
+            this.authStatus = true
+          }
+        })
+        .catch(err => {
+          if (err.hasOwnProperty('response')) {
+            console.log(err.response.data.error)
+          }
+        })
+    },
+    displaySignup () {
+      this.$router.push({ name: 'Signup' })
     }
-  },
-  created () {
-    console.log(process.env.BACKEND_SERVER)
   },
   computed: {
     usernameErrors () {
@@ -135,6 +176,17 @@ export default {
       !this.$v.password.required && errors.push('Password is required')
       return errors
     }
+  },
+  created () {
+    axios.get(backendServer + '/getSignupConf').then(resp => {
+      if (resp.data) {
+        this.signupEnabled = true
+        this.$store.state.signupFields = resp.data.allSignupFields
+        this.$store.state.customSignupFields = resp.data.customSignupFields
+        VueCookies.set('signupFields', resp.data.allSignupFields, 'infinity')
+        VueCookies.set('customSignupFields', resp.data.customSignupFields, 'infinity')
+      }
+    })
   }
 }
 </script>

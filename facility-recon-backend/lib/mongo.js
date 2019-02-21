@@ -48,9 +48,9 @@ module.exports = function () {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
       mongoose.connect(uri, {}, () => {
-        models.MetaDataSchema.findOne({}, (err, data) => {
+        models.MetaDataModel.findOne({}, (err, data) => {
           if (!data) {
-            const MetaData = new models.MetaDataSchema({
+            const MetaData = new models.MetaDataModel({
               levelMapping: dbLevel
             });
             MetaData.save((err, data) => {
@@ -64,7 +64,7 @@ module.exports = function () {
               }
             })
           } else {
-            models.MetaDataSchema.findByIdAndUpdate(data.id, {
+            models.MetaDataModel.findByIdAndUpdate(data.id, {
               levelMapping: dbLevel
             }, (err, data) => {
               if (err) {
@@ -88,7 +88,7 @@ module.exports = function () {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
       mongoose.connect(uri, {}, () => {
-        models.MetaDataSchema.findOne({}, (err, data) => {
+        models.MetaDataModel.findOne({}, (err, data) => {
           if (data && data.levelMapping) {
             return callback(data.levelMapping)
           } else {
@@ -105,7 +105,7 @@ module.exports = function () {
         password = this.encrypt(fields.password)
       }
       mongoose.connect(uri, {}, () => {
-        models.DataSourcesSchema.findOne({
+        models.DataSourcesModel.findOne({
           host: fields.name,
         }, (err, data) => {
           if (err) {
@@ -114,7 +114,7 @@ module.exports = function () {
             return callback('Unexpected error occured,please retry', null);
           }
           if (!data) {
-            const syncServer = new models.DataSourcesSchema({
+            const syncServer = new models.DataSourcesModel({
               name: fields.name,
               host: fields.host,
               sourceType: fields.sourceType,
@@ -133,7 +133,7 @@ module.exports = function () {
 
             });
           } else {
-            models.DataSourcesSchema.findByIdAndUpdate(data.id, {
+            models.DataSourcesModel.findByIdAndUpdate(data.id, {
               name: fields.name,
               host: fields.host,
               sourceType: fields.sourceType,
@@ -156,7 +156,7 @@ module.exports = function () {
       const mongoose = require('mongoose')
       let password = this.encrypt(fields.password)
       mongoose.connect(uri, {}, () => {
-        models.DataSourcesSchema.findByIdAndUpdate(fields.id, {
+        models.DataSourcesModel.findByIdAndUpdate(fields.id, {
           name: fields.name,
           host: fields.host,
           sourceType: fields.sourceType,
@@ -176,7 +176,7 @@ module.exports = function () {
     changeAccountStatus(status, id, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.UsersSchema.findByIdAndUpdate(id, {
+        models.UsersModel.findByIdAndUpdate(id, {
           status: status
         }, (err, data) => {
           if (err) {
@@ -190,7 +190,7 @@ module.exports = function () {
     resetPassword(id, password, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.UsersSchema.findByIdAndUpdate(id, {
+        models.UsersModel.findByIdAndUpdate(id, {
           password: password
         }, (err, data) => {
           if (err) {
@@ -250,8 +250,8 @@ module.exports = function () {
           })
         }, () => {
           mongoose.connect(uri, {}, () => {
-            models.DataSourcesSchema.deleteOne({_id: id}, (err, data) => {
-              models.DataSourcePairSchema.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
+            models.DataSourcesModel.deleteOne({_id: id}, (err, data) => {
+              models.DataSourcePairModel.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
                 const filter = function (stat, path) {
                   if (path.includes(`${userID}+${name}+`)) {
                     return true;
@@ -287,7 +287,7 @@ module.exports = function () {
     getDataSources(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcesSchema.find({userID: userID}).lean().exec({}, (err, data) => {
+        models.DataSourcesModel.find({userID: userID}).lean().exec({}, (err, data) => {
           if (err) {
             winston.error(err);
             return callback('Unexpected error occured,please retry');
@@ -300,7 +300,7 @@ module.exports = function () {
     getDataPairs(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.find({
+        models.DataSourcePairModel.find({
           userID: userID
         }).populate("source1").populate("source2").populate("shared").populate("userID").lean().exec({}, (err, data) => {
           if (err) {
@@ -315,10 +315,10 @@ module.exports = function () {
     addDataSourcePair(sources, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
+        models.DataSourcePairModel.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
-              models.DataSourcePairSchema.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
+              models.DataSourcePairModel.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
                 return nxtDt()
               })
             }, () => {
@@ -337,7 +337,7 @@ module.exports = function () {
       function add(sources, callback) {
         let source1 = JSON.parse(sources.source1)
         let source2 = JSON.parse(sources.source2)
-        models.DataSourcePairSchema.findOneAndUpdate({
+        models.DataSourcePairModel.findOneAndUpdate({
           'source1': source1._id,
           'source2': source2._id,
           'userID': sources.userID
@@ -350,7 +350,7 @@ module.exports = function () {
             return callback(err,false)
           }
           if (!data) {
-            const dataSourcePair = new models.DataSourcePairSchema({
+            const dataSourcePair = new models.DataSourcePairModel({
               source1: source1._id,
               source2: source2._id,
               status: 'active',
@@ -373,19 +373,19 @@ module.exports = function () {
     activateSharedPair(pairID, userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
+        models.DataSourcePairModel.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
-              models.DataSourcePairSchema.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
+              models.DataSourcePairModel.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
                 return nxtDt()
               })
             }, () => {
-              models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
+              models.DataSourcePairModel.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
                 return callback(err, data)
               })
             })
           } else {
-            models.DataSourcePairSchema.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
+            models.DataSourcePairModel.findByIdAndUpdate(pairID, {$push: {'shared.activeUsers': userID}}, (err, data) => {
               return callback(err, data)
             })
           }
@@ -396,7 +396,7 @@ module.exports = function () {
     shareSourcePair(sharePair, users, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.findByIdAndUpdate(sharePair, {'shared.users': users}, (err, data) => {
+        models.DataSourcePairModel.findByIdAndUpdate(sharePair, {'shared.users': users}, (err, data) => {
           return callback(err, data)
         })
       })
@@ -404,15 +404,15 @@ module.exports = function () {
     resetDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
+        models.DataSourcePairModel.update({'status': 'active', 'userID': userID}, {'status': 'inactive'}, {'multi': true}, (err, data) => {
           return callback(err,data)
         })
       })
     },
     getDataSourcePair(userID, callback) {
-      const mongoose = require('mongoose')
+      let mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairSchema.find({ $or: [{'userID': userID}, {'shared.users': userID}]
+        models.DataSourcePairModel.find({ $or: [{'userID': userID}, {'shared.users': userID}]
           
         }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
           return callback(err, data)
