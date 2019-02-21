@@ -115,9 +115,7 @@
                   @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="uploadNameErrors"
                   required
                 ></v-text-field>
-                <div class="btn btn-primary jbtn-file">Upload CSV<input type="file" @change="fileSelected">
-                </div>
-                {{uploadedFileName}}
+                <input type="file" @change="fileSelected">
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName && uploadName && uploadNameErrors.length === 0'>Continue</v-btn>

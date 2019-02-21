@@ -190,8 +190,6 @@ export default {
       formData.append('surname', this.surname)
       formData.append('role', this.role)
       for (let field in this.customFields) {
-        console.log(field)
-        console.log(this.customFields[field])
         formData.append(field, this.customFields[field])
       }
       axios.post(backendServer + '/addUser/', formData, {
@@ -199,13 +197,13 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(() => {
-        /* this.firstName = ''
+        this.firstName = ''
         this.otherName = ''
         this.surname = ''
         this.password = ''
         this.userName = ''
         this.retype_password = ''
-        this.role = '' */
+        this.role = ''
         this.$store.state.dynamicProgress = false
         this.alertSuccess = true
         this.alertMsg = 'User added successfully'

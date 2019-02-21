@@ -112,6 +112,8 @@ export default {
         })
     },
     addMoreFields () {
+      this.$store.state.progressTitle = 'Saving field'
+      // this.$store.state.dynamicProgress = true
       let exist = this.signupFields[0].children.find(child => {
         return child.id === this.fieldName
       })
@@ -131,22 +133,31 @@ export default {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        })
+        }).then(() => {
+          this.$store.state.dynamicProgress = false
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Info'
+          this.$store.state.errorDescription = 'Field added successfully'
 
-        this.$store.state.signupFields[this.fieldName] = {
-          type: 'String',
-          display: this.fieldLabel
-        }
-        this.$store.state.customSignupFields[this.fieldName] = {
-          type: 'String',
-          display: this.fieldLabel
-        }
-        VueCookies.set('signupFields', this.$store.state.signupFields, 'infinity')
-        VueCookies.set('customSignupFields', this.$store.state.customSignupFields, 'infinity')
+          this.$store.state.signupFields[this.fieldName] = {
+            type: 'String',
+            display: this.fieldLabel
+          }
+          this.$store.state.customSignupFields[this.fieldName] = {
+            type: 'String',
+            display: this.fieldLabel
+          }
+          VueCookies.set('signupFields', this.$store.state.signupFields, 'infinity')
+          VueCookies.set('customSignupFields', this.$store.state.customSignupFields, 'infinity')
 
-        this.signupFields[0].children.push({
-          id: this.fieldName,
-          name: this.fieldLabel
+          this.signupFields[0].children.push({
+            id: this.fieldName,
+            name: this.fieldLabel
+          })
+
+          this.fieldName = ''
+          this.fieldLabel = ''
+          this.required = 'No'
         })
       } else {
         this.$store.state.dialogError = true

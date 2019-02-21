@@ -510,8 +510,7 @@ export default {
           console.log(JSON.stringify(err))
           this.$store.state.dialogError = true
           this.$store.state.errorTitle = 'Error'
-          this.$store.state.errorDescription =
-            'An error occured while getting data source pairs, reload the app to retry'
+          this.$store.state.errorDescription = 'An error occured while getting data source pairs, reload the app to retry'
           this.renderInitialPage()
           this.getTotalLevels()
         })

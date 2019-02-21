@@ -163,6 +163,7 @@ if (cluster.isMaster) {
       }
     })
   })
+
   var numWorkers = require('os').cpus().length;
   console.log('Master cluster setting up ' + numWorkers + ' workers...');
 
@@ -674,27 +675,62 @@ if (cluster.isMaster) {
               error: 'internal error occured while getting form fields'
             })
           } else {
-            form.forms[0].fields[fieldName] = {
+            let customFields = {}
+            if(form) {
+              customFields = form.forms[0].fields
+            }
+            customFields[fieldName] = {
               type: "String",
               required: required,
               display: fieldLabel
             }
-            models.MetaDataModel.update({
-              'forms.name': formName
-            }, {
-              $set: {
-                'forms.$.fields': form.forms[0].fields
+            const promises = []
+
+            promises.push(new Promise((resolve, reject) => {
+              if(!form) {
+                models.MetaDataModel.find({},{_id: 1}).lean().exec( (err, mtDt) => {
+                  let form = {
+                    name: formName,
+                    fields: customFields
+                  }
+                  if(err) {
+                    return resolve(err, null)
+                  }
+                  models.MetaDataModel.findByIdAndUpdate(mtDt[0]._id, {$push: {'forms': form}}, (err, data) => {
+                    if(err) {
+                      return resolve(err, null)
+                    } else {
+                      return resolve(null, data)
+                    }
+                  })
+                })
+              } else {
+                models.MetaDataModel.update({
+                  'forms.name': formName
+                }, {
+                  $set: {
+                    'forms.$.fields': customFields
+                  }
+                }, (err, data) => {
+                  if(err) {
+                    return resolve(err, null)
+                  } else {
+                    return resolve(null, data)
+                  }
+                })
               }
-            }, (err, data) => {
-              if (err) {
-                winston.error(err)
+            }))
+
+            Promise.all(promises).then((results) => {
+              if (results[0]) {
+                winston.error(results[0])
                 winston.error("Failed to save new field")
                 res.status(500).json({
                   error: 'Unexpected error occured,please retry'
                 });
               } else {
                 delete mongoose.connection.models['Users']
-                let usersFields = Object.assign({}, form.forms[0].fields)
+                let usersFields = Object.assign({}, customFields)
                 usersFields = Object.assign(usersFields, models.usersFields)
                 Users = new mongoose.Schema(usersFields)
                 models.UsersModel = mongoose.model('Users', Users)
@@ -703,6 +739,8 @@ if (cluster.isMaster) {
                   status: 'Done'
                 });
               }
+            }).catch((err) => {
+              winston.error(err)
             })
           }
         })
