@@ -347,7 +347,10 @@ if (cluster.isMaster) {
           "forms.name": "signup"
         }, (err, data) => {
           if (data) {
-            let signupFields = Object.assign({}, data[0].forms[0].fields)
+            let signupFields = {}
+            if(data.length > 0) {
+              signupFields = Object.assign({}, data[0].forms[0].fields)
+            }
             signupFields = Object.assign(signupFields, models.usersFields)
 
             models.RolesModel.find({
