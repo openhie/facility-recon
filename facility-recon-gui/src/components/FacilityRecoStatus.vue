@@ -424,9 +424,13 @@ export default {
       let totalSource2Levels = this.$store.state.totalSource2Levels
       let totalSource1Levels = this.$store.state.totalSource1Levels
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
-      axios.get(backendServer + '/mappingStatus/' + this.source1 + '/' + this.source2 + '/' + this.recoLevel + '/' + totalSource2Levels + '/' + totalSource1Levels + '/' + clientId + '/' + userID).then((mappingStatus) => {
+      let path = `/mappingStatus/${this.source1}/${this.source2}/${source1Owner}/${source2Owner}/${this.recoLevel}/${totalSource2Levels}/${totalSource1Levels}/${clientId}/${userID}`
+      axios.get(backendServer + path).then((mappingStatus) => {
         this.mappingData = mappingStatus.data
       })
       this.mappingStatusProgressTimer = setInterval(this.checkMappingStatusProgress, 500)

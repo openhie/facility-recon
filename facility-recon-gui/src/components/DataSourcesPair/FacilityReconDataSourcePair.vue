@@ -170,13 +170,11 @@
                     </td>
                   </v-radio-group>
                   <td>
-                    <template v-for="sharedUsers in props.item.shared.users">
-                    {{sharedUsers.userName}}, 
-                    </template>
+                    {{props.item.shared.users | mergeUsers}}
                   </td>
                   <td v-if='props.item.userID._id === $store.state.auth.userID'>
-                    <v-btn flat icon color="primary" @click="share(props.item, 'showDialog')">
-                      <v-icon left>share</v-icon>Share
+                    <v-btn flat color="primary" @click="share(props.item, 'showDialog')">
+                      <v-icon>share</v-icon>Share
                     </v-btn>
                   </td>
                 </template>
@@ -225,13 +223,29 @@ export default {
         { text: 'Pair', value: 'pair' },
         { text: 'Owner', value: 'owner', sortable: false },
         { text: 'Active', value: 'active' },
-        { text: 'Share Status', value: 'shareStatus' }
+        { text: 'Shared To', value: 'shareStatus' }
       ],
       usersHeader: [
         { text: 'Username', value: 'username', sortable: true },
         { text: 'Firstname', value: 'fname', sortable: true },
         { text: 'Surname', value: 'sname', sortable: true }
       ]
+    }
+  },
+  filters: {
+    mergeUsers (users) {
+      if (!users || users.length === 0) {
+        return ''
+      }
+      let userNames = ''
+      for (let user of users) {
+        if (!userNames) {
+          userNames = user.userName
+        } else {
+          userNames = ',' + user.userName
+        }
+      }
+      return userNames
     }
   },
   methods: {
@@ -337,6 +351,12 @@ export default {
         }
         this.shareDialog = true
       } else if (action === 'saveShare') {
+        if (this.sharedUsers.length === 0) {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Info'
+          this.$store.state.errorDescription = 'Please select atleast one user'
+          return
+        }
         let formData = new FormData()
         formData.append('sharePair', this.sharePair._id)
         formData.append('users', JSON.stringify(this.sharedUsers))

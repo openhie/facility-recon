@@ -14,25 +14,24 @@ const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
 });
 
-const thisRunTime = new Date().toISOString();
 const credentials = {
   dhis2URL: '',
   username: '',
   password: '',
   name: '',
-  userID: ''
+  sourceOwner: ''
 };
 
 module.exports = function () {
   return {
-    sync(host, username, password, name, userID, clientId, topOrgId, topOrgName, reset, full, dousers, doservices) {
+    sync(host, username, password, name, sourceOwner, clientId, topOrgId, topOrgName, reset, full, dousers, doservices) {
       const dhis2URL = url.parse(host);
       const auth = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
       credentials.dhis2URL = dhis2URL;
       credentials.clientId = clientId;
       credentials.auth = auth;
       credentials.name = name;
-      credentials.userID = userID;
+      credentials.sourceOwner = sourceOwner;
       credentials.topOrgId = topOrgId
       credentials.topOrgName = topOrgName
 
@@ -119,7 +118,7 @@ module.exports = function () {
         // Convert to yyyy-mm-dd format (dropping time as it is ignored by DHIS2)
         lastUpdate = new Date(Date.parse(lastUpdate)).toISOString().substr(0, 10);
       } */
-      let database = credentials.name + credentials.userID
+      let database = credentials.name + credentials.sourceOwner
       this.getLastUpdate(database, credentials.dhis2URL, credentials.auth, (lastUpdate) => {
         if (!full && lastUpdate) {
           lastUpdate = new Date(Date.parse(lastUpdate)).toISOString().substr(0, 10);
@@ -214,7 +213,7 @@ module.exports = function () {
 function processOrgUnit(metadata, hasKey) {
   let name = credentials.name;
   const clientId = credentials.clientId;
-  const database = mixin.toTitleCase(name) + credentials.userID;
+  const database = mixin.toTitleCase(name) + credentials.sourceOwner;
   let counter = 0;
   const max = metadata.organisationUnits.length;
   //adding the fake orgid as the top orgid
@@ -419,7 +418,7 @@ function checkLoaderDataStore() {
 
 function setLastUpdate(hasKey, lastUpdate) {
   const name = credentials.name;
-  const userID = credentials.userID
+  const userID = credentials.sourceOwner
   let database = mixin.toTitleCase(name) + userID
   const auth = credentials.auth;
   const dhis2URL = credentials.dhis2URL;

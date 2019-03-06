@@ -1256,8 +1256,7 @@ export default {
         { text: 'Source 1 ID', value: 'source1Id' },
         { text: 'Source 2 Location', value: 'source2Name' },
         { text: 'Source 2 ID', value: 'source2Id' },
-        { text: 'Comment', value: 'flagComment' },
-        {}
+        { text: 'Comment', value: 'flagComment' }
       ],
       loadingCSV: false,
       loadingFHIR: false
@@ -1368,8 +1367,7 @@ export default {
       if (source2Id === null) {
         this.alert = true
         this.alertTitle = 'Information'
-        this.alertText =
-          'Select Source 2 Location to match against Source 1 Location'
+        this.alertText = 'Select Source 2 Location to match against Source 1 Location'
         return
       }
       if (type === 'flag') {
@@ -1382,9 +1380,12 @@ export default {
       this.flagCommentDialog = false
       this.$store.state.progressTitle = 'Saving match'
       this.$store.state.dynamicProgress = true
+      let sourcesOwner = this.getDatasourceOwner()
       let formData = new FormData()
       formData.append('source1Id', this.selectedSource1Id)
       formData.append('source2Id', this.source2Id)
+      formData.append('source1Owner', sourcesOwner.source1Owner)
+      formData.append('source2Owner', sourcesOwner.source2Owner)
       formData.append('flagComment', this.flagComment)
       formData.append('source1DB', this.getSource1())
       formData.append('source2DB', this.getSource2())
@@ -1513,6 +1514,7 @@ export default {
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
       formData.append('source2Id', source2Id)
       axios
         .post(
@@ -1521,6 +1523,10 @@ export default {
             this.getSource1() +
             '/' +
             this.getSource2() +
+            '/' +
+            sourcesOwner.source1Owner +
+            '/' +
+            sourcesOwner.source2Owner +
             '/' +
             userID,
           formData,
@@ -1569,6 +1575,7 @@ export default {
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
       formData.append('source2Id', source2Id)
       axios
         .post(
@@ -1577,6 +1584,10 @@ export default {
             this.getSource1() +
             '/' +
             this.getSource2() +
+            '/' +
+            sourcesOwner.source1Owner +
+            '/' +
+            sourcesOwner.source2Owner +
             '/' +
             userID,
           formData,
@@ -1693,22 +1704,16 @@ export default {
       this.$store.state.progressTitle = 'Saving as no match'
       this.$store.state.dynamicProgress = true
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
       let formData = new FormData()
       formData.append('source1Id', this.selectedSource1Id)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(
-          backendServer +
-            '/noMatch/' +
-            type +
-            '/' +
-            this.getSource1() +
-            '/' +
-            this.getSource2() +
-            '/' +
-            userID,
+        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
           formData,
         {
           headers: {
@@ -1770,10 +1775,13 @@ export default {
     },
     matchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
       let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
       let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
       return axios.get(
-        `${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`,
+        `${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${type}/${userID}`,
         {
           params: {
             levelMapping1,
@@ -1784,10 +1792,13 @@ export default {
     },
     unMatchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
       let levelMapping1 = this.$store.state.levelMapping.source1
       let levelMapping2 = this.$store.state.levelMapping.source2
       return axios.get(
-        `${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${type}/${userID}`,
+        `${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${type}/${userID}`,
         {
           params: {
             levelMapping1,

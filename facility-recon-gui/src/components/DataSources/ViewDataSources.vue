@@ -65,6 +65,51 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog persistent v-model="shareDialog" width="530px">
+      <v-card width='530px'>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            Sharing {{shareSource.name}}
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="shareDialog = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          <template v-if="loadingLocationTree">
+            <v-progress-linear :indeterminate="true"></v-progress-linear>
+          </template>
+          <template v-else>
+            <v-card-text>
+              <p>
+                <liquor-tree @node:selected="locationSelected" :data="locationTree" :options="{}" ref="locationTree" />
+              </p>
+            </v-card-text>
+          </template>
+          <v-text-field v-model="searchUsers" append-icon="search" label="Search" single-line hide-details></v-text-field>
+          <v-data-table :headers="usersHeader" :items="users" :search="searchUsers" class="elevation-1">
+            <template slot="items" slot-scope="props">
+              <tr v-if="props.item.userName !== $store.state.auth.username">
+                <td><v-checkbox v-model="sharedUsers" :value="props.item._id"></v-checkbox>
+                <td>{{props.item.userName}}</td>
+                <td>{{props.item.firstName}}</td>
+                <td>{{props.item.surname}}</td>
+              </tr>
+            </template>
+          </v-data-table>
+        </v-card-text>
+        <v-card-actions style='float: center'>
+          <v-btn color="error" @click.native="shareDialog = false" style="color: white">
+            <v-icon dark left>cancel</v-icon>Cancel
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" dark @click.native="share('', 'saveShare')">
+            <v-icon left>share</v-icon>Share
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog
       v-model="helpDialog"
       scrollable 
@@ -177,6 +222,13 @@
                 <td v-if="props.item.username">*****</td>
                 <td v-else></td>
                 <td>{{props.item.lastUpdate}}</td>
+                <td>{{props.item.userID.userName}}</td>
+                <td>
+                  {{props.item.shared.users | mergeUsers}}
+                </td>
+                <td v-if='props.item.userID._id === $store.state.auth.userID'>
+                  <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
+                </td>
               </template>
             </v-data-table>
           </v-card-text>
@@ -213,6 +265,13 @@
                   </td>
                 </v-radio-group>
                 <td>{{props.item.name}}</td>
+                <td>{{props.item.userID.userName}}</td>
+                <td>
+                  {{props.item.shared.users | mergeUsers}}
+                </td>
+                <td v-if='props.item.userID._id === $store.state.auth.userID'>
+                  <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
+                </td>
               </template>
             </v-data-table>
           </v-card-text>
@@ -227,16 +286,27 @@
 import FacilityReconUpload from './FacilityReconUpload'
 import FacilityReconRemoteSources from './FacilityReconRemoteSources'
 import SyncProgress from './SyncProgress'
+import { generalMixin } from '../../mixins/generalMixin'
 import { eventBus } from '../../main'
 import axios from 'axios'
+import LiquorTree from 'liquor-tree'
 const backendServer = process.env.BACKEND_SERVER
 export default {
+  mixins: [generalMixin],
   data () {
     return {
       helpDialog: false,
       deleteConfirm: false,
       editDialog: false,
       server: {},
+      shareDialog: false,
+      shareSource: {},
+      users: [],
+      sharedUsers: [],
+      limitLocationId: '',
+      locationTree: [],
+      loadingLocationTree: false,
+      searchUsers: '',
       syncServersHeader: [
         { sortable: false },
         { text: 'Source Name', value: 'name' },
@@ -244,18 +314,28 @@ export default {
         { text: 'Source Type', value: 'sourceType' },
         { text: 'User Name', value: 'username' },
         { text: 'Password', value: 'password' },
-        { text: 'Last Sync', value: 'lastsync' }
+        { text: 'Last Sync', value: 'lastsync' },
+        { text: 'Owner', value: 'owner', sortable: false },
+        { text: 'Shared To', value: 'shareStatus' }
       ],
       uploadSourcesHeader: [
         { sortable: false },
         { text: 'Source Name',
           align: 'left',
           value: 'name'
-        }
+        },
+        { text: 'Owner', value: 'owner', sortable: false },
+        { text: 'Shared To', value: 'shareStatus' }
       ],
       dataSources: [
         { text: 'Upload CSV', value: 'upload' },
         { text: 'Remote Source', value: 'remote' }
+      ],
+      usersHeader: [
+        { sortable: false },
+        { text: 'Username', value: 'userName', sortable: true },
+        { text: 'Firstname', value: 'firstName', sortable: true },
+        { text: 'Surname', value: 'surname', sortable: true }
       ],
       dataSource: '',
       addDataSource: true,
@@ -268,6 +348,22 @@ export default {
       alertSuccess: false,
       alertError: false,
       alertMsg: ''
+    }
+  },
+  filters: {
+    mergeUsers (users) {
+      if (!users || users.length === 0) {
+        return ''
+      }
+      let userNames = ''
+      for (let user of users) {
+        if (!userNames) {
+          userNames = user.userName
+        } else {
+          userNames += ', ' + user.userName
+        }
+      }
+      return userNames
     }
   },
   methods: {
@@ -284,6 +380,12 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Info'
         this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      if (this.server.userID._id !== this.$store.state.auth.userID) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'You are not the owner of this data source, ask the owner to edit any details'
         return
       }
       if (this.server.source === 'upload') {
@@ -318,19 +420,87 @@ export default {
         this.$store.state.errorDescription = 'Please select data source'
         return
       }
+      if (this.server.userID._id !== this.$store.state.auth.userID) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'You are not the owner of this data source, ask the owner to remove you from the share'
+        return
+      }
       this.deleteConfirm = true
     },
     deleteDataSource () {
       this.deleteConfirm = false
       let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/deleteDataSource/' + this.server._id + '/' + this.server.name + '/' + userID).then((resp) => {
+      let sourceOwner = this.server.userID._id
+      axios.get(backendServer + `/deleteDataSource/${this.server._id}/${this.server.name}/${sourceOwner}/${userID}`).then((resp) => {
         this.server = {}
         eventBus.$emit('getDataSources')
       })
     },
+    share (source, action) {
+      if (action === 'showDialog') {
+        this.limitLocationId = ''
+        this.sharedUsers = []
+        this.shareSource = source
+        this.getLocationTree()
+        if (source.hasOwnProperty('shared') && source.shared.users.length > 0) {
+          source.shared.users.forEach((sharedUsers) => {
+            this.sharedUsers.push(sharedUsers._id)
+          })
+        }
+        this.shareDialog = true
+      } else if (action === 'saveShare') {
+        if (this.sharedUsers.length === 0) {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Info'
+          this.$store.state.errorDescription = 'Please select atleast one user'
+          return
+        }
+        let formData = new FormData()
+        formData.append('shareSource', this.shareSource._id)
+        formData.append('users', JSON.stringify(this.sharedUsers))
+        formData.append('userID', this.$store.state.auth.userID)
+        formData.append('limitLocationId', this.limitLocationId)
+        this.$store.state.loadingServers = true
+        this.shareDialog = false
+        axios.post(backendServer + '/shareDataSource', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }).then((response) => {
+          this.$store.state.loadingServers = false
+          this.$store.state.dataSources = response.data
+        }).catch((err) => {
+          console.log(err)
+          this.$store.state.loadingServers = false
+        })
+      }
+    },
+    locationSelected (node) {
+      this.limitLocationId = node.id
+    },
+    getLocationTree () {
+      let userID = this.$store.state.activePair.userID._id
+      this.loadingLocationTree = true
+      let source = this.toTitleCase(this.shareSource.name)
+      axios.get(backendServer + '/getTree/' + source + '/' + userID).then((hierarchy) => {
+        if (hierarchy.data) {
+          this.locationTree = [{
+            text: 'Select location to limit sharing',
+            children: hierarchy.data
+          }]
+        }
+        this.loadingLocationTree = false
+      })
+    },
+    getUsers () {
+      axios.get(backendServer + '/getUsers').then((response) => {
+        this.users = response.data
+      })
+    },
     exportCSV () {
-      let userID = this.$store.state.auth.userID
-      axios.get(backendServer + '/getUploadedCSV/' + userID + '/' + this.server.name).then((resp) => {
+      let sourceOwner = this.server.userID._id
+      axios.get(backendServer + '/getUploadedCSV/' + sourceOwner + '/' + this.server.name).then((resp) => {
         let csvData = encodeURI('data:text/csv;charset=utf-8,' + resp.data)
         const link = document.createElement('a')
         link.setAttribute('href', csvData)
@@ -347,6 +517,12 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Info'
         this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
+      if (this.server.userID._id !== this.$store.state.auth.userID) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Only data source owner can run the sync'
         return
       }
       if (this.server.source === 'upload') {
@@ -368,6 +544,7 @@ export default {
       formData.append('password', this.server.password)
       formData.append('name', this.server.name)
       formData.append('userID', this.$store.state.auth.userID)
+      formData.append('sourceOwner', this.server.userID._id)
       formData.append('clientId', clientId)
       formData.append('mode', mode)
       this.syncRunning = true
@@ -465,9 +642,11 @@ export default {
   components: {
     'FacilityReconUpload': FacilityReconUpload,
     'FacilityReconRemoteSources': FacilityReconRemoteSources,
-    'appSyncProgress': SyncProgress
+    'appSyncProgress': SyncProgress,
+    'liquor-tree': LiquorTree
   },
   created () {
+    this.getUsers()
     eventBus.$on('dataSourceSaved', () => {
       this.addDataSource = false
       this.dataSource = ''

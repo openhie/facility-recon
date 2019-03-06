@@ -185,6 +185,36 @@ module.exports = function () {
       });
     },
 
+    getImmediateChildren(database, id, callback) {
+      var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?partof=${id.toString()}`
+      const locations = {};
+      locations.entry = [];
+      async.doWhilst(
+        (callback) => {
+          const options = {
+            url,
+          };
+          url = false;
+          request.get(options, (err, res, body) => {
+            if (!isJSON(body)) {
+              return callback(false, false);
+            }
+            const mcsd = JSON.parse(body);
+            const next = mcsd.link.find(link => link.relation == 'next');
+            if (next) {
+              url = next.url;
+            }
+            locations.entry = locations.entry.concat(mcsd.entry);
+            return callback(false, url);
+          });
+        },
+        () => url != false,
+        () => {
+          callback(false, locations);
+        },
+      );
+    },
+
     getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
       const parents = [];
       if (entityParent == null ||
@@ -534,8 +564,8 @@ module.exports = function () {
       })
     },
 
-    deleteLocation(id, source, userID, callback) {
-      let db = source + userID
+    deleteLocation(id, source, sourceOwner, userID, callback) {
+      let db = source + sourceOwner
       mongo.getMappingDBs(source, userID, (dbs) => {
         dbs.push(db)
         async.each(dbs, (db) => {

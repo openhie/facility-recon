@@ -237,8 +237,8 @@ module.exports = function () {
       })
     },
 
-    deleteDataSource(id, name, userID, callback) {
-      let requestedDB = name+userID
+    deleteDataSource(id, name, sourceOwner, userID, callback) {
+      let requestedDB = name + sourceOwner
       let deleteDB = []
       deleteDB.push(requestedDB)
       const mongoose = require('mongoose')
@@ -253,7 +253,7 @@ module.exports = function () {
             models.DataSourcesModel.deleteOne({_id: id}, (err, data) => {
               models.DataSourcePairModel.deleteMany({$or: [{source1: id}, {source2: id}]}, (err, data) => {
                 const filter = function (stat, path) {
-                  if (path.includes(`${userID}+${name}+`)) {
+                  if (path.includes(`${sourceOwner}+${name}+`)) {
                     return true;
                   } else {
                     return false;
@@ -287,12 +287,21 @@ module.exports = function () {
     getDataSources(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.find({userID: userID}).lean().exec({}, (err, data) => {
-          if (err) {
-            winston.error(err);
-            return callback('Unexpected error occured,please retry');
-          }
-          callback(err, data)
+        models.DataSourcesModel.find({ $or: [{'userID': userID}, {'shared.users': userID}]}).populate("shared.users", "userName").populate("userID", "userName").lean().exec({}, (err, sources) => {
+          async.eachOfSeries(sources, (source, key, nxtSrc) => {
+            // converting _bsontype property into normal property
+            source = JSON.parse(JSON.stringify(source))
+            models.SharedDataSourceLocationsModel.find({dataSource: source._id},{user: 1, location: 1, _id: 0}, (err, data) => {
+              sources[key].sharedLocation = data
+              return nxtSrc()
+            })
+          }, () => {
+            if (err) {
+              winston.error(err);
+              return callback('Unexpected error occured,please retry');
+            }
+            callback(err, sources)
+          })
         });
       })
     },
@@ -401,6 +410,26 @@ module.exports = function () {
         })
       })
     },
+
+    shareDataSource(shareSource, users, limitLocationId, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri, {}, () => {
+        models.DataSourcesModel.findByIdAndUpdate(shareSource, {'shared.users': users}, (err, data) => {
+          async.eachSeries(users, (user, nxtUser) => {
+            models.SharedDataSourceLocationsModel.update(
+              {dataSource: shareSource, user: user}, 
+              {dataSource: shareSource, user: user, location: limitLocationId}, 
+              {upsert: true}, 
+              (err, data) =>{
+              return nxtUser()
+            })
+          }, () => {
+            return callback(err, data)
+          })
+        })
+      })
+    },
+
     resetDataSourcePair(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {

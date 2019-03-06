@@ -44,7 +44,7 @@ export const scoresMixin = {
     getScores () {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
-
+      let sourcesOwner = this.getDatasourceOwner()
       this.$store.state.source1UnMatched = []
       this.$store.state.source2UnMatched = []
       this.$store.state.matchedContent = []
@@ -86,7 +86,9 @@ export const scoresMixin = {
         })
       }
       let userID = this.$store.state.activePair.userID._id
-      let path = `source1=${source1}&source2=${source2}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
+      let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.userConfig.reconciliation.parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
         this.loadingSource1Unmatched = false
@@ -163,6 +165,9 @@ export const scoresMixin = {
       let source1 = this.getSource1()
       let source2 = this.getSource2()
       let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = this.getDatasourceOwner()
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
       if (!source1 || !source2) {
         return
       }
@@ -173,7 +178,7 @@ export const scoresMixin = {
       if (recoLevel === totalSource1Levels) {
         level = totalSource2Levels
       }
-      axios.get(backendServer + '/getUnmatched/' + source1 + '/' + source2 + '/' + level + '/' + userID).then((unmatched) => {
+      axios.get(backendServer + `/getUnmatched/${source1}/${source2}/${source1Owner}/${source2Owner}/${level}/${userID}`).then((unmatched) => {
         this.loadingSource2Unmatched = false
         this.$store.state.source2UnMatched = unmatched.data
       })

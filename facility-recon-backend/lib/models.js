@@ -60,6 +60,12 @@ let DataSources = new mongoose.Schema({
     type: String,
     required: true
   },
+  shared: {
+    users: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Users'
+    }]
+  },
   username: {
     type: String
   },
@@ -70,6 +76,20 @@ let DataSources = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true
+  }
+})
+
+let SharedDataSourceLocations = new mongoose.Schema({
+  dataSource: {
+    type: Schema.Types.ObjectId,
+    ref: 'DataSources'
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'Users'
+  },
+  location: {
+    type: String
   }
 })
 
@@ -171,12 +191,14 @@ let MetaData = new mongoose.Schema({
   }
 })
 let DataSourcesModel = mongoose.model('DataSources', DataSources)
+let SharedDataSourceLocationsModel = mongoose.model('SharedDataSourceLocations', SharedDataSourceLocations)
 let DataSourcePairModel = mongoose.model('DataSourcePair', DataSourcePair)
 let MetaDataModel = mongoose.model('MetaData', MetaData)
 let RolesModel = mongoose.model('Roles', Roles)
 let UsersModel = mongoose.model('Users', Users)
 module.exports = {
   DataSourcesModel,
+  SharedDataSourceLocationsModel,
   DataSourcePairModel,
   MetaDataModel,
   UsersModel,

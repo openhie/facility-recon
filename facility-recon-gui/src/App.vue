@@ -304,9 +304,9 @@
 <script>
 import axios from 'axios'
 import { scoresMixin } from './mixins/scoresMixin'
+import { generalMixin } from './mixins/generalMixin'
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
-import { generalMixin } from './mixins/generalMixin'
 import VueCookies from 'vue-cookies'
 const backendServer = process.env.BACKEND_SERVER
 
@@ -346,8 +346,8 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      // if this is a shared data pair then it will automatically use userid of the owner
-      let userID = this.$store.state.activePair.userID._id
+
+      let sourcesOwner = this.getDatasourceOwner()
       axios
         .get(
           backendServer +
@@ -356,7 +356,9 @@ export default {
             '/' +
             source2 +
             '/' +
-            userID
+            sourcesOwner.source1Owner +
+            '/' +
+            sourcesOwner.source2Owner
         )
         .then(results => {
           if (results.data.dataUploaded) {
@@ -384,23 +386,13 @@ export default {
       }
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-      let userID = this.$store.state.activePair.userID._id
+      let sourcesOwner = JSON.stringify(this.getDatasourceOwner())
       axios
-        .get(
-          backendServer +
-            '/countLevels/' +
-            source1 +
-            '/' +
-            source2 +
-            '/' +
-            userID
-        )
+        .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner)
         .then(levels => {
           this.$store.state.initializingApp = false
-          this.$store.state.levelMapping.source1 =
-            levels.data.levelMapping.levelMapping1
-          this.$store.state.levelMapping.source2 =
-            levels.data.levelMapping.levelMapping2
+          this.$store.state.levelMapping.source1 = levels.data.levelMapping.levelMapping1
+          this.$store.state.levelMapping.source2 = levels.data.levelMapping.levelMapping2
           this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
           this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
           this.getScores()

@@ -223,13 +223,14 @@ import LiquorTree from 'liquor-tree'
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
 import { scoresMixin } from '../mixins/scoresMixin'
+import { generalMixin } from '../mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
   validations: {
     editLocationName: { required }
   },
-  mixins: [scoresMixin],
+  mixins: [scoresMixin, generalMixin],
   data () {
     return {
       confirmDelete: false,
@@ -291,14 +292,18 @@ export default {
       currentSource2Pagination: {},
       currentSource1Pagination: {},
       source1SelNodeId: false,
-      source2SelNodeId: false
+      source2SelNodeId: false,
+      sourceOwner: ''
     }
   },
   methods: {
     edit (data, source) {
+      let sourcesOwner = this.getDatasourceOwner()
       if (source === 'source1') {
+        this.sourceOwner = sourcesOwner.source1Owner
         this.editSource = this.source1
       } else if (source === 'source2') {
+        this.sourceOwner = sourcesOwner.source1Owner
         this.editSource = this.source2
       }
       this.editLocationName = data.facility
@@ -312,7 +317,7 @@ export default {
     },
     saveEdit () {
       let formData = new FormData()
-      formData.append('userID', this.$store.state.activePair.userID._id)
+      formData.append('sourceOwner', this.sourceOwner)
       formData.append('source', this.editSource)
       formData.append('locationId', this.editLocationId)
       formData.append('locationName', this.editLocationName)
@@ -332,24 +337,23 @@ export default {
     },
     deleteLocation (location, source, stage) {
       if (stage === 'requestConfirmation') {
+        let sourcesOwner = this.getDatasourceOwner()
         if (source === 'source1') {
+          this.sourceOwner = sourcesOwner.source1Owner
           this.deleteSource = this.source1
         } else if (source === 'source2') {
+          this.sourceOwner = sourcesOwner.source2Owner
           this.deleteSource = this.source2
         }
         this.deleteLocationData = location
         this.confirmDelete = true
       } else {
         let userID = this.$store.state.activePair.userID._id
-        axios.delete(backendServer + `/deleteLocation?id=${this.deleteLocationData.id}&source=${this.deleteSource}&userID=${userID}`)
-        .then((data) => {
-
-        })
+        axios.delete(backendServer + `/deleteLocation?id=${this.deleteLocationData.id}&source=${this.deleteSource}&userID=${userID}&sourceOwner=${this.sourceOwner}`)
       }
     },
     getLevelData (level) {
-      let userID = this.$store.state.activePair.userID._id
-      axios.get(backendServer + '/getLevelData/' + this.editSource + '/' + userID + '/' + level).then((data) => {
+      axios.get(backendServer + '/getLevelData/' + this.editSource + '/' + this.sourceOwner + '/' + level).then((data) => {
         this.editParents = data.data
       })
     },
@@ -359,8 +363,9 @@ export default {
         id = ''
       }
       this.loadingSource1Grid = true
+      let source1Owner = this.getDatasourceOwner().source1Owner
       let userID = this.$store.state.activePair.userID._id
-      let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}&userID=${userID}`
+      let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}&userID=${userID}&sourceOwner=${source1Owner}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource1Grid = false
         if (hierarchy.data) {
@@ -408,8 +413,9 @@ export default {
       }
       this.loadingSource2 = true
       this.loadingSource2Grid = true
+      let source2Owner = this.getDatasourceOwner().source2Owner
       let userID = this.$store.state.activePair.userID._id
-      let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}&userID=${userID}`
+      let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}&userID=${userID}&sourceOwner=${source2Owner}`
       axios.get(backendServer + path).then((hierarchy) => {
         this.loadingSource2Grid = false
         if (hierarchy.data) {
@@ -453,16 +459,17 @@ export default {
       })
     },
     getTree () {
-      let userID = this.$store.state.activePair.userID._id
+      let source2Owner = this.getDatasourceOwner().source2Owner
       this.loadingSource2Tree = true
-      axios.get(backendServer + '/getTree/' + this.source2 + '/' + userID).then((hierarchy) => {
+      axios.get(backendServer + '/getTree/' + this.source2 + '/' + source2Owner).then((hierarchy) => {
         this.loadingSource2Tree = false
         if (hierarchy.data) {
           this.source2Tree = hierarchy.data
         }
       })
+      let source1Owner = this.getDatasourceOwner().source1Owner
       this.loadingSource1Tree = true
-      axios.get(backendServer + '/getTree/' + this.source1 + '/' + userID).then((hierarchy) => {
+      axios.get(backendServer + '/getTree/' + this.source1 + '/' + source1Owner).then((hierarchy) => {
         this.loadingSource1Tree = false
         if (hierarchy.data) {
           this.source1Tree = hierarchy.data

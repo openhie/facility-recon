@@ -67,9 +67,9 @@ export default {
   data () {
     return {
       usersHeader: [
-        { text: 'Firstname', value: 'firstname' },
+        { text: 'Firstname', value: 'firstName' },
         { text: 'Surname', value: 'surname' },
-        { text: 'Othername', value: 'othername' },
+        { text: 'Othername', value: 'otherName' },
         { text: 'User Name', value: 'username' },
         { text: 'Role', value: 'role' },
         { text: 'Status', value: 'status' }

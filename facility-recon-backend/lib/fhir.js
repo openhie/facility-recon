@@ -17,7 +17,7 @@ const config = require('./config')
 
 module.exports = function () {
   return {
-    sync(host, username, password, mode, name, userID, clientId, topOrgId, topOrgName) {
+    sync(host, username, password, mode, name, sourceOwner, clientId, topOrgId, topOrgName) {
       const fhirSyncRequestId = `fhirSyncRequest${clientId}`;
       const fhirSyncRequest = JSON.stringify({
         status: '1/2 - Loading all data from the FHIR Server specified',
@@ -26,7 +26,7 @@ module.exports = function () {
       });
       redisClient.set(fhirSyncRequestId, fhirSyncRequest);
 
-      const database = mixin.toTitleCase(name) + userID
+      const database = mixin.toTitleCase(name) + sourceOwner
       let saveBundle = {
             id: uuid4(),
             resourceType: 'Bundle',

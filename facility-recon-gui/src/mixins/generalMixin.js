@@ -17,6 +17,18 @@ export const generalMixin = {
       } else {
         return 'Level ' + level
       }
+    },
+    getDatasourceOwner () {
+      let dtSrc1 = this.$store.state.dataSources.find((dtSrc) => {
+        return dtSrc._id === this.$store.state.activePair.source1.id
+      })
+      let dtSrc2 = this.$store.state.dataSources.find((dtSrc) => {
+        return dtSrc._id === this.$store.state.activePair.source2.id
+      })
+      return {
+        source1Owner: dtSrc1.userID._id,
+        source2Owner: dtSrc2.userID._id
+      }
     }
   }
 }
