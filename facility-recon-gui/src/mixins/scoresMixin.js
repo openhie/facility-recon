@@ -88,8 +88,10 @@ export const scoresMixin = {
       let userID = this.$store.state.activePair.userID._id
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
-      let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.userConfig.reconciliation.parentConstraint
+      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.generalConfig.reconciliation.parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
         this.loadingSource1Unmatched = false
         this.getSource2Unmached()
@@ -168,6 +170,8 @@ export const scoresMixin = {
       let sourcesOwner = this.getDatasourceOwner()
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
+      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
       if (!source1 || !source2) {
         return
       }
@@ -178,7 +182,7 @@ export const scoresMixin = {
       if (recoLevel === totalSource1Levels) {
         level = totalSource2Levels
       }
-      axios.get(backendServer + `/getUnmatched/${source1}/${source2}/${source1Owner}/${source2Owner}/${level}/${userID}`).then((unmatched) => {
+      axios.get(backendServer + `/getUnmatched/${source1}/${source2}/${source1Owner}/${source2Owner}/${level}/${userID}?source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}`).then((unmatched) => {
         this.loadingSource2Unmatched = false
         this.$store.state.source2UnMatched = unmatched.data
       })

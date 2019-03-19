@@ -1,31 +1,49 @@
 <template>
   <v-container>
     <v-card>
+      <v-card-title primary-title>
+        <b>System Configurations</b>
+      </v-card-title>
       <v-card-text>
-        <v-layout column>
-          <v-flex background-color="primary">
+        <v-card>
+          <v-card-title primary-title>
+            User Configurations
+          </v-card-title>
+          <v-card-text>
             <v-layout column>
               <v-flex>
                 <v-switch
-                  @change="configChanged"
+                  @change="configChanged('userConfig')"
                   color="success"
                   label="Use CSV header for display"
                   v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
                 >
                 </v-switch>
               </v-flex>
-              <v-flex>
+            </v-layout>
+          </v-card-text>
+        </v-card>
+        <v-divider></v-divider>
+        <v-divider></v-divider>
+        <v-divider></v-divider>
+        <v-card>
+          <v-card-title>
+            General Configurations
+          </v-card-title>
+          <v-card-text>
+            <v-layout column>
+              <v-flex v-if='$store.state.auth.role == "Admin"'>
                 <v-switch
-                  @change="configChanged"
+                  @change="configChanged('generalConfig')"
                   color="success"
                   label="Perform match based on parent constraint"
-                  v-model="$store.state.config.userConfig.reconciliation.parentConstraint"
+                  v-model="$store.state.config.generalConfig.reconciliation.parentConstraint"
                 >
                 </v-switch>
               </v-flex>
-              <v-flex>
+              <v-flex v-if='$store.state.auth.role == "Admin"'>
                 <v-switch
-                  @change="configChanged"
+                  @change="configChanged('generalConfig')"
                   color="success"
                   label="Enable self registration"
                   v-model="$store.state.config.generalConfig.selfRegistration"
@@ -71,9 +89,59 @@
                   </v-flex>
                 </v-layout>
               </v-flex>
+              <v-flex xs1 v-if='$store.state.auth.role == "Admin"'>
+                <v-switch
+                  @change="configChanged('generalConfig')"
+                  color="success"
+                  label="Enable Endpoint Notification when reconciliation is done"
+                  v-model="$store.state.config.generalConfig.recoProgressNotification.enabled"
+                >
+                </v-switch>
+                <v-card 
+                  color="grey lighten-3" 
+                  v-if='$store.state.config.generalConfig.recoProgressNotification.enabled && $store.state.auth.role == "Admin"'
+                >
+                  <v-card-text>
+                    End point to send notification when reconciliation is done
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-layout column>
+                      <v-flex>
+                        <v-text-field
+                          label="End point URL"
+                          v-model="notification_endpoint"
+                          box
+                        ></v-text-field>
+                      </v-flex>
+                      <v-flex>
+                        <v-text-field
+                          label="End point Username"
+                          v-model="notification_username"
+                          box
+                        ></v-text-field>
+                      </v-flex>
+                      <v-flex>
+                        <v-text-field
+                          label="End point Password"
+                          v-model="notification_password"
+                          box
+                        ></v-text-field>
+                      </v-flex>
+                      <v-flex>
+                        <v-layout row wrap>
+                          <v-spacer></v-spacer>
+                          <v-flex xs1>
+                            <v-btn color="success" @click="recoProgressNotificationChanged"><v-icon>save</v-icon>Save</v-btn>
+                          </v-flex>
+                        </v-layout>
+                      </v-flex>
+                    </v-layout>
+                  </v-card-actions>
+                </v-card>
+              </v-flex>
             </v-layout>
-          </v-flex>
-        </v-layout>
+          </v-card-text>
+        </v-card>
       </v-card-text>
     </v-card>
   </v-container>
@@ -92,17 +160,26 @@ export default {
       fieldName: '',
       required: 'No',
       requiredText: ['Yes', 'No'],
-      signupFields: []
+      signupFields: [],
+      notification_endpoint: '',
+      notification_username: '',
+      notification_password: ''
     }
   },
   methods: {
-    configChanged () {
+    configChanged (configLevel) {
       let userID = this.$store.state.auth.userID
       let formData = new FormData()
       formData.append('config', JSON.stringify(this.$store.state.config))
       formData.append('userID', userID)
+      let endPoint
+      if (configLevel === 'generalConfig') {
+        endPoint = '/updateGeneralConfig'
+      } else {
+        endPoint = '/updateUserConfig'
+      }
       axios
-        .post(backendServer + '/updateConfig', formData, {
+        .post(backendServer + endPoint, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -110,6 +187,15 @@ export default {
         .then(() => {
           eventBus.$emit('changeCSVHeaderNames')
         })
+    },
+    recoProgressNotificationChanged () {
+      if (!this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
+        this.$store.state.config.generalConfig.recoProgressNotification = {}
+      }
+      this.$store.state.config.generalConfig.recoProgressNotification.url = this.notification_endpoint
+      this.$store.state.config.generalConfig.recoProgressNotification.username = this.notification_username
+      this.$store.state.config.generalConfig.recoProgressNotification.password = this.notification_password
+      this.configChanged('generalConfig')
     },
     addMoreFields () {
       this.$store.state.progressTitle = 'Saving field'
@@ -177,6 +263,11 @@ export default {
         id: field,
         name: field
       })
+    }
+    if (this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
+      this.notification_endpoint = this.$store.state.config.generalConfig.recoProgressNotification.url
+      this.notification_username = this.$store.state.config.generalConfig.recoProgressNotification.username
+      this.notification_password = this.$store.state.config.generalConfig.recoProgressNotification.password
     }
   }
 }

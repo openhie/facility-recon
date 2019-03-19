@@ -160,7 +160,7 @@ module.exports = function () {
         }
         const dhis2URL = credentials.dhis2URL;
         const auth = credentials.auth;
-        winston.info(`GETTING ${dhis2URL.protocol}//${dhis2URL.hostname}:${dhis2URL.port}${dhis2URL.path}/api/metadata.json?${metadataOpts.join('&')}`);
+        winston.info(`GETTING ${dhis2URL.protocol}//${dhis2URL.hostname}:${dhis2URL.port}${dhis2URL.path}api/metadata.json?${metadataOpts.join('&')}`);
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
           port: dhis2URL.port,
@@ -187,7 +187,15 @@ module.exports = function () {
               });
               redisClient.set(dhisSyncRequestId, dhisSyncRequest);
             }
-            const metadata = JSON.parse(body);
+            let metadata
+            try {
+              metadata = JSON.parse(body);
+            } catch (error) {
+              winston.error(error)
+              winston.error(body)
+              winston.error('An error occured while parsing response from DHIS2 server')
+            }
+            
             if (!metadata.hasOwnProperty('organisationUnits')) {
               winston.info('No organization unit found in metadata');
               const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
@@ -211,6 +219,7 @@ module.exports = function () {
 }
 
 function processOrgUnit(metadata, hasKey) {
+  winston.info('Now writting org units into the database')
   let name = credentials.name;
   const clientId = credentials.clientId;
   const database = mixin.toTitleCase(name) + credentials.sourceOwner;
@@ -255,8 +264,9 @@ function processOrgUnit(metadata, hasKey) {
     }
   })
 
-  async.each(metadata.organisationUnits, (org, nxtOrg) => {
-    // winston.info(`Processing (${i}/${max}) ${org.id}`);
+  let i = 0
+  async.eachSeries(metadata.organisationUnits, (org, nxtOrg) => {
+    winston.info(`Processing (${++i}/${max}) ${org.id}`);
     const fhir = {
       resourceType: 'Location',
       id: org.id,

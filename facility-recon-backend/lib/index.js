@@ -9,6 +9,7 @@ const https = require('https');
 const http = require('http');
 const os = require("os");
 const fs = require("fs");
+const request = require('request');
 const fsFinder = require('fs-finder')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -82,7 +83,7 @@ let jwtValidator = function (req, res, next) {
           error: 'Token expired'
         })
       } else {
-        winston.info("token is valid")
+        // winston.info("token is valid")
         if (req.path == "/isTokenActive/") {
           res.set('Access-Control-Allow-Origin', '*')
           res.status(200).send(true)
@@ -594,8 +595,8 @@ if (cluster.isMaster) {
     })
   })
 
-  app.post('/updateConfig', (req, res) => {
-    winston.info("Received updated configurations")
+  app.post('/updateUserConfig', (req, res) => {
+    winston.info("Received updated user configurations")
     const database = config.getConf("DB_NAME")
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
@@ -605,20 +606,96 @@ if (cluster.isMaster) {
       } else {
         var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
-      let userConfig
+      let appConfig
       try {
-        userConfig = JSON.parse(fields.config)
+        appConfig = JSON.parse(fields.config)
       } catch (error) {
-        userConfig = fields.config
+        appConfig = fields.config
       }
-      userConfig.userConfig.userID = fields.userID
+      appConfig.userConfig.userID = fields.userID
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({
           'config.userConfig.userID': fields.userID
         }, (err, data) => {
           if (!data) {
+            models.MetaDataModel.findOne({}, {_id: 1}, (err, data) => {
+              if (data) {
+                models.MetaDataModel.findByIdAndUpdate(data._id, {$push: {'config.userConfig': appConfig.userConfig}}, (err, data) => {
+                  if (err) {
+                    winston.error(err)
+                    winston.error("Failed to save new config")
+                    res.status(500).json({
+                      error: 'Unexpected error occured,please retry'
+                    });
+                  } else {
+                    winston.info("New config saved successfully")
+                    res.status(200).json({
+                      status: 'Done'
+                    });
+                  }
+                })
+              } else {
+                const MetaData = new models.MetaDataModel({'config.userConfig': appConfig.userConfig});
+                MetaData.save((err, data) => {
+                  if (err) {
+                    winston.error(err)
+                    winston.error("Failed to save new config")
+                    res.status(500).json({
+                      error: 'Unexpected error occured,please retry'
+                    });
+                  } else {
+                    winston.info("New config saved successfully")
+                    res.status(200).json({
+                      status: 'Done'
+                    });
+                  }
+                })
+              }
+            })
+          } else {
+            models.MetaDataModel.findOneAndUpdate({_id: data.id, 'config.userConfig._id': appConfig.userConfig._id}, 
+            {$set: {'config.userConfig': appConfig.userConfig}}, (err, data) => {
+              if (err) {
+                winston.error(err)
+                winston.error("Failed to save new config")
+                res.status(500).json({
+                  error: 'Unexpected error occured,please retry'
+                });
+              } else {
+                winston.info("New config saved successfully")
+                res.status(200).json({
+                  status: 'Done'
+                });
+              }
+            })
+          }
+        })
+      })
+    })
+  })
+
+  app.post('/updateGeneralConfig', (req, res) => {
+    winston.info("Received updated general configurations")
+    const database = config.getConf("DB_NAME")
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      const mongoose = require('mongoose')
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      let appConfig
+      try {
+        appConfig = JSON.parse(fields.config)
+      } catch (error) {
+        appConfig = fields.config
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataModel.findOne({}, (err, data) => {
+          if (!data) {
             const MetaData = new models.MetaDataModel({
-              config: userConfig
+              'config.generalConfig': appConfig.generalConfig
             });
             MetaData.save((err, data) => {
               if (err) {
@@ -636,16 +713,16 @@ if (cluster.isMaster) {
             })
           } else {
             models.MetaDataModel.findByIdAndUpdate(data.id, {
-              config: userConfig
+              'config.generalConfig': appConfig.generalConfig
             }, (err, data) => {
               if (err) {
                 winston.error(err)
-                winston.error("Failed to save new config")
+                winston.error("Failed to save new general config")
                 res.status(500).json({
                   error: 'Unexpected error occured,please retry'
                 });
               } else {
-                winston.info("New config saved successfully")
+                winston.info("New general config saved successfully")
                 res.status(200).json({
                   status: 'Done'
                 });
@@ -667,9 +744,19 @@ if (cluster.isMaster) {
       var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
     }
     mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({
-        'config.userConfig.userID': userID
-      }, (err, data) => {
+      models.MetaDataModel.findOne({}, {'config.userConfig': 1}, (err, data) => {
+        if(!data) {
+          return res.status(200).send()
+        }
+        let userConfig = data.config.userConfig.find((userConfigData) => {
+          let userConfig = {}
+          try {
+            userConfig = JSON.parse(JSON.stringify(userConfigData))
+          } catch (error) {
+            winston.error(error)
+          }
+          return userConfig.userID === userID
+        })
         if (err) {
           winston.error(err)
           res.status(500).json({
@@ -680,6 +767,28 @@ if (cluster.isMaster) {
             delete data._id
             delete data.config.userConfig.userID
           }
+          res.status(200).json(userConfig)
+        }
+      })
+    })
+  })
+
+  app.get('/getGeneralConfig', (req, res) => {
+    let database = config.getConf("DB_NAME")
+    const mongoose = require('mongoose')
+    if (mongoUser && mongoPasswd) {
+      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    } else {
+      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    }
+    mongoose.connect(uri, {}, () => {
+      models.MetaDataModel.findOne({},{'config.generalConfig': 1}, (err, data) => {
+        if (err) {
+          winston.error(err)
+          res.status(500).json({
+            error: 'internal error occured while getting configurations'
+          })
+        } else {
           res.status(200).json(data)
         }
       })
@@ -876,22 +985,31 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/countLevels/:source1/:source2/:sourcesOwner', (req, res) => {
+  app.get('/countLevels/:source1/:source2/:sourcesOwner/:sourcesLimitOrgId', (req, res) => {
     winston.info(`Received a request to get total levels`);
     let sourcesOwner = JSON.parse(req.params.sourcesOwner)
     let source1Owner = sourcesOwner.source1Owner
     let source2Owner = sourcesOwner.source2Owner
+    let sourcesLimitOrgId = JSON.parse(req.params.sourcesLimitOrgId)
+    let source1LimitOrgId = sourcesLimitOrgId.source1LimitOrgId
+    let source2LimitOrgId = sourcesLimitOrgId.source2LimitOrgId
+    if(!source1LimitOrgId) {
+      source1LimitOrgId = topOrgId
+    }
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
     let source1 = req.params.source1 + source1Owner
     let source2 = req.params.source2 + source2Owner
     async.parallel({
       Source1Levels: function (callback) {
-        mcsd.countLevels(source1, topOrgId, (err, source1TotalLevels) => {
+        mcsd.countLevels(source1, source1LimitOrgId, (err, source1TotalLevels) => {
           winston.info(`Received total source1 levels of ${source1TotalLevels}`);
           return callback(err, source1TotalLevels)
         })
       },
       Source2Levels: function (callback) {
-        mcsd.countLevels(source2, topOrgId, (err, source2TotalLevels) => {
+        mcsd.countLevels(source2, source2LimitOrgId, (err, source2TotalLevels) => {
           winston.info(`Received total source2 levels of ${source2TotalLevels}`);
           return callback(err, source2TotalLevels)
         })
@@ -899,12 +1017,40 @@ if (cluster.isMaster) {
       getLevelMapping: function (callback) {
         async.series({
           levelMapping1: function (callback) {
-            mongo.getLevelMapping(source1, (levelMapping) => {
+            mongo.getLevelMapping(source1, (levelMappingData) => {
+              let levelMapping = {}
+              if (levelMappingData) {
+                for (let level in levelMappingData) {
+                  let levelData = levelMappingData[level]
+                  try {
+                    levelData = JSON.parse(levelData)
+                  } catch (error) {
+    
+                  }
+                  if (levelData && levelData !== 'undefined' && level != '$init') {
+                    levelMapping[level] = levelMappingData[level]
+                  }
+                }
+              }
               return callback(false, levelMapping)
             })
           },
           levelMapping2: function (callback) {
-            mongo.getLevelMapping(source2, (levelMapping) => {
+            mongo.getLevelMapping(source2, (levelMappingData) => {
+              let levelMapping = {}
+              if (levelMappingData) {
+                for (let level in levelMappingData) {
+                  let levelData = levelMappingData[level]
+                  try {
+                    levelData = JSON.parse(levelData)
+                  } catch (error) {
+    
+                  }
+                  if (levelData && levelData !== 'undefined' && level != '$init') {
+                    levelMapping[level] = levelMappingData[level]
+                  }
+                }
+              }
               return callback(false, levelMapping)
             })
           }
@@ -1089,7 +1235,6 @@ if (cluster.isMaster) {
   app.post('/dhisSync', (req, res) => {
     winston.info('received request to sync DHIS2 data');
     const form = new formidable.IncomingForm();
-    res.set('Access-Control-Allow-Origin', '*');
     res.status(200).end();
     form.parse(req, (err, fields, files) => {
       const host = fields.host;
@@ -1103,7 +1248,7 @@ if (cluster.isMaster) {
       if (mode === 'update') {
         full = false;
       }
-      dhis.sync(host, username, password, name, sourceOwner, clientId, topOrgId, topOrgName, false, full, false, true);
+      dhis.sync(host, username, password, name, sourceOwner, clientId, topOrgId, topOrgName, false, full, false, false);
     });
   });
 
@@ -1119,11 +1264,15 @@ if (cluster.isMaster) {
   app.get('/hierarchy', (req, res) => {
     let source = req.query.source
     let sourceOwner = req.query.sourceOwner
+    let sourceLimitOrgId = req.query.sourceLimitOrgId
     let start = req.query.start
     let count = req.query.count
     let id = req.query.id
+    if(!sourceLimitOrgId) {
+      sourceLimitOrgId = topOrgId
+    }
     if (!id) {
-      id = topOrgId
+      id = sourceLimitOrgId
     }
     if (!source) {
       winston.error({
@@ -1136,7 +1285,7 @@ if (cluster.isMaster) {
       winston.info(`Fetching Locations For ${source}`);
       let db = source + sourceOwner
       var locationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocations(db, (mcsdData) => {
+        mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
           mcsd.getBuildings(mcsdData, (buildings) => {
             resolve({
               buildings,
@@ -1149,7 +1298,7 @@ if (cluster.isMaster) {
 
       locationReceived.then((data) => {
         winston.info(`Creating ${source} Grid`);
-        mcsd.createGrid(id, topOrgId, data.buildings, data.mcsdData, start, count, (grid, total) => {
+        mcsd.createGrid(id, sourceLimitOrgId, data.buildings, data.mcsdData, start, count, (grid, total) => {
           winston.info(`Done Creating ${source} Grid`);
           res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
@@ -1194,7 +1343,8 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getTree/:source/:sourceOwner', (req, res) => {
+  app.get('/getTree/:source/:sourceOwner/:sourceLimitOrgId?', (req, res) => {
+    winston.info("Received a request to get location tree")
     if (!req.params.source) {
       winston.error({
         error: 'Missing Data Source',
@@ -1205,25 +1355,41 @@ if (cluster.isMaster) {
     } else {
       const source = req.params.source
       let sourceOwner = req.params.sourceOwner
+      let sourceLimitOrgId = req.params.sourceLimitOrgId
       let db = source + sourceOwner
-      winston.error(db)
+      if(!sourceLimitOrgId) {
+        sourceLimitOrgId = topOrgId
+      }
       winston.info(`Fetching Locations For ${source}`);
-      var locationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocations(db, (mcsdData) => {
-          winston.info(`Done Fetching Locations For ${source}`);
-          resolve(mcsdData);
-        });
-      });
-
-      locationReceived.then((mcsdData) => {
+      async.parallel({
+        locationChildren(callback) {
+          mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
+            winston.info(`Done Fetching Locations For ${source}`);
+            return callback(false, mcsdData);
+          });
+        },
+        parentDetails(callback) {
+          if(sourceLimitOrgId === topOrgId) {
+            return callback(false, false)
+          }
+          mcsd.getLocationByID(db, sourceLimitOrgId, false, (details) => {
+            return callback(false, details)
+          })
+        }
+      }, (error, response) => {
         winston.info(`Creating ${source} Tree`);
-        mcsd.createTree(mcsdData, topOrgId, (tree) => {
+        mcsd.createTree(response.locationChildren, sourceLimitOrgId, (tree) => {
+          if(sourceLimitOrgId !== topOrgId) {
+            tree = {
+              text: response.parentDetails.entry[0].resource.name,
+              id: req.params.sourceLimitOrgId,
+              children: tree
+            }
+          }
           winston.info(`Done Creating Tree for ${source}`);
           res.status(200).json(tree);
         });
-      }).catch((err) => {
-        winston.error(err);
-      });
+      })
     }
   });
 
@@ -1232,6 +1398,14 @@ if (cluster.isMaster) {
     const userID = req.params.userID
     const source1Owner = req.params.source1Owner
     const source2Owner = req.params.source2Owner
+    let source1LimitOrgId = req.query.source1LimitOrgId
+    let source2LimitOrgId = req.query.source2LimitOrgId
+    if(!source1LimitOrgId) {
+      source1LimitOrgId = topOrgId
+    }
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
     const source1DB = req.params.source1 + source1Owner
     const source2DB = req.params.source2 + source2Owner
     const recoLevel = req.params.level;
@@ -1248,7 +1422,7 @@ if (cluster.isMaster) {
     redisClient.set(statusRequestId, statusResData)
 
     const source2LocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocations(source2DB, (mcsdSource2) => {
+      mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdSource2) => {
         mcsdSource2All = mcsdSource2;
         let level
         if (recoLevel === totalSource1Levels) {
@@ -1259,14 +1433,14 @@ if (cluster.isMaster) {
         if (levelMaps[source2DB] && levelMaps[source2DB][recoLevel]) {
           level = levelMaps[source2DB][recoLevel];
         }
-        mcsd.filterLocations(mcsdSource2, topOrgId, level, (mcsdSource2Level) => {
+        mcsd.filterLocations(mcsdSource2, source2LimitOrgId, level, (mcsdSource2Level) => {
           resolve(mcsdSource2Level);
         });
       });
     });
     const source1LocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocations(source1DB, (mcsdSource1) => {
-        mcsd.filterLocations(mcsdSource1, topOrgId, recoLevel, (mcsdSource1Level) => {
+      mcsd.getLocationChildren(source1DB, source1LimitOrgId, (mcsdSource1) => {
+        mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, (mcsdSource1Level) => {
           resolve(mcsdSource1Level);
         });
       });
@@ -1297,6 +1471,14 @@ if (cluster.isMaster) {
     let source2 = req.query.source2
     let source1Owner = req.query.source1Owner
     let source2Owner = req.query.source2Owner
+    let source1LimitOrgId = req.query.source1LimitOrgId
+    let source2LimitOrgId = req.query.source2LimitOrgId
+    if(!source1LimitOrgId) {
+      source1LimitOrgId = topOrgId
+    }
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
     let parentConstraint
     try {
       parentConstraint = JSON.parse(req.query.parentConstraint)
@@ -1326,7 +1508,7 @@ if (cluster.isMaster) {
       async.parallel({
         source2Locations: function (callback) {
           let dbSource2 = source2 + source2Owner
-          mcsd.getLocations(dbSource2, (mcsdSource2) => {
+          mcsd.getLocationChildren(dbSource2, source2LimitOrgId, (mcsdSource2) => {
             mcsdSource2All = mcsdSource2;
             let level
             if (recoLevel === totalSource1Levels) {
@@ -1338,16 +1520,16 @@ if (cluster.isMaster) {
             if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
               level = levelMaps[orgid][recoLevel];
             }
-            mcsd.filterLocations(mcsdSource2, topOrgId, level, (mcsdSource2Level) => {
+            mcsd.filterLocations(mcsdSource2, source2LimitOrgId, level, (mcsdSource2Level) => {
               return callback(false, mcsdSource2Level)
             });
           });
         },
         source1Loations: function (callback) {
           let dbSource1 = source1 + source1Owner
-          mcsd.getLocations(dbSource1, (mcsdSource1) => {
+          mcsd.getLocationChildren(dbSource1, source1LimitOrgId, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
-            mcsd.filterLocations(mcsdSource1, topOrgId, recoLevel, (mcsdSource1Level) => {
+            mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, (mcsdSource1Level) => {
               return callback(false, mcsdSource1Level);
             });
           });
@@ -1975,7 +2157,6 @@ if (cluster.isMaster) {
       winston.error({
         error: 'Missing Source1 or Source2'
       });
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(400).json({
         error: 'Missing Source1 or Source2'
       });
@@ -1984,17 +2165,20 @@ if (cluster.isMaster) {
     let userID = req.params.userID
     let source1Owner = req.params.source1Owner
     let source2Owner = req.params.source2Owner
+    let source2LimitOrgId = req.query.source2LimitOrgId
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
     let source2DB = req.params.source2 + source2Owner
     let mappingDB = req.params.source1 + userID + req.params.source2
     let recoLevel = req.params.recoLevel;
     if (levelMaps[source2DB] && levelMaps[source2D][recoLevel]) {
       recoLevel = levelMaps[orgid][recoLevel];
     }
-    mcsd.getLocations(source2DB, (locations) => {
-      mcsd.filterLocations(locations, topOrgId, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(locations, mcsdLevel, mappingDB, false, 'source2', null, (unmatched) => {
+    mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdAll) => {
+      mcsd.filterLocations(mcsdAll, source2LimitOrgId, recoLevel, (mcsdLevel) => {
+        scores.getUnmatched(mcsdAll, mcsdLevel, mappingDB, false, 'source2', null, (unmatched) => {
           winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json(unmatched);
         });
       });
@@ -2329,7 +2513,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/markRecoDone/:source1/:source2/:userID', (req, res) => {
-    winston.info(`received a request to mark reconciliation for ${req.params.orgid} as done`)
+    winston.info(`received a request to mark reconciliation for ${req.params.source1}${req.params.source2} as done`)
 
     const source1 = req.params.source1
     const source2 = req.params.source2
@@ -2357,9 +2541,11 @@ if (cluster.isMaster) {
               });
             } else {
               winston.info("Reco status saved successfully")
-              res.status(200).json({
-                status: 'Done'
-              });
+              sendNotification((err, not) => {
+                res.status(200).json({
+                  status: 'Done'
+                });
+              })
             }
           })
         } else {
@@ -2374,14 +2560,71 @@ if (cluster.isMaster) {
               });
             } else {
               winston.info("Reco status saved successfully")
-              res.status(200).json({
-                status: 'Done'
-              });
+              sendNotification((err, not) => {
+                res.status(200).json({
+                  status: 'Done'
+                });
+              })
             }
           })
         }
       })
     })
+
+    function sendNotification(callback) {
+      winston.info('received a request to send notification to endpoint regarding completion of reconciliation')
+      let database = config.getConf("DB_NAME")
+      if (mongoUser && mongoPasswd) {
+        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      } else {
+        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      }
+      mongoose.connect(uri, {}, () => {
+        models.MetaDataModel.findOne({}, {'config.generalConfig': 1}, (err, data) => {
+          if (err) {
+            winston.error(err)
+            return callback(true, false)
+          }
+          if(!data) {
+            return callback(false, false)
+          }
+          let configData = {}
+          try {
+            configData = JSON.parse(JSON.stringify(data))
+          } catch (error) {
+            winston.error(error)
+            return callback(true, false)
+          }
+
+          if(configData.hasOwnProperty('config') &&
+            configData.config.hasOwnProperty('generalConfig') &&
+            configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+            configData.config.generalConfig.recoProgressNotification.enabled &&
+            configData.config.generalConfig.recoProgressNotification.url
+          ) {
+            let url = configData.config.generalConfig.recoProgressNotification.url
+            let username = configData.config.generalConfig.recoProgressNotification.username
+            let password = configData.config.generalConfig.recoProgressNotification.password
+            var auth = "Basic " + new Buffer(username + ":" + password).toString("base64")
+            const options = {
+              url: url,
+              headers: {
+                Authorization: auth,
+                'Content-Type': 'application/json'
+              },
+              json: {source1: source1, source2: source2, status: 'Done'},
+            };
+            request.post(options, (err, res, body) => {
+              if (err) {
+                winston.error(err);
+                return callback(true, false)
+              }
+              return callback(false, body)
+            });
+          }
+        })
+      })
+    }
   })
 
   app.get('/recoStatus/:source1/:source2/:userID', (req, res) => {

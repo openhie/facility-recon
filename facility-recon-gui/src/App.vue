@@ -387,8 +387,9 @@ export default {
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
       let sourcesOwner = JSON.stringify(this.getDatasourceOwner())
+      let sourcesLimitOrgId = JSON.stringify(this.getLimitOrgId())
       axios
-        .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner)
+        .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
           this.$store.state.initializingApp = false
           this.$store.state.levelMapping.source1 = levels.data.levelMapping.levelMapping1
@@ -464,12 +465,27 @@ export default {
           console.log(JSON.stringify(err))
         })
     },
-    getConfig () {
+    getUserConfig () {
       let userID = this.$store.state.auth.userID
       axios
         .get(backendServer + '/getUserConfig/' + userID)
         .then(config => {
-          this.$store.state.config = config.data.config
+          if (config.data) {
+            this.$store.state.config.userConfig = config.data
+          }
+          this.getGeneralConfig()
+        })
+        .catch(() => {
+          this.getGeneralConfig()
+        })
+    },
+    getGeneralConfig () {
+      axios
+        .get(backendServer + '/getGeneralConfig')
+        .then(config => {
+          if (config.data) {
+            this.$store.state.config.generalConfig = config.data.config.generalConfig
+          }
           this.getDataSources()
         })
         .catch(() => {
@@ -487,11 +503,9 @@ export default {
           let activeSource = this.getActivePair()
           if (Object.keys(activeSource).length > 0) {
             this.$store.state.activePair.source1.id = activeSource.source1._id
-            this.$store.state.activePair.source1.name =
-              activeSource.source1.name
+            this.$store.state.activePair.source1.name = activeSource.source1.name
             this.$store.state.activePair.source2.id = activeSource.source2._id
-            this.$store.state.activePair.source2.name =
-              activeSource.source2.name
+            this.$store.state.activePair.source2.name = activeSource.source2.name
             this.$store.state.activePair.shared = activeSource.shared
             this.$store.state.activePair.userID = activeSource.userID
           }
@@ -549,7 +563,7 @@ export default {
         this.$store.state.clientId = uuid.v4()
         this.$store.state.initializingApp = true
         this.$store.state.denyAccess = false
-        this.getConfig()
+        this.getUserConfig()
       })
     }
     eventBus.$on('refreshApp', () => {
@@ -562,7 +576,7 @@ export default {
       this.getDataSources()
     })
     eventBus.$on('getConfig', () => {
-      this.getConfig()
+      this.getUserConfig()
     })
     eventBus.$on('getDataSourcePair', () => {
       this.getDataSourcePair()

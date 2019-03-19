@@ -427,9 +427,11 @@ export default {
       let sourcesOwner = this.getDatasourceOwner()
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
+      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
       this.mappingStatusDialog = true
       this.progressType = 'indeterminate'
-      let path = `/mappingStatus/${this.source1}/${this.source2}/${source1Owner}/${source2Owner}/${this.recoLevel}/${totalSource2Levels}/${totalSource1Levels}/${clientId}/${userID}`
+      let path = `/mappingStatus/${this.source1}/${this.source2}/${source1Owner}/${source2Owner}/${this.recoLevel}/${totalSource2Levels}/${totalSource1Levels}/${clientId}/${userID}?source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}`
       axios.get(backendServer + path).then((mappingStatus) => {
         this.mappingData = mappingStatus.data
       })

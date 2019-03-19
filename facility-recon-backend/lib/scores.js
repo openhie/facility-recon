@@ -645,7 +645,6 @@ module.exports = function () {
                     unit: 'miles'
                   });
                   if (dist !== 0) {
-                    winston.error(dist + " " + source1Latitude + " " + source2Latitude + " " + source1Longitude + " " + source2Longitude)
                     matchComments.push('Coordinates differ')
                   }
                 } else {

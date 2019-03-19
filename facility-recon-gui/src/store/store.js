@@ -21,11 +21,13 @@ export const store = new Vuex.Store({
     config: {
       userConfig: {
         reconciliation: {
-          useCSVHeader: true,
-          parentConstraint: true
+          useCSVHeader: true
         }
       },
       generalConfig: {
+        reconciliation: {
+          parentConstraint: true
+        },
         selfRegistration: false
       }
     },

@@ -87,11 +87,24 @@
               </p>
             </v-card-text>
           </template>
+          <v-icon small>lock</v-icon> Limiting Sharing to: <b>{{limitLocationName}}</b>
           <v-text-field v-model="searchUsers" append-icon="search" label="Search" single-line hide-details></v-text-field>
-          <v-data-table :headers="usersHeader" :items="users" :search="searchUsers" class="elevation-1">
-            <template slot="items" slot-scope="props">
+          <v-data-table 
+            :headers="usersHeader" 
+            :items="users" 
+            :search="searchUsers" 
+            class="elevation-1"
+            item-key="firstName"
+          >
+            <template v-slot:items="props">
               <tr v-if="props.item.userName !== $store.state.auth.username">
-                <td><v-checkbox v-model="sharedUsers" :value="props.item._id"></v-checkbox>
+                <td>
+                  <v-checkbox  
+                    :value="props.item._id"
+                    v-model="sharedUsers"
+                  >
+                  </v-checkbox>
+                </td>
                 <td>{{props.item.userName}}</td>
                 <td>{{props.item.firstName}}</td>
                 <td>{{props.item.surname}}</td>
@@ -100,11 +113,11 @@
           </v-data-table>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="error" @click.native="shareDialog = false" style="color: white">
+          <v-btn color="error" :disabled='loadingLocationTree' @click.native="shareDialog = false" style="color: white">
             <v-icon dark left>cancel</v-icon>Cancel
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" dark @click.native="share('', 'saveShare')">
+          <v-btn color="primary" :disabled='loadingLocationTree' @click.native="share('', 'saveShare')">
             <v-icon left>share</v-icon>Share
           </v-btn>
         </v-card-actions>
@@ -304,6 +317,7 @@ export default {
       users: [],
       sharedUsers: [],
       limitLocationId: '',
+      limitLocationName: 'No limit',
       locationTree: [],
       loadingLocationTree: false,
       searchUsers: '',
@@ -440,6 +454,7 @@ export default {
     share (source, action) {
       if (action === 'showDialog') {
         this.limitLocationId = ''
+        this.limitLocationName = 'No limit'
         this.sharedUsers = []
         this.shareSource = source
         this.getLocationTree()
@@ -478,6 +493,12 @@ export default {
     },
     locationSelected (node) {
       this.limitLocationId = node.id
+      if (node.id !== 'parent') {
+        this.limitLocationName = node.data.text
+      } else {
+        this.limitLocationName = 'No limit'
+        this.limitLocationId = ''
+      }
     },
     getLocationTree () {
       let userID = this.$store.state.activePair.userID._id
@@ -487,6 +508,7 @@ export default {
         if (hierarchy.data) {
           this.locationTree = [{
             text: 'Select location to limit sharing',
+            id: 'parent',
             children: hierarchy.data
           }]
         }

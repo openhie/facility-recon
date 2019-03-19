@@ -143,11 +143,13 @@ module.exports = function () {
     },
 
     getLocationChildren(database, topOrgId, callback) {
-      const url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      if(!topOrgId) {
+        topOrgId = ''
+      }
+      let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .segment(topOrgId)
-        .segment('$hierarchy')
         .toString();
-
+      url = url + '/$hierarchy'
       let data = cache.get('url_' + url);
       if (data) {
         winston.info("Getting " + url + " from cache");
@@ -447,7 +449,6 @@ module.exports = function () {
         mcsdLevelNumber.entry = mcsdLevelNumber.entry.concat(entry);
         return callback(mcsdLevelNumber);
       }
-
       function filter(id, callback) {
         const res = mcsd.entry.filter((entry) => {
           if (entry.resource.hasOwnProperty('partOf')) {
@@ -459,7 +460,6 @@ module.exports = function () {
 
       let totalLoops = 0;
       totalLoops = levelNumber;
-
       let tmpArr = [];
       tmpArr.push(entry);
       totalLoops = Array.from(new Array(totalLoops - 1), (val, index) => index + 1);
