@@ -268,8 +268,22 @@
           <v-spacer></v-spacer>
           <v-flex xs2>
             <template v-if="this.$store.state.activePair.userID._id === this.$store.state.auth.userID">
-              <v-btn color="success" round @click='markRecoDone' v-if="$store.state.recoStatus !== 'Done'"><v-icon>lock</v-icon>Mark Reconciliation Done</v-btn>
-              <v-btn color="success" round @click='markRecoUnDone' v-else><v-icon>lock_open</v-icon>Mark Reconciliation UnDone</v-btn>
+              <v-btn 
+                color="success" 
+                round 
+                @click='markRecoDone' 
+                v-if="$store.state.recoStatus !== 'Done'"
+              >
+                <v-icon>lock</v-icon>Mark Reconciliation Done
+              </v-btn>
+              <v-btn 
+                color="success" 
+                round 
+                @click='markRecoUnDone' 
+                v-if="$store.state.recoStatus === 'Done' && $store.state.auth.role == 'Admin'"
+              >
+                  <v-icon>lock_open</v-icon>Mark Reconciliation UnDone
+                </v-btn>
             </template>
           </v-flex>
           <v-spacer></v-spacer>
