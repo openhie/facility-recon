@@ -61,7 +61,7 @@
               <v-list-tile
                 to="dataSourcesPair"
                 slot="activator"
-                v-if="$store.state.dataSources.length > 1"
+                v-if="$store.state.dataSources.length > 1 || $store.state.dataSourcePairs.length > 0"
               >
                 <v-list-tile-title>
                   <v-icon>compare_arrows</v-icon>{{ $t('App.menu.createPair.msg')}}
@@ -500,12 +500,15 @@ export default {
         .get(backendServer + '/getDataSourcePair/' + userID)
         .then(response => {
           this.$store.state.dataSourcePairs = response.data
-          let activeSource = this.getActivePair()
+          let activeSource = this.getActiveDataSourcePair()
           if (Object.keys(activeSource).length > 0) {
             this.$store.state.activePair.source1.id = activeSource.source1._id
             this.$store.state.activePair.source1.name = activeSource.source1.name
+            this.$store.state.activePair.source1.userID = activeSource.source1.userID
             this.$store.state.activePair.source2.id = activeSource.source2._id
             this.$store.state.activePair.source2.name = activeSource.source2.name
+            this.$store.state.activePair.source2.userID = activeSource.source2.userID
+            this.$store.state.activePair._id = activeSource._id
             this.$store.state.activePair.shared = activeSource.shared
             this.$store.state.activePair.userID = activeSource.userID
           }
@@ -520,32 +523,6 @@ export default {
           this.renderInitialPage()
           this.getTotalLevels()
         })
-    },
-    getActivePair () {
-      let shared
-      let activeDataSourcePair = {}
-      this.$store.state.dataSourcePairs.forEach(pair => {
-        if (
-          pair.userID._id === this.$store.state.auth.userID &&
-          pair.status === 'active'
-        ) {
-          activeDataSourcePair = pair
-        }
-        if (Object.keys(activeDataSourcePair).length > 0) {
-          shared = undefined
-          return
-        }
-        if (
-          pair.userID._id !== this.$store.state.auth.userID &&
-          pair.status === 'active'
-        ) {
-          shared = pair
-        }
-      })
-      if (shared) {
-        activeDataSourcePair = shared
-      }
-      return activeDataSourcePair
     }
   },
   created () {

@@ -324,6 +324,13 @@ module.exports = function () {
     addDataSourcePair(sources, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
+        winston.error(sources.activePairID)
+        winston.error(sources.userID)
+        if(sources.activePairID) {
+          models.DataSourcePairModel.findByIdAndUpdate(sources.activePairID, {$pull: {'shared.activeUsers': sources.userID}}, (err, data) => {
+
+          })
+        }
         models.DataSourcePairModel.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
           if (data) {
             async.each(data, (dt, nxtDt) => {
@@ -443,7 +450,7 @@ module.exports = function () {
       mongoose.connect(uri, {}, () => {
         models.DataSourcePairModel.find({ $or: [{'userID': userID}, {'shared.users': userID}]
           
-        }).populate("source1", "name").populate("source2", "name").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
+        }).populate("source1", "name userID").populate("source2", "name userID").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
           return callback(err, data)
         })
       })

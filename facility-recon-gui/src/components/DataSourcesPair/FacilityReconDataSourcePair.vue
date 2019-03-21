@@ -193,8 +193,10 @@
 <script>
 import axios from 'axios'
 import { eventBus } from '../../main'
+import { generalMixin } from '../../mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 export default {
+  mixins: [generalMixin],
   data () {
     return {
       helpDialog: false,
@@ -280,12 +282,23 @@ export default {
         this.$store.state.errorDescription = 'Data source pair of the same data source is not allowed, change one of the source'
         return
       }
+      // let sourcesOwner = this.getDatasourceOwner()
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Saving Data Sources'
+      let activePairID = null
+      if (this.$store.state.activePair.hasOwnProperty('shared') &&
+        this.$store.state.activePair.shared.hasOwnProperty('activeUsers') &&
+        this.$store.state.activePair.shared.activeUsers.indexOf(this.$store.state.auth.userID) !== -1
+      ) {
+        activePairID = this.$store.state.activePair._id
+      }
       let formData = new FormData()
       formData.append('source1', JSON.stringify(this.source1))
       formData.append('source2', JSON.stringify(this.source2))
+      // formData.append('source1Owner', sourcesOwner.source1Owner)
+      // formData.append('source2Owner', sourcesOwner.source2Owner)
       formData.append('userID', this.$store.state.auth.userID)
+      formData.append('activePairID', activePairID)
       axios.post(backendServer + '/addDataSourcePair', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -380,25 +393,6 @@ export default {
       axios.get(backendServer + '/getUsers').then((response) => {
         this.users = response.data
       })
-    },
-    getActivePair () {
-      let shared
-      this.activeDataSourcePair = {}
-      this.$store.state.dataSourcePairs.forEach((pair) => {
-        if (pair.userID._id === this.$store.state.auth.userID && pair.status === 'active') {
-          this.activeDataSourcePair = pair
-        }
-        if (Object.keys(this.activeDataSourcePair).length > 0) {
-          shared = undefined
-          return
-        }
-        if (pair.userID._id !== this.$store.state.auth.userID && pair.status === 'active') {
-          shared = pair
-        }
-      })
-      if (shared) {
-        this.activeDataSourcePair = shared
-      }
     }
   },
   created () {
@@ -409,7 +403,7 @@ export default {
     this.source2 = this.$store.state.dataSources.find((dataSource) => {
       return dataSource._id === this.$store.state.activePair.source2.id
     })
-    this.getActivePair()
+    this.activeDataSourcePair = this.getActiveDataSourcePair()
     if (!this.source1) {
       this.source1 = {}
     }

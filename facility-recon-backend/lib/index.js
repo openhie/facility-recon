@@ -2410,7 +2410,6 @@ if (cluster.isMaster) {
       winston.error({
         error: 'Missing Source1'
       });
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(500).json({
         error: 'Missing Source1'
       });
@@ -2424,7 +2423,6 @@ if (cluster.isMaster) {
         winston.error({
           'error': 'Missing Source1 ID'
         })
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(500).json({
           error: 'Missing Source1 ID'
         });
@@ -2444,7 +2442,6 @@ if (cluster.isMaster) {
           if (data.recoStatus === 'on-progress') {
             mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
               winston.info(`break no match done for ${fields.source1Id}`);
-              res.set('Access-Control-Allow-Origin', '*');
               res.status(200).send(err);
             });
           } else {
@@ -2668,7 +2665,6 @@ if (cluster.isMaster) {
         });
         redisClient.set(progressRequestId, uploadReqRes);
       }
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results);
     });
   });
@@ -2677,7 +2673,6 @@ if (cluster.isMaster) {
     const clientId = req.params.clientId
     redisClient.get(`uploadProgress${clientId}`, (error, results) => {
       results = JSON.parse(results)
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(200).json(results)
       //reset progress
       if (results && (results.error !== null || results.status === 'Done')) {
@@ -2899,7 +2894,7 @@ if (cluster.isMaster) {
 
   app.get('/getDataSourcePair/:userID', (req, res) => {
     winston.info("Received a request to get data source pair")
-    mongo.getDataSourcePair(req.params.userID, (err, sources) => {
+    mongo.getDataSourcePair(req.params.userID, (err, sourcePair) => {
       if (err) {
         winston.error('Unexpected error occured while getting data source pairs')
         winston.error(err)
@@ -2908,7 +2903,7 @@ if (cluster.isMaster) {
         })
       } else {
         winston.info("Returning list of data source pairs")
-        res.status(200).json(sources)
+        res.status(200).json(sourcePair)
       }
     })
   })

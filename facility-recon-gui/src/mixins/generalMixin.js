@@ -38,22 +38,36 @@ export const generalMixin = {
         return 'Level ' + level
       }
     },
+    getActiveDataSourcePair () {
+      let shared
+      let activeDataSourcePair = {}
+      this.$store.state.dataSourcePairs.forEach(pair => {
+        if (pair.userID._id === this.$store.state.auth.userID && pair.status === 'active') {
+          activeDataSourcePair = pair
+        }
+        if (Object.keys(activeDataSourcePair).length > 0) {
+          shared = undefined
+          return
+        }
+        if (pair.userID._id !== this.$store.state.auth.userID && pair.shared.activeUsers.indexOf(this.$store.state.auth.userID) !== -1) {
+          shared = pair
+        }
+      })
+      if (shared) {
+        activeDataSourcePair = shared
+      }
+      return activeDataSourcePair
+    },
     getDatasourceOwner () {
-      let dtSrc1 = this.$store.state.dataSources.find((dtSrc) => {
-        return dtSrc._id === this.$store.state.activePair.source1.id
-      })
-      let dtSrc2 = this.$store.state.dataSources.find((dtSrc) => {
-        return dtSrc._id === this.$store.state.activePair.source2.id
-      })
       let sourceOwner = {
         source1Owner: '',
         source2Owner: ''
       }
-      if (dtSrc1) {
-        sourceOwner.source1Owner = dtSrc1.userID._id
+      if (this.$store.state.activePair.source1.hasOwnProperty('userID')) {
+        sourceOwner.source1Owner = this.$store.state.activePair.source1.userID
       }
-      if (dtSrc2) {
-        sourceOwner.source2Owner = dtSrc2.userID._id
+      if (this.$store.state.activePair.source2.hasOwnProperty('userID')) {
+        sourceOwner.source2Owner = this.$store.state.activePair.source2.userID
       }
       return sourceOwner
     },
