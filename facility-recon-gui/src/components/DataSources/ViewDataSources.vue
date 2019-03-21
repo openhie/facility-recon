@@ -239,6 +239,9 @@
                 <td>
                   {{props.item.shared.users | mergeUsers}}
                 </td>
+                <td>
+                  {{props.item.createdTime}}
+                </td>
                 <td v-if='props.item.userID._id === $store.state.auth.userID'>
                   <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
                 </td>
@@ -281,6 +284,9 @@
                 <td>{{props.item.userID.userName}}</td>
                 <td>
                   {{props.item.shared.users | mergeUsers}}
+                </td>
+                <td>
+                  {{props.item.createdTime}}
                 </td>
                 <td v-if='props.item.userID._id === $store.state.auth.userID'>
                   <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
@@ -330,7 +336,8 @@ export default {
         { text: 'Password', value: 'password' },
         { text: 'Last Sync', value: 'lastsync' },
         { text: 'Owner', value: 'owner', sortable: false },
-        { text: 'Shared To', value: 'shareStatus' }
+        { text: 'Shared To', value: 'shareStatus' },
+        { text: 'Created Time', value: 'createdTime' }
       ],
       uploadSourcesHeader: [
         { sortable: false },
@@ -339,7 +346,8 @@ export default {
           value: 'name'
         },
         { text: 'Owner', value: 'owner', sortable: false },
-        { text: 'Shared To', value: 'shareStatus' }
+        { text: 'Shared To', value: 'shareStatus' },
+        { text: 'Created Time', value: 'createdTime' }
       ],
       dataSources: [
         { text: 'Upload CSV', value: 'upload' },

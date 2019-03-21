@@ -532,8 +532,9 @@ if (cluster.isMaster) {
   })
 
   function getLastUpdateTime(sources, callback) {
-    sources = JSON.parse(JSON.stringify(sources))
+    // sources = JSON.parse(JSON.stringify(sources))
     async.eachOfSeries(sources, (server, key, nxtServer) => {
+      server.createdTime = moment(server._id.getTimestamp()).format("Do MMM YYYY h:mm:ss a")
       if (server.sourceType === 'FHIR') {
         let database = mixin.toTitleCase(server.name) + server.userID._id
         fhir.getLastUpdate(database, (lastUpdate) => {
