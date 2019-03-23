@@ -26,7 +26,14 @@ export const store = new Vuex.Store({
       },
       generalConfig: {
         reconciliation: {
-          parentConstraint: true
+          parentConstraint: {
+            enabled: true,
+            idAutoMatch: true,
+            nameAutoMatch: false
+          }
+        },
+        recoProgressNotification: {
+          enabled: false
         },
         selfRegistration: false
       }

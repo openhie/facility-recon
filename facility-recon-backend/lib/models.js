@@ -144,7 +144,15 @@ let MetaData = new mongoose.Schema({
       },
       reconciliation: {
         parentConstraint: {
-          type: Boolean
+          enabled: {
+            type: Boolean
+          },
+          idAutoMatch: {
+            type: Boolean
+          },
+          nameAutoMatch: {
+            type: Boolean
+          }
         }
       },
       recoProgressNotification: {

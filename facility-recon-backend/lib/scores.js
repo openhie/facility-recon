@@ -233,7 +233,7 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let source2Filtered
-              if (parentConstraint) {
+              if (parentConstraint.enabled) {
                 source2Filtered = mcsdSource2.entry.filter((entry) => {
                   return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
                 })
@@ -255,14 +255,22 @@ module.exports = function () {
                     ignore.push(source2Entry.resource.id)
                     return source2Callback();
                   }
+                  let parentsDiffer = false
                   if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0])) {
+                    parentsDiffer = true
                     matchComments.push("Parents differ")
                   }
                   const source2Name = source2Entry.resource.name;
                   const source2Id = source2Entry.resource.id
 
                   lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-                  if (lev == 0 && !matchBroken) {
+                  // when parent constraint is On then automatch by name is also enabled by default
+                  // when parent constraint is off then check if name automatch is also on
+
+                  if (lev == 0 && 
+                    !matchBroken && 
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true))
+                  ) {
                     ignore.push(source2Entry.resource.id)
                     thisRanking.exactMatch = {
                       name: source2Name,
@@ -276,8 +284,7 @@ module.exports = function () {
                     });
                     // we will need to break here and start processing nxt Source1
                     return source2Callback();
-                  }
-                  if (lev == 0 && matchBroken) {
+                  } else if (lev == 0) {
                     if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                       thisRanking.potentialMatches['0'] = []
                     }
@@ -597,7 +604,7 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let source2Filtered
-              if (parentConstraint) {
+              if (parentConstraint.enabled) {
                 source2Filtered = mcsdSource2.entry.filter((entry) => {
                   return source2MappedParentIds[entry.resource.id].includes(source1ParentIds[0])
                 })
@@ -622,8 +629,9 @@ module.exports = function () {
                 if (source2LevelMappingStatus[id]) {
                   return source2Callback();
                 }
-
+                let parentsDiffer = false
                 if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0])) {
+                  parentsDiffer = true
                   matchComments.push("Parents differ")
                 }
                 const source2Name = source2Entry.resource.name;
@@ -693,26 +701,45 @@ module.exports = function () {
                   for (let abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr])
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      matchComments.push('Names differ')
-                      ignore.push(source2Entry.resource.id)
-                      thisRanking.exactMatch = {
-                        name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                        lat: source2Latitude,
-                        long: source2Longitude,
-                        geoDistance: dist,
-                        matchComments: matchComments,
-                        id: source2Entry.resource.id,
-                      };
-                      thisRanking.potentialMatches = {};
-                      mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {});
+                      if(parentsDiffer == false ||
+                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      ) {
+                        matchComments.push('Names differ')
+                        ignore.push(source2Entry.resource.id)
+                        thisRanking.exactMatch = {
+                          name: source2Name,
+                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                          lat: source2Latitude,
+                          long: source2Longitude,
+                          geoDistance: dist,
+                          matchComments: matchComments,
+                          id: source2Entry.resource.id,
+                        };
+                        thisRanking.potentialMatches = {};
+                        mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {});
+                      } else {
+                        if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                          thisRanking.potentialMatches['0'] = []
+                        }
+                        thisRanking.potentialMatches['0'].push({
+                          name: source2Name,
+                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                          lat: source2Latitude,
+                          long: source2Longitude,
+                          geoDistance: dist,
+                          id: source2Entry.resource.id
+                        })
+                      }
                       return source2Callback();
                     }
                   }
                 }
 
                 lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-                if (lev == 0 && !matchBroken) {
+
+                if (lev == 0 && !matchBroken && 
+                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true))
+                ) {
                   ignore.push(source2Entry.resource.id)
                   thisRanking.exactMatch = {
                     name: source2Name,
@@ -728,7 +755,7 @@ module.exports = function () {
 
                   });
                   return source2Callback();
-                } else if (lev == 0 && matchBroken) {
+                } else if (lev == 0) {
                   if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                     thisRanking.potentialMatches['0'] = []
                   }

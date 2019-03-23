@@ -90,8 +90,9 @@ export const scoresMixin = {
       let source2Owner = sourcesOwner.source2Owner
       let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
       let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + this.$store.state.config.generalConfig.reconciliation.parentConstraint
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then((scores) => {
         this.loadingSource1Unmatched = false
         this.getSource2Unmached()

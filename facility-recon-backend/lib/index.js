@@ -28,6 +28,7 @@ const models = require('./models')
 const mixin = require('./mixin')()
 const mongo = require('./mongo')();
 const config = require('./config');
+const upgrade = require('./upgrade');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();

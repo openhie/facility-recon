@@ -26,22 +26,39 @@
         <v-divider></v-divider>
         <v-divider></v-divider>
         <v-divider></v-divider>
-        <v-card>
+        <v-card v-if='$store.state.auth.role == "Admin"'>
           <v-card-title>
             General Configurations
           </v-card-title>
           <v-card-text>
             <v-layout column>
-              <v-flex v-if='$store.state.auth.role == "Admin"'>
+              <v-flex>
                 <v-switch
                   @change="configChanged('generalConfig')"
                   color="success"
                   label="Perform match based on parent constraint"
-                  v-model="$store.state.config.generalConfig.reconciliation.parentConstraint"
+                  v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
                 >
                 </v-switch>
+                <v-card
+                  v-if="!$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
+                  color="grey lighten-3"
+                  style="margin-left:100px"
+                >
+                  <v-checkbox 
+                    @change="configChanged('generalConfig')"
+                    label="Automatch By ID" 
+                    v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.idAutoMatch"
+                    disabled
+                  ></v-checkbox>
+                  <v-checkbox 
+                    @change="configChanged('generalConfig')"
+                    label="Automatch By Name (when parents differ)" 
+                    v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.nameAutoMatch"
+                  ></v-checkbox>
+                </v-card>
               </v-flex>
-              <v-flex v-if='$store.state.auth.role == "Admin"'>
+              <v-flex>
                 <v-switch
                   @change="configChanged('generalConfig')"
                   color="success"
@@ -54,10 +71,11 @@
                   wrap
                   v-if='$store.state.config.generalConfig.selfRegistration'
                 >
+                  <v-spacer></v-spacer>
                   <v-flex xs3>
                     <v-treeview :items="signupFields"></v-treeview>
                   </v-flex>
-                  <v-flex xs2>
+                  <v-flex xs8>
                     <v-btn
                       small
                       round
@@ -89,7 +107,7 @@
                   </v-flex>
                 </v-layout>
               </v-flex>
-              <v-flex xs1 v-if='$store.state.auth.role == "Admin"'>
+              <v-flex xs1>
                 <v-switch
                   @change="configChanged('generalConfig')"
                   color="success"
@@ -99,7 +117,8 @@
                 </v-switch>
                 <v-card 
                   color="grey lighten-3" 
-                  v-if='$store.state.config.generalConfig.recoProgressNotification.enabled && $store.state.auth.role == "Admin"'
+                  v-if='$store.state.config.generalConfig.recoProgressNotification.enabled'
+                  style="margin-left:100px"
                 >
                   <v-card-text>
                     End point to send notification when reconciliation is done
