@@ -131,6 +131,13 @@
             </v-btn>
             <v-spacer />
             <v-btn
+              @click="displayLogin"
+              flat
+            >
+              <v-icon>lock</v-icon>Back To Login
+            </v-btn>
+            <v-spacer />
+            <v-btn
               @click="signup()"
               :disabled="$v.$invalid"
               class="white--text"
@@ -193,7 +200,7 @@ export default {
         formData.append(field, this.customFields[field])
       }
       axios
-        .post(backendServer + '/signup/', formData, {
+        .post(backendServer + '/addUser/', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -216,10 +223,8 @@ export default {
           console.log(err.response.data.error)
         })
     },
-    isField (field) {
-      console.log(field)
-      console.log(JSON.stringify(this.customFields))
-      this.customFields[field] = 'required'
+    displayLogin () {
+      this.$router.push({ name: 'Login' })
     }
   },
   computed: {

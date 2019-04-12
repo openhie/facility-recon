@@ -55,7 +55,7 @@ let jwtValidator = function (req, res, next) {
     req.path == "/authenticate/" ||
     req.path == "/getSignupConf" ||
     req.path == "/getGeneralConfig" ||
-    req.path == "/signup/" ||
+    req.path == "/addUser/" ||
     req.path == "/gofr" ||
     req.path.startsWith("/static/js") ||
     req.path.startsWith("/static/css") ||

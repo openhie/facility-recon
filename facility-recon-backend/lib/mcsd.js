@@ -627,7 +627,7 @@ module.exports = function () {
       const fakeOrgId = config.getConf('mCSD:fakeOrgId')
       const source1System = 'https://digitalhealth.intrahealth.org/source1';
       const source2System = 'https://digitalhealth.intrahealth.org/source2';
-      // check if its already mapped and inore
+      // check if its already mapped and ignore
 
       const me = this;
       async.parallel({
