@@ -39,6 +39,7 @@
             flat
             v-if='!$store.state.denyAccess'
             slot="activator"
+            :disabled="Object.keys($store.state.activePair.source1).length === 0"
           >
             <v-icon>list</v-icon>{{ $t('App.menu.view.msg')}}
           </v-btn>

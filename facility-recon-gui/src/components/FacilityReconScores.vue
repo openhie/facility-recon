@@ -133,7 +133,7 @@
             <v-icon @click='closeDownloadDialog'>close</v-icon>
           </v-toolbar>
           <v-card-text>
-            
+
           </v-card-text>
           <v-card-actions>
             <v-btn
@@ -953,7 +953,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakMatch(props.item.source2Id)'
+                      @click='breakMatch(props.item.source1Id)'
                     >
                       <v-icon>undo</v-icon>Break Match
                     </v-btn>
@@ -962,7 +962,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakMatch(props.item.source2Id)'
+                      @click='breakMatch(props.item.source1Id)'
                     >
                       <v-icon>undo</v-icon>Break Match
                     </v-btn>
@@ -1117,7 +1117,7 @@
                       color="primary"
                       style='text-transform: none'
                       small
-                      @click='acceptFlag(props.item.source2Id)'
+                      @click='acceptFlag(props.item.source1Id)'
                     >
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
@@ -1126,7 +1126,7 @@
                       color="primary"
                       style='text-transform: none'
                       small
-                      @click='acceptFlag(props.item.source2Id)'
+                      @click='acceptFlag(props.item.source1Id)'
                     >
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
@@ -1136,7 +1136,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='unFlag(props.item.source2Id)'
+                      @click='unFlag(props.item.source1Id)'
                     >
                       <v-icon>cached</v-icon>Release
                     </v-btn>
@@ -1145,7 +1145,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='unFlag(props.item.source2Id)'
+                      @click='unFlag(props.item.source1Id)'
                     >
                       <v-icon>cached</v-icon>Release
                     </v-btn>
@@ -1457,11 +1457,11 @@ export default {
           this.dialog = false
         })
     },
-    acceptFlag (source2Id) {
+    acceptFlag (source1Id) {
       this.$store.state.progressTitle = 'Accepting flag'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
-      formData.append('source2Id', source2Id)
+      formData.append('source1Id', source1Id)
       let userID = this.$store.state.activePair.userID._id
       axios
         .post(
@@ -1483,7 +1483,7 @@ export default {
           this.$store.state.dynamicProgress = false
           // Add from a list of Source 1 Matched and remove from list of Flagged
           for (let k in this.$store.state.flagged) {
-            if (this.$store.state.flagged[k].source2Id === source2Id) {
+            if (this.$store.state.flagged[k].source1Id === source1Id) {
               this.$store.state.matchedContent.push({
                 source1Name: this.$store.state.flagged[k].source1Name,
                 source1Id: this.$store.state.flagged[k].source1Id,
@@ -1509,13 +1509,13 @@ export default {
           console.log(err)
         })
     },
-    breakMatch (source2Id) {
+    breakMatch (source1Id) {
       this.$store.state.progressTitle = 'Breaking match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source2Id', source2Id)
+      formData.append('source1Id', source1Id)
       axios
         .post(
           backendServer +
@@ -1543,7 +1543,7 @@ export default {
           this.alertText =
             'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.matchedContent) {
-            if (this.$store.state.matchedContent[k].source2Id === source2Id) {
+            if (this.$store.state.matchedContent[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.matchedContent[k].source1Name,
                 id: this.$store.state.matchedContent[k].source1Id,
@@ -1570,13 +1570,13 @@ export default {
           console.log(err)
         })
     },
-    unFlag (source2Id) {
+    unFlag (source1Id) {
       this.$store.state.progressTitle = 'Unflagging match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source2Id', source2Id)
+      formData.append('source1Id', source1Id)
       axios
         .post(
           backendServer +
@@ -1604,7 +1604,7 @@ export default {
           this.alertText =
             'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.flagged) {
-            if (this.$store.state.flagged[k].source2Id === source2Id) {
+            if (this.$store.state.flagged[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.flagged[k].source1Name,
                 id: this.$store.state.flagged[k].source1Id,

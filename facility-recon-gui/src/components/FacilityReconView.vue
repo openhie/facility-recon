@@ -11,7 +11,7 @@
         <v-flex xs1 text-xs-right>
           <v-dialog
             v-model="helpDialog"
-            scrollable 
+            scrollable
             persistent :overlay="false"
             max-width="700px"
             transition="dialog-transition"
@@ -69,7 +69,7 @@
           <v-card-text>
             <v-layout column>
               <v-flex>
-                <v-text-field v-model="editLocationName" 
+                <v-text-field v-model="editLocationName"
                   @blur="$v.editLocationName.$touch()"
                   @change="$v.editLocationName.$touch()"
                   :error-messages="editLocationNameErrors"
@@ -155,7 +155,7 @@
                   <template slot="items" slot-scope="props">
                     <td v-for='(header, key) in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> | 
+                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> |
                         <v-icon @click="deleteLocation(props.item, 'source1', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
                       </template>
                       <template v-else>
@@ -188,7 +188,7 @@
                   <template slot="items" slot-scope="props">
                     <td v-for='(header, key) in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> | 
+                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> |
                         <v-icon @click="deleteLocation(props.item, 'source2', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
                       </template>
                       <template v-else>
@@ -235,7 +235,10 @@ export default {
     return {
       confirmDelete: false,
       deleteLocationData: '',
-      deleteSource: '',
+      deleteSource: {
+        name: '',
+        value: ''
+      },
       editDialog: false,
       editLocationName: '',
       editLocationId: '',
@@ -340,16 +343,30 @@ export default {
         let sourcesOwner = this.getDatasourceOwner()
         if (source === 'source1') {
           this.sourceOwner = sourcesOwner.source1Owner
-          this.deleteSource = this.source1
+          this.deleteSource = {
+            name: 'source1',
+            value: this.source1
+          }
         } else if (source === 'source2') {
           this.sourceOwner = sourcesOwner.source2Owner
-          this.deleteSource = this.source2
+          this.deleteSource = {
+            name: 'source2',
+            value: this.source2
+          }
         }
         this.deleteLocationData = location
         this.confirmDelete = true
       } else {
+        this.confirmDelete = false
         let userID = this.$store.state.activePair.userID._id
-        axios.delete(backendServer + `/deleteLocation?id=${this.deleteLocationData.id}&source=${this.deleteSource}&userID=${userID}&sourceOwner=${this.sourceOwner}`)
+        let query = `id=${this.deleteLocationData.id}&source=${this.deleteSource.value}&userID=${userID}&sourceOwner=${this.sourceOwner}`
+        axios.delete(backendServer + `/deleteLocation?${query}`).then((resp) => {
+          if (this.deleteSource.name === 'source1') {
+            this.getSource1Grid(false)
+          } else {
+            this.getSource2Grid(false)
+          }
+        })
       }
     },
     getLevelData (level) {
@@ -358,6 +375,9 @@ export default {
       })
     },
     getSource1Grid (id) {
+      if (!this.source1) {
+        return
+      }
       this.loadingSource1 = true
       if (!id) {
         id = ''
@@ -409,6 +429,9 @@ export default {
       })
     },
     getSource2Grid (id) {
+      if (!this.source2) {
+        return
+      }
       if (!id) {
         id = ''
       }
@@ -461,6 +484,9 @@ export default {
       })
     },
     getTree () {
+      if (!this.source1 || !this.source2) {
+        return
+      }
       let source2Owner = this.getDatasourceOwner().source2Owner
       let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
       this.loadingSource2Tree = true

@@ -20,7 +20,7 @@
     <v-layout column>
       <v-dialog
         v-model="helpDialog"
-        scrollable 
+        scrollable
         persistent :overlay="false"
         max-width="700px"
         transition="dialog-transition"
@@ -95,7 +95,7 @@
               </v-layout>
             </v-chip>
           </v-flex>
-          
+
           <v-flex xs1>
             <v-chip color="green" text-color='white' style='height:138px;width:137px'>
               <v-layout column>
@@ -268,18 +268,18 @@
           <v-spacer></v-spacer>
           <v-flex xs2>
             <template v-if="this.$store.state.activePair.userID._id === this.$store.state.auth.userID">
-              <v-btn 
-                color="success" 
-                round 
-                @click='markRecoDone' 
+              <v-btn
+                color="success"
+                round
+                @click='markRecoDone'
                 v-if="$store.state.recoStatus !== 'Done'"
               >
                 <v-icon>lock</v-icon>Mark Reconciliation Done
               </v-btn>
-              <v-btn 
-                color="success" 
-                round 
-                @click='markRecoUnDone' 
+              <v-btn
+                color="success"
+                round
+                @click='markRecoUnDone'
                 v-if="$store.state.recoStatus === 'Done' && $store.state.auth.role == 'Admin'"
               >
                   <v-icon>lock_open</v-icon>Mark Reconciliation UnDone
@@ -409,8 +409,22 @@ export default {
     checkMappingStatusProgress () {
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/mappingStatusProgress/' + clientId).then((mappingStatusProgress) => {
-        if (mappingStatusProgress.data === null || mappingStatusProgress.data === undefined || mappingStatusProgress.data === false) {
+        if (mappingStatusProgress.data === null ||
+          mappingStatusProgress.data === undefined ||
+          mappingStatusProgress.data === false
+        ) {
+          this.mappingStatusDialog = false
+          this.mappingStatusProgressTitle = 'Waiting for progress status'
           clearInterval(this.mappingStatusProgressTimer)
+          return
+        }
+        if (mappingStatusProgress.data.status === null &&
+          mappingStatusProgress.data.error === null &&
+          mappingStatusProgress.data.percent === null
+        ) {
+          this.mappingStatusDialog = false
+          clearInterval(this.mappingStatusProgressTimer)
+          this.mappingStatusProgressTitle = 'Waiting for progress status'
           return
         }
         this.mappingStatusProgressTitle = mappingStatusProgress.data.status

@@ -2269,14 +2269,14 @@ if (cluster.isMaster) {
     let mappingDB = req.params.source1 + userID + req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const source2Id = fields.source2Id;
-      if (!source2Id) {
+      const source1Id = fields.source1Id;
+      if (!source1Id) {
         winston.error({
-          error: 'Missing Source2ID'
+          error: 'Missing source1Id'
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
-          error: 'Missing Source2ID'
+          error: 'Missing source1Id'
         });
         return;
       }
@@ -2289,7 +2289,7 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({}, (err, data) => {
           if (data.recoStatus === 'on-progress') {
-            mcsd.acceptFlag(source2Id, mappingDB, (err) => {
+            mcsd.acceptFlag(source1Id, mappingDB, (err) => {
               winston.info('Done marking flag as a match');
               if (err) res.status(400).send({
                 error: err
@@ -2382,8 +2382,8 @@ if (cluster.isMaster) {
     const mappingDB = req.params.source1 + userID + req.params.source2
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      winston.info(`Received break match request for ${fields.source2Id}`);
-      const source2Id = fields.source2Id;
+      winston.info(`Received break match request for ${fields.source1Id}`);
+      const source1Id = fields.source1Id;
 
       if (mongoUser && mongoPasswd) {
         var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`
@@ -2393,8 +2393,8 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({}, (err, data) => {
           if (data.recoStatus === 'on-progress') {
-            mcsd.breakMatch(source2Id, mappingDB, source1DB, (err, results) => {
-              winston.info(`break match done for ${fields.source2Id}`);
+            mcsd.breakMatch(source1Id, mappingDB, source1DB, (err, results) => {
+              winston.info(`break match done for ${fields.source1Id}`);
               res.status(200).send(err);
             });
           } else {

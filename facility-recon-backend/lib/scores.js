@@ -1,6 +1,7 @@
 const winston = require('winston');
 const async = require('async');
 const URI = require('urijs');
+const mixin = require('./mixin')()
 const levenshtein = require('fast-levenshtein');
 const redis = require('redis')
 const redisClient = redis.createClient({
@@ -56,14 +57,15 @@ module.exports = function () {
           mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against Source1
             async.each(parents, (parent, parentCallback) => {
-              this.matchStatus(mcsdMapped, parent.id, (mapped) => {
+              const parentIdentifier = URI(config.getConf('mCSD:url'))
+                .segment(source2DB)
+                .segment('fhir')
+                .segment('Location')
+                .segment(parent.id)
+                .toString();
+              this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
                 if (mapped) {
-                  mapped.resource.identifier.find((identifier) => {
-                    if (identifier.system == 'https://digitalhealth.intrahealth.org/source1') {
-                      const source1ParId = identifier.value.split('/').pop();
-                      source2MappedParentIds[entry.resource.id].push(source1ParId);
-                    }
-                  });
+                  source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
                   source2ParentNames[entry.resource.id].push(parent.text);
                 } else {
                   source2MappedParentIds[entry.resource.id].push(parent.id);
@@ -95,12 +97,6 @@ module.exports = function () {
       async.eachSeries(mcsdSource1.entry, (source1Entry, source1Callback) => {
         // check if this Source1 Orgid is mapped
         const source1Id = source1Entry.resource.id;
-        const source1Identifier = URI(config.getConf('mCSD:url'))
-          .segment(source1DB)
-          .segment('fhir')
-          .segment('Location')
-          .segment(source1Id)
-          .toString();
         var matchBroken = false
         if (source1Entry.resource.hasOwnProperty('tag')) {
           var matchBrokenTag = source1Entry.resource.tag.find((tag) => {
@@ -110,7 +106,7 @@ module.exports = function () {
             matchBroken = true
           }
         }
-        this.matchStatus(mcsdMapped, source1Identifier, (match) => {
+        this.matchStatus(mcsdMapped, source1Id, (match) => {
           // if this Source1 Org is already mapped
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
@@ -170,9 +166,12 @@ module.exports = function () {
                   thisRanking.source1.flagComment = flagComment.display;
                 }
               }
+
+              let matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, "https://digitalhealth.intrahealth.org/source2")
               var matchInSource2 = mcsdSource2.entry.find((entry) => {
-                return entry.resource.id == match.resource.id
+                return entry.resource.id == matchedSource2Id
               })
+
               if (matchInSource2) {
                 let matchComments = []
                 if (matchCommentsTag && matchCommentsTag.hasOwnProperty("display")) {
@@ -180,8 +179,8 @@ module.exports = function () {
                 }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
-                  parents: source2ParentNames[match.resource.id].slice(0, source2ParentNames[match.resource.id].length - 1),
-                  id: match.resource.id,
+                  parents: source2ParentNames[matchedSource2Id].slice(0, source2ParentNames[matchedSource2Id].length - 1),
+                  id: matchedSource2Id,
                   matchComments: matchComments
                 };
               }
@@ -243,6 +242,12 @@ module.exports = function () {
               async.each(source2Filtered, (source2Entry, source2Callback) => {
                 let matchComments = []
                 const id = source2Entry.resource.id;
+                const source2Identifier = URI(config.getConf('mCSD:url'))
+                  .segment(source2DB)
+                  .segment('fhir')
+                  .segment('Location')
+                  .segment(id)
+                  .toString();
                 var ignoreThis = ignore.find((toIgnore) => {
                   return toIgnore == id
                 })
@@ -250,7 +255,7 @@ module.exports = function () {
                   return source2Callback()
                 }
                 // check if this is already mapped
-                this.matchStatus(mcsdMapped, id, (mapped) => {
+                this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
                   if (mapped) {
                     ignore.push(source2Entry.resource.id)
                     return source2Callback();
@@ -385,8 +390,14 @@ module.exports = function () {
       winston.info('Populating parents')
       var totalRecords = mcsdSource2.entry.length
       for (entry of mcsdSource2.entry) {
+        const source2Identifier = URI(config.getConf('mCSD:url'))
+          .segment(source2DB)
+          .segment('fhir')
+          .segment('Location')
+          .segment(entry.resource.id)
+          .toString();
         source2LevelMappingStatus[entry.resource.id] = []
-        this.matchStatus(mcsdMapped, entry.resource.id, (mapped) => {
+        this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
           if (mapped) {
             source2LevelMappingStatus[entry.resource.id] = true
           } else {
@@ -400,14 +411,15 @@ module.exports = function () {
           mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
             // lets make sure that we use the mapped parent for comparing against Source1
             async.each(parents, (parent, parentCallback) => {
-              this.matchStatus(mcsdMapped, parent.id, (mapped) => {
+              const parentIdentifier = URI(config.getConf('mCSD:url'))
+                .segment(source2DB)
+                .segment('fhir')
+                .segment('Location')
+                .segment(parent.id)
+                .toString();
+              this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
                 if (mapped) {
-                  const mappedPar = mapped.resource.identifier.find((identifier) => {
-                    if (identifier.system == 'https://digitalhealth.intrahealth.org/source1') {
-                      const source1ParId = identifier.value.split('/').pop();
-                      source2MappedParentIds[entry.resource.id].push(source1ParId);
-                    }
-                  });
+                  source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
                   source2ParentNames[entry.resource.id].push(parent.text);
                 } else {
                   source2MappedParentIds[entry.resource.id].push(parent.id);
@@ -447,12 +459,6 @@ module.exports = function () {
           source1Latitude = source1Entry.resource.position.latitude;
           source1Longitude = source1Entry.resource.position.longitude;
         }
-        const source1Identifier = URI(config.getConf('mCSD:url'))
-          .segment(source1DB)
-          .segment('fhir')
-          .segment('Location')
-          .segment(source1Id)
-          .toString();
 
         var matchBroken = false
         if (source1Entry.resource.hasOwnProperty('tag')) {
@@ -463,7 +469,7 @@ module.exports = function () {
             matchBroken = true
           }
         }
-        this.matchStatus(mcsdMapped, source1Identifier, (match) => {
+        this.matchStatus(mcsdMapped, source1Id, (match) => {
           // if this Source1 Org is already mapped
           const thisRanking = {};
           if (match) {
@@ -534,8 +540,9 @@ module.exports = function () {
                 }
               }
 
+              let matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, "https://digitalhealth.intrahealth.org/source2")
               var matchInSource2 = mcsdSource2.entry.find((entry) => {
-                return entry.resource.id == match.resource.id
+                return entry.resource.id == matchedSource2Id
               })
               if (matchInSource2) {
                 let matchComments = []
@@ -544,8 +551,8 @@ module.exports = function () {
                 }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
-                  parents: source2ParentNames[match.resource.id],
-                  id: match.resource.id,
+                  parents: source2ParentNames[matchedSource2Id],
+                  id: matchedSource2Id,
                   matchComments: matchComments
                 };
               }
@@ -831,7 +838,10 @@ module.exports = function () {
       if (mcsdMapped.length === 0 || !mcsdMapped) {
         return callback();
       }
-      const status = mcsdMapped.entry.find(entry => entry.resource.id === id || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)));
+      const status = mcsdMapped.entry.find(
+        entry => entry.resource.id === id || 
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id))
+      );
       return callback(status);
     },
     getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, source, parentsFields, callback) {
@@ -854,14 +864,12 @@ module.exports = function () {
           let matched
           if (source === 'source2') {
             matched = mappedLocations.entry.find((entry) => {
-              return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
+              let matchedSource2Id = mixin.getIdFromIdentifiers(entry.resource.identifier, "https://digitalhealth.intrahealth.org/source2")
+              return matchedSource2Id === filteredEntry.resource.id && entry.resource.identifier.length === 2
             })
           } else if (source === 'source1') {
             matched = mappedLocations.entry.find((entry) => {
-              let matched1 = entry.resource.identifier.find((identifier) => {
-                return identifier.system.endsWith('source1') && identifier.value.endsWith("Location/" + filteredEntry.resource.id)
-              })
-              return matched1
+              return entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2
             })
           }
           if (!matched) {
@@ -939,16 +947,11 @@ module.exports = function () {
           source1UploadedId = ident.value;
         }
         const source1Id = entry.resource.id;
-        const source1Identifier = URI(config.getConf('mCSD:url'))
-          .segment(source1DB)
-          .segment('fhir')
-          .segment('Location')
-          .segment(source1Id)
-          .toString()
-        this.matchStatus(mappedLocations, source1Identifier, (mapped) => {
+        this.matchStatus(mappedLocations, source1Id, (mapped) => {
           if (mapped) {
             var source2Entry = source2Locations.entry.find((source2Entry) => {
-              return source2Entry.resource.id === mapped.resource.id
+              let matchedSource2Id = mixin.getIdFromIdentifiers(mapped.resource.identifier, "https://digitalhealth.intrahealth.org/source2")
+              return source2Entry.resource.id === matchedSource2Id
             })
             let nomatch, ignore, flagged
             if (mapped.resource.hasOwnProperty('tag')) {

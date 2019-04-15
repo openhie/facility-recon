@@ -568,18 +568,61 @@ module.exports = function () {
       let db = source + sourceOwner
       mongo.getMappingDBs(source, userID, (dbs) => {
         dbs.push(db)
-        async.each(dbs, (db) => {
-          const url_prefix = URI(config.getConf('mCSD:url'))
-            .segment(db)
-            .segment('fhir')
-            .segment('Location')
-          const url = URI(url_prefix).segment(id).toString()
-          const options = {
-            url,
-          };
-          request.delete(options, (err, res, body) => {
-
-          })
+        async.each(dbs, (db, nxtDb) => {
+          let removeSrc2Portion = db.split(sourceOwner + source)
+          if(removeSrc2Portion[0] !== db) {
+            const identifier = URI(config.getConf('mCSD:url'))
+              .segment(source + sourceOwner)
+              .segment('fhir')
+              .segment('Location')
+              .segment(id)
+              .toString();
+            this.getLocationByIdentifier(db, identifier, (mapped) => {
+              if(mapped.entry.length > 0) {
+                async.each(mapped.entry, (entry, nxtEntry) => {
+                  let source2Identifier = entry.resource.identifier.find((identifier) => {
+                    return identifier.system === "https://digitalhealth.intrahealth.org/source2"
+                  })
+                  let source2Id = source2Identifier.value.split('/').pop()
+                  if(id === source2Id) {
+                    const url_prefix = URI(config.getConf('mCSD:url'))
+                      .segment(db)
+                      .segment('fhir')
+                      .segment('Location')
+                    const url = URI(url_prefix).segment(entry.resource.id).toString()
+                    const options = {
+                      url,
+                    };
+                    request.delete(options, (err, res, body) => {
+                      this.cleanCache(url_prefix.toString());
+                      return nxtEntry()
+                    })
+                  } else {
+                    return nxtEntry()
+                  }
+                }, () => {
+                  return nxtDb()
+                })
+              } else {
+                return nxtDb()
+              }
+            })
+          } else {
+            const url_prefix = URI(config.getConf('mCSD:url'))
+              .segment(db)
+              .segment('fhir')
+              .segment('Location')
+            const url = URI(url_prefix).segment(id).toString()
+            const options = {
+              url,
+            };
+            request.delete(options, (err, res, body) => {
+              this.cleanCache(url_prefix.toString());
+              return nxtDb()
+            })
+          }
+        }, () => {
+          return callback(false, false)
         })
 
       })
@@ -666,6 +709,11 @@ module.exports = function () {
             return callback(null, mcsd)
           })
         },
+        source2mCSD(callback) {
+          me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
+            return callback(null, mcsd)
+          })
+        },
         source1Parents(callback) {
           me.getLocationParentsFromDB(source1DB, source1Id, fakeOrgId, "id", (parents) => {
             return callback(null, parents)
@@ -684,162 +732,160 @@ module.exports = function () {
           return callback(res.source2Mapped);
         }
 
-        me.getLocationByID(source2DB, source2Id, false, (mcsd) => {
-          // Handle match comments
-          let matchComments = []
-          if (!res.source2Parents.includes(res.source1Parents[0])) {
-            matchComments.push("Parents differ")
+        // Handle match comments
+        let matchComments = []
+        if (!res.source2Parents.includes(res.source1Parents[0])) {
+          matchComments.push("Parents differ")
+        }
+        let source1Name = res.source2mCSD.entry[0].resource.name;
+        let source2Name = res.source1mCSD.entry[0].resource.name
+        lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+        if (lev !== 0) {
+          matchComments.push('Names differ')
+        }
+        if (recoLevel == totalLevels) {
+          if (source1Id !== source2Id) {
+            matchComments.push('ID differ')
           }
-          let source1Name = mcsd.entry[0].resource.name;
-          let source2Name = res.source1mCSD.entry[0].resource.name
-          lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-          if (lev !== 0) {
-            matchComments.push('Names differ')
+          let source2Latitude = null;
+          let source2Longitude = null;
+          let source1Latitude = null;
+          let source1Longitude = null;
+          if (res.source1mCSD.entry[0].resource.hasOwnProperty('position')) {
+            source2Latitude = res.source1mCSD.entry[0].resource.position.latitude;
+            source2Longitude = res.source1mCSD.entry[0].resource.position.longitude;
           }
-          if (recoLevel == totalLevels) {
-            if (source1Id !== source2Id) {
-              matchComments.push('ID differ')
-            }
-            let source2Latitude = null;
-            let source2Longitude = null;
-            let source1Latitude = null;
-            let source1Longitude = null;
-            if (res.source1mCSD.entry[0].resource.hasOwnProperty('position')) {
-              source2Latitude = res.source1mCSD.entry[0].resource.position.latitude;
-              source2Longitude = res.source1mCSD.entry[0].resource.position.longitude;
-            }
-            if (mcsd.entry[0].resource.hasOwnProperty('position')) {
-              source1Latitude = mcsd.entry[0].resource.position.latitude;
-              source1Longitude = mcsd.entry[0].resource.position.longitude;
-            }
-            if (source2Latitude && source2Longitude) {
-              var dist = geodist({
-                source2Latitude,
-                source2Longitude
-              }, {
-                source1Latitude,
-                source1Longitude
-              }, {
-                exact: false,
-                unit: 'miles'
-              });
-              if (dist !== 0) {
-                matchComments.push('Coordinates differ')
-              }
-            } else {
-              matchComments.push('Coordinates missing')
-            }
+          if (res.source2mCSD.entry[0].resource.hasOwnProperty('position')) {
+            source1Latitude = res.source2mCSD.entry[0].resource.position.latitude;
+            source1Longitude = res.source2mCSD.entry[0].resource.position.longitude;
           }
-          // End of handling match comments
+          if (source2Latitude && source2Longitude) {
+            var dist = geodist({
+              source2Latitude,
+              source2Longitude
+            }, {
+              source1Latitude,
+              source1Longitude
+            }, {
+              exact: false,
+              unit: 'miles'
+            });
+            if (dist !== 0) {
+              matchComments.push('Coordinates differ')
+            }
+          } else {
+            matchComments.push('Coordinates missing')
+          }
+        }
+        // End of handling match comments
 
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'document';
-          const entry = [];
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = mcsd.entry[0].resource.name; // take source 2 name
-          resource.alias = res.source1mCSD.entry[0].resource.name // take source1 name
-          resource.id = source2Id;
-          resource.identifier = [];
-          const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
-            .segment(source2Id)
-            .toString();
-          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-            .segment(source1Id)
-            .toString();
-          resource.identifier.push({
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'document';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = res.source1mCSD.entry[0].resource.name; // take source 2 name
+        resource.alias = res.source2mCSD.entry[0].resource.name // take source1 name
+        resource.id = source1Id;
+        resource.identifier = [];
+        const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
+          .segment(source2Id)
+          .toString();
+        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+          .segment(source1Id)
+          .toString();
+        resource.identifier.push({
+          system: source2System,
+          value: source2URL,
+        });
+        resource.identifier.push({
+          system: source1System,
+          value: source1URL,
+        });
+
+        if (res.source1mCSD.entry[0].resource.hasOwnProperty('partOf')) {
+          if (!res.source1mCSD.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
+            resource.partOf = {
+              display: res.source1mCSD.entry[0].resource.partOf.display,
+              reference: res.source1mCSD.entry[0].resource.partOf.reference,
+            };
+          }
+        }
+        if (recoLevel == totalLevels) {
+          var typeCode = 'bu';
+          var typeName = 'building';
+        } else {
+          var typeCode = 'jdn';
+          var typeName = 'Jurisdiction';
+        }
+        resource.physicalType = {
+          coding: [{
+            code: typeCode,
+            display: typeName,
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        };
+        if (matchComments.length > 0) {
+          if (!resource.hasOwnProperty('tag')) {
+            resource.tag = [];
+          }
+          resource.tag.push({
             system: source2System,
-            value: source2URL,
+            code: matchCommentsCode,
+            display: matchComments,
           });
-          resource.identifier.push({
-            system: source1System,
-            value: source1URL,
-          });
-
-          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-            if (!mcsd.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
-              resource.partOf = {
-                display: mcsd.entry[0].resource.partOf.display,
-                reference: mcsd.entry[0].resource.partOf.reference,
-              };
-            }
+        }
+        if (type == 'flag') {
+          if (!resource.hasOwnProperty('tag')) {
+            resource.tag = [];
           }
-          if (recoLevel == totalLevels) {
-            var typeCode = 'bu';
-            var typeName = 'building';
-          } else {
-            var typeCode = 'jdn';
-            var typeName = 'Jurisdiction';
-          }
-          resource.physicalType = {
-            coding: [{
-              code: typeCode,
-              display: typeName,
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
-          };
-          if (matchComments.length > 0) {
-            if (!resource.hasOwnProperty('tag')) {
-              resource.tag = [];
-            }
+          if (flagComment) {
             resource.tag.push({
-              system: source1System,
-              code: matchCommentsCode,
-              display: matchComments,
+              system: source2System,
+              code: flagCommentCode,
+              display: flagComment,
             });
           }
-          if (type == 'flag') {
-            if (!resource.hasOwnProperty('tag')) {
-              resource.tag = [];
-            }
-            if (flagComment) {
-              resource.tag.push({
-                system: source1System,
-                code: flagCommentCode,
-                display: flagComment,
-              });
-            }
-            resource.tag.push({
-              system: source1System,
-              code: flagCode,
-              display: 'To be reviewed',
-            });
-          }
-          if (autoMatch) {
-            if (!resource.hasOwnProperty('tag')) {
-              resource.tag = [];
-            }
-            resource.tag.push({
-              system: source1System,
-              code: autoMatchedCode,
-              display: 'Automatically Matched',
-            });
-          } else {
-            if (!resource.hasOwnProperty('tag')) {
-              resource.tag = [];
-            }
-            resource.tag.push({
-              system: source1System,
-              code: manualllyMatchedCode,
-              display: 'Manually Matched',
-            });
-          }
-          entry.push({
-            resource,
+          resource.tag.push({
+            system: source2System,
+            code: flagCode,
+            display: 'To be reviewed',
           });
-          fhir.entry = fhir.entry.concat(entry);
-          me.saveLocations(fhir, mappingDB, (err, res) => {
-            if (err) {
-              winston.error(err);
-            }
-            callback(err, matchComments);
+        }
+        if (autoMatch) {
+          if (!resource.hasOwnProperty('tag')) {
+            resource.tag = [];
+          }
+          resource.tag.push({
+            system: source2System,
+            code: autoMatchedCode,
+            display: 'Automatically Matched',
           });
+        } else {
+          if (!resource.hasOwnProperty('tag')) {
+            resource.tag = [];
+          }
+          resource.tag.push({
+            system: source2System,
+            code: manualllyMatchedCode,
+            display: 'Manually Matched',
+          });
+        }
+        entry.push({
+          resource,
+        });
+        fhir.entry = fhir.entry.concat(entry);
+        me.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
+          }
+          callback(err, matchComments);
         });
       });
     },
-    acceptFlag(source2Id, mappingDB, callback) {
-      this.getLocationByID(mappingDB, source2Id, false, (flagged) => {
+    acceptFlag(source1Id, mappingDB, callback) {
+      this.getLocationByID(mappingDB, source1Id, false, (flagged) => {
         delete flagged.resourceType;
         delete flagged.id;
         delete flagged.meta;
@@ -865,7 +911,7 @@ module.exports = function () {
 
         // deleting existing location
         const url_prefix = URI(config.getConf('mCSD:url')).segment(mappingDB).segment('fhir').segment('Location')
-        const url = URI(url_prefix).segment(source2Id).toString();
+        const url = URI(url_prefix).segment(source1Id).toString();
         const options = {
           url,
         };
@@ -893,13 +939,7 @@ module.exports = function () {
       const me = this;
       async.parallel({
           source1Mapped(callback) {
-            const source1Identifier = URI(config.getConf('mCSD:url'))
-              .segment(source1DB)
-              .segment('fhir')
-              .segment('Location')
-              .segment(source1Id)
-              .toString();
-            me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
+            me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
               if (mapped.entry.length > 0) {
                 winston.error('Attempting to mark an already mapped location as no match');
                 return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
@@ -978,16 +1018,19 @@ module.exports = function () {
           });
         });
     },
-    breakMatch(id, mappingDB, source1DB, callback) {
+    breakMatch(source1Id, mappingDB, source1DB, callback) {
+      if(!source1Id) {
+        return callback(true, false)
+      }
       const url_prefix = URI(config.getConf('mCSD:url'))
         .segment(mappingDB)
         .segment('fhir')
         .segment('Location')
-      const url = URI(url_prefix).segment(id).toString()
+      const url = URI(url_prefix).segment(source1Id).toString()
       const options = {
         url,
       };
-      this.getLocationByID(mappingDB, id, false, (location) => {
+      this.getLocationByID(source1DB, source1Id, false, (location) => {
         if (location.entry.length === 0) {
           return callback(true, null);
         }
@@ -998,51 +1041,43 @@ module.exports = function () {
           }
           callback(err, null);
         });
-        const identifier = location.entry[0].resource.identifier.find((identifier) => {
-          return identifier.system == 'https://digitalhealth.intrahealth.org/source1'
-        })
-        if (identifier) {
-          const id = identifier.value.split('/').pop();
-          this.getLocationByID(source1DB, id, false, (location) => {
-            delete location.resourceType;
-            delete location.id;
-            delete location.meta;
-            delete location.total;
-            delete location.link;
-            const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
-            // remove the flag tag
-            let found = false;
-            async.eachSeries(location.entry[0].resource.tag, (tag, nxtTag) => {
-              if (tag.code === matchBrokenCode) {
-                found = true;
-              }
-              return nxtTag();
-            }, () => {
-              location.type = 'document';
-              if (!found) {
-                if (!location.entry[0].resource.hasOwnProperty('tag')) {
-                  location.entry[0].resource.tag = [];
-                }
-                const source1System = 'https://digitalhealth.intrahealth.org/source1';
-                location.entry[0].resource.tag.push({
-                  system: source1System,
-                  code: matchBrokenCode,
-                  display: 'Match Broken',
-                });
-                this.saveLocations(location, source1DB, (err, res) => {});
-              }
+        delete location.resourceType;
+        delete location.id;
+        delete location.meta;
+        delete location.total;
+        delete location.link;
+        const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
+        // remove the flag tag
+        let found = false;
+        async.eachSeries(location.entry[0].resource.tag, (tag, nxtTag) => {
+          if (tag.code === matchBrokenCode) {
+            found = true;
+          }
+          return nxtTag();
+        }, () => {
+          location.type = 'document';
+          if (!found) {
+            if (!location.entry[0].resource.hasOwnProperty('tag')) {
+              location.entry[0].resource.tag = [];
+            }
+            const source1System = 'https://digitalhealth.intrahealth.org/source1';
+            location.entry[0].resource.tag.push({
+              system: source1System,
+              code: matchBrokenCode,
+              display: 'Match Broken',
             });
-          });
-        }
+            this.saveLocations(location, source1DB, (err, res) => {});
+          }
+        });
       });
     },
-    breakNoMatch(id, mappingDB, callback) {
+    breakNoMatch(source1Id, mappingDB, callback) {
       const url_prefix = URI(config.getConf('mCSD:url'))
         .segment(mappingDB)
         .segment('fhir')
         .segment('Location')
       const url = URI(url_prefix)
-        .segment(id)
+        .segment(source1Id)
         .toString();
       const options = {
         url,
