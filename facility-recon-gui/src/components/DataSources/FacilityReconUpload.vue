@@ -129,80 +129,84 @@
                   <v-subheader>Facility*</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select 
-                    :items="filteredItemFacility" 
-                    v-model="facility" 
-                    @blur="$v.facility.$touch()" 
-                    @change="$v.facility.$touch()" 
-                    :error-messages="facilityErrors" 
-                    label="Select" 
-                    required 
-                    single-line 
-                    clearable
-                  ></v-select>
+                  <v-select
+                    :items="filteredItemFacility"
+                    v-model="facility"
+                    @blur="$v.facility.$touch()"
+                    @change="$v.facility.$touch()"
+                    :error-messages="facilityErrors"
+                    label="Select"
+                    required
+                    single-line
+                    clearable>
+                  </v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Code</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select 
-                    :items="filteredItemCode" 
-                    v-model="code" 
-                    @blur="$v.code.$touch()" 
-                    @change="$v.code.$touch()" 
-                    :error-messages="codeErrors" 
-                    label="Select" 
-                    required 
-                    single-line 
-                    clearable
-                  ></v-select>
+                  <v-select
+                    :items="filteredItemCode"
+                    v-model="code"
+                    @blur="$v.code.$touch()"
+                    @change="$v.code.$touch()"
+                    :error-messages="codeErrors"
+                    label="Select"
+                    required
+                    single-line
+                    clearable>
+                  </v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Latitude</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemLat" v-model="lat" label="Select" single-line clearable></v-select>
+                  <v-select
+                    :items="filteredItemLat"
+                    v-model="lat"
+                    label="Select"
+                    single-line
+                    clearable>
+                  </v-select>
                 </v-flex>
                 <v-flex xs6>
                   <v-subheader>Longitude</v-subheader>
                 </v-flex>
                 <v-flex xs6>
-                  <v-select :items="filteredItemLong" v-model="long" label="Select" single-line clearable></v-select>
+                  <v-select
+                    :items="filteredItemLong"
+                    v-model="long"
+                    label="Select"
+                    single-line
+                    clearable>
+                  </v-select>
                 </v-flex>
                 <template>
                   <v-flex xs6>
                     <v-subheader>Level 1*</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select 
-                      :items="filteredItemLevel1" 
-                      v-model="level1" 
-                      @blur="$v.level1.$touch()" 
-                      @change="$v.level1.$touch()" 
-                      :error-messages="level1Errors" 
-                      required 
-                      label="Select" 
+                    <v-select
+                      :items="filteredItemLevel1"
+                      v-model="level1"
+                      label="Select"
                       single-line
-                      clearable
-                    ></v-select>
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template>
                   <v-flex xs6>
-                    <v-subheader>Level 2*</v-subheader>
+                    <v-subheader>Level 2</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select
                       :items="filteredItemLevel2"
                       v-model="level2"
-                      @blur="$v.level2.$touch()"
-                      @change="$v.level2.$touch()"
-                      :error-messages="level2Errors"
-                      required
                       label="Select"
                       single-line
-                      clearable
-                    ></v-select>
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template v-if='showLevel3'>
@@ -210,7 +214,13 @@
                     <v-subheader>Level 3</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel3" v-model="level3" label="Select" single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel3"
+                      v-model="level3"
+                      label="Select"
+                      single-line
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template v-if='showLevel4'>
@@ -218,7 +228,13 @@
                     <v-subheader>Level 4</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel4" v-model="level4" label="Select" single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel4"
+                      v-model="level4"
+                      label="Select"
+                      single-line
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template v-if='showLevel5'>
@@ -226,7 +242,13 @@
                     <v-subheader>Level 5</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel5" v-model="level5" label="Select" single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel5"
+                      v-model="level5"
+                      label="Select"
+                      single-line
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template v-if='showLevel6'>
@@ -234,7 +256,13 @@
                     <v-subheader>Level 6</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel6" v-model="level6" label="Select" single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel6"
+                      v-model="level6"
+                      label="Select"
+                      single-line
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <template v-if='showLevel7'>
@@ -242,7 +270,13 @@
                     <v-subheader>Level 7</v-subheader>
                   </v-flex>
                   <v-flex xs6>
-                    <v-select :items="filteredItemLevel7" v-model="level7" label="Select" single-line clearable></v-select>
+                    <v-select
+                      :items="filteredItemLevel7"
+                      v-model="level7"
+                      label="Select"
+                      single-line
+                      clearable>
+                    </v-select>
                   </v-flex>
                 </template>
                 <v-layout row wrap>
@@ -330,12 +364,6 @@ export default {
       required: required
     },
     code: {
-      required: required
-    },
-    level1: {
-      required: required
-    },
-    level2: {
       required: required
     },
     uploadName: {
@@ -565,30 +593,6 @@ export default {
       const errors = []
       if (!this.$v.code.$dirty) return errors
       !this.$v.code.required && errors.push('Code is required')
-      return errors
-    },
-    latErrors () {
-      const errors = []
-      if (!this.$v.lat.$dirty) return errors
-      !this.$v.lat.required && errors.push('Latitude is required')
-      return errors
-    },
-    longErrors () {
-      const errors = []
-      if (!this.$v.long.$dirty) return errors
-      !this.$v.long.required && errors.push('Longitude is required')
-      return errors
-    },
-    level1Errors () {
-      const errors = []
-      if (!this.$v.level1.$dirty) return errors
-      !this.$v.level1.required && errors.push('Level 1 is required')
-      return errors
-    },
-    level2Errors () {
-      const errors = []
-      if (!this.$v.level2.$dirty) return errors
-      !this.$v.level2.required && errors.push('Level 2 is required')
       return errors
     },
     filteredItemFacility () {

@@ -1242,6 +1242,10 @@ module.exports = function () {
             this.buildJurisdiction(jurisdictions, saveBundle)
             const facilityName = data[headerMapping.facility].trim();
             const UUID = uuid5(data[headerMapping.code], `${namespace}100`);
+            if(!facilityParent || !facilityParentUUID) {
+              facilityParent = orgname
+              facilityParentUUID = countryUUID
+            }
             const building = {
               uuid: UUID,
               id: data[headerMapping.code],
