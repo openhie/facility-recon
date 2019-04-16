@@ -48,7 +48,7 @@
               type="password"
               box
               color="deep-purple"
-              label="Old Password"/>  
+              label="Old Password"/>
             <v-text-field
               required
               @blur="$v.password.$touch()"
@@ -58,7 +58,7 @@
               type="password"
               box
               color="deep-purple"
-              label="Password"/>  
+              label="Password"/>
             <v-text-field
               required
               @blur="$v.retype_password.$touch()"
@@ -130,9 +130,11 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(() => {
-        this.oldPassword = ''
-        this.password = ''
-        this.retype_password = ''
+        let fields = Object.keys(this.$v.$params)
+        for (let field of fields) {
+          this.$v[field].$reset()
+        }
+        this.$refs.form.reset()
         this.$store.state.dynamicProgress = false
         this.alertSuccess = true
         this.alertMsg = 'Password changed successfully'

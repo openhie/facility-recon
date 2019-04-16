@@ -70,7 +70,7 @@
               v-model="userName"
               box
               color="deep-purple"
-              label="Username"/>  
+              label="Username"/>
             <label v-for='(type, name) in $store.state.customSignupFields' :key="name">
               <v-text-field
                 v-if='type.required'
@@ -98,7 +98,7 @@
               type="password"
               box
               color="deep-purple"
-              label="Password"/>  
+              label="Password"/>
             <v-text-field
               required
               @blur="$v.retype_password.$touch()"
@@ -197,13 +197,11 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(() => {
-        this.firstName = ''
-        this.otherName = ''
-        this.surname = ''
-        this.password = ''
-        this.userName = ''
-        this.retype_password = ''
-        this.role = ''
+        let fields = Object.keys(this.$v.$params)
+        for (let field of fields) {
+          this.$v[field].$reset()
+        }
+        this.$refs.form.reset()
         this.$store.state.dynamicProgress = false
         this.alertSuccess = true
         this.alertMsg = 'User added successfully'

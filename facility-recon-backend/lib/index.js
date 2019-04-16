@@ -378,6 +378,7 @@ if (cluster.isMaster) {
                       error: "Internal error occured"
                     })
                   } else {
+                    winston.info("User created successfully")
                     res.status(200).send()
                   }
                 })

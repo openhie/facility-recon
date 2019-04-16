@@ -206,12 +206,11 @@ export default {
           }
         })
         .then(() => {
-          this.firstname = ''
-          this.othername = ''
-          this.surname = ''
-          this.password = ''
-          this.username = ''
-          this.retype_password = ''
+          let fields = Object.keys(this.$v.$params)
+          for (let field of fields) {
+            this.$v[field].$reset()
+          }
+          this.$refs.form.reset()
           this.$store.state.dynamicProgress = false
           this.alertSuccess = true
           this.alertMsg = 'Account created successfully'
