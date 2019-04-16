@@ -11,6 +11,7 @@ const levenshtein = require('fast-levenshtein');
 const geodist = require('geodist');
 const redis = require('redis');
 const mongo = require('./mongo')();
+const mixin = require('./mixin')()
 
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1'
@@ -253,9 +254,13 @@ module.exports = function () {
               lat: cachedData.lat,
               long: cachedData.long,
             });
-          } else if (details == 'id') parents.push(cachedData.id);
-          else if (details == 'names') parents.push(cachedData.text);
-          else winston.error('parent details (either id,names or all) to be returned not specified');
+          } else if (details == 'id') {
+            parents.push(cachedData.id);
+          } else if (details == 'names') {
+            parents.push(cachedData.text);
+          } else {
+            winston.error('parent details (either id,names or all) to be returned not specified');
+          }
 
           // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
           if (entityParent && topOrg && entityParent.endsWith(topOrg)) {
@@ -267,8 +272,12 @@ module.exports = function () {
                   lat: cachedData.lat,
                   long: cachedData.long,
                 });
-              } else if (details == 'id') parents.push(loc.entry[0].resource.id);
-              else if (details == 'names') parents.push(loc.entry[0].resource.name);
+              } else if (details == 'id') {
+                parents.push(loc.entry[0].resource.id);
+              }
+              else if (details == 'names') {
+                parents.push(loc.entry[0].resource.name);
+              }
               return callback(parents);
             });
           }
@@ -293,7 +302,9 @@ module.exports = function () {
               lat = body.entry[0].resource.position.latitude;
             }
             var entityParent = null;
-            if (body.entry[0].resource.hasOwnProperty('partOf')) entityParent = body.entry[0].resource.partOf.reference;
+            if (body.entry[0].resource.hasOwnProperty('partOf')) {
+              entityParent = body.entry[0].resource.partOf.reference;
+            }
 
             const cacheData = {
               text: body.entry[0].resource.name,
@@ -314,7 +325,9 @@ module.exports = function () {
               parents.push(body.entry[0].resource.id);
             } else if (details == 'names') {
               parents.push(body.entry[0].resource.name);
-            } else winston.error('parent details (either id,names or all) to be returned not specified');
+            } else {
+              winston.error('parent details (either id,names or all) to be returned not specified');
+            }
 
             // stop after we reach the topOrg which is the country
             const entityID = body.entry[0].resource.id;
@@ -328,8 +341,12 @@ module.exports = function () {
                     lat,
                     long,
                   });
-                } else if (details == 'id') parents.push(loc.entry[0].resource.id);
-                else if (details == 'names') parents.push(loc.entry[0].resource.name);
+                } else if (details == 'id') {
+                  parents.push(loc.entry[0].resource.id);
+                }
+                else if (details == 'names') {
+                  parents.push(loc.entry[0].resource.name);
+                }
                 return callback(parents);
               });
             }
@@ -690,13 +707,7 @@ module.exports = function () {
           });
         },
         source1Mapped(callback) {
-          const source1Identifier = URI(config.getConf('mCSD:url'))
-            .segment(source1DB)
-            .segment('fhir')
-            .segment('Location')
-            .segment(source1Id)
-            .toString();
-          me.getLocationByIdentifier(mappingDB, source1Identifier, (mapped) => {
+          me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
             if (mapped.entry.length > 0) {
               winston.error('Attempting to map already mapped location');
               return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
@@ -732,156 +743,168 @@ module.exports = function () {
           return callback(res.source2Mapped);
         }
 
-        // Handle match comments
-        let matchComments = []
-        if (!res.source2Parents.includes(res.source1Parents[0])) {
-          matchComments.push("Parents differ")
+        if(Array.isArray(res.source1Parents)) {
+          res.source1Parents.splice(0,1)
         }
-        let source1Name = res.source2mCSD.entry[0].resource.name;
-        let source2Name = res.source1mCSD.entry[0].resource.name
-        lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-        if (lev !== 0) {
-          matchComments.push('Names differ')
+        if(Array.isArray(res.source2Parents)) {
+          res.source2Parents.splice(0,1)
         }
-        if (recoLevel == totalLevels) {
-          if (source1Id !== source2Id) {
-            matchComments.push('ID differ')
+
+        this.getLocationByID(mappingDB, res.source1Parents[0], false, (mapped1) => {
+          if(mapped1.entry.length > 0) {
+            res.source1Parents[0] = mixin.getIdFromIdentifiers(mapped1.entry[0].resource.identifier, 'https://digitalhealth.intrahealth.org/source2')
           }
-          let source2Latitude = null;
-          let source2Longitude = null;
-          let source1Latitude = null;
-          let source1Longitude = null;
-          if (res.source1mCSD.entry[0].resource.hasOwnProperty('position')) {
-            source2Latitude = res.source1mCSD.entry[0].resource.position.latitude;
-            source2Longitude = res.source1mCSD.entry[0].resource.position.longitude;
+          // Handle match comments
+          let matchComments = []
+          if (!res.source2Parents.includes(res.source1Parents[0])) {
+            matchComments.push("Parents differ")
           }
-          if (res.source2mCSD.entry[0].resource.hasOwnProperty('position')) {
-            source1Latitude = res.source2mCSD.entry[0].resource.position.latitude;
-            source1Longitude = res.source2mCSD.entry[0].resource.position.longitude;
+          let source1Name = res.source2mCSD.entry[0].resource.name;
+          let source2Name = res.source1mCSD.entry[0].resource.name
+          lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+          if (lev !== 0) {
+            matchComments.push('Names differ')
           }
-          if (source2Latitude && source2Longitude) {
-            var dist = geodist({
-              source2Latitude,
-              source2Longitude
-            }, {
-              source1Latitude,
-              source1Longitude
-            }, {
-              exact: false,
-              unit: 'miles'
-            });
-            if (dist !== 0) {
-              matchComments.push('Coordinates differ')
+          if (recoLevel == totalLevels) {
+            if (source1Id !== source2Id) {
+              matchComments.push('ID differ')
             }
-          } else {
-            matchComments.push('Coordinates missing')
+            let source2Latitude = null;
+            let source2Longitude = null;
+            let source1Latitude = null;
+            let source1Longitude = null;
+            if (res.source1mCSD.entry[0].resource.hasOwnProperty('position')) {
+              source2Latitude = res.source1mCSD.entry[0].resource.position.latitude;
+              source2Longitude = res.source1mCSD.entry[0].resource.position.longitude;
+            }
+            if (res.source2mCSD.entry[0].resource.hasOwnProperty('position')) {
+              source1Latitude = res.source2mCSD.entry[0].resource.position.latitude;
+              source1Longitude = res.source2mCSD.entry[0].resource.position.longitude;
+            }
+            if (source2Latitude && source2Longitude) {
+              var dist = geodist({
+                source2Latitude,
+                source2Longitude
+              }, {
+                source1Latitude,
+                source1Longitude
+              }, {
+                exact: false,
+                unit: 'miles'
+              });
+              if (dist !== 0) {
+                matchComments.push('Coordinates differ')
+              }
+            } else {
+              matchComments.push('Coordinates missing')
+            }
           }
-        }
-        // End of handling match comments
+          // End of handling match comments
 
-        const fhir = {};
-        fhir.entry = [];
-        fhir.type = 'document';
-        const entry = [];
-        const resource = {};
-        resource.resourceType = 'Location';
-        resource.name = res.source1mCSD.entry[0].resource.name; // take source 2 name
-        resource.alias = res.source2mCSD.entry[0].resource.name // take source1 name
-        resource.id = source1Id;
-        resource.identifier = [];
-        const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
-          .segment(source2Id)
-          .toString();
-        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-          .segment(source1Id)
-          .toString();
-        resource.identifier.push({
-          system: source2System,
-          value: source2URL,
-        });
-        resource.identifier.push({
-          system: source1System,
-          value: source1URL,
-        });
-
-        if (res.source1mCSD.entry[0].resource.hasOwnProperty('partOf')) {
-          if (!res.source1mCSD.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
-            resource.partOf = {
-              display: res.source1mCSD.entry[0].resource.partOf.display,
-              reference: res.source1mCSD.entry[0].resource.partOf.reference,
-            };
-          }
-        }
-        if (recoLevel == totalLevels) {
-          var typeCode = 'bu';
-          var typeName = 'building';
-        } else {
-          var typeCode = 'jdn';
-          var typeName = 'Jurisdiction';
-        }
-        resource.physicalType = {
-          coding: [{
-            code: typeCode,
-            display: typeName,
-            system: 'http://hl7.org/fhir/location-physical-type',
-          }],
-        };
-        if (matchComments.length > 0) {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
-          }
-          resource.tag.push({
+          const fhir = {};
+          fhir.entry = [];
+          fhir.type = 'document';
+          const entry = [];
+          const resource = {};
+          resource.resourceType = 'Location';
+          resource.name = res.source1mCSD.entry[0].resource.name; // take source 2 name
+          resource.alias = res.source2mCSD.entry[0].resource.name // take source1 name
+          resource.id = source1Id;
+          resource.identifier = [];
+          const source2URL = URI(config.getConf('mCSD:url')).segment(source2DB).segment('fhir').segment('Location')
+            .segment(source2Id)
+            .toString();
+          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+            .segment(source1Id)
+            .toString();
+          resource.identifier.push({
             system: source2System,
-            code: matchCommentsCode,
-            display: matchComments,
+            value: source2URL,
           });
-        }
-        if (type == 'flag') {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
+          resource.identifier.push({
+            system: source1System,
+            value: source1URL,
+          });
+
+          if (res.source1mCSD.entry[0].resource.hasOwnProperty('partOf')) {
+            if (!res.source1mCSD.entry[0].resource.partOf.reference.includes(fakeOrgId)) {
+              resource.partOf = {
+                display: res.source1mCSD.entry[0].resource.partOf.display,
+                reference: res.source1mCSD.entry[0].resource.partOf.reference,
+              };
+            }
           }
-          if (flagComment) {
+          if (recoLevel == totalLevels) {
+            var typeCode = 'bu';
+            var typeName = 'building';
+          } else {
+            var typeCode = 'jdn';
+            var typeName = 'Jurisdiction';
+          }
+          resource.physicalType = {
+            coding: [{
+              code: typeCode,
+              display: typeName,
+              system: 'http://hl7.org/fhir/location-physical-type',
+            }],
+          };
+          if (matchComments.length > 0) {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
             resource.tag.push({
               system: source2System,
-              code: flagCommentCode,
-              display: flagComment,
+              code: matchCommentsCode,
+              display: matchComments,
             });
           }
-          resource.tag.push({
-            system: source2System,
-            code: flagCode,
-            display: 'To be reviewed',
-          });
-        }
-        if (autoMatch) {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
+          if (type == 'flag') {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            if (flagComment) {
+              resource.tag.push({
+                system: source2System,
+                code: flagCommentCode,
+                display: flagComment,
+              });
+            }
+            resource.tag.push({
+              system: source2System,
+              code: flagCode,
+              display: 'To be reviewed',
+            });
           }
-          resource.tag.push({
-            system: source2System,
-            code: autoMatchedCode,
-            display: 'Automatically Matched',
-          });
-        } else {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
+          if (autoMatch) {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            resource.tag.push({
+              system: source2System,
+              code: autoMatchedCode,
+              display: 'Automatically Matched',
+            });
+          } else {
+            if (!resource.hasOwnProperty('tag')) {
+              resource.tag = [];
+            }
+            resource.tag.push({
+              system: source2System,
+              code: manualllyMatchedCode,
+              display: 'Manually Matched',
+            });
           }
-          resource.tag.push({
-            system: source2System,
-            code: manualllyMatchedCode,
-            display: 'Manually Matched',
+          entry.push({
+            resource,
           });
-        }
-        entry.push({
-          resource,
-        });
-        fhir.entry = fhir.entry.concat(entry);
-        me.saveLocations(fhir, mappingDB, (err, res) => {
-          if (err) {
-            winston.error(err);
-          }
-          callback(err, matchComments);
-        });
+          fhir.entry = fhir.entry.concat(entry);
+          me.saveLocations(fhir, mappingDB, (err, res) => {
+            if (err) {
+              winston.error(err);
+            }
+            callback(err, matchComments);
+          });
+        })
       });
     },
     acceptFlag(source1Id, mappingDB, callback) {

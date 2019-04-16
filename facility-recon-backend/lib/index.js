@@ -2229,7 +2229,7 @@ if (cluster.isMaster) {
       }
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({}, (err, data) => {
-          if (data.recoStatus === 'on-progress') {
+          if (data && data.recoStatus === 'on-progress') {
             mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, flagComment, (err, matchComments) => {
               winston.info('Done matching');
               if (err) {
