@@ -874,7 +874,14 @@ module.exports = function () {
           }
           if (!matched) {
             if (getmCSD) {
-              mcsdUnmatched.entry.push(filteredEntry)
+              //deep copy filteredEntry before modifying it
+              let copiedEntry = JSON.parse(JSON.stringify(filteredEntry))
+              let parent = copiedEntry.resource.partOf.reference
+              // remove fakeID
+              if(parent.endsWith(fakeOrgId)) {
+                delete copiedEntry.resource.partOf
+              }
+              mcsdUnmatched.entry.push(copiedEntry)
             }
             const name = filteredEntry.resource.name;
             const id = filteredEntry.resource.id;
