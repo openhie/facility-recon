@@ -88,8 +88,8 @@ export const scoresMixin = {
       let userID = this.$store.state.activePair.userID._id
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
-      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
       let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
@@ -171,8 +171,8 @@ export const scoresMixin = {
       let sourcesOwner = this.getDatasourceOwner()
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
-      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
       if (!source1 || !source2) {
         return
       }

@@ -20,8 +20,61 @@
         {{alertMsg}}
       </v-alert>
       <v-dialog
+        v-model="mapSourcePairLevels"
+        scrollable
+        persistent :overlay="false"
+        max-width="770px"
+        transition="dialog-transition"
+      >
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              <v-icon>info</v-icon> Data sources has different level counts, please map Levels to proceed
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="closeLevelMappingDialog">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            <v-data-table
+              :headers="pairLevelsMappingHeader"
+              :items="source1Levels"
+            >
+              <template slot="items" slot-scope="props">
+                <tr>
+                  <td>{{props.item.text}}</td>
+                  <td>
+                    <template v-if='pairLevelsMapping[props.item.value]'>
+                      {{$store.state.levelMapping.source2[pairLevelsMapping[props.item.value]]}}
+                      <v-icon small @click="clearMappingSelection(props.item.value)">close</v-icon>
+                    </template>
+                    <v-select
+                      v-else
+                      :items="source2Levels"
+                      clearable
+                      v-model="pairLevelsMapping[props.item.value]"
+                      @change="mappingSelected(props.item.value)"
+                    ></v-select>
+                  </td>
+                </tr>
+              </template>
+            </v-data-table>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="error" round @click="closeLevelMappingDialog">
+              <v-icon left>cancel</v-icon> Cancel
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" round>
+              <v-icon left>save</v-icon>Save Mapping
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog
         v-model="helpDialog"
-        scrollable 
+        scrollable
         persistent :overlay="false"
         max-width="700px"
         transition="dialog-transition"
@@ -141,7 +194,7 @@
             <v-card-actions>
               <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
               <v-spacer></v-spacer>
-              <v-btn color="primary" round @click="createPair"><v-icon left>save</v-icon> Save</v-btn>
+              <v-btn color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -149,7 +202,7 @@
           <v-card style="width: 1000px" color='cyan lighten-4'>
             <v-card-title primary-title>
               <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
-                Existing Data Source Pairs 
+                Existing Data Source Pairs
                 <v-spacer></v-spacer><v-text-field v-model="searchPairs" append-icon="search" label="Search" single-line hide-details></v-text-field>
               </v-toolbar>
             </v-card-title>
@@ -204,6 +257,8 @@ export default {
       alertError: false,
       alertMsg: '',
       shareDialog: false,
+      mapSourcePairLevels: false,
+      pairLevelsMapping: {},
       sharePair: {},
       source1: {},
       source2: {},
@@ -213,6 +268,10 @@ export default {
       users: [],
       sharedUsers: [],
       activeDataSourcePair: {},
+      pairLevelsMappingHeader: [
+        { text: 'Source 1 Levels', value: 'headerSource1Levels', sortable: false },
+        { text: 'Source 2 Levels', value: 'headerSource1Levels', sortable: false }
+      ],
       source1Headers: [
         { sortable: false },
         { text: 'Source 1', value: 'headerSource1', sortable: false }
@@ -231,7 +290,9 @@ export default {
         { text: 'Username', value: 'username', sortable: true },
         { text: 'Firstname', value: 'fname', sortable: true },
         { text: 'Surname', value: 'sname', sortable: true }
-      ]
+      ],
+      source1Levels: [],
+      source2Levels: []
     }
   },
   filters: {
@@ -269,6 +330,60 @@ export default {
         console.log(error)
       })
     },
+    checkLevels () {
+      this.pairLevelsMapping = {}
+      let source1 = this.source1.name
+      let source2 = this.source2.name
+      source1 = this.toTitleCase(source1)
+      source2 = this.toTitleCase(source2)
+
+      let sourcesLimitOrgId = JSON.stringify({
+        source1LimitOrgId: this.getLimitOrgIdOnDataSource(this.source1),
+        source2LimitOrgId: this.getLimitOrgIdOnDataSource(this.source2)
+      })
+
+      let sourcesOwner = JSON.stringify({
+        source1Owner: this.source1.userID._id,
+        source2Owner: this.source2.userID._id
+      })
+      axios
+        .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
+        .then(levels => {
+          if (levels.data.totalSource1Levels !== levels.data.totalSource2Levels) {
+            this.mapSourcePairLevels = true
+          }
+          this.mapSourcePairLevels = true
+        })
+    },
+    mappingSelected (selectedLevel) {
+      this.source2Levels = this.source2Levels.filter((src2Lvl) => {
+        return src2Lvl.value !== this.pairLevelsMapping[selectedLevel]
+      })
+    },
+    clearMappingSelection (selectedLevel) {
+      this.source2Levels.push({
+        text: this.$store.state.levelMapping.source2[this.pairLevelsMapping[selectedLevel]],
+        value: this.pairLevelsMapping[selectedLevel]
+      })
+      let keys = Object.keys(this.pairLevelsMapping)
+      let newKeys = keys.filter((key) => {
+        return key !== selectedLevel
+      })
+      let newObj = {}
+      for (let key of newKeys) {
+        newObj[key] = this.pairLevelsMapping[key]
+      }
+      this.pairLevelsMapping = newObj
+    },
+    closeLevelMappingDialog () {
+      for (let key in this.pairLevelsMapping) {
+        this.source2Levels.push({
+          text: this.$store.state.levelMapping.source2[this.pairLevelsMapping[key]],
+          value: this.pairLevelsMapping[key]
+        })
+      }
+      this.mapSourcePairLevels = false
+    },
     createPair () {
       if (Object.keys(this.source1).length === 0 || Object.keys(this.source2).length === 0) {
         this.$store.state.dialogError = true
@@ -282,7 +397,6 @@ export default {
         this.$store.state.errorDescription = 'Data source pair of the same data source is not allowed, change one of the source'
         return
       }
-      // let sourcesOwner = this.getDatasourceOwner()
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Saving Data Sources'
       let activePairID = null
@@ -295,8 +409,6 @@ export default {
       let formData = new FormData()
       formData.append('source1', JSON.stringify(this.source1))
       formData.append('source2', JSON.stringify(this.source2))
-      // formData.append('source1Owner', sourcesOwner.source1Owner)
-      // formData.append('source2Owner', sourcesOwner.source2Owner)
       formData.append('userID', this.$store.state.auth.userID)
       formData.append('activePairID', activePairID)
       axios.post(backendServer + '/addDataSourcePair', formData, {
@@ -409,6 +521,24 @@ export default {
     }
     if (!this.source2) {
       this.source2 = {}
+    }
+
+    for (let level in this.$store.state.levelMapping.source2) {
+      if (level !== 'code') {
+        this.source2Levels.push({
+          text: this.$store.state.levelMapping.source2[level],
+          value: level
+        })
+      }
+    }
+
+    for (let level in this.$store.state.levelMapping.source1) {
+      if (level !== 'code') {
+        this.source1Levels.push({
+          text: this.$store.state.levelMapping.source1[level],
+          value: level
+        })
+      }
     }
   }
 }

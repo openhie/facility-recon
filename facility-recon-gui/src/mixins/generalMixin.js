@@ -7,7 +7,7 @@ export const generalMixin = {
       if (!this.$store.state.config.userConfig.reconciliation.useCSVHeader) {
         return 'Level ' + level
       }
-      if (this.$store.state.levelMapping[source]) {
+      if (Object.keys(this.$store.state.levelMapping[source]).length > 0) {
         // get level adjustment for shared sources with limited org unites
         let levelMapping = this.$store.state.levelMapping[source]
         let countLevelMapping = 1
@@ -71,7 +71,7 @@ export const generalMixin = {
       }
       return sourceOwner
     },
-    getLimitOrgId () {
+    getLimitOrgIdOnActivePair () {
       let sourceLimitOrgId = {
         source1LimitOrgId: '',
         source2LimitOrgId: ''
@@ -102,6 +102,20 @@ export const generalMixin = {
       }
 
       return sourceLimitOrgId
+    },
+    getLimitOrgIdOnDataSource (dataSource) {
+      let limitOrgId
+
+      if (dataSource && dataSource.hasOwnProperty('userID') && dataSource.userID._id !== this.$store.state.auth.userID) {
+        let limit = dataSource.sharedLocation.find((sharedLocation) => {
+          return sharedLocation.user === this.$store.state.auth.userID
+        })
+        if (limit) {
+          limitOrgId = limit.location
+        }
+      }
+
+      return limitOrgId
     }
   }
 }
