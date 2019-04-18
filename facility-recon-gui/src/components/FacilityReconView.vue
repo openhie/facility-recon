@@ -384,7 +384,7 @@ export default {
       }
       this.loadingSource1Grid = true
       let source1Owner = this.getDatasourceOwner().source1Owner
-      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
       let userID = this.$store.state.activePair.userID._id
       let path = `/hierarchy?source=${this.source1}&start=${this.source1Start}&count=${this.source1Count}&id=${id}&userID=${userID}&sourceOwner=${source1Owner}&sourceLimitOrgId=${source1LimitOrgId}`
       axios.get(backendServer + path).then((hierarchy) => {
@@ -438,7 +438,7 @@ export default {
       this.loadingSource2 = true
       this.loadingSource2Grid = true
       let source2Owner = this.getDatasourceOwner().source2Owner
-      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
       let userID = this.$store.state.activePair.userID._id
       let path = `/hierarchy?source=${this.source2}&start=${this.source2Start}&count=${this.source2Count}&id=${id}&userID=${userID}&sourceOwner=${source2Owner}&sourceLimitOrgId=${source2LimitOrgId}`
       axios.get(backendServer + path).then((hierarchy) => {
@@ -488,7 +488,7 @@ export default {
         return
       }
       let source2Owner = this.getDatasourceOwner().source2Owner
-      let source2LimitOrgId = this.getLimitOrgId().source2LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
       this.loadingSource2Tree = true
       axios.get(backendServer + '/getTree/' + this.source2 + '/' + source2Owner + '/' + source2LimitOrgId).then((hierarchy) => {
         this.loadingSource2Tree = false
@@ -497,7 +497,7 @@ export default {
         }
       })
       let source1Owner = this.getDatasourceOwner().source1Owner
-      let source1LimitOrgId = this.getLimitOrgId().source1LimitOrgId
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
       this.loadingSource1Tree = true
       axios.get(backendServer + '/getTree/' + this.source1 + '/' + source1Owner + '/' + source1LimitOrgId).then((hierarchy) => {
         this.loadingSource1Tree = false

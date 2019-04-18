@@ -388,7 +388,7 @@ export default {
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
       let sourcesOwner = JSON.stringify(this.getDatasourceOwner())
-      let sourcesLimitOrgId = JSON.stringify(this.getLimitOrgId())
+      let sourcesLimitOrgId = JSON.stringify(this.getLimitOrgIdOnActivePair())
       axios
         .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
