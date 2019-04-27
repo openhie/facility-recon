@@ -8,3 +8,4 @@ User Guide
    sources
    match
    users
+   advanced

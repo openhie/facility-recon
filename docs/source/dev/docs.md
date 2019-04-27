@@ -2,6 +2,12 @@
 
 These docs are hosted at https://readthedocs.io. The documentation is built using Sphinx with Markdown support enabled. In order to translate, the documentation must first be in the base (English) language. Upon a successful build, the translatable files (.pot) are then pushed to [Transifex](https://www.transifex.com/). The pot files must be synchronized with Transifex for editors to use them.
 
+To do a build:
+```sh
+make html
+```
+For markdown tables to render correctly see: https://pypi.org/project/sphinx-markdown-tables/
+
 ## Update Sources for Translation
 
 This is from the [rtd docs](https://docs.readthedocs.io/en/latest/guides/manage-translations.html#update-sources-to-be-translated) with minor changes for folder names.

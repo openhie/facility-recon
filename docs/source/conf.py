@@ -27,7 +27,7 @@ author = 'IntraHealth International'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.2'
+release = '0.9'
 
 
 # -- General configuration ---------------------------------------------------
@@ -41,6 +41,7 @@ release = '0.2'
 # ones.
 extensions = [
     'sphinx.ext.githubpages',
+    'sphinx_markdown_tables'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -22,5 +22,20 @@ Manual matching brings up a dialog box to choose options. If latitude and longit
 
 Any administrative area or facility match may be broken. If this is desired, click Recalculate Scores to rebuild the scoring index and manually match or flag as desired.
 
+### Parent constraints
 
+The default is to match facilities between sources based on hierarchies only. This means that if a facility is in the wrong nested administrative level, it will not be matched. 
 
+Under `configure system` parent constraint can be disabled to allow for matching of all facilities across the sources.
+
+### Reconcile without levels
+
+It is possible to match facilities from a flat list with no hierarchies. 
+
+### Notifications
+
+When admins share a set of facilities for matching to a data manager, the data manager is notified by email when the matching is completed. 
+
+### Flagging
+
+Flagging allows for an export of facilities that require further examination and research. When a flag is set, the user may also include a comment 
