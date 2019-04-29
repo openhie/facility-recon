@@ -16,7 +16,13 @@ Latitude and longitude are optional columns. If they are included they will be u
 
 Once uploaded, in the View tab, CSV entries can be edited. Any edits do not modify the original data source but the edits will be exported after reconciliation.
 
-## Remote servers -- DHIS2 or FHIR
+## Select Levels
+
+The user may choose any levels in their hierarchy to include but they must be ordered with the top most level first. 
+
+It is also possible to select no levels to match on a flat list with no hierarchy. To do so, don't select levels.
+
+## Remote Servers -- DHIS2 or FHIR
 
 The tool supports remote sources. Any server for which the user can authenticate and is authorized to get the facility and hierarchy for can be used as a source.
 
