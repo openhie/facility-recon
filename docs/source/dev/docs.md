@@ -1,12 +1,17 @@
-# How to Build and Update Documentation
+# tl;dr How to Update and Build Documentation
 
 These docs are hosted at https://readthedocs.io. The documentation is built using Sphinx with Markdown support enabled. In order to translate, the documentation must first be in the base (English) language. Upon a successful build, the translatable files (.pot) are then pushed to [Transifex](https://www.transifex.com/). The pot files must be synchronized with Transifex for editors to use them.
 
-To do a build:
+Install prerequisites (see below). Then to do a build:
 ```sh
 make html
 ```
-For markdown tables to render correctly see: https://pypi.org/project/sphinx-markdown-tables/
+
+## Sphinx extensions
+
+Python extensions are required to build the docs, including `sphinx_markdown_tables` for tables to render. The `.readthedocs.yaml` file in the root of the repo sets which version of Python (3.7) and the location of the requirements file in `docs/requirements.txt`.
+
+For more on how markdown tables can render correctly see: https://pypi.org/project/sphinx-markdown-tables/
 
 ## Update Sources for Translation
 
@@ -46,6 +51,7 @@ pip install recommonmark
 pip install sphinx_rtd_theme
 pip install sphinx-intl
 pip install transifex-client
+pip install sphinx_markdown_tables
 ```
 
 Clone the respository, create a branch, and enter the docs directory. (If you are not a maintainer, please fork, branch, then send a pull request.)
