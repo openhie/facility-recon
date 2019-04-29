@@ -1,6 +1,6 @@
 # Data Sources
 
-> There is a quick start in this documentation on how to match.
+*Note that there is a quick start in this documentation on how to upload CSV.*
 
 The tool supports CSV as a file source, as well as remote connections to DHIS2 and FHIR servers.
 
