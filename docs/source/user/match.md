@@ -1,5 +1,7 @@
 # Match
 
+> There is a video tutorial on how to match on the [OpenHIE YouTube channel](https://www.youtube.com/channel/UCYYpnvTCdGfgi_nIBzsd73Q) and a quick start in this documentation.
+
 Reconciling data sources involves choosing a pair of sources to work with and then running the automatic or manual matching tool. Any kind of match can be undone.
 
 ## Pair sources
