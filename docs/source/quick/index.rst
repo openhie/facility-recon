@@ -7,3 +7,4 @@ Quick Starts
 
    quick-fake
    quick-match
+   quick-dhis2
