@@ -330,6 +330,7 @@ export default {
         console.log(error)
       })
     },
+    // this function is no longer in use at the moment, it is intended to be used for mapping levels when a pair has data sources with different levels
     checkLevels () {
       this.pairLevelsMapping = {}
       let source1 = this.source1.name
@@ -349,10 +350,13 @@ export default {
       axios
         .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
-          if (levels.data.totalSource1Levels !== levels.data.totalSource2Levels) {
-            this.mapSourcePairLevels = true
+          if (levels.data.totalSource1Levels > levels.data.totalSource2Levels) {
+            this.$store.state.errorTitle = 'Levels mismatch'
+            this.$store.state.errorDescription = 'Make sure source1 has the same or less levels as source2'
+            this.$store.state.dialogError = true
+          } else {
+            this.createPair()
           }
-          this.mapSourcePairLevels = true
         })
     },
     mappingSelected (selectedLevel) {

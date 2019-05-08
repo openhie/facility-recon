@@ -142,7 +142,7 @@
                   </v-select>
                 </v-flex>
                 <v-flex xs6>
-                  <v-subheader>Code</v-subheader>
+                  <v-subheader>Code*</v-subheader>
                 </v-flex>
                 <v-flex xs6>
                   <v-select
@@ -183,7 +183,7 @@
                 </v-flex>
                 <template>
                   <v-flex xs6>
-                    <v-subheader>Level 1*</v-subheader>
+                    <v-subheader>Level 1</v-subheader>
                   </v-flex>
                   <v-flex xs6>
                     <v-select

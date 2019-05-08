@@ -36,8 +36,10 @@ module.exports = function () {
       }
       const started = cache.get('started_' + baseUrl);
       if (started) {
-        winston.info('getLocations is in progress will try again in 10 seconds.')
-        setTimeout(this.getLocations, 10000, database, callback)
+        winston.info('getLocations is in progress will try again in 10 seconds.' + baseUrl)
+        setTimeout(() => {
+          this.getLocations(database, callback)
+        }, 10000)
         return
       }
       cache.put('started_' + baseUrl, true);
@@ -50,6 +52,7 @@ module.exports = function () {
           url = false;
           request.get(options, (err, res, body) => {
             if (!isJSON(body)) {
+              cache.del('started_' + baseUrl);
               return callback(false, false);
             }
             body = JSON.parse(body);

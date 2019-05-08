@@ -1068,6 +1068,12 @@ if (cluster.isMaster) {
           error: err
         });
       } else {
+        if(Object.keys(results.getLevelMapping.levelMapping1).length == 0) {
+          results.getLevelMapping.levelMapping1 = generateLevelMapping (results.Source1Levels)
+        }
+        if(Object.keys(results.getLevelMapping.levelMapping2).length == 0) {
+          results.getLevelMapping.levelMapping2 = generateLevelMapping (results.Source2Levels)
+        }
         const recoLevel = 2;
         res.status(200).json({
           totalSource1Levels: results.Source1Levels,
@@ -1077,6 +1083,15 @@ if (cluster.isMaster) {
         });
       }
     })
+
+    function generateLevelMapping (totalLevels) {
+      let levelMapping = {}
+      for (let k = 1; k < totalLevels; k++) {
+        levelMapping['level' + k] = 'level' + k
+      }
+      levelMapping['facility'] = 'level' + totalLevels
+      return levelMapping
+    }
   });
 
   app.get('/getLevelData/:source/:sourceOwner/:level', (req, res) => {
