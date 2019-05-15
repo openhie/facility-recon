@@ -7,7 +7,7 @@
     >
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-toolbar-items v-if="$store.state.auth.token">
+      <v-toolbar-items v-if="$store.state.auth.token || $store.state.config.generalConfig.authDisabled">
         <v-menu
           open-on-hover
           bottom
@@ -191,7 +191,7 @@
         <v-btn
           flat
           to="logout"
-          v-if='!$store.state.denyAccess'
+          v-if='!$store.state.denyAccess && !$store.state.config.generalConfig.authDisabled'
         >
           <v-icon>logout</v-icon> {{ $t('App.menu.logout.msg') }}
         </v-btn>
@@ -313,6 +313,7 @@ const backendServer = process.env.BACKEND_SERVER
 
 export default {
   mixins: [scoresMixin, generalMixin],
+  props: ['generalConfig'],
   data () {
     return {
       fixed: false,
@@ -527,6 +528,7 @@ export default {
     }
   },
   created () {
+    this.$store.state.config.generalConfig = this.generalConfig.generalConfig
     if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
       this.$store.state.auth.userID = VueCookies.get('userID')
@@ -534,16 +536,19 @@ export default {
       this.$store.state.auth.role = VueCookies.get('role')
       this.$store.state.signupFields = VueCookies.get('signupFields')
       this.$store.state.customSignupFields = VueCookies.get(
-        'customSignupFields'
+      'customSignupFields'
       )
-      axios.get(backendServer + '/isTokenActive/').then(response => {
-        // will come here only if the token is active
-        this.$store.state.clientId = uuid.v4()
-        this.$store.state.initializingApp = true
-        this.$store.state.denyAccess = false
-        this.getUserConfig()
-      })
+      if (!this.$store.state.config.generalConfig.authDisabled) {
+        axios.get(backendServer + '/isTokenActive/').then(response => {
+          // will come here only if the token is active
+          this.$store.state.clientId = uuid.v4()
+          this.$store.state.initializingApp = true
+          this.$store.state.denyAccess = false
+          this.getUserConfig()
+        })
+      }
     }
+
     eventBus.$on('refreshApp', () => {
       this.getDataSources()
     })
@@ -555,6 +560,9 @@ export default {
     })
     eventBus.$on('getConfig', () => {
       this.getUserConfig()
+    })
+    eventBus.$on('getGeneralConfig', () => {
+      this.getGeneralConfig()
     })
     eventBus.$on('getDataSourcePair', () => {
       this.getDataSourcePair()

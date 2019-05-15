@@ -14,8 +14,9 @@ import FacilityReconDbAdmin from '@/components/FacilityReconDbAdmin'
 import AddDataSources from '@/components/DataSources/AddDataSources'
 import ViewDataSources from '@/components/DataSources/ViewDataSources'
 import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourcePair'
-import {store} from '../store/store.js'
+import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import VueCookies from 'vue-cookies'
+import {store} from '../store/store.js'
 
 Vue.use(Router)
 
@@ -44,6 +45,11 @@ let router = new Router({
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: 'dhis2Auth',
+    name: 'DHIS2Auth',
+    component: DHIS2Auth
   },
   {
     path: '/Signup',
@@ -100,12 +106,12 @@ let router = new Router({
 
 router.beforeEach((to, from, next) => {
   if (!store.state.auth.token && (!VueCookies.get('token') || !VueCookies.get('userID'))) {
-    if (to.path !== '/Login' && to.path !== '/Signup') {
+    if (to.path !== '/Login' && to.path !== '/Signup' && !store.state.config.generalConfig.authDisabled) {
       next({
         path: '/Login'
       })
     } else {
-      next()
+      return next()
     }
   } else {
     next()

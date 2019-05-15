@@ -52,6 +52,7 @@ let cleanReqPath = function (req, res, next) {
 
 let jwtValidator = function (req, res, next) {
   if (req.method == "OPTIONS" ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
     req.path == "/authenticate/" ||
     req.path == "/getSignupConf" ||
     req.path == "/getGeneralConfig" ||
@@ -372,6 +373,7 @@ if (cluster.isMaster) {
                 schemaData.status = "Active"
                 const Users = new models.UsersModel(schemaData)
                 Users.save((err, data) => {
+                  winston.error(JSON.stringify(data._id))
                   if (err) {
                     winston.error(err)
                     res.status(500).json({
@@ -379,7 +381,7 @@ if (cluster.isMaster) {
                     })
                   } else {
                     winston.info("User created successfully")
-                    res.status(200).send()
+                    res.status(200).json({id: data._id})
                   }
                 })
               } else {
@@ -404,11 +406,13 @@ if (cluster.isMaster) {
     })
   })
 
-  app.post('/addUser1', (req, res) => {
-    winston.info("Received a request to add a new user")
-    const form = new formidable.IncomingForm();
-    form.parse(req, (err, fields, files) => {
+  app.get('/getUser/:userName', (req, res) => {
+      winston.info('Getting user ' + req.params.userName)
       const database = config.getConf("DB_NAME")
+      const mongoUser = config.getConf("DB_USER")
+      const mongoPasswd = config.getConf("DB_PASSWORD")
+      const mongoHost = config.getConf("DB_HOST")
+      const mongoPort = config.getConf("DB_PORT")
 
       if (mongoUser && mongoPasswd) {
         var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
@@ -419,28 +423,33 @@ if (cluster.isMaster) {
       let db = mongoose.connection
       db.on("error", console.error.bind(console, "connection error:"))
       db.once("open", () => {
-        let User = new models.UsersModel({
-          _id: new mongoose.Types.ObjectId(),
-          role: fields.role,
-          firstName: fields.firstname,
-          otherName: fields.othername,
-          surname: fields.surname,
-          password: bcrypt.hashSync(fields.password, 8),
-          userName: fields.username,
-          status: 'Active'
-        })
-        User.save((err, data) => {
-          if (err) {
-            winston.error(err)
-            winston.error('Unexpected error occured,please retry')
-            res.status(400).send()
+        models.UsersModel.find({
+          userName: req.params.userName
+        }).lean().exec((err, data) => {
+          if (data.length > 0) {
+            let userID = data[0]._id.toString()
+            // get role name
+            models.RolesModel.find({
+              _id: data[0].role
+            }).lean().exec((err, roles) => {
+              let role = null
+              if (roles.length === 1) {
+                role = roles[0].name
+              }
+              res.status(200).json({
+                role,
+                userID
+              })
+            })
           } else {
-            winston.info('User added successfully')
-            res.status(200).send()
+            winston.info('User ' + req.params.userName + ' not found')
+            res.status(200).json({
+              role: null,
+              userID: null
+            })
           }
         })
       })
-    })
   })
 
   app.get('/getUsers', (req, res) => {
@@ -697,6 +706,9 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({}, (err, data) => {
           if (!data) {
+            if (fields.generalConfig.externalAuth.password) {
+              fields.generalConfig.externalAuth.password = mongo.encrypt(fields.generalConfig.externalAuth.password)
+            }
             const MetaData = new models.MetaDataModel({
               'config.generalConfig': appConfig.generalConfig
             });
@@ -715,6 +727,11 @@ if (cluster.isMaster) {
               }
             })
           } else {
+            if (appConfig.generalConfig.externalAuth.password != data.config.generalConfig.externalAuth.password) {
+              appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password)
+            } else {
+              appConfig.generalConfig.externalAuth.password = data.config.generalConfig.externalAuth.password
+            }
             models.MetaDataModel.findByIdAndUpdate(data.id, {
               'config.generalConfig': appConfig.generalConfig
             }, (err, data) => {
@@ -786,29 +803,6 @@ if (cluster.isMaster) {
     }
     mongoose.connect(uri, {}, () => {
       models.MetaDataModel.findOne({},{'config.generalConfig': 1}, (err, data) => {
-        if (err) {
-          winston.error(err)
-          res.status(500).json({
-            error: 'internal error occured while getting configurations'
-          })
-        } else {
-          res.status(200).json(data)
-        }
-      })
-    })
-  })
-
-  app.get('/getGeneralConfig', (req, res) => {
-    let database = config.getConf("DB_NAME")
-    let userID = req.params.userID
-    const mongoose = require('mongoose')
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, {'config.generalConfig': 1}, (err, data) => {
         if (err) {
           winston.error(err)
           res.status(500).json({
@@ -1255,18 +1249,32 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     res.status(200).end();
     form.parse(req, (err, fields, files) => {
-      const host = fields.host;
-      const username = fields.username;
-      const password = mongo.decrypt(fields.password);
-      const name = fields.name;
-      const sourceOwner = fields.sourceOwner;
-      const clientId = fields.clientId;
-      const mode = fields.mode;
-      let full = true;
-      if (mode === 'update') {
-        full = false;
-      }
-      dhis.sync(host, username, password, name, sourceOwner, clientId, topOrgId, topOrgName, false, full, false, false);
+      mongo.getServer(fields.sourceOwner, fields.name, (err, server) => {
+        if(err) {
+          winston.error(err)
+          return res.status(500).send()
+        }
+        const mode = fields.mode;
+        let full = true;
+        if (mode === 'update') {
+          full = false;
+        }
+        server.password = mongo.decrypt(server.password)
+        dhis.sync(
+          server.host, 
+          server.username, 
+          server.password, 
+          fields.name, 
+          fields.sourceOwner, 
+          fields.clientId, 
+          topOrgId, 
+          topOrgName, 
+          false, 
+          full, 
+          false, 
+          false
+        )
+      })
     });
   });
 
@@ -1275,7 +1283,24 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info('Received a request to sync FHIR server ' + fields.host)
-      fhir.sync(fields.host, fields.username, fields.password, fields.mode, fields.name, fields.sourceOwner, fields.clientId, topOrgId, topOrgName)
+      mongo.getServer(fields.sourceOwner, fields.name, (err, server) => {
+        if(err) {
+          winston.error(err)
+          return res.status(500).send()
+        }
+        server.password = mongo.decrypt(server.password)
+        fhir.sync(
+          server.host, 
+          server.username, 
+          server.password, 
+          fields.mode, 
+          fields.name, 
+          fields.sourceOwner, 
+          fields.clientId, 
+          topOrgId, 
+          topOrgName
+        )
+      })
     })
   })
 

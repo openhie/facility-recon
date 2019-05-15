@@ -66,6 +66,14 @@ let DataSources = new mongoose.Schema({
       ref: 'Users'
     }]
   },
+  shareToAll: {
+    limitByUserLocation: {
+      type: Boolean
+    },
+    activated: {
+      type: Boolean
+    }
+  },
   username: {
     type: String
   },
@@ -163,6 +171,35 @@ let MetaData = new mongoose.Schema({
           type: String
         },
         username: {
+          type: String
+        },
+        password: {
+          type: String
+        }
+      },
+      authDisabled: {
+        type: Boolean
+      },
+      authMethod: {
+        type: String
+      },
+      externalAuth: {
+        pullOrgUnits: {
+          type: Boolean
+        },
+        shareOrgUnits: {
+          type: Boolean
+        },
+        shareByOrgId: {
+          type: Boolean
+        },
+        datasetName: {
+          type: String
+        },
+        adminRole: {
+          type: String
+        },
+        userName: {
           type: String
         },
         password: {

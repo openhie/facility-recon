@@ -6,12 +6,10 @@ import router from './router'
 import Vuetify from 'vuetify'
 import Vuelidate from 'vuelidate'
 import 'vuetify/dist/vuetify.min.css'
-
-import {
-  store
-} from './store/store'
-
+import axios from 'axios'
+import { store } from './store/store'
 import i18n from './i18n'
+const backendServer = process.env.BACKEND_SERVER
 
 Vue.use(Vuelidate)
 Vue.use(Vuetify, {
@@ -30,15 +28,23 @@ Vue.config.productionTip = false
 
 export const eventBus = new Vue()
 /* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  store,
+// get general config of App and pass it to the App component as props
+axios.get(backendServer + '/getGeneralConfig').then(genConfig => {
+  new Vue({
+    el: '#app',
+    router,
+    store,
 
-  components: {
-    App
-  },
+    components: {
+      App
+    },
+    data () {
+      return {
+        config: genConfig.data.config
+      }
+    },
 
-  i18n,
-  template: '<App/>'
+    i18n,
+    template: '<App :generalConfig="config" />'
+  })
 })

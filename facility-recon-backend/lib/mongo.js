@@ -101,12 +101,9 @@ module.exports = function () {
     addDataSource(fields, callback) {
       const mongoose = require('mongoose')
       let password = ''
-      if (fields.password) {
-        password = this.encrypt(fields.password)
-      }
       mongoose.connect(uri, {}, () => {
         models.DataSourcesModel.findOne({
-          host: fields.name,
+          $and:[{name: fields.name}, {userID: fields.userID}]
         }, (err, data) => {
           if (err) {
             winston.error(err)
@@ -114,6 +111,9 @@ module.exports = function () {
             return callback('Unexpected error occured,please retry', null);
           }
           if (!data) {
+            if (fields.password) {
+              password = this.encrypt(fields.password)
+            }
             const syncServer = new models.DataSourcesModel({
               name: fields.name,
               host: fields.host,
@@ -121,7 +121,9 @@ module.exports = function () {
               source: fields.source,
               username: fields.username,
               password: password,
-              userID: fields.userID
+              userID: fields.userID,
+              'shareToAll.activated': fields.shareToAll,
+              'shareToAll.limitByUserLocation': fields.limitByUserLocation
             });
             syncServer.save((err, data) => {
               if (err) {
@@ -133,6 +135,11 @@ module.exports = function () {
 
             });
           } else {
+            if(fields.password != data.password) {
+              password = this.encrypt(fields.password)
+            } else {
+              password = data.password
+            }
             models.DataSourcesModel.findByIdAndUpdate(data.id, {
               name: fields.name,
               host: fields.host,
@@ -140,6 +147,8 @@ module.exports = function () {
               source: fields.source,
               username: fields.username,
               password: password,
+              'shareToAll.activated': fields.shareToAll,
+              'shareToAll.limitByUserLocation': fields.limitByUserLocation
             }, (err, data) => {
               if (err) {
                 winston.error(err)
@@ -170,6 +179,17 @@ module.exports = function () {
           }
           return callback(false, password)
         });
+      })
+    },
+
+    getServer (userID, name, callback) {
+      const mongoose = require('mongoose')
+      mongoose.connect(uri, {}, () => {
+        models.DataSourcesModel.findOne({
+          $and:[{name: name}, {userID: userID}]
+        }, (err, data) => {
+          return callback(err, data)
+        })
       })
     },
 
@@ -287,7 +307,9 @@ module.exports = function () {
     getDataSources(userID, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.find({ $or: [{'userID': userID}, {'shared.users': userID}]}).populate("shared.users", "userName").populate("userID", "userName").lean().exec({}, (err, sources) => {
+        models.DataSourcesModel.find({ 
+          $or: [{'userID': userID}, {'shared.users': userID}, {'shareToAll.activated': true}]
+        }).populate("shared.users", "userName").populate("userID", "userName").lean().exec({}, (err, sources) => {
           async.eachOfSeries(sources, (source, key, nxtSrc) => {
             // converting _bsontype property into normal property
             source = JSON.parse(JSON.stringify(source))

@@ -1,8 +1,5 @@
 <template>
   <v-container fluid>
-    <app-syncProgress :syncProgrIndeter='syncProgrIndeter' :syncStatus='syncStatus' :syncProgrPercent='syncProgrPercent' :syncPercent='syncPercent'>
-
-    </app-syncProgress>
     <v-dialog v-model="deleteConfirm" width="530px">
       <v-card>
         <v-toolbar color="primary" dark>
@@ -89,17 +86,17 @@
           </template>
           <v-icon small>lock</v-icon> Limiting Sharing to: <b>{{limitLocationName}}</b>
           <v-text-field v-model="searchUsers" append-icon="search" label="Search" single-line hide-details></v-text-field>
-          <v-data-table 
-            :headers="usersHeader" 
-            :items="users" 
-            :search="searchUsers" 
+          <v-data-table
+            :headers="usersHeader"
+            :items="users"
+            :search="searchUsers"
             class="elevation-1"
             item-key="firstName"
           >
             <template v-slot:items="props">
               <tr v-if="props.item.userName !== $store.state.auth.username">
                 <td>
-                  <v-checkbox  
+                  <v-checkbox
                     :value="props.item._id"
                     v-model="sharedUsers"
                   >
@@ -125,7 +122,7 @@
     </v-dialog>
     <v-dialog
       v-model="helpDialog"
-      scrollable 
+      scrollable
       persistent :overlay="false"
       max-width="700px"
       transition="dialog-transition"
@@ -298,13 +295,21 @@
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
+    <appRemoteSync
+      :syncType="syncType"
+      :serverName="server.name"
+      :userID="$store.state.auth.userID"
+      :sourceOwner="server.userID._id"
+      :mode="mode"
+    >
+    </appRemoteSync>
   </v-container>
 </template>
 
 <script>
 import FacilityReconUpload from './FacilityReconUpload'
 import FacilityReconRemoteSources from './FacilityReconRemoteSources'
-import SyncProgress from './SyncProgress'
+import RemoteSync from './RemoteSync'
 import { generalMixin } from '../../mixins/generalMixin'
 import { eventBus } from '../../main'
 import axios from 'axios'
@@ -314,10 +319,15 @@ export default {
   mixins: [generalMixin],
   data () {
     return {
+      syncType: '',
+      mode: '',
       helpDialog: false,
       deleteConfirm: false,
       editDialog: false,
-      server: {},
+      server: {
+        name: '',
+        userID: {}
+      },
       shareDialog: false,
       shareSource: {},
       users: [],
@@ -423,11 +433,12 @@ export default {
       formData.append('source', this.server.source)
       formData.append('username', this.server.username)
       formData.append('password', this.server.password)
+      formData.append('userID', this.server.userID._id)
       formData.append('name', this.server.name)
       formData.append('id', this.server._id)
       formData.append('clientId', clientId)
       this.editDialog = false
-      axios.post(backendServer + '/editDataSource', formData, {
+      axios.post(backendServer + '/addDataSource', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -558,95 +569,15 @@ export default {
       if (this.server.source === 'upload') {
         return
       }
-      if (!mode) {
-        mode = 'full'
-      }
-      let syncType
+      this.mode = mode
       if (this.server.sourceType === 'DHIS2') {
-        syncType = 'dhisSync'
+        this.syncType = 'dhisSync'
       } else if (this.server.sourceType === 'FHIR') {
-        syncType = 'fhirSync'
+        this.syncType = 'fhirSync'
       }
-      let formData = new FormData()
-      const clientId = this.$store.state.clientId
-      formData.append('host', this.server.host)
-      formData.append('username', this.server.username)
-      formData.append('password', this.server.password)
-      formData.append('name', this.server.name)
-      formData.append('userID', this.$store.state.auth.userID)
-      formData.append('sourceOwner', this.server.userID._id)
-      formData.append('clientId', clientId)
-      formData.append('mode', mode)
-      this.syncRunning = true
-      this.syncProgrIndeter = true
-      axios.post(backendServer + '/' + syncType + '/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((syncRes) => {
-        this.syncProgressTimer = setInterval(this.checkSyncProgress, 1000)
-      }).catch((err) => {
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = err.response.data.error + '. cross check host,user and password'
-        clearInterval(this.syncProgressTimer)
-        console.log(err.response.data.error)
-      })
-    },
-    checkSyncProgress () {
-      const clientId = this.$store.state.clientId
-      let syncProgressType
-      if (this.server.sourceType === 'DHIS2') {
-        syncProgressType = 'dhisSyncRequest'
-      } else if (this.server.sourceType === 'FHIR') {
-        syncProgressType = 'fhirSyncRequest'
-      }
-      axios.get(backendServer + '/progress/' + syncProgressType + '/' + clientId).then((syncProgress) => {
-        if (syncProgress.data === null || syncProgress.data === undefined || syncProgress.data === false) {
-          this.$store.state.uploadRunning = false
-          this.syncProgrIndeter = false
-          this.syncProgrPercent = false
-          clearInterval(this.syncProgressTimer)
-          return
-        } else if (syncProgress.data.error !== null) {
-          this.$store.state.uploadRunning = false
-          this.syncProgrIndeter = false
-          this.syncProgrPercent = false
-          this.$store.state.dialogError = true
-          this.$store.state.errorTitle = 'Error'
-          this.$store.state.errorDescription = syncProgress.data.error
-          clearInterval(this.syncProgressTimer)
-          console.log(syncProgress.data.error)
-          return
-        } else if (syncProgress.data.status === null) {
-          this.$store.state.uploadRunning = false
-          this.syncProgrIndeter = false
-          this.syncProgrPercent = false
-          clearInterval(this.syncProgressTimer)
-          return
-        }
-        this.syncStatus = syncProgress.data.status
-        if (syncProgress.data.percent) {
-          if (!this.syncProgrPercent) {
-            this.syncProgrIndeter = false
-            this.syncProgrPercent = true
-          }
-          this.syncPercent = syncProgress.data.percent
-        }
-        if (syncProgress.data.status === 'Done') {
-          this.syncStatus = 'Waiting for sync status'
-          clearInterval(this.syncProgressTimer)
-          this.syncProgrPercent = false
-          this.$store.state.uploadRunning = false
-          eventBus.$emit('getDataSources')
-        }
-      }).catch((err) => {
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        console.log(err.response.data.error + '. cross check host,user and password')
-        this.$store.state.errorDescription = err.response.data.error + '. cross check host,user and password'
-        clearInterval(this.syncProgressTimer)
-      })
+      setTimeout(() => {
+        eventBus.$emit('runRemoteSync')
+      }, 100)
     }
   },
   computed: {
@@ -672,7 +603,7 @@ export default {
   components: {
     'FacilityReconUpload': FacilityReconUpload,
     'FacilityReconRemoteSources': FacilityReconRemoteSources,
-    'appSyncProgress': SyncProgress,
+    'appRemoteSync': RemoteSync,
     'liquor-tree': LiquorTree
   },
   created () {

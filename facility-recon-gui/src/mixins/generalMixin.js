@@ -1,3 +1,5 @@
+import axios from 'axios'
+const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
   methods: {
     toTitleCase (str) {
@@ -116,6 +118,15 @@ export const generalMixin = {
       }
 
       return limitOrgId
+    },
+    getRoles () {
+      axios.get(backendServer + '/getRoles').then((roles) => {
+        for (let role of roles.data) {
+          this.roles.push({text: role.name, value: role._id})
+        }
+      }).catch((err) => {
+        console.log(err.response.data)
+      })
     }
   }
 }

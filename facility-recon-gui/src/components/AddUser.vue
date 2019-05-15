@@ -145,9 +145,12 @@
 <script>
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
+import { generalMixin } from '../mixins/generalMixin'
+
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
+  mixins: [generalMixin],
   validations: {
     userName: { required },
     retype_password: { required },
@@ -210,15 +213,6 @@ export default {
         this.alertFail = true
         this.alertMsg = 'This user was not added, ensure userName is not used'
         console.log(err.response.data.error)
-      })
-    },
-    getRoles () {
-      axios.get(backendServer + '/getRoles').then((roles) => {
-        for (let role of roles.data) {
-          this.roles.push({text: role.name, value: role._id})
-        }
-      }).catch((err) => {
-        console.log(err.response.data)
       })
     }
   },

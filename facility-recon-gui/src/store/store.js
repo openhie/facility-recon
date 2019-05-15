@@ -35,7 +35,14 @@ export const store = new Vuex.Store({
         recoProgressNotification: {
           enabled: false
         },
-        selfRegistration: false
+        selfRegistration: false,
+        authDisabled: false,
+        authMethod: '',
+        externalAuth: {
+          pullOrgUnits: true,
+          shareOrgUnits: false,
+          shareByOrgId: false
+        }
       }
     },
     signupFields: {},

@@ -13,7 +13,7 @@
             <v-layout column>
               <v-flex>
                 <v-switch
-                  @change="configChanged('userConfig')"
+                  @change="configChanged('userConfig', 'useCSVHeader')"
                   color="success"
                   label="Use CSV header for display"
                   v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
@@ -34,7 +34,7 @@
             <v-layout column>
               <v-flex>
                 <v-switch
-                  @change="configChanged('generalConfig')"
+                  @change="configChanged('generalConfig', 'parentConstraint')"
                   color="success"
                   label="Perform match based on parent constraint"
                   v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
@@ -45,22 +45,111 @@
                   color="grey lighten-3"
                   style="margin-left:100px"
                 >
-                  <v-checkbox 
-                    @change="configChanged('generalConfig')"
-                    label="Automatch By ID" 
+                  <v-checkbox
+                    @change="configChanged('generalConfig', 'parConstrIdAuto')"
+                    color="success"
+                    label="Automatch By ID"
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.idAutoMatch"
                     disabled
                   ></v-checkbox>
-                  <v-checkbox 
-                    @change="configChanged('generalConfig')"
-                    label="Automatch By Name (when parents differ)" 
+                  <v-checkbox
+                    @change="configChanged('generalConfig', 'parConstrNameAuto')"
+                    color="success"
+                    label="Automatch By Name (when parents differ)"
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.nameAutoMatch"
                   ></v-checkbox>
                 </v-card>
               </v-flex>
               <v-flex>
                 <v-switch
-                  @change="configChanged('generalConfig')"
+                  @change="configChanged('generalConfig', 'authDisabled')"
+                  color="success"
+                  label="Disable Authentication"
+                  v-model="$store.state.config.generalConfig.authDisabled"
+                >
+                </v-switch>
+                <v-card
+                  v-if="$store.state.config.generalConfig.authDisabled"
+                  color="grey lighten-3"
+                  style="margin-left:100px"
+                >
+                  External Authentication Method
+                  <v-radio-group
+                    v-model="$store.state.config.generalConfig.authMethod"
+                    @change="configChanged('generalConfig', 'useDhis2Auth')"
+                  >
+                    <v-radio label="dhis2" value="dhis2" disabled></v-radio>
+                    <v-radio label="iHRIS" value="iHRIS" disabled></v-radio>
+                  </v-radio-group>
+                  <v-select
+                    @change="configChanged('generalConfig', 'externalAuth')"
+                    label="Superuser Role Name"
+                    item-text='displayName'
+                    item-value='id'
+                    :loading="loadingDhis2Roles"
+                    required
+                    :items="dhis2Roles"
+                    v-model="$store.state.config.generalConfig.externalAuth.adminRole"
+                  ></v-select>
+                  <v-checkbox
+                    @change="configChanged('generalConfig', 'externalAuth')"
+                    color="success"
+                    v-if="$store.state.config.generalConfig.authMethod"
+                    label="Pull org units"
+                    v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits">
+                  </v-checkbox>
+                  <v-checkbox
+                    @change="configChanged('generalConfig', 'externalAuth')"
+                    color="success"
+                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                    label="Share orgs with other users"
+                    v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits">
+                  </v-checkbox>
+                  <v-checkbox
+                    @change="configChanged('generalConfig', 'externalAuth')"
+                    color="success"
+                    v-if="
+                      $store.state.config.generalConfig.externalAuth.shareOrgUnits &&
+                      $store.state.config.generalConfig.externalAuth.pullOrgUnits
+                    "
+                    label="Limit orgs sharing by user orgid"
+                    v-model="$store.state.config.generalConfig.externalAuth.shareByOrgId">
+                  </v-checkbox>
+                  <v-text-field
+                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                    label="Dataset Name"
+                    v-model="$store.state.config.generalConfig.externalAuth.datasetName"
+                    @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="datasetNameErrors"
+                    required
+                  ></v-text-field>
+                  <v-text-field
+                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                    label="Username"
+                    v-model="$store.state.config.generalConfig.externalAuth.userName"
+                    required
+                  ></v-text-field>
+                  <v-text-field
+                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                    label="Password"
+                    v-model="$store.state.config.generalConfig.externalAuth.password"
+                    type="password"
+                    required
+                  ></v-text-field>
+                  <v-flex xs3>
+                    <v-btn
+                      color="success"
+                      :disabled='datasetNameErrors.length > 0 || !$store.state.config.generalConfig.externalAuth.datasetName'
+                      small
+                      round
+                      v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                      @click="pullOrgUnits"
+                    >start pulling</v-btn>
+                  </v-flex>
+                </v-card>
+              </v-flex>
+              <v-flex>
+                <v-switch
+                  @change="configChanged('generalConfig', 'selfRegistration')"
                   color="success"
                   label="Enable self registration"
                   v-model="$store.state.config.generalConfig.selfRegistration"
@@ -109,14 +198,14 @@
               </v-flex>
               <v-flex xs1>
                 <v-switch
-                  @change="configChanged('generalConfig')"
+                  @change="configChanged('generalConfig', 'recoProgressNotification')"
                   color="success"
                   label="Enable Endpoint Notification when reconciliation is done"
                   v-model="$store.state.config.generalConfig.recoProgressNotification.enabled"
                 >
                 </v-switch>
-                <v-card 
-                  color="grey lighten-3" 
+                <v-card
+                  color="grey lighten-3"
                   v-if='$store.state.config.generalConfig.recoProgressNotification.enabled'
                   style="margin-left:100px"
                 >
@@ -163,14 +252,35 @@
         </v-card>
       </v-card-text>
     </v-card>
+    <appRemoteSync
+      syncType="dhisSync"
+      :serverName="$store.state.config.generalConfig.externalAuth.datasetName"
+      :userID="$store.state.auth.userID"
+      :sourceOwner="$store.state.auth.userID"
+      mode="full"
+    >
+    </appRemoteSync>
   </v-container>
 </template>
 <script>
 import axios from 'axios'
+import RemoteSync from './DataSources/RemoteSync'
 import { eventBus } from '../main'
 import VueCookies from 'vue-cookies'
+import { required } from 'vuelidate/lib/validators'
 const backendServer = process.env.BACKEND_SERVER
 export default {
+  validations: {
+    facility: {
+      required: required
+    },
+    code: {
+      required: required
+    },
+    uploadName: {
+      required: required
+    }
+  },
   data () {
     return {
       useCSVHeader: false,
@@ -182,11 +292,14 @@ export default {
       signupFields: [],
       notification_endpoint: '',
       notification_username: '',
-      notification_password: ''
+      notification_password: '',
+      dhis2Roles: [],
+      loadingDhis2Roles: false,
+      datasetNameErrors: []
     }
   },
   methods: {
-    configChanged (configLevel) {
+    configChanged (configLevel, configName) {
       let userID = this.$store.state.auth.userID
       let formData = new FormData()
       formData.append('config', JSON.stringify(this.$store.state.config))
@@ -204,7 +317,12 @@ export default {
           }
         })
         .then(() => {
-          eventBus.$emit('changeCSVHeaderNames')
+          if (configName === 'useCSVHeader') {
+            eventBus.$emit('changeCSVHeaderNames')
+          }
+          if (configName === 'authDisabled') {
+            this.$router.push({ name: 'Logout' })
+          }
         })
     },
     recoProgressNotificationChanged () {
@@ -269,9 +387,60 @@ export default {
         this.$store.state.errorTitle = 'Error'
         this.$store.state.errorDescription = 'Field name must be unique'
       }
+    },
+    pullOrgUnits () {
+      this.configChanged('generalConfig', 'externalAuth')
+      // var href = location.href.split('api').shift()
+      let href = 'https://play.dhis2.org/2.31.2/'
+      let formData = new FormData()
+      formData.append('host', href)
+      formData.append('sourceType', 'DHIS2')
+      formData.append('source', 'syncServer')
+      formData.append('shareToAll', this.$store.state.config.generalConfig.externalAuth.shareOrgUnits)
+      formData.append('limitByUserLocation', this.$store.state.config.generalConfig.externalAuth.shareByOrgId)
+      formData.append('username', this.$store.state.config.generalConfig.externalAuth.userName)
+      formData.append('password', this.$store.state.config.generalConfig.externalAuth.password)
+      formData.append('name', this.$store.state.config.generalConfig.externalAuth.datasetName)
+      formData.append('userID', this.$store.state.auth.userID)
+
+      axios.post(backendServer + '/addDataSource', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response) => {
+        eventBus.$emit('runRemoteSync')
+      })
+    },
+    getDHIS2Roles (callback) {
+      // var href = location.href.split('api').shift()
+      let href = 'https://play.dhis2.org/2.31.2/'
+      axios.defaults.auth = {
+        username: 'admin',
+        password: 'district'
+      }
+      axios.get(href + 'api/userRoles').then((roles) => {
+        callback(roles)
+      })
+    },
+    ensureNameUnique () {
+      this.datasetNameErrors = []
+      if (this.$store.state.config.generalConfig.externalAuth.datasetName === '') {
+        return this.datasetNameErrors.push('Dataset name is required')
+      }
+      for (let dtSrc of this.$store.state.dataSources) {
+        if (dtSrc.name === this.uploadName) {
+          this.datasetNameErrors.push('This Name Exists')
+          return false
+        }
+      }
     }
   },
   created () {
+    this.loadingDhis2Roles = true
+    this.getDHIS2Roles((roles) => {
+      this.loadingDhis2Roles = false
+      this.dhis2Roles = roles.data.userRoles
+    })
     this.signupFields.push({
       id: 'signupFields',
       name: 'Self Registration Fields',
@@ -288,6 +457,24 @@ export default {
       this.notification_username = this.$store.state.config.generalConfig.recoProgressNotification.username
       this.notification_password = this.$store.state.config.generalConfig.recoProgressNotification.password
     }
+  },
+  beforeCreate () {
+    if (!this.$store.state.config.generalConfig.hasOwnProperty('authMethod')) {
+      this.$set(this.$store.state.config.generalConfig, 'authMethod', 'dhis2')
+    }
+    if (!this.$store.state.config.generalConfig.hasOwnProperty('externalAuth')) {
+      let externalAuth = {
+        pullOrgUnits: true,
+        shareOrgUnits: false,
+        shareByOrgId: false,
+        datasetName: '',
+        adminRole: ''
+      }
+      this.$set(this.$store.state.config.generalConfig, 'externalAuth', externalAuth)
+    }
+  },
+  components: {
+    'appRemoteSync': RemoteSync
   }
 }
 </script>

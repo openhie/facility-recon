@@ -187,11 +187,14 @@ export default {
         VueCookies.set('customSignupFields', resp.data.customSignupFields, 'infinity')
       }
     })
-    axios
-      .get(backendServer + '/getGeneralConfig')
-      .then(config => {
-        this.$store.state.config.generalConfig = config.data.config.generalConfig
-      })
+  },
+  beforeCreate () {
+    if (this.$store.state.config.generalConfig.authDisabled) {
+      this.$store.state.clientId = uuid.v4()
+      this.$store.state.initializingApp = true
+      this.$store.state.denyAccess = false
+      this.$router.push({ name: 'DHIS2Auth' })
+    }
   }
 }
 </script>
