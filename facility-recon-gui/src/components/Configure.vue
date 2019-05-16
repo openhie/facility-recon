@@ -390,10 +390,8 @@ export default {
     },
     pullOrgUnits () {
       this.configChanged('generalConfig', 'externalAuth')
-      // var href = location.href.split('api').shift()
-      let href = 'https://play.dhis2.org/2.31.2/'
       let formData = new FormData()
-      formData.append('host', href)
+      formData.append('host', this.$store.state.dhis.host)
       formData.append('sourceType', 'DHIS2')
       formData.append('source', 'syncServer')
       formData.append('shareToAll', this.$store.state.config.generalConfig.externalAuth.shareOrgUnits)
@@ -412,13 +410,8 @@ export default {
       })
     },
     getDHIS2Roles (callback) {
-      // var href = location.href.split('api').shift()
-      let href = 'https://play.dhis2.org/2.31.2/'
-      axios.defaults.auth = {
-        username: 'admin',
-        password: 'district'
-      }
-      axios.get(href + 'api/userRoles').then((roles) => {
+      let auth = this.$store.state.dhis.dev.auth
+      axios.get(this.$store.state.dhis.host + 'api/userRoles', {auth}).then((roles) => {
         callback(roles)
       })
     },

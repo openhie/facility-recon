@@ -171,8 +171,7 @@ export default {
       customFields: [],
       alertFail: false,
       alertSuccess: false,
-      alertMsg: '',
-      roles: []
+      alertMsg: ''
     }
   },
   methods: {

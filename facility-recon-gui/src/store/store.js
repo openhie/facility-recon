@@ -41,7 +41,9 @@ export const store = new Vuex.Store({
         externalAuth: {
           pullOrgUnits: true,
           shareOrgUnits: false,
-          shareByOrgId: false
+          shareByOrgId: false,
+          datasetName: '',
+          adminRole: ''
         }
       }
     },
@@ -58,10 +60,18 @@ export const store = new Vuex.Store({
     source2Hierarchy: '',
     source1Hierarchy: '',
     uploadRunning: false,
-    // this variable (orgUnit) is depracated and will soon be removed
-    orgUnit: {
-      OrgId: 'lZsCb6y0KDX',
-      OrgName: 'Malawi'
+    dhis: {
+      user: {
+        orgId: '',
+        orgName: ''
+      },
+      host: '',
+      dev: {
+        auth: {
+          username: 'admin',
+          password: 'district'
+        }
+      }
     },
     dataSourcePairs: [],
     activePair: {

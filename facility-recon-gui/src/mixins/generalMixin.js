@@ -1,6 +1,11 @@
 import axios from 'axios'
 const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
+  data () {
+    return {
+      roles: []
+    }
+  },
   methods: {
     toTitleCase (str) {
       return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('')
@@ -125,7 +130,7 @@ export const generalMixin = {
           this.roles.push({text: role.name, value: role._id})
         }
       }).catch((err) => {
-        console.log(err.response.data)
+        console.log(err.response)
       })
     }
   }
