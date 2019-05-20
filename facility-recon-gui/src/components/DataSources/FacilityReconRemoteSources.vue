@@ -25,6 +25,38 @@
             <v-text-field v-model="host" box required color="deep-purple" label="Base URL"></v-text-field>
             <v-text-field v-model="username" box color="deep-purple" label="Username"></v-text-field>
             <v-text-field v-model="password" box color="deep-purple" label="Password" style="min-height: 96px" type="password"></v-text-field>
+            <template v-if="$store.state.dhis.user.orgId">
+              <v-tooltip top>
+                <v-checkbox
+                  :disabled="shareWithAll"
+                  slot="activator"
+                  color="primary"
+                  label="Share with other users of the same org unit as yours"
+                  v-model="shareToSameOrgid"
+                ></v-checkbox>
+                <span>
+                  Share this dataset with all other users that are on the same org unit as you
+                </span>
+              </v-tooltip>
+              <v-checkbox
+                @change="sharingOptions"
+                color="primary"
+                label="Share with all other users"
+                v-model="shareWithAll">
+              </v-checkbox>
+              <v-tooltip top>
+                <v-checkbox
+                  slot="activator"
+                  color="primary"
+                  v-if="shareWithAll"
+                  label="Limit orgs sharing by user orgid"
+                  v-model="limitShareByOrgId">
+                </v-checkbox>
+                <span>
+                  if activated, other users will see locations (including location children) that has the same location id as their location id
+                </span>
+              </v-tooltip>
+            </template>
           </v-form>
           <v-divider></v-divider>
           <v-card-actions>
@@ -32,7 +64,14 @@
               Clear
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn @click="addDataSource('syncServer')" :disabled="$v.$invalid" class="white--text" color="deep-purple accent-4" depressed>Add</v-btn>
+            <v-btn
+              @click="addDataSource('syncServer')"
+              :disabled="$v.$invalid"
+              class="white--text"
+              color="deep-purple accent-4"
+              depressed>
+              Add
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>

@@ -30,7 +30,8 @@ export const store = new Vuex.Store({
             enabled: true,
             idAutoMatch: true,
             nameAutoMatch: false
-          }
+          },
+          singlePair: false
         },
         recoProgressNotification: {
           enabled: false
@@ -68,8 +69,8 @@ export const store = new Vuex.Store({
       host: '',
       dev: {
         auth: {
-          username: 'admin',
-          password: 'district'
+          username: 'bombaliuser',
+          password: 'Mw@n@m1gu'
         }
       }
     },

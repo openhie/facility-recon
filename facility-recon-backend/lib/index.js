@@ -1528,6 +1528,10 @@ if (cluster.isMaster) {
     } catch (error) {
       parentConstraint = req.query.parentConstraint
     }
+    // remove parent contraint for the first level
+    if(recoLevel == 2) {
+      parentConstraint = false
+    }
     if (!source1 || !source2 || !recoLevel || !userID) {
       winston.error({
         error: 'Missing source1 or source2 or reconciliation Level or userID'
@@ -2770,6 +2774,15 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info('Received a request to add a new data source');
+      if(!fields.shareToSameOrgid) {
+        fields.shareToSameOrgid = false
+      }
+      if(!fields.shareToAll) {
+        fields.shareToAll = false
+      }
+      if(!fields.limitByUserLocation) {
+        fields.limitByUserLocation = false
+      }
       mongo.addDataSource(fields, (err, response) => {
         if (err) {
           res.status(500).json({
@@ -2830,9 +2843,9 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/getDataSources/:userID', (req, res) => {
+  app.get('/getDataSources/:userID/:orgId', (req, res) => {
     winston.info('received request to get data sources');
-    mongo.getDataSources(req.params.userID, (err, servers) => {
+    mongo.getDataSources(req.params.userID, req.params.orgId, (err, servers) => {
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured,please retry',

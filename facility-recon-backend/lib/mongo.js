@@ -122,6 +122,9 @@ module.exports = function () {
               username: fields.username,
               password: password,
               userID: fields.userID,
+              'owner.id': fields.userID,
+              'owner.orgId': fields.orgId,
+              'shareToSameOrgid': fields.shareToSameOrgid,
               'shareToAll.activated': fields.shareToAll,
               'shareToAll.limitByUserLocation': fields.limitByUserLocation
             });
@@ -304,11 +307,16 @@ module.exports = function () {
       })
     },
 
-    getDataSources(userID, callback) {
+    getDataSources(userID, orgId, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
         models.DataSourcesModel.find({ 
-          $or: [{'userID': userID}, {'shared.users': userID}, {'shareToAll.activated': true}]
+          $or: [
+            {'userID': userID}, 
+            {'shared.users': userID}, 
+            {'shareToAll.activated': true},
+            {$and: [{'shareToSameOrgid': true}, {'owner.orgId': orgId}]}
+          ]
         }).populate("shared.users", "userName").populate("userID", "userName").lean().exec({}, (err, sources) => {
           async.eachOfSeries(sources, (source, key, nxtSrc) => {
             // converting _bsontype property into normal property

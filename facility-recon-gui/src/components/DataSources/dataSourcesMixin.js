@@ -8,16 +8,28 @@ export const dataSourcesMixin = {
       host: '',
       username: '',
       password: '',
-      sourceType: ''
+      sourceType: '',
+      limitShareByOrgId: false,
+      shareWithAll: false,
+      shareToSameOrgid: true
     }
   },
   methods: {
+    sharingOptions () {
+      if (this.shareWithAll) {
+        this.shareToSameOrgid = false
+      }
+    },
     addDataSource (source) {
       let formData = new FormData()
       const clientId = this.$store.state.clientId
       formData.append('host', this.host)
       formData.append('sourceType', this.sourceType)
       formData.append('source', source)
+      formData.append('orgId', this.$store.state.dhis.user.orgId)
+      formData.append('shareToSameOrgid', this.shareToSameOrgid)
+      formData.append('shareToAll', this.shareWithAll)
+      formData.append('limitByUserLocation', this.limitShareByOrgId)
       formData.append('username', this.username)
       formData.append('password', this.password)
       formData.append('name', this.name)

@@ -456,7 +456,7 @@ export default {
       this.$store.state.dataSources = []
       let userID = this.$store.state.auth.userID
       axios
-        .get(backendServer + '/getDataSources/' + userID)
+        .get(backendServer + '/getDataSources/' + userID + '/' + this.$store.state.dhis.user.orgId)
         .then(response => {
           this.$store.state.loadingServers = false
           this.$store.state.dataSources = response.data.servers

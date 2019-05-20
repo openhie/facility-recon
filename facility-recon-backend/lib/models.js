@@ -60,12 +60,14 @@ let DataSources = new mongoose.Schema({
     type: String,
     required: true
   },
+  // share to specific users only
   shared: {
     users: [{
       type: Schema.Types.ObjectId,
       ref: 'Users'
     }]
   },
+  // share to all system users and decide to limit what they can view based on their attached location
   shareToAll: {
     limitByUserLocation: {
       type: Boolean
@@ -74,16 +76,31 @@ let DataSources = new mongoose.Schema({
       type: Boolean
     }
   },
+  // share wuth all users that are on the same orgid as the datasource owner
+  shareToSameOrgid: {
+    type: Boolean
+  },
   username: {
     type: String
   },
   password: {
     type: String
   },
+  // this will be removed in the future, we will rely on the owner.id instead
   userID: {
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true
+  },
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Users',
+      required: true
+    },
+    orgId: {
+      type: String
+    }
   }
 })
 
@@ -161,6 +178,9 @@ let MetaData = new mongoose.Schema({
           nameAutoMatch: {
             type: Boolean
           }
+        },
+        singlePair: {
+          type: Boolean
         }
       },
       recoProgressNotification: {

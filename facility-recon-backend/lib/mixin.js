@@ -12,7 +12,10 @@ module.exports = function () {
       let matchedIdentifier = identifier.find((identifier) => {
         return identifier.system === system
       })
-      let matchedId = matchedIdentifier.value.split('/').pop()
+      let matchedId
+      if (matchedIdentifier) {
+        matchedId = matchedIdentifier.value.split('/').pop()
+      }
       return matchedId
     }
   }

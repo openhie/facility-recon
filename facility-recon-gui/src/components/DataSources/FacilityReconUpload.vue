@@ -106,7 +106,7 @@
         </v-stepper-header>
         <v-stepper-items>
           <v-stepper-content step="1">
-            <v-card class="mb-5" height="200px">
+            <v-card class="mb-5" >
               <v-card-title>Upload CSV (utf-8 only) - <b>Select a CSV file and upload</b></v-card-title>
               <v-card-text>
                 <v-text-field
@@ -116,6 +116,44 @@
                   required
                 ></v-text-field>
                 <input type="file" @change="fileSelected">
+                <br><br>
+                <v-card v-if="$store.state.dhis.user.orgId">
+                  <v-card-title primary-title>
+                    Advanced Options
+                  </v-card-title>
+                  <v-card-text>
+                    <v-tooltip top>
+                      <v-checkbox
+                        :disabled="shareWithAll"
+                        slot="activator"
+                        color="primary"
+                        label="Share with other users of the same org unit as yours"
+                        v-model="shareToSameOrgid"
+                      ></v-checkbox>
+                      <span>
+                        Share this dataset with all other users that are on the same org unit as you
+                      </span>
+                    </v-tooltip>
+                    <v-checkbox
+                      @change="sharingOptions"
+                      color="primary"
+                      label="Share with all other users"
+                      v-model="shareWithAll">
+                    </v-checkbox>
+                    <v-tooltip top>
+                      <v-checkbox
+                        slot="activator"
+                        color="primary"
+                        v-if="shareWithAll"
+                        label="Limit orgs sharing by user orgid"
+                        v-model="limitShareByOrgId">
+                      </v-checkbox>
+                      <span>
+                        if activated, other users will see locations (including location children) that has the same location id as their location id
+                      </span>
+                    </v-tooltip>
+                  </v-card-text>
+                </v-card>
               </v-card-text>
             </v-card>
             <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName && uploadName && uploadNameErrors.length === 0'>Continue</v-btn>

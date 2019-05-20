@@ -12,6 +12,9 @@ const _ = require('underscore');
 const config = require('./config');
 const mcsd = require('./mcsd')();
 
+const topOrgId = config.getConf('mCSD:fakeOrgId')
+const topOrgName = config.getConf('mCSD:fakeOrgName')
+
 module.exports = function () {
   return {
     getJurisdictionScore(
@@ -117,6 +120,7 @@ module.exports = function () {
               entityParent = source1Entry.resource.partOf.reference;
             }
             mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'names', (source1Parents) => {
+              winston.error(JSON.stringify(source1Parents))
               const thisRanking = {};
               thisRanking.source1 = {
                 name: source1Entry.resource.name,
@@ -205,7 +209,11 @@ module.exports = function () {
               var source1ParentReceived = new Promise((resolve, reject) => {
                 mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'all', (parents) => {
                   source1Parents = parents;
+                  let fakeLocationExist = false
                   async.eachSeries(parents, (parent, nxtParent) => {
+                    if(parent.id == topOrgId) {
+                      fakeLocationExist = true
+                    }
                     source1ParentNames.push(
                       parent.text,
                     );
@@ -214,6 +222,14 @@ module.exports = function () {
                     );
                     return nxtParent();
                   }, () => {
+                    if(!fakeLocationExist) {
+                      source1ParentNames.push(topOrgName)
+                      source1ParentIds.push(topOrgId)
+                      source1Parents.push({
+                        id: topOrgId,
+                        text: topOrgName
+                      })
+                    }
                     resolve();
                   });
                 });
@@ -601,9 +617,15 @@ module.exports = function () {
               if (ident) {
                 source1BuildingId = ident.value;
               }
+              let parents
+              if(source1Parents[source1Parents.length - 1].id == topOrgId) {
+                parents = source1ParentNames.slice(0, source1Parents.length - 1)
+              } else {
+                parents = source1ParentNames
+              }
               thisRanking.source1 = {
                 name: source1Name,
-                parents: source1ParentNames.slice(0, source1Parents.length - 1),
+                parents: parents,
                 lat: source1Latitude,
                 long: source1Longitude,
                 id: source1BuildingId,

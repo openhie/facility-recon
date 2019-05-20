@@ -14,7 +14,7 @@
               <v-flex>
                 <v-switch
                   @change="configChanged('userConfig', 'useCSVHeader')"
-                  color="success"
+                  color="primary"
                   label="Use CSV header for display"
                   v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
                 >
@@ -35,9 +35,17 @@
               <v-flex>
                 <v-switch
                   @change="configChanged('generalConfig', 'parentConstraint')"
-                  color="success"
+                  color="primary"
                   label="Perform match based on parent constraint"
                   v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
+                >
+                </v-switch>
+                <v-switch
+                  v-if="$store.state.dhis.user.orgId"
+                  @change="configChanged('generalConfig', 'parentConstraint')"
+                  color="primary"
+                  label="Single data source pair per org unit"
+                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
                 >
                 </v-switch>
                 <v-card
@@ -63,7 +71,7 @@
               <v-flex>
                 <v-switch
                   @change="configChanged('generalConfig', 'authDisabled')"
-                  color="success"
+                  color="primary"
                   label="Disable Authentication"
                   v-model="$store.state.config.generalConfig.authDisabled"
                 >
@@ -150,7 +158,7 @@
               <v-flex>
                 <v-switch
                   @change="configChanged('generalConfig', 'selfRegistration')"
-                  color="success"
+                  color="primary"
                   label="Enable self registration"
                   v-model="$store.state.config.generalConfig.selfRegistration"
                 >
@@ -199,7 +207,7 @@
               <v-flex xs1>
                 <v-switch
                   @change="configChanged('generalConfig', 'recoProgressNotification')"
-                  color="success"
+                  color="primary"
                   label="Enable Endpoint Notification when reconciliation is done"
                   v-model="$store.state.config.generalConfig.recoProgressNotification.enabled"
                 >

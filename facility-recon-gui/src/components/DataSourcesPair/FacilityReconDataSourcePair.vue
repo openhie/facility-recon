@@ -350,6 +350,18 @@ export default {
       axios
         .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
+          if (levels.data.totalSource1Levels === 1) {
+            this.$store.state.errorTitle = 'No data for you'
+            this.$store.state.errorDescription = 'Cant create this pair, ' + this.source1.name + ' has no data for you'
+            this.$store.state.dialogError = true
+            return
+          }
+          if (levels.data.totalSource2Levels === 1) {
+            this.$store.state.errorTitle = 'No data for you'
+            this.$store.state.errorDescription = 'Cant create this pair, ' + this.source2.name + ' has no data for you'
+            this.$store.state.dialogError = true
+            return
+          }
           if (levels.data.totalSource1Levels > levels.data.totalSource2Levels) {
             this.$store.state.errorTitle = 'Levels mismatch'
             this.$store.state.errorDescription = 'Make sure source1 has the same or less levels as source2'

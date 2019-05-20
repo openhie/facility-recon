@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-dialog
       v-model="helpDialog"
-      scrollable 
+      scrollable
       persistent :overlay="false"
       max-width="700px"
       transition="dialog-transition"
@@ -67,8 +67,8 @@
           </v-card-title>
           <v-card-text>
             <v-radio-group v-model="dataSource" row @change="sourceSelected">
-              <v-radio label="Upload CSV" value="upload"></v-radio>
-              <v-radio label="Remote Souce" value="remote"></v-radio>
+              <v-radio color="primary" label="Upload CSV" value="upload"></v-radio>
+              <v-radio color="primary" label="Remote Souce" value="remote"></v-radio>
             </v-radio-group>
           </v-card-text>
         </v-card>

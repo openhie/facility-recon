@@ -10,12 +10,19 @@ export const generalMixin = {
     toTitleCase (str) {
       return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('')
     },
+
     translateDataHeader (source, level) {
-      if (!this.$store.state.config.userConfig.reconciliation.useCSVHeader) {
+      let useCSVHeader = this.$store.state.config.userConfig.reconciliation.useCSVHeader
+      let levelMapping = this.$store.state.levelMapping
+      /**
+       * if the use of CSV Headers is not enabled or csv header enabled but level mapping were not available
+       * and instead the app manually mapped i.e level1 to level1, level2 to level2 .... facility to level5
+      */
+      if (!useCSVHeader || (useCSVHeader && levelMapping[source]['level' + level] === 'level' + level)) {
         return 'Level ' + level
       }
       if (Object.keys(this.$store.state.levelMapping[source]).length > 0) {
-        // get level adjustment for shared sources with limited org unites
+        // get level adjustment for shared sources with limited org units
         let levelMapping = this.$store.state.levelMapping[source]
         let countLevelMapping = 1
         for (let level in levelMapping) {
@@ -96,6 +103,10 @@ export const generalMixin = {
         })
         if (limit) {
           sourceLimitOrgId.source1LimitOrgId = limit.location
+        } else {
+          if (dtSrc1.shareToAll.activated && dtSrc1.shareToAll.limitByUserLocation) {
+            sourceLimitOrgId.source1LimitOrgId = this.$store.state.dhis.user.orgId
+          }
         }
       }
 
@@ -105,9 +116,12 @@ export const generalMixin = {
         })
         if (limit) {
           sourceLimitOrgId.source2LimitOrgId = limit.location
+        } else {
+          if (dtSrc2.shareToAll.activated && dtSrc2.shareToAll.limitByUserLocation) {
+            sourceLimitOrgId.source2LimitOrgId = this.$store.state.dhis.user.orgId
+          }
         }
       }
-
       return sourceLimitOrgId
     },
     getLimitOrgIdOnDataSource (dataSource) {
@@ -119,9 +133,12 @@ export const generalMixin = {
         })
         if (limit) {
           limitOrgId = limit.location
+        } else {
+          if (dataSource.shareToAll.activated && dataSource.shareToAll.limitByUserLocation) {
+            limitOrgId = this.$store.state.dhis.user.orgId
+          }
         }
       }
-
       return limitOrgId
     },
     getRoles () {
