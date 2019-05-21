@@ -309,6 +309,9 @@ module.exports = function () {
 
     getDataSources(userID, orgId, callback) {
       const mongoose = require('mongoose')
+      if(!orgId) {
+        orgId = "undefined"
+      }
       mongoose.connect(uri, {}, () => {
         models.DataSourcesModel.find({ 
           $or: [
@@ -354,33 +357,48 @@ module.exports = function () {
     addDataSourcePair(sources, callback) {
       const mongoose = require('mongoose')
       mongoose.connect(uri, {}, () => {
-        winston.error(sources.activePairID)
-        winston.error(sources.userID)
-        if(sources.activePairID) {
-          models.DataSourcePairModel.findByIdAndUpdate(sources.activePairID, {$pull: {'shared.activeUsers': sources.userID}}, (err, data) => {
-
-          })
-        }
-        models.DataSourcePairModel.find({'status': 'active', 'userID': sources.userID}).lean().exec({}, (err, data) => {
-          if (data) {
-            async.each(data, (dt, nxtDt) => {
-              models.DataSourcePairModel.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (err, data) => {
-                return nxtDt()
-              })
-            }, () => {
-              add(sources, (err, res) => {
-                return callback(err, res)
-              })
-            })
-          } else {
-            add(sources, (err, res) => {
-              return callback(err, res)
-            })
+        let createPair = true
+        let errMsg
+        this.getDataSourcePair(sources.userID, sources.orgId, (err, sourcePair) => {
+          if(sourcePair.length > 0 && sources.singlePair) {
+            errMsg = "Single pair limit is active and a pair already exists, cant create more pairs"
+            createPair = false
           }
+          async.parallel({
+            deactivateShared: (callback) => {
+              if(sources.activePairID && createPair) {
+                this.deActivateSharedPair(sources.activePairID, sources.userID, (err, data) => {
+                  return callback(err, data)
+                })
+              } else {
+                return callback(false, false)
+              }
+            },
+
+            deactivatePairs: (callback) => {
+              if(createPair) {
+                this.deActivatePairs(sources.userID, (err, data) => {
+                  return callback(err, data)
+                })
+              } else {
+                return callback(false, false)
+              }
+            }
+          }, (error, results) => {
+            if(error) {
+              return callback(true, false, false)
+            }
+            add(sources, createPair, (err, res) => {
+              if(!createPair) {
+                return callback(true, errMsg, res)
+              }
+              return callback(err, errMsg, res)
+            })
+          })
         })
       })
 
-      function add(sources, callback) {
+      function add(sources, createPair, callback) {
         let source1 = JSON.parse(sources.source1)
         let source2 = JSON.parse(sources.source2)
         models.DataSourcePairModel.findOneAndUpdate({
@@ -390,19 +408,22 @@ module.exports = function () {
         }, {
           source1: source1._id,
           source2: source2._id,
+          'orgId': sources.orgId,
           status: 'active'
         }, (err, data) => {
           if (err) {
             return callback(err,false)
           }
-          if (!data) {
+          if (!data && createPair) {
             const dataSourcePair = new models.DataSourcePairModel({
               source1: source1._id,
               source2: source2._id,
               status: 'active',
-              userID: sources.userID
+              userID: sources.userID,
+              'owner.id': sources.userID,
+              'owner.orgId': sources.orgId,
             })
-            dataSourcePair.save((err, data) =>{
+            dataSourcePair.save((err, data) => {
               if(err) {
                 winston.error(err)
                 return callback(true, false)
@@ -436,6 +457,32 @@ module.exports = function () {
             })
           }
         })
+      })
+    },
+
+    deActivateSharedPair(pairId, userID, callback) {
+      models.DataSourcePairModel.findByIdAndUpdate(pairId, {$pull: {'shared.activeUsers': userID}}, (err, data) => {
+        return callback(err, data)
+      })
+    },
+
+    deActivatePairs(userID, callback) {
+      models.DataSourcePairModel.find({'status': 'active', 'userID': userID}).lean().exec({}, (err, data) => {
+        if (data) {
+          async.each(data, (dt, nxtDt) => {
+            models.DataSourcePairModel.findByIdAndUpdate(dt._id, {'status': 'inactive'}, (errs, data) => {
+              err = errs
+              if(errs) {
+                err = errs
+              }
+              return nxtDt()
+            })
+          }, () => {
+            return callback(err, data)
+          })
+        } else {
+          return callback(err, data)
+        }
       })
     },
 
@@ -475,11 +522,19 @@ module.exports = function () {
         })
       })
     },
-    getDataSourcePair(userID, callback) {
+    getDataSourcePair(userID, orgId, callback) {
       let mongoose = require('mongoose')
+      // need to do it this way 
+      if(!orgId) {
+        orgId = "undefined"
+      }
       mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.find({ $or: [{'userID': userID}, {'shared.users': userID}]
-          
+        models.DataSourcePairModel.find({ 
+          $or: [
+            {'userID': userID}, 
+            {'shared.users': userID},
+            {'owner.orgId': orgId}
+          ]
         }).populate("source1", "name userID").populate("source2", "name userID").populate("userID", "userName").populate("shared.users", "userName").lean().exec({}, (err, data) => {
           return callback(err, data)
         })

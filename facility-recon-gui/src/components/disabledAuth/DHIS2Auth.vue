@@ -22,13 +22,22 @@ export default {
           })
         }
       })
+      .catch((err) => {
+        console.log(err)
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        this.$store.state.errorDescription = 'An error has occured, switching back to GOFR authentication mode'
+        this.$store.state.config.generalConfig.authDisabled = false
+        this.$store.state.initializingApp = false
+        this.saveConfiguration('generalConfig', 'authDisabled')
+      })
     }
   },
   created () {
-    if (process.env.NODE_ENV === 'development') {
-      this.$store.state.dhis.host = 'https://play.dhis2.org/2.31.2/'
-    } else if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production') {
       this.$store.state.dhis.host = location.href.split('api').shift()
+    } else if (process.env.NODE_ENV === 'development') {
+      this.$store.state.dhis.host = 'https://play.dhis2.org/2.31.2/'
     }
     axios.defaults.params = {
       authDisabled: true

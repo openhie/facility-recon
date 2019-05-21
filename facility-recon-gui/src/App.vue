@@ -234,6 +234,10 @@
             <v-toolbar-title>
               {{$store.state.errorTitle}}
             </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="$store.state.dialogError = false">
+              <v-icon>close</v-icon>
+            </v-btn>
           </v-toolbar>
           <v-card-text>
             {{$store.state.errorDescription}}
@@ -270,7 +274,7 @@
         wrap
       >
         <v-flex xs6>
-          <template v-if="Object.keys($store.state.activePair.source1).length > 0 && $store.state.auth.token">
+          <template v-if="Object.keys($store.state.activePair.source1).length > 0 && !$store.state.denyAccess">
             {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
             &nbsp; &nbsp; Recon Status: <v-icon
               small
@@ -499,7 +503,7 @@ export default {
       this.$store.state.activePair.source2 = {}
       let userID = this.$store.state.auth.userID
       axios
-        .get(backendServer + '/getDataSourcePair/' + userID)
+        .get(backendServer + '/getDataSourcePair/' + userID + '/' + this.$store.state.dhis.user.orgId)
         .then(response => {
           this.$store.state.dataSourcePairs = response.data
           let activeSource = this.getActiveDataSourcePair()

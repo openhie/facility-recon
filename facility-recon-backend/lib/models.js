@@ -140,10 +140,21 @@ let DataSourcePair = new mongoose.Schema({
       ref: 'Users'
     }]
   },
+  // this will be removed in the future, we will rely on the owner.id instead
   userID: {
     type: Schema.Types.ObjectId,
     ref: 'Users',
     required: true
+  },
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'Users',
+      required: true
+    },
+    orgId: {
+      type: String
+    }
   }
 })
 

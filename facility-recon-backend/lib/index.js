@@ -57,10 +57,11 @@ let jwtValidator = function (req, res, next) {
     req.path == "/getSignupConf" ||
     req.path == "/getGeneralConfig" ||
     req.path == "/addUser/" ||
-    req.path == "/gofr" ||
+    req.path == "/" ||
     req.path.startsWith("/static/js") ||
     req.path.startsWith("/static/css") ||
-    req.path.startsWith("/static/img")
+    req.path.startsWith("/static/img") ||
+    req.path.startsWith("/favicon.ico")
   ) {
     return next()
   }
@@ -97,7 +98,7 @@ let jwtValidator = function (req, res, next) {
   }
 }
 
-app.use(cleanReqPath)
+// app.use(cleanReqPath)
 app.use(jwtValidator)
 app.use(express.static(__dirname + '/../gui'));
 app.use(cors({
@@ -990,6 +991,7 @@ if (cluster.isMaster) {
     let sourcesLimitOrgId = JSON.parse(req.params.sourcesLimitOrgId)
     let source1LimitOrgId = sourcesLimitOrgId.source1LimitOrgId
     let source2LimitOrgId = sourcesLimitOrgId.source2LimitOrgId
+
     if(!source1LimitOrgId) {
       source1LimitOrgId = topOrgId
     }
@@ -2843,7 +2845,7 @@ if (cluster.isMaster) {
     });
   });
 
-  app.get('/getDataSources/:userID/:orgId', (req, res) => {
+  app.get('/getDataSources/:userID/:orgId?', (req, res) => {
     winston.info('received request to get data sources');
     mongo.getDataSources(req.params.userID, req.params.orgId, (err, servers) => {
       if (err) {
@@ -2886,11 +2888,26 @@ if (cluster.isMaster) {
     winston.info('Received a request to save data source pairs')
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      mongo.addDataSourcePair(fields, (error, results) => {
+      try {
+        fields.singlePair = JSON.parse(fields.singlePair)
+      } catch (error) {
+        winston.error(error)
+      }
+
+      try {
+        fields.activePairID = JSON.parse(fields.activePairID)
+      } catch (error) {
+        
+      }
+      mongo.addDataSourcePair(fields, (error, errMsg, results) => {
         if (error) {
-          winston.error(error)
+          if(errMsg) {
+            winston.error(errMsg)
+          } else {
+            winston.error(error)
+          }
           res.status(400).json({
-            error: 'Unexpected error occured while saving'
+            error: errMsg
           })
         } else {
           let db1 = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID._id
@@ -2948,9 +2965,9 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/getDataSourcePair/:userID', (req, res) => {
+  app.get('/getDataSourcePair/:userID/:orgId?', (req, res) => {
     winston.info("Received a request to get data source pair")
-    mongo.getDataSourcePair(req.params.userID, (err, sourcePair) => {
+    mongo.getDataSourcePair(req.params.userID, req.params.orgId, (err, sourcePair) => {
       if (err) {
         winston.error('Unexpected error occured while getting data source pairs')
         winston.error(err)
@@ -3207,7 +3224,7 @@ if (cluster.isMaster) {
     })
   })
 
-  app.get('/gofr', function (req, res) {
+  app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/../gui/index.html'));
   });
   app.get('/static/js/:file', function (req, res) {

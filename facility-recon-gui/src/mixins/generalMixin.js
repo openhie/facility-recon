@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { eventBus } from '@/main'
 const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
   data () {
@@ -106,6 +107,9 @@ export const generalMixin = {
         } else {
           if (dtSrc1.shareToAll.activated && dtSrc1.shareToAll.limitByUserLocation) {
             sourceLimitOrgId.source1LimitOrgId = this.$store.state.dhis.user.orgId
+            if (!sourceLimitOrgId.source1LimitOrgId) {
+              sourceLimitOrgId.source1LimitOrgId = 'undefined'
+            }
           }
         }
       }
@@ -119,6 +123,9 @@ export const generalMixin = {
         } else {
           if (dtSrc2.shareToAll.activated && dtSrc2.shareToAll.limitByUserLocation) {
             sourceLimitOrgId.source2LimitOrgId = this.$store.state.dhis.user.orgId
+            if (!sourceLimitOrgId.source2LimitOrgId) {
+              sourceLimitOrgId.source2LimitOrgId = 'undefined'
+            }
           }
         }
       }
@@ -136,6 +143,9 @@ export const generalMixin = {
         } else {
           if (dataSource.shareToAll.activated && dataSource.shareToAll.limitByUserLocation) {
             limitOrgId = this.$store.state.dhis.user.orgId
+            if (!limitOrgId) {
+              limitOrgId = 'undefined'
+            }
           }
         }
       }
@@ -149,6 +159,32 @@ export const generalMixin = {
       }).catch((err) => {
         console.log(err.response)
       })
+    },
+    saveConfiguration (configLevel, configName) {
+      let userID = this.$store.state.auth.userID
+      let formData = new FormData()
+      formData.append('config', JSON.stringify(this.$store.state.config))
+      formData.append('userID', userID)
+      let endPoint
+      if (configLevel === 'generalConfig') {
+        endPoint = '/updateGeneralConfig'
+      } else {
+        endPoint = '/updateUserConfig'
+      }
+      axios
+        .post(backendServer + endPoint, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(() => {
+          if (configName === 'useCSVHeader') {
+            eventBus.$emit('changeCSVHeaderNames')
+          }
+          if (configName === 'authDisabled') {
+            this.$router.push({ name: 'Logout' })
+          }
+        })
     }
   }
 }

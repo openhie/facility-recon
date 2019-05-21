@@ -19,7 +19,6 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-    backend: 'http://localhost:3000',
     // Use Eslint Loader?
     // If true, your code will be linted during bundling and
     // linting errors and warnings will be shown in the console.
@@ -51,8 +50,6 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../../facility-recon-backend/gui'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '',
-
-    backend: 'http://localhost:3000/gofr',
     /**
      * Source Maps
      */

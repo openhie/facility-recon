@@ -13,7 +13,7 @@
             <v-layout column>
               <v-flex>
                 <v-switch
-                  @change="configChanged('userConfig', 'useCSVHeader')"
+                  @change="saveConfiguration('userConfig', 'useCSVHeader')"
                   color="primary"
                   label="Use CSV header for display"
                   v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
@@ -34,7 +34,7 @@
             <v-layout column>
               <v-flex>
                 <v-switch
-                  @change="configChanged('generalConfig', 'parentConstraint')"
+                  @change="saveConfiguration('generalConfig', 'parentConstraint')"
                   color="primary"
                   label="Perform match based on parent constraint"
                   v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
@@ -42,7 +42,7 @@
                 </v-switch>
                 <v-switch
                   v-if="$store.state.dhis.user.orgId"
-                  @change="configChanged('generalConfig', 'parentConstraint')"
+                  @change="saveConfiguration('generalConfig', 'parentConstraint')"
                   color="primary"
                   label="Single data source pair per org unit"
                   v-model="$store.state.config.generalConfig.reconciliation.singlePair"
@@ -54,14 +54,14 @@
                   style="margin-left:100px"
                 >
                   <v-checkbox
-                    @change="configChanged('generalConfig', 'parConstrIdAuto')"
+                    @change="saveConfiguration('generalConfig', 'parConstrIdAuto')"
                     color="success"
                     label="Automatch By ID"
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.idAutoMatch"
                     disabled
                   ></v-checkbox>
                   <v-checkbox
-                    @change="configChanged('generalConfig', 'parConstrNameAuto')"
+                    @change="saveConfiguration('generalConfig', 'parConstrNameAuto')"
                     color="success"
                     label="Automatch By Name (when parents differ)"
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.nameAutoMatch"
@@ -70,7 +70,7 @@
               </v-flex>
               <v-flex>
                 <v-switch
-                  @change="configChanged('generalConfig', 'authDisabled')"
+                  @change="saveConfiguration('generalConfig', 'authDisabled')"
                   color="primary"
                   label="Disable Authentication"
                   v-model="$store.state.config.generalConfig.authDisabled"
@@ -84,13 +84,13 @@
                   External Authentication Method
                   <v-radio-group
                     v-model="$store.state.config.generalConfig.authMethod"
-                    @change="configChanged('generalConfig', 'useDhis2Auth')"
+                    @change="saveConfiguration('generalConfig', 'useDhis2Auth')"
                   >
                     <v-radio label="dhis2" value="dhis2" disabled></v-radio>
                     <v-radio label="iHRIS" value="iHRIS" disabled></v-radio>
                   </v-radio-group>
                   <v-select
-                    @change="configChanged('generalConfig', 'externalAuth')"
+                    @change="saveConfiguration('generalConfig', 'externalAuth')"
                     label="Superuser Role Name"
                     item-text='displayName'
                     item-value='id'
@@ -100,21 +100,21 @@
                     v-model="$store.state.config.generalConfig.externalAuth.adminRole"
                   ></v-select>
                   <v-checkbox
-                    @change="configChanged('generalConfig', 'externalAuth')"
+                    @change="saveConfiguration('generalConfig', 'externalAuth')"
                     color="success"
                     v-if="$store.state.config.generalConfig.authMethod"
                     label="Pull org units"
                     v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits">
                   </v-checkbox>
                   <v-checkbox
-                    @change="configChanged('generalConfig', 'externalAuth')"
+                    @change="saveConfiguration('generalConfig', 'externalAuth')"
                     color="success"
                     v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
                     label="Share orgs with other users"
                     v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits">
                   </v-checkbox>
                   <v-checkbox
-                    @change="configChanged('generalConfig', 'externalAuth')"
+                    @change="saveConfiguration('generalConfig', 'externalAuth')"
                     color="success"
                     v-if="
                       $store.state.config.generalConfig.externalAuth.shareOrgUnits &&
@@ -157,7 +157,7 @@
               </v-flex>
               <v-flex>
                 <v-switch
-                  @change="configChanged('generalConfig', 'selfRegistration')"
+                  @change="saveConfiguration('generalConfig', 'selfRegistration')"
                   color="primary"
                   label="Enable self registration"
                   v-model="$store.state.config.generalConfig.selfRegistration"
@@ -206,7 +206,7 @@
               </v-flex>
               <v-flex xs1>
                 <v-switch
-                  @change="configChanged('generalConfig', 'recoProgressNotification')"
+                  @change="saveConfiguration('generalConfig', 'recoProgressNotification')"
                   color="primary"
                   label="Enable Endpoint Notification when reconciliation is done"
                   v-model="$store.state.config.generalConfig.recoProgressNotification.enabled"
@@ -276,8 +276,10 @@ import RemoteSync from './DataSources/RemoteSync'
 import { eventBus } from '../main'
 import VueCookies from 'vue-cookies'
 import { required } from 'vuelidate/lib/validators'
+import { generalMixin } from '@/mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 export default {
+  mixins: [generalMixin],
   validations: {
     facility: {
       required: required
@@ -307,32 +309,6 @@ export default {
     }
   },
   methods: {
-    configChanged (configLevel, configName) {
-      let userID = this.$store.state.auth.userID
-      let formData = new FormData()
-      formData.append('config', JSON.stringify(this.$store.state.config))
-      formData.append('userID', userID)
-      let endPoint
-      if (configLevel === 'generalConfig') {
-        endPoint = '/updateGeneralConfig'
-      } else {
-        endPoint = '/updateUserConfig'
-      }
-      axios
-        .post(backendServer + endPoint, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        .then(() => {
-          if (configName === 'useCSVHeader') {
-            eventBus.$emit('changeCSVHeaderNames')
-          }
-          if (configName === 'authDisabled') {
-            this.$router.push({ name: 'Logout' })
-          }
-        })
-    },
     recoProgressNotificationChanged () {
       if (!this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
         this.$store.state.config.generalConfig.recoProgressNotification = {}
@@ -340,7 +316,7 @@ export default {
       this.$store.state.config.generalConfig.recoProgressNotification.url = this.notification_endpoint
       this.$store.state.config.generalConfig.recoProgressNotification.username = this.notification_username
       this.$store.state.config.generalConfig.recoProgressNotification.password = this.notification_password
-      this.configChanged('generalConfig')
+      this.saveConfiguration('generalConfig')
     },
     addMoreFields () {
       this.$store.state.progressTitle = 'Saving field'
@@ -397,7 +373,7 @@ export default {
       }
     },
     pullOrgUnits () {
-      this.configChanged('generalConfig', 'externalAuth')
+      this.saveConfiguration('generalConfig', 'externalAuth')
       let formData = new FormData()
       formData.append('host', this.$store.state.dhis.host)
       formData.append('sourceType', 'DHIS2')
@@ -437,11 +413,13 @@ export default {
     }
   },
   created () {
-    this.loadingDhis2Roles = true
-    this.getDHIS2Roles((roles) => {
-      this.loadingDhis2Roles = false
-      this.dhis2Roles = roles.data.userRoles
-    })
+    if (this.$store.state.config.generalConfig.authDisabled && this.$store.state.config.generalConfig.authMethod === 'dhis2') {
+      this.loadingDhis2Roles = true
+      this.getDHIS2Roles((roles) => {
+        this.loadingDhis2Roles = false
+        this.dhis2Roles = roles.data.userRoles
+      })
+    }
     this.signupFields.push({
       id: 'signupFields',
       name: 'Self Registration Fields',

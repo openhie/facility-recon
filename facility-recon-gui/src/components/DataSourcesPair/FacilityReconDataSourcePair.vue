@@ -2,7 +2,7 @@
   <v-container fluid>
     <center>
       <v-alert
-        style="width: 500px"
+        style="width: 1000px"
         v-model="alertSuccess"
         type="success"
         dismissible
@@ -11,7 +11,7 @@
         {{alertMsg}}
       </v-alert>
       <v-alert
-        style="width: 500px"
+        style="width: 1000px"
         v-model="alertError"
         type="error"
         dismissible
@@ -19,6 +19,35 @@
       >
         {{alertMsg}}
       </v-alert>
+      <v-dialog
+        v-model="pairLimitWarn"
+        scrollable
+        persistent :overlay="false"
+        max-width="770px"
+        transition="dialog-transition"
+      >
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>
+              <v-icon>info</v-icon> Pair creation limit
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click.native="pairLimitWarn = false">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            You cant create more pairs as this account is limited to one pair only at a time.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              @click.native="pairLimitWarn = false"
+            >Ok</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <v-dialog
         v-model="mapSourcePairLevels"
         scrollable
@@ -194,7 +223,7 @@
             <v-card-actions>
               <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
               <v-spacer></v-spacer>
-              <v-btn color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
+              <v-btn  color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -245,8 +274,8 @@
 </template>
 <script>
 import axios from 'axios'
-import { eventBus } from '../../main'
-import { generalMixin } from '../../mixins/generalMixin'
+import { eventBus } from '@/main'
+import { generalMixin } from '@/mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   mixins: [generalMixin],
@@ -256,6 +285,7 @@ export default {
       alertSuccess: false,
       alertError: false,
       alertMsg: '',
+      pairLimitWarn: false,
       shareDialog: false,
       mapSourcePairLevels: false,
       pairLevelsMapping: {},
@@ -330,7 +360,6 @@ export default {
         console.log(error)
       })
     },
-    // this function is no longer in use at the moment, it is intended to be used for mapping levels when a pair has data sources with different levels
     checkLevels () {
       this.pairLevelsMapping = {}
       let source1 = this.source1.name
@@ -413,6 +442,7 @@ export default {
         this.$store.state.errorDescription = 'Data source pair of the same data source is not allowed, change one of the source'
         return
       }
+
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Saving Data Sources'
       let activePairID = null
@@ -422,10 +452,19 @@ export default {
       ) {
         activePairID = this.$store.state.activePair._id
       }
+      let singlePair = false
+      if (this.$store.state.dhis.user.orgId && this.$store.state.config.generalConfig.reconciliation.singlePair) {
+        singlePair = true
+      }
+      if (!activePairID) {
+        activePairID = false
+      }
       let formData = new FormData()
       formData.append('source1', JSON.stringify(this.source1))
       formData.append('source2', JSON.stringify(this.source2))
       formData.append('userID', this.$store.state.auth.userID)
+      formData.append('orgId', this.$store.state.dhis.user.orgId)
+      formData.append('singlePair', singlePair)
       formData.append('activePairID', activePairID)
       axios.post(backendServer + '/addDataSourcePair', formData, {
         headers: {
@@ -440,7 +479,14 @@ export default {
         this.$store.state.dynamicProgress = false
       }).catch((error) => {
         this.alertError = true
-        this.alertMsg = 'Something went wrong while saving data source pairs'
+        this.$store.state.dialogError = true
+        if (error.response.data.error) {
+          this.$store.state.errorDescription = error.response.data.error
+          this.$store.state.errorTitle = 'Pair was not created'
+          this.alertMsg = error.response.data.error
+        } else {
+          this.alertMsg = 'Something went wrong while saving data source pairs.'
+        }
         this.$store.state.dynamicProgress = false
         console.log(error)
       })
@@ -464,20 +510,19 @@ export default {
         this.alertError = true
         this.alertMsg = 'Something went wrong while activating data source pair'
         this.$store.state.dynamicProgress = false
-        console.log(error)
+        console.log(error.response.data)
       })
     },
     activatePair () {
-      this.source1 = this.$store.state.dataSources.find((dataSource) => {
-        return dataSource._id === this.activeDataSourcePair.source1._id
-      })
-      this.source2 = this.$store.state.dataSources.find((dataSource) => {
-        return dataSource._id === this.activeDataSourcePair.source2._id
-      })
-      // in case this dataset is a shared dataset
-      if (!this.source1 || !this.source2) {
+      if (this.activeDataSourcePair.userID._id !== this.$store.state.auth.userID) {
         this.activateSharedPair(this.activeDataSourcePair._id)
       } else {
+        this.source1 = this.$store.state.dataSources.find((dataSource) => {
+          return dataSource._id === this.activeDataSourcePair.source1._id
+        })
+        this.source2 = this.$store.state.dataSources.find((dataSource) => {
+          return dataSource._id === this.activeDataSourcePair.source2._id
+        })
         this.createPair()
       }
     },
@@ -523,7 +568,23 @@ export default {
       })
     }
   },
+  computed: {
+    canCreatePair () {
+      if (this.$store.state.dhis.user.orgId && this.$store.state.config.generalConfig.reconciliation.singlePair) {
+        if (this.$store.state.dataSourcePairs.length === 0) {
+          return true
+        } else {
+          return false
+        }
+      } else {
+        return true
+      }
+    }
+  },
   created () {
+    if (!this.canCreatePair) {
+      this.pairLimitWarn = true
+    }
     this.getUsers()
     this.source1 = this.$store.state.dataSources.find((dataSource) => {
       return dataSource._id === this.$store.state.activePair.source1.id
