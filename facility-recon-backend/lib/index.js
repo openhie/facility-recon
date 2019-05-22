@@ -40,15 +40,7 @@ const mongoHost = config.getConf("DB_HOST")
 const mongoPort = config.getConf("DB_PORT")
 
 const app = express();
-const server = require('http').createServer(app);
-
-let cleanReqPath = function (req, res, next) {
-  let modified_url = req.url.replace("/gofr", '')
-  if (modified_url) {
-    req.url = req.url.replace('/gofr', '')
-  }
-  return next()
-}
+const server = require('http').createServer(app)
 
 let jwtValidator = function (req, res, next) {
   if (req.method == "OPTIONS" ||

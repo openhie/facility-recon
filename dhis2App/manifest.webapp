@@ -1,13 +1,13 @@
 {
-    "version": "1.0",
+    "version": "3.0",
     "appType": "APP",
     "name": "Facility Reconciliation",
     "description": "Facility Reconciliation",
     "launch_path": "index.html",
     "icons": {
-        "16": "pepfar.jpeg",
-        "48": "pepfar.jpeg",
-        "128": "pepfar.jpeg"
+        "16": "logo.jpeg",
+        "48": "logo.jpeg",
+        "128": "logo.jpeg"
     },
     "developer": {
         "name": "Intrahealth - Digital Health Team",

@@ -1,5 +1,36 @@
 <template>
   <v-container>
+    <v-dialog persistent v-model="defineSuperuserRole" width="620px">
+      <v-card>
+        <v-toolbar color="primary" dark>
+          <v-toolbar-title>
+            DHIS2 Superuser Role
+          </v-toolbar-title>
+        </v-toolbar>
+        <v-card-text>
+          <v-select
+            @change="saveConfiguration('generalConfig', 'externalAuth')"
+            label="Superuser Role Name"
+            item-text='displayName'
+            item-value='id'
+            :loading="loadingDhis2Roles"
+            required
+            :items="dhis2Roles"
+            v-model="$store.state.config.generalConfig.externalAuth.adminRole"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="success"
+            :disabled='!$store.state.config.generalConfig.externalAuth.adminRole'
+            @click="saveConfiguration('generalConfig', 'authDisabled')"
+          >
+            <v-icon left>save</v-icon>
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-card>
       <v-card-title primary-title>
         <b>System Configurations</b>
@@ -70,7 +101,7 @@
               </v-flex>
               <v-flex>
                 <v-switch
-                  @change="saveConfiguration('generalConfig', 'authDisabled')"
+                  @change="disableGOFRAuth"
                   color="primary"
                   label="Disable Authentication"
                   v-model="$store.state.config.generalConfig.authDisabled"
@@ -273,7 +304,7 @@
 <script>
 import axios from 'axios'
 import RemoteSync from './DataSources/RemoteSync'
-import { eventBus } from '../main'
+import { eventBus } from '@/main'
 import VueCookies from 'vue-cookies'
 import { required } from 'vuelidate/lib/validators'
 import { generalMixin } from '@/mixins/generalMixin'
@@ -305,10 +336,24 @@ export default {
       notification_password: '',
       dhis2Roles: [],
       loadingDhis2Roles: false,
-      datasetNameErrors: []
+      datasetNameErrors: [],
+      defineSuperuserRole: false
     }
   },
   methods: {
+    disableGOFRAuth () {
+      if (!this.$store.state.config.generalConfig.authDisabled) {
+        this.saveConfiguration('generalConfig', 'authDisabled')
+      } else if (this.$store.state.config.generalConfig.authDisabled) {
+        this.setDHIS2Credentials()
+        this.loadingDhis2Roles = true
+        this.getDHIS2Roles((roles) => {
+          this.loadingDhis2Roles = false
+          this.dhis2Roles = roles.data.userRoles
+        })
+        this.defineSuperuserRole = true
+      }
+    },
     recoProgressNotificationChanged () {
       if (!this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
         this.$store.state.config.generalConfig.recoProgressNotification = {}
@@ -395,7 +440,10 @@ export default {
     },
     getDHIS2Roles (callback) {
       let auth = this.$store.state.dhis.dev.auth
-      axios.get(this.$store.state.dhis.host + 'api/userRoles', {auth}).then((roles) => {
+      if (auth.username === '') {
+        auth = ''
+      }
+      axios.get(this.$store.state.dhis.host + 'api/userRoles').then((roles) => {
         callback(roles)
       })
     },

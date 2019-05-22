@@ -223,7 +223,7 @@
             <v-card-actions>
               <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
               <v-spacer></v-spacer>
-              <v-btn  color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
+              <v-btn :disabled='canCreatePair' color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>

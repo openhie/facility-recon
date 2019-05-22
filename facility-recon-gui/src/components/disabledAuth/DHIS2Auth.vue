@@ -4,14 +4,17 @@
 
 <script>
 import axios from 'axios'
-import { eventBus } from '../../main'
-import { generalMixin } from '../../mixins/generalMixin'
+import { eventBus } from '@/main'
+import { generalMixin } from '@/mixins/generalMixin'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   mixins: [generalMixin],
   methods: {
     getDHIS2UserData (callback) {
       let auth = this.$store.state.dhis.dev.auth
+      if (auth.username === '') {
+        auth = ''
+      }
       axios.get(this.$store.state.dhis.host + 'api/me', {auth}).then((userData) => {
         var orgUnitsIDs = userData.data.organisationUnits
         if (orgUnitsIDs.length > 0) {
@@ -23,25 +26,22 @@ export default {
         }
       })
       .catch((err) => {
-        console.log(err)
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = 'An error has occured, switching back to GOFR authentication mode'
-        this.$store.state.config.generalConfig.authDisabled = false
-        this.$store.state.initializingApp = false
-        this.saveConfiguration('generalConfig', 'authDisabled')
+        if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
+          this.$store.state.errorDescription = 'Unauthorized, please reload the app'
+          this.$router.push({ name: 'Logout' })
+        } else {
+          this.$store.state.errorDescription = 'An error has occured, switching back to GOFR authentication mode'
+          this.$store.state.config.generalConfig.authDisabled = false
+          this.$store.state.initializingApp = false
+          this.saveConfiguration('generalConfig', 'authDisabled')
+        }
       })
     }
   },
   created () {
-    if (process.env.NODE_ENV === 'production') {
-      this.$store.state.dhis.host = location.href.split('api').shift()
-    } else if (process.env.NODE_ENV === 'development') {
-      this.$store.state.dhis.host = 'https://play.dhis2.org/2.31.2/'
-    }
-    axios.defaults.params = {
-      authDisabled: true
-    }
+    this.setDHIS2Credentials()
     this.getRoles()
     this.getDHIS2UserData((dhis2User) => {
       let isAdmin = dhis2User.data.userCredentials.userRoles.find((role) => {

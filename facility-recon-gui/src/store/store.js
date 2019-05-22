@@ -69,8 +69,8 @@ export const store = new Vuex.Store({
       host: '',
       dev: {
         auth: {
-          username: 'bo',
-          password: 'Mw@n@m1gu'
+          username: '',
+          password: ''
         }
       }
     },

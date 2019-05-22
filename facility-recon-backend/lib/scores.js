@@ -120,7 +120,6 @@ module.exports = function () {
               entityParent = source1Entry.resource.partOf.reference;
             }
             mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'names', (source1Parents) => {
-              winston.error(JSON.stringify(source1Parents))
               const thisRanking = {};
               thisRanking.source1 = {
                 name: source1Entry.resource.name,
