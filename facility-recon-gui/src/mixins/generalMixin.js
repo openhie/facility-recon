@@ -195,7 +195,7 @@ export const generalMixin = {
       if (process.env.NODE_ENV === 'production') {
         this.$store.state.dhis.host = location.href.split('api').shift()
       } else if (process.env.NODE_ENV === 'development') {
-        this.$store.state.dhis.host = 'https://play.dhis2.org/2.31.2/'
+        this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
         this.$store.state.dhis.dev.auth.username = 'admin'
         this.$store.state.dhis.dev.auth.password = 'district'
       }

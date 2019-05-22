@@ -4,7 +4,7 @@
       <v-card>
         <v-toolbar color="primary" dark>
           <v-toolbar-title>
-            DHIS2 Superuser Role
+            DHIS2 superuser role that can be an administrator of GOFR
           </v-toolbar-title>
         </v-toolbar>
         <v-card-text>
@@ -22,7 +22,7 @@
         <v-card-actions>
           <v-btn
             color="success"
-            :disabled='!$store.state.config.generalConfig.externalAuth.adminRole'
+            :disabled='!$store.state.config.generalConfig.externalAuth.adminRole || dhis2Roles.length === 0'
             @click="saveConfiguration('generalConfig', 'authDisabled')"
           >
             <v-icon left>save</v-icon>
@@ -349,7 +349,7 @@ export default {
         this.loadingDhis2Roles = true
         this.getDHIS2Roles((roles) => {
           this.loadingDhis2Roles = false
-          this.dhis2Roles = roles.data.userRoles
+          this.dhis2Roles = [...roles.data.userRoles]
         })
         this.defineSuperuserRole = true
       }
@@ -443,7 +443,7 @@ export default {
       if (auth.username === '') {
         auth = ''
       }
-      axios.get(this.$store.state.dhis.host + 'api/userRoles').then((roles) => {
+      axios.get(this.$store.state.dhis.host + 'api/userRoles', {auth}).then((roles) => {
         callback(roles)
       })
     },
@@ -465,7 +465,7 @@ export default {
       this.loadingDhis2Roles = true
       this.getDHIS2Roles((roles) => {
         this.loadingDhis2Roles = false
-        this.dhis2Roles = roles.data.userRoles
+        this.dhis2Roles = [...roles.data.userRoles]
       })
     }
     this.signupFields.push({
