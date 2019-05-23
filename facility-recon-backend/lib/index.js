@@ -699,8 +699,8 @@ if (cluster.isMaster) {
       mongoose.connect(uri, {}, () => {
         models.MetaDataModel.findOne({}, (err, data) => {
           if (!data) {
-            if (fields.generalConfig.externalAuth.password) {
-              fields.generalConfig.externalAuth.password = mongo.encrypt(fields.generalConfig.externalAuth.password)
+            if (appConfig.generalConfig.externalAuth.password) {
+              appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password)
             }
             const MetaData = new models.MetaDataModel({
               'config.generalConfig': appConfig.generalConfig
@@ -787,6 +787,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/getGeneralConfig', (req, res) => {
+    winston.info("Received a request to get general configuration")
     let database = config.getConf("DB_NAME")
     const mongoose = require('mongoose')
     if (mongoUser && mongoPasswd) {

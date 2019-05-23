@@ -30,6 +30,11 @@ export const eventBus = new Vue()
 /* eslint-disable no-new */
 // get general config of App and pass it to the App component as props
 axios.get(backendServer + '/getGeneralConfig').then(genConfig => {
+  if (!genConfig.data) {
+    genConfig.data = {}
+    genConfig.data.config = {}
+    genConfig.data.config.generalConfig = {}
+  }
   new Vue({
     el: '#app',
     router,

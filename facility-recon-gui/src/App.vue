@@ -477,7 +477,7 @@ export default {
         .get(backendServer + '/getUserConfig/' + userID)
         .then(config => {
           if (config.data) {
-            this.$store.state.config.userConfig = config.data
+            this.$store.state.config.userConfig = {...this.$store.state.config.userConfig, ...config.data}
           }
           this.getGeneralConfig()
         })
@@ -532,7 +532,7 @@ export default {
     }
   },
   created () {
-    this.$store.state.config.generalConfig = this.generalConfig.generalConfig
+    this.$store.state.config.generalConfig = {...this.$store.state.config.generalConfig, ...this.generalConfig.generalConfig}
     if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
       this.$store.state.auth.userID = VueCookies.get('userID')
