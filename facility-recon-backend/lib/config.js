@@ -46,7 +46,7 @@ function setConf(key, value) {
 }
 
 setConf("DB_HOST", process.env.DB_HOST || "localhost")
-setConf("DB_NAME", process.env.DB_NAME || "GOFR_Test")
+setConf("DB_NAME", process.env.DB_NAME || "GOFR")
 setConf("DB_USER", process.env.DB_USER || "")
 setConf("DB_PASSWORD", process.env.DB_PASSWORD || "")
 setConf("DB_PORT", process.env.DB_PORT || "27017")

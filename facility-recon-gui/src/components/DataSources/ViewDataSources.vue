@@ -520,7 +520,7 @@ export default {
       }
     },
     getLocationTree () {
-      let userID = this.$store.state.activePair.userID._id
+      let userID = this.shareSource.userID._id
       this.loadingLocationTree = true
       let source = this.toTitleCase(this.shareSource.name)
       axios.get(backendServer + '/getTree/' + source + '/' + userID).then((hierarchy) => {

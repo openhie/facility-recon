@@ -1775,20 +1775,28 @@ export default {
     },
     matchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
+      let source1 = this.getSource1()
+      let source2 = this.getSource2()
       let sourcesOwner = this.getDatasourceOwner()
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
       let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
       let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
-      return axios.get(
-        `${backendServer}/matchedLocations/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${type}/${userID}`,
-        {
-          params: {
-            levelMapping1,
-            levelMapping2
-          }
-        }
-      )
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
+      let params = {
+        source1,
+        source2,
+        source1Owner,
+        source2Owner,
+        type,
+        userID,
+        source1LimitOrgId,
+        source2LimitOrgId,
+        levelMapping1,
+        levelMapping2
+      }
+      return axios.get(backendServer + '/matchedLocations', {params})
     },
     unMatchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
@@ -1797,15 +1805,23 @@ export default {
       let source2Owner = sourcesOwner.source2Owner
       let levelMapping1 = this.$store.state.levelMapping.source1
       let levelMapping2 = this.$store.state.levelMapping.source2
-      return axios.get(
-        `${backendServer}/unmatchedLocations/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${type}/${userID}`,
-        {
-          params: {
-            levelMapping1,
-            levelMapping2
-          }
-        }
-      )
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
+      let source1 = this.getSource1()
+      let source2 = this.getSource2()
+      let params = {
+        source1,
+        source2,
+        source1Owner,
+        source2Owner,
+        type,
+        userID,
+        source1LimitOrgId,
+        source2LimitOrgId,
+        levelMapping1,
+        levelMapping2
+      }
+      return axios.get(backendServer + '/unmatchedLocations', {params})
     },
     csvExport () {
       this.loadingCSV = true

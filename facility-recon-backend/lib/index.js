@@ -42,6 +42,10 @@ const mongoPort = config.getConf("DB_PORT")
 const app = express();
 const server = require('http').createServer(app)
 
+let cleanReqPath = function (req, res, next) {
+  req.url = req.url.replace("//",'/')
+  return next()
+}
 let jwtValidator = function (req, res, next) {
   if (req.method == "OPTIONS" ||
     (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
@@ -90,7 +94,7 @@ let jwtValidator = function (req, res, next) {
   }
 }
 
-// app.use(cleanReqPath)
+app.use(cleanReqPath)
 app.use(jwtValidator)
 app.use(express.static(__dirname + '/../gui'));
 app.use(cors({
@@ -583,7 +587,7 @@ if (cluster.isMaster) {
           res.status(500).send("An error occured while sharing data source")
         } else {
           winston.info("Data source shared successfully")
-          mongo.getDataSources(fields.userID, (err, sources) => {
+          mongo.getDataSources(fields.userID, null, (err, sources) => {
             getLastUpdateTime(sources, (sources) => {
               if (err) {
                 winston.error(err)
@@ -1711,15 +1715,23 @@ if (cluster.isMaster) {
     }
 
   });
-  app.get('/matchedLocations/:source1/:source2/:source1Owner/:source2Owner/:type/:userID', (req, res) => {
-    winston.info(`Received a request to return matched Locations in ${req.params.type} format for ${req.params.source1}${req.params.source2}`);
-    let userID = req.params.userID
-    let source1Owner = req.params.source1Owner
-    let source2Owner = req.params.source2Owner
-    let source1DB = req.params.source1 + source1Owner
-    let source2DB = req.params.source2 + source2Owner
-    let mappingDB = req.params.source1 + userID + req.params.source2
-    let type = req.params.type
+  app.get('/matchedLocations', (req, res) => {
+    winston.info(`Received a request to return matched Locations in ${req.query.type} format for ${req.query.source1}${req.query.source2}`)
+    let userID = req.query.userID
+    let source1Owner = req.query.source1Owner
+    let source2Owner = req.query.source2Owner
+    let source1DB = req.query.source1 + source1Owner
+    let source2DB = req.query.source2 + source2Owner
+    let mappingDB = req.query.source1 + userID + req.query.source2
+    let type = req.query.type
+    let source1LimitOrgId = req.query.source1LimitOrgId
+    let source2LimitOrgId = req.query.source2LimitOrgId
+    if(!source1LimitOrgId) {
+      source1LimitOrgId = topOrgId
+    }
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
     let matched = []
 
     const flagCode = config.getConf('mapping:flagCode');
@@ -1821,7 +1833,7 @@ if (cluster.isMaster) {
           })
           return nxtmCSD()
         }, () => {
-          async.parallel({
+          async.series({
             source1mCSD: function (callback) {
               mcsd.getLocations(source1DB, (mcsd) => {
                 return callback(null, mcsd)
@@ -1984,37 +1996,44 @@ if (cluster.isMaster) {
               res.status(200).send(matchedCSV)
             })
           })
-
         })
       }
     })
-
   })
 
-  app.get('/unmatchedLocations/:source1/:source2/:source1Owner/:source2Owner/:type/:userID', (req, res) => {
-    let userID = req.params.userID
-    let source1Owner = req.params.source1Owner
-    let source2Owner = req.params.source2Owner
-    let source1DB = req.params.source1 + source1Owner
-    let source2DB = req.params.source2 + source2Owner
+  app.get('/unmatchedLocations', (req, res) => {
+    let userID = req.query.userID
+    let source1Owner = req.query.source1Owner
+    let source2Owner = req.query.source2Owner
+    let source1DB = req.query.source1 + source1Owner
+    let source2DB = req.query.source2 + source2Owner
     let levelMapping1 = JSON.parse(req.query.levelMapping1)
     let levelMapping2 = JSON.parse(req.query.levelMapping2)
-    let type = req.params.type
+    let source1LimitOrgId = req.query.source1LimitOrgId
+    let source2LimitOrgId = req.query.source2LimitOrgId
+    if(!source1LimitOrgId) {
+      source1LimitOrgId = topOrgId
+    }
+    if(!source2LimitOrgId) {
+      source2LimitOrgId = topOrgId
+    }
+    
+    let type = req.query.type
 
     if (type == 'FHIR') {
-      async.parallel({
+      async.series({
         source1mCSD: function (callback) {
-          mcsd.getLocations(source1DB, (mcsd) => {
+          mcsd.getLocationChildren(source1DB, source1LimitOrgId, (mcsd) => {
             return callback(null, mcsd)
           })
         },
         source2mCSD: function (callback) {
-          mcsd.getLocations(source2DB, (mcsd) => {
+          mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsd) => {
             return callback(null, mcsd)
           })
         }
       }, (error, response) => {
-        let mappingDB = req.params.source1 + userID + req.params.source2
+        let mappingDB = req.query.source1 + userID + req.query.source2
         async.parallel({
           source1Unmatched: function (callback) {
             scores.getUnmatched(response.source1mCSD, response.source1mCSD, mappingDB, true, 'source1', null, (unmatched, mcsdUnmatched) => {
@@ -2046,16 +2065,16 @@ if (cluster.isMaster) {
       fields.push("id")
       fields.push("name")
       let levels = Object.keys(levelMapping1)
-      let mappingDB = req.params.source1 + userID + req.params.source2
+      let mappingDB = req.query.source1 + userID + req.query.source2
 
       async.parallel({
         source1mCSD: function (callback) {
-          mcsd.getLocations(source1DB, (mcsd) => {
+          mcsd.getLocationChildren(source1DB, source1LimitOrgId, (mcsd) => {
             return callback(null, mcsd)
           })
         },
         source2mCSD: function (callback) {
-          mcsd.getLocations(source2DB, (mcsd) => {
+          mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsd) => {
             return callback(null, mcsd)
           })
         },
@@ -2114,7 +2133,7 @@ if (cluster.isMaster) {
                 parentsFields.push(level)
                 thisFields.push(level)
               })
-              mcsd.filterLocations(response.source1mCSD, topOrgId, level, (mcsdLevel) => {
+              mcsd.filterLocations(response.source1mCSD, source1LimitOrgId, level, (mcsdLevel) => {
                 scores.getUnmatched(response.source1mCSD, mcsdLevel, mappingDB, true, 'source1', parentsFields, (unmatched, mcsdUnmatched) => {
                   if (unmatched.length > 0) {
                     let csvString = json2csv(unmatched, {
@@ -2158,7 +2177,7 @@ if (cluster.isMaster) {
                 parentsFields.push(level)
                 thisFields.push(level)
               })
-              mcsd.filterLocations(response.source2mCSD, topOrgId, level, (mcsdLevel) => {
+              mcsd.filterLocations(response.source2mCSD, source2LimitOrgId, level, (mcsdLevel) => {
                 scores.getUnmatched(response.source2mCSD, mcsdLevel, mappingDB, true, 'source2', parentsFields, (unmatched, mcsdUnmatched) => {
                   if (unmatched.length > 0) {
                     let csvString = json2csv(unmatched, {
