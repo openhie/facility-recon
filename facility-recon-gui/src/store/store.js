@@ -38,11 +38,11 @@ export const store = new Vuex.Store({
         },
         selfRegistration: false,
         authDisabled: false,
-        authMethod: '',
+        authMethod: 'dhis2',
         externalAuth: {
           pullOrgUnits: true,
-          shareOrgUnits: false,
-          shareByOrgId: false,
+          shareOrgUnits: true,
+          shareByOrgId: true,
           datasetName: '',
           adminRole: ''
         }
