@@ -7,26 +7,23 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-30 17:55-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
-"\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-# 7d606abfaad94fc9b4eab7b42c980150
+# 42807c6efb32444bbf7ffa41e0a9c86b
 #: ../../source/user/users.md:1
 msgid "User Management"
 msgstr ""
 
-# 0f27eda0a5434c5c871256aede19533b
+# be38cd4614b140648eefbc021e39c2fd
 #: ../../source/user/users.md:3
 msgid ""
 "There are two classes of users, admin and data managers. The initial "
@@ -35,38 +32,63 @@ msgid ""
 "Developer Guide for more information."
 msgstr ""
 
-# f9cb227882564d5683c843936a56552e
+# f91a074b1b534561aab3ebf4a298827f
 #: ../../source/user/users.md:5
 msgid "Roles"
 msgstr ""
 
-# 16916d8c14a040698ad8f927c1b962a1
+# c17a70d23c5f47ceab952238236b84f6
 #: ../../source/user/users.md:7
 msgid "Admin accounts can add users and manage workspaces."
 msgstr ""
 
-# 91049c1beca246eaa19c3f99ec79e308
+# 27403593e7b845a5bad04c8551f86267
 #: ../../source/user/users.md:9
 msgid "Data manager accounts can manage data only."
 msgstr ""
 
-# 9b2fa952c3554d21bd91a670e4bab72f
+# 9d3461254d204bca81a3da1e3ac11cee
 #: ../../source/user/users.md:11
 msgid ""
 "Custom accounts with specific roles may be created in the future. Please "
 "let the community know if you have use cases for custom account roles."
 msgstr ""
 
-# 40089675f90a4b9d957583a0f24853c5
+# 1ce664573dfb4bd0868379c5c3d2f425
 #: ../../source/user/users.md:13
+msgid "Self-registration"
+msgstr ""
+
+# bb18c86ccc04429e851f3069a21f2161
+#: ../../source/user/users.md:15
+msgid ""
+"Administrators may configure the system to allow for anyone to self-"
+"register. This is under the configure system tab. This option is off by "
+"default."
+msgstr ""
+
+# 66eb52820fa74338ac264525bdec37cd
+#: ../../source/user/users.md:17
 msgid "Adding to a Pair"
 msgstr ""
 
-# 7b269879e0414426935b7090dfa16bcd
-#: ../../source/user/users.md:15
+# 8a510fffa7b543dba41fed2274f82d66
+#: ../../source/user/users.md:19
 msgid ""
 "Data managers and administrators are able to add other users to help with"
 " reconciliation. To do so, the data source pairing has an option to share"
 " the pairing with another user."
+msgstr ""
+
+# a25faf0d0bab4b8aad0395baac57f520
+#: ../../source/user/users.md:21
+msgid "Password reset"
+msgstr ""
+
+# d16f589fc8fc418f9eb4afa54f607f22
+#: ../../source/user/users.md:23
+msgid ""
+"Under accounts a user password can be reset. The reset password is the "
+"user's surname exactly as it was entered including case."
 msgstr ""
 

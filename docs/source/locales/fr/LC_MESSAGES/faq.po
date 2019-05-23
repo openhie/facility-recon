@@ -7,38 +7,35 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-30 17:55-0500\n"
-"PO-Revision-Date: 2019-01-25 23:34+0000\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
-"\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-# 95ca7ed7a375440ba3d41a6bcb16dfc5
+# 30cd426a85ed413a97a1b61d4d177c5c
 #: ../../source/faq.md:1
 msgid "FAQ"
 msgstr ""
 
-# b6649214d6f9491fac2efb13dcae3be5
+# cdc1e8844c20481dbabbeafaf8670087
 #: ../../source/faq.md:3
 msgid "Is there an API?"
 msgstr ""
 
-# 9ade5006374740bb86dd4d81e41f2ea9
+# 5fb94f3ff863450fb8aa590331f6e814
 #: ../../source/faq.md:5
 msgid ""
 "The tool uses a FHIR server, Hearth for persistent storage. Hearth uses "
 "MongoDB for its storage layer."
 msgstr ""
 
-# d10b5c8dc097450e9ae00bc2fb5f210c
+# 693788cbc11e42ef8a0010e0b74a3d89
 #: ../../source/faq.md:7
 msgid ""
 "To obtain data sources and reconciled sources a user with access to the "
@@ -47,19 +44,19 @@ msgid ""
 "manner."
 msgstr ""
 
-# b0cc25b3de8940ab8405b40d6a5f3b11
+# e4a19c06ef814e1abb0ab7c677fb4cf5
 #: ../../source/faq.md:9
 msgid "Can this tool be used in education or agriculture?"
 msgstr ""
 
-# 1b4ee9994d804247b77d6ed2288384c3
+# 085a684ac108421bb4833decc2ee5c2a
 #: ../../source/faq.md:11
 msgid ""
 "Yes! The tool was first created for the health sector and uses the FHIR "
 "standard based on the mCSD IHE profile."
 msgstr ""
 
-# ab57b39c6e404a2b9d087c12b4437b19
+# 59ffa183026e4d33866211ac526bcade
 #: ../../source/faq.md:13
 msgid ""
 "Any hierarchical location list can potentially be supported. The backend "
@@ -67,12 +64,12 @@ msgid ""
 "cases dictate."
 msgstr ""
 
-# 78b05f978c254b0d8b4e70da49a788c6
+# e27c0977aeb441ddaefaa979ce7dcd49
 #: ../../source/faq.md:15
 msgid "Does the tool clean the source data?"
 msgstr ""
 
-# 765db4f0f53e47aa8f5dc92e0d497560
+# bef5e0b8a8d0486985da8935c1115567
 #: ../../source/faq.md:17
 msgid ""
 "No. The tool takes a pair of sources and uses automatic and manual "
@@ -81,17 +78,17 @@ msgid ""
 "The data sources have to be cleaned outside of the tool."
 msgstr ""
 
-# 1f9f884c2d2442b8abdbfe1a6b843ae8
+# 3306ea294f6145ed9ea2f95966a9f964
 #: ../../source/faq.md:19
 msgid "If this is a feature for your use case, please get in touch."
 msgstr ""
 
-# 9cd7982b3b454d1693177652094638a1
+# 09dc58cddfa94cf388a079d9e19e8561
 #: ../../source/faq.md:21
 msgid "Can I run the tool on my own PC?"
 msgstr ""
 
-# 98b9ee87b82a4d159435e22c97c376e8
+# 78abc089b3ee45eeaa143d91f090f6b1
 #: ../../source/faq.md:23
 msgid ""
 "The tool is comprised of four components: the app itself, Redis as an in-"
@@ -100,7 +97,7 @@ msgid ""
 "managing state."
 msgstr ""
 
-# ef838fa1433046229419aeca87bbfef9
+# 665235f4c7a6417aa8567141043292ea
 #: ../../source/faq.md:25
 msgid ""
 "The tool is designed to be hosted on a server, either locally or in the "
@@ -109,7 +106,7 @@ msgid ""
 "installation is the recommended way to deploy the tool."
 msgstr ""
 
-# bf50944bc45b49e0a2ae3cfe1f2b1135
+# d63267557ea34b2fa08fd6ebd8569d4e
 #: ../../source/faq.md:27
 msgid ""
 "Docker is recommended is not recommended as by default it will not "
@@ -120,7 +117,7 @@ msgid ""
 "careful to mount a volume to ensure data persistence."
 msgstr ""
 
-# e9a30e1887764c18a461eb5a910d0491
+# edce61d71e124fbaa2fa9565312de95b
 #: ../../source/faq.md:29
 msgid "Developers may install the stack directly but this is not for production."
 msgstr ""

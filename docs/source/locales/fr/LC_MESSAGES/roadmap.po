@@ -7,26 +7,23 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-30 17:55-0500\n"
-"PO-Revision-Date: 2019-01-25 23:34+0000\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
-"\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-# 5481167974664079a60294d33c8bd29f
+# 1153f02b7a034b60b0eace2248d371cf
 #: ../../source/roadmap.md:1
 msgid "Roadmap"
 msgstr ""
 
-# c100b14c7dcd4f0fa7b1cfea0b7b0b0d
+# ea2b4087ef4a4984beff77f164fd9683
 #: ../../source/roadmap.md:3
 msgid "Coming soon."
 msgstr ""

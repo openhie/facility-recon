@@ -1,48 +1,50 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-25 15:28-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.6.0\n"
 
-# db19499b0bf9424e9c38de83f5a64281
+# c3e60a32b4ed44feb41ac653a63413d1
 #: ../../source/dev/docker.md:1
 msgid "Quickstart with Docker"
 msgstr ""
 
-# f72ed7d3f710463980aa6747b6bada90
+# 5034e1b3d1704ab5ba1e45ca72734dd1
 #: ../../source/dev/docker.md:3
 msgid ""
 "The fastest way to get started is to use Docker Compose which runs all "
 "components: app, Redis, MongoDB, and the Hearth FHIR server."
 msgstr ""
 
-# b052143756cb4204b56c73875a869770
+# de29a628a63f408784fb94e90737f4c7
 #: ../../source/dev/docker.md:5
 msgid "Clone the repo and start the docker apps."
 msgstr ""
 
-# ba2632fa6e47414cbf51a1597dfaf1cc
+# c1f9faf6c5a9468cab00736754185c83
 #: ../../source/dev/docker.md:12
 msgid "Visit: http://localhost:3000/gofr"
 msgstr ""
 
-# d873a221a78741d387e7c9e7d9bf0ae8
+# 998b948607ee4eccaab8e88f9db806a4
 #: ../../source/dev/docker.md:14
 msgid ""
-"The default admin user is root@gofr.org and pass is gofr. A different admin "
-"users should immediately be created, the default deleted, and ordinary users"
-" added as well."
+"The default admin user is root@gofr.org and pass is gofr. A different "
+"admin users should immediately be created, the default deleted, and "
+"ordinary users added as well."
 msgstr ""
+

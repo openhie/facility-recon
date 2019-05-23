@@ -1,40 +1,84 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-25 15:28-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.6.0\n"
 
-# 85ce2394ad7d4d8bac8f138d03419a06
+# a6d8225323b04430839a3b0062c5bace
 #: ../../source/dev/host.md:1
-msgid "Hosting Considerations"
+msgid "Production considerations"
 msgstr ""
 
-# ec85f96198134567a2ab501bf9076d3f
+# 52feab1e088c4de9b62a49d7fe049f14
 #: ../../source/dev/host.md:3
-msgid ""
-"Systems planners should test locally with the largest data sources that "
-"would represent their use case. With no user interaction, the demo server "
-"uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: "
-"250MB, frontend: 30MB)."
+msgid "System Resources"
 msgstr ""
 
-# 1072437fcd864a3199ee2c68724ac12c
+# 219b94799ddf41b4a42505521ef93e15
 #: ../../source/dev/host.md:5
 msgid ""
-"The demo version uses 2 virtual CPUs, 4GB RAM, and 20GB SSD in a cloud-"
-"hosted VPS. For use cases with large data sources, such as 10k facilities, "
-"expect to increase RAM allocation."
+"Systems planners should test locally with the largest data sources that "
+"would represent their use case. With no user interaction, the demo server"
+" uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: "
+"250MB)."
 msgstr ""
+
+# a306d11abf724bf1bd67a4b59dd11279
+#: ../../source/dev/host.md:7
+msgid ""
+"The demo version uses 2 virtual CPUs, 4GB RAM, and 20GB SSD in a cloud-"
+"hosted VPS. For use cases with large data sources, such as 10k "
+"facilities, expect to increase RAM allocation."
+msgstr ""
+
+# 426d4fb5830f427095d3255744135306
+#: ../../source/dev/host.md:9
+msgid "DNS"
+msgstr ""
+
+# 4dba7f8549584ebbbfc8584bc7b2753b
+#: ../../source/dev/host.md:11
+msgid ""
+"DNS can be configured a myriad of ways for hosting. One method is to "
+"create a DNS record for the domain and then add an A record under the "
+"root domain for the application server."
+msgstr ""
+
+# dc832a6348da43dd8abb62364095f901
+#: ../../source/dev/host.md:13
+msgid "Reverse Proxy and HTTPS"
+msgstr ""
+
+# 912053ff1ab84bad9b75da8e3d5409da
+#: ../../source/dev/host.md:15
+msgid ""
+"To host the tool behind a reverse proxy like nginx, configure it to pass "
+"requests to the nodejs server running the application on port 3000."
+msgstr ""
+
+# eb4e6e4ec988495c93b88299d3d6ad4b
+#: ../../source/dev/host.md:17
+msgid ""
+"A full recipe for reverse proxy and SSL is here: "
+"https://www.linode.com/docs/web-servers/nginx/use-nginx-reverse-proxy/"
+msgstr ""
+
+# a75afefd50584c689eb06f9adab8a677
+#: ../../source/dev/host.md:19
+msgid "If using Ubuntu with Nginx, you may have to disable Apache."
+msgstr ""
+

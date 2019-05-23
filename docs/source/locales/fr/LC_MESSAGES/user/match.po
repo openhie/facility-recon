@@ -7,40 +7,44 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-30 17:55-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
-"\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-# 6b7dba09d3d74e09942c92c41a0e11b2
+# 824b47f4d2ce4abc9b6bec93e414940a
 #: ../../source/user/match.md:1
 msgid "Match"
 msgstr ""
 
-# 1db186f71c704eecb77f74bdee34a656
+# 5b92abefe1074170b719d70cbba8aa3e
 #: ../../source/user/match.md:3
+msgid ""
+"Note that there is a video tutorial on how to match on the OpenHIE "
+"YouTube channel and a quick start in this documentation."
+msgstr ""
+
+# c3d30b73ba964159be833b0b9611401b
+#: ../../source/user/match.md:5
 msgid ""
 "Reconciling data sources involves choosing a pair of sources to work with"
 " and then running the automatic or manual matching tool. Any kind of "
 "match can be undone."
 msgstr ""
 
-# fb9dd20de5504a61ab35589ab3ffd539
-#: ../../source/user/match.md:5
+# 1786d1e6ba8c4a628336ff94a00af910
+#: ../../source/user/match.md:7
 msgid "Pair sources"
 msgstr ""
 
-# e3f8b6cac0c84f14b1d386dffaa00ff4
-#: ../../source/user/match.md:7
+# 5529f8bb3b314020bd393b332f7ad1a6
+#: ../../source/user/match.md:9
 msgid ""
 "On the pair tab select one source on the left and one on the right. The "
 "source on the left (source 1) is the data the follower, the data that is "
@@ -48,56 +52,56 @@ msgid ""
 "that is the source of truth."
 msgstr ""
 
-# ab317e57c8804129aad51cc01e66a9e4
-#: ../../source/user/match.md:9
+# 3791f488a1dc4663b65a92c85cb283df
+#: ../../source/user/match.md:11
 msgid ""
 "In the pairing process it is possible to share the pair with another user"
 " who may join in helping to match, for example where they are familiar "
 "with a specific area."
 msgstr ""
 
-# b4a92cbb4e81431f8927b4f9d0a88f9a
-#: ../../source/user/match.md:11
+# 06e43fecb3c54397a1e55c8fe8dce0cd
+#: ../../source/user/match.md:13
 msgid "Automatic matching"
 msgstr ""
 
-# f791f0e8f2634be69e1d7e747f31d1f5
-#: ../../source/user/match.md:13
+# 357cf9a070594273974f9dc9b3bf7588
+#: ../../source/user/match.md:15
 msgid ""
 "When the reconciliation process starts it uses automatic matching. "
 "Matching proceeds like this:"
 msgstr ""
 
-# 29c783c3230e46ceb0ca96777c34c13a
-#: ../../source/user/match.md:15
+# 63e630638d7d415bbc348ff13452be29
+#: ../../source/user/match.md:17
 msgid ""
 "The first level matches the highest administrative area names (termed "
 "region in the tool) using the Levenshtein distance."
 msgstr ""
 
-# a4887c22676a4db59ffd367cf5764e81
-#: ../../source/user/match.md:16
+# 56e7ca421666463b86eedc0fb5ac8602
+#: ../../source/user/match.md:18
 msgid ""
 "The second level matches based on the first level and also the "
 "Levenshtein distance for the second level names, termed district in the "
 "tool."
 msgstr ""
 
-# ae41a61a42844e13883f2bc6860c1489
-#: ../../source/user/match.md:17
+# ad8190bebca64f2cb3c793bfb5013aeb
+#: ../../source/user/match.md:19
 msgid ""
 "The final level matches based on the second level (which was already "
 "matched according to the level above it) as well as the Levenshtein "
 "distance."
 msgstr ""
 
-# d153ad8bcb6647d49f6f08cfb83d1139
-#: ../../source/user/match.md:19
+# 05ec3da54f334296b115b25fa8a2e763
+#: ../../source/user/match.md:21
 msgid "Manual matching"
 msgstr ""
 
-# d663f98bd9f04fc7a21b3ea868636585
-#: ../../source/user/match.md:21
+# 36931efcc7bf42268f86793bcfc0d41f
+#: ../../source/user/match.md:23
 msgid ""
 "Manual matching brings up a dialog box to choose options. If latitude and"
 " longitude coordinates were provided in the data sources, it additionally"
@@ -106,11 +110,66 @@ msgid ""
 "automatic matching but is provided for manual matching."
 msgstr ""
 
-# ba4e257983f847e7a05f22079f85790d
-#: ../../source/user/match.md:23
+# f262279f37004222884c082f8600e028
+#: ../../source/user/match.md:25
 msgid ""
 "Any administrative area or facility match may be broken. If this is "
 "desired, click Recalculate Scores to rebuild the scoring index and "
 "manually match or flag as desired."
+msgstr ""
+
+# fbb3570577b544ca934b89069db2e29e
+#: ../../source/user/match.md:27
+msgid "Parent constraints"
+msgstr ""
+
+# 26f5808f9ac54441917dadc5f390097d
+#: ../../source/user/match.md:29
+msgid ""
+"The default is to match facilities between sources based on hierarchies "
+"only. This means that if a facility is in the wrong nested administrative"
+" level, it will not be matched."
+msgstr ""
+
+# 018010f35cd24eaebb2ced136dc176d9
+#: ../../source/user/match.md:31
+msgid ""
+"Under configure system parent constraint can be disabled to allow for "
+"matching of all facilities across the sources."
+msgstr ""
+
+# f2fe19d00d6849caa0637020647ab5ca
+#: ../../source/user/match.md:33
+msgid "Reconcile without levels"
+msgstr ""
+
+# becbd473e7a84adcacd3c31fc364d9e6
+#: ../../source/user/match.md:35
+msgid "It is possible to match facilities from a flat list with no hierarchies."
+msgstr ""
+
+# e090620921ee4ac0a1c2cd70ef30bb2c
+#: ../../source/user/match.md:37
+msgid "Notifications"
+msgstr ""
+
+# 193b95c47d33428b97eb18e6588cdbfa
+#: ../../source/user/match.md:39
+msgid ""
+"When admins share a set of facilities for matching to a data manager, the"
+" data manager is notified by email when the matching is completed."
+msgstr ""
+
+# c101f11de8894923bc16b70adc3e73c2
+#: ../../source/user/match.md:41
+msgid "Flagging"
+msgstr ""
+
+# a1e0af9563204dd289114764db57a7d7
+#: ../../source/user/match.md:43
+msgid ""
+"Flagging allows for an export of facilities that require further "
+"examination and research. When a flag is set, the user may also include a"
+" comment"
 msgstr ""
 

@@ -25,6 +25,12 @@ source_file = docs/build/gettext/roadmap.pot
 source_lang = en
 type = PO
 
+[facility-recon.docs_build_gettext_quick_quick-dhis2]
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/quick/quick-dhis2.po
+source_file = docs/build/gettext/quick/quick-dhis2.pot
+source_lang = en
+type = PO
+
 [facility-recon.docs_build_gettext_quick_quick-fake]
 file_filter = docs/source/locales/<lang>/LC_MESSAGES/quick/quick-fake.po
 source_file = docs/build/gettext/quick/quick-fake.pot

@@ -1,116 +1,120 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-24 11:38-0500\n"
-"PO-Revision-Date: 2019-01-25 23:34+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.6.0\n"
 
-# 23bd486462c14dd0a19686ecab3ddbe0
+# 3bd227e90e634db3b0e39ec0a83c5621
 #: ../../source/quick/quick-fake.md:1
 msgid "Example data"
 msgstr ""
 
-# 17805badf56f4ec9ae31d14af887c60a
+# a17ec602f5c947f99a663a3b05f3e04a
 #: ../../source/quick/quick-fake.md:3
 msgid "Download the example data"
 msgstr ""
 
-# 0e343cb754e546d38b5196b4900cbbea
+# b3d7a18381584d72b4a2c06faa59d82b
 #: ../../source/quick/quick-fake.md:5
 msgid "Go to the example workbook for Fakeland Health Facilities data."
 msgstr ""
 
-# 69080eaab047480cb06ccbf7a135d026
+# 6c5c9bd4ca6e4f41a0c1ce83cb2f2baa
 #: ../../source/quick/quick-fake.md:6
 msgid ""
-"There are two worksheets inside (see the tabs at the bottom), one for Source"
-" 1 NGO and one for Source 2 DHIS2. These are fake data for use in the tool."
+"There are two worksheets inside (see the tabs at the bottom), one for "
+"Source 1 NGO and one for Source 2 DHIS2. These are fake data for use in "
+"the tool."
 msgstr ""
 
-# 52e28dad92e34c199fd39a44ce619b60
+# 1e37d60d23204ca1a95a0d843c542f41
 #: ../../source/quick/quick-fake.md:7
 msgid ""
-"Download CSV files for both worksheets to your computer by clicking under "
-"the File menu and choosing Download as: Comma-separated values"
+"Download CSV files for both worksheets to your computer by clicking under"
+" the File menu and choosing Download as: Comma-separated values"
 msgstr ""
 
-# f9e134a2c21c42bc9efb09186f8fea77
+# 34d5be3cda12490da06e351cd666da49
 #: ../../source/quick/quick-fake.md:8
 msgid "Save the files to your computer in an easily accessible folder."
 msgstr ""
 
-# 84a7a584b891435e906ff7e2d1265b84
+# da328428cbe142c28851ece5b9acfbe6
 #: ../../source/quick/quick-fake.md:12
 msgid "Upload Data"
 msgstr ""
 
-# fdaba0e96bf6409e86f710f5c4740232
+# 95a82949d5fa4913b554364f976fe386
 #: ../../source/quick/quick-fake.md:14
 msgid ""
-"Go to the reconciliation tool from the site: https://facilitymatch.org and "
-"click DEMO. You will be shown a disclaimer. If you agree, then click to "
-"continue."
+"Go to the reconciliation tool from the site: https://facilitymatch.org "
+"and click DEMO. You will be shown a disclaimer. If you agree, then click "
+"to continue."
 msgstr ""
 
-# 6c1507105e7c4b1e873e77fc3fb961e9
+# 20536b9d79b64d1b935b9d4336697157
 #: ../../source/quick/quick-fake.md:15
 msgid "On the hosted version, login using demo:demo for user:password."
 msgstr ""
 
-# 4348665a040f4833b672ab05d1b91864
+# 497f3e4aeaa2461cb75c9cc70d0b3087
 #: ../../source/quick/quick-fake.md:16
 msgid ""
 "On the site, choose Add Source in the top center of the page and select "
 "Upload."
 msgstr ""
 
-# 6685d0ae115746f297240b141910c88f
+# 0bbec1574d09435fb3829e50f8750bab
 #: ../../source/quick/quick-fake.md:20
 msgid ""
-"Name the upload NGO (you can name it anything you wish) and click ‘Upload "
-"CSV.’ Select the Fakeland Health Facilities - Source 1 NGO file from where "
-"you saved it on your computer."
+"Name the upload NGO (you can name it anything you wish) and click ‘Upload"
+" CSV.’ Select the Fakeland Health Facilities - Source 1 NGO file from "
+"where you saved it on your computer."
 msgstr ""
 
-# f8406a5259cf4dd0bce32947fce30525
+# 52a5209741ff4f5b9c4ee2926ac518b2
 #: ../../source/quick/quick-fake.md:21
 msgid "Click CONTINUE. The data will be loaded into the system."
 msgstr ""
 
-# 47b2b6e1c0184ce99449669071c353e4
+# 1c6de4641bc749779f3d09f506ad8507
 #: ../../source/quick/quick-fake.md:25
 msgid ""
 "You will be in a new dialog that asks you to assign headers for facility "
-"name, facility ID code, and administrative levels. Please select the correct"
-" headers from the dropdown menu as indicated in the screenshot below."
+"name, facility ID code, and administrative levels. Please select the "
+"correct headers from the dropdown menu as indicated in the screenshot "
+"below."
 msgstr ""
 
-# 9dfdf7b3af7f42f7b4defb0fb8571673
+# a1b6f253beb84063980493f0eef7a962
 #: ../../source/quick/quick-fake.md:29
 msgid "Click the blue UPLOAD button."
 msgstr ""
 
-# 23d9012d2c634703abf215494ae5c3e9
+# 27c96ffaa21f4ef0b318344e7bbfdf70
 #: ../../source/quick/quick-fake.md:30
 msgid ""
 "Repeat the above steps for uploading data but this time call the upload "
-"DHIS2 and choose the file Fakeland Health Facilities - Source 2 DHIS2 file "
-"on your computer."
+"DHIS2 and choose the file Fakeland Health Facilities - Source 2 DHIS2 "
+"file on your computer."
 msgstr ""
 
-# 72d6b6ec47344c5aba316471d78200da
+# ee0ca494281f4f1f968220fbb7955bc0
 #: ../../source/quick/quick-fake.md:31
 msgid "You should now have two data sources."
 msgstr ""
+

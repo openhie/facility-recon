@@ -1,61 +1,63 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+# This file is distributed under the same license as the Facility
+# Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-25 15:28-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.6.0\n"
 
-# 18924b57427f4b4ca8c617ccede93208
+# e91ee14244544532bc067ae9c44ffc96
 #: ../../source/dev/vagrant.md:1
 msgid "Vagrant"
 msgstr ""
 
-# 5b270307cb3241828e9dccbd83ae799d
+# e0b2633324134b5293cb16d14096d6dd
 #: ../../source/dev/vagrant.md:3
 msgid "Install"
 msgstr ""
 
-# 2080c1ffeab2427c937e2f1507603eed
+# e6f2e0a3ccef4fc4b9e1e615eaa53f38
 #: ../../source/dev/vagrant.md:5
 msgid ""
 "This an example using Vagrant for an Ubuntu or CentOS VM for end-to-end "
 "testing of facility recon."
 msgstr ""
 
-# 684b75f746314247b472f907e4059206
+# a2c22081138f490b97e14d8ee79644b9
 #: ../../source/dev/vagrant.md:7
 msgid ""
-"To use just change directory into the OS (CentOS or Ubuntu) you want to use "
-"and fire it up."
+"To use just change directory into the OS (CentOS or Ubuntu) you want to "
+"use and fire it up."
 msgstr ""
 
-# f8347eb34d464c1e95716d1267d85a4f
+# ccfcfc3b053a4ec39e691a0f85e7d32d
 #: ../../source/dev/vagrant.md:13
 msgid "Troubleshooting"
 msgstr ""
 
-# 136c2ecf032e48a495181b8ce913251c
+# 76ac05e9cc37404589c6d2a4ebffcc52
 #: ../../source/dev/vagrant.md:15
-msgid ""
-"For cleaning up, note that Vagrant boxes are stored in ~/.vagrant.d/boxes."
+msgid "For cleaning up, note that Vagrant boxes are stored in ~/.vagrant.d/boxes."
 msgstr ""
 
-# ae711f675d7c4704939068bdd854c2f1
+# 6ad4b978a495470ba064099656ab6776
 #: ../../source/dev/vagrant.md:16
 msgid ""
 "[macOS] If there is a port conflict error for ssh, then clear out port "
-"forwarding entry for 2222 in /Library/Preferences/VMware\\ Fusion/networking"
-" and /Library/Preferences/VMware\\ Fusion/vmnet8/nat.conf"
+"forwarding entry for 2222 in /Library/Preferences/VMware\\ "
+"Fusion/networking and /Library/Preferences/VMware\\ "
+"Fusion/vmnet8/nat.conf"
 msgstr ""
+

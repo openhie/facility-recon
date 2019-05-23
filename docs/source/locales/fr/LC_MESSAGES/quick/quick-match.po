@@ -7,26 +7,23 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool\n"
+"Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-30 17:55-0500\n"
-"PO-Revision-Date: 2019-01-25 23:35+0000\n"
+"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: fr\n"
-"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)"
-"\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-# aa5ad2de117949318856542cde396b10
+# b435e6075f384514816f55d79d54a714
 #: ../../source/quick/quick-match.md:1
 msgid "Match data sources"
 msgstr ""
 
-# 7c68f76cc53846688a1e958086dd2f81
+# 1412e9fb938d4ef39f04f4b394b6869a
 #: ../../source/quick/quick-match.md:3
 msgid ""
 "To match facility lists the steps are to first create a pair of data "
@@ -34,12 +31,12 @@ msgid ""
 "and going down the hierarchy to the last level."
 msgstr ""
 
-# d240cb01dc194bceadb58043e38ca4ec
+# 234c2a649b594f63ae0082fe5f7761be
 #: ../../source/quick/quick-match.md:5
 msgid "Pair data sources"
 msgstr ""
 
-# da0e03921e8447fb8999effda6660232
+# 6d0b3afb29394b22a985671387c8c975
 #: ../../source/quick/quick-match.md:7
 msgid ""
 "Go to the Data Source Pair tab and select both data sources. The data "
@@ -48,17 +45,17 @@ msgid ""
 "that you want to eventually merge your data with."
 msgstr ""
 
-# f484a0ea38d94610a63149efea3bc75c
+# 585d81ac3c874384ad96877126f8f033
 #: ../../source/quick/quick-match.md:8
 msgid "Choose NGO as Source 1 and DHIS2 as Source 2."
 msgstr ""
 
-# 519e93d4fdc6482bb9862fa721cc2aa8
+# f1dfdca0940a451a835fc32ef83e26c7
 #: ../../source/quick/quick-match.md:12
 msgid "Click SAVE and you will be taken to the reconciliation screen."
 msgstr ""
 
-# 875fd434090f4913b9d93aeb690fb594
+# 164a8ca22a7546fca06f22790575ea16
 #: ../../source/quick/quick-match.md:14
 msgid ""
 "Note. After saving the pair should be active. If not, then below the pair"
@@ -66,12 +63,12 @@ msgid ""
 "Pair."
 msgstr ""
 
-# 3a3a1061a3a0484bb364b7a370b3bac8
+# e285e03ad53644159b9e33b795820845
 #: ../../source/quick/quick-match.md:16
 msgid "Reconciliation"
 msgstr ""
 
-# 1db6e295387e4b5cab7eafd5baa3c254
+# 17421555476f45f1a56e385c6d41df37
 #: ../../source/quick/quick-match.md:18
 msgid ""
 "There are only two regions (the top administrative level in the fakeland "
@@ -82,72 +79,72 @@ msgid ""
 " 2."
 msgstr ""
 
-# 05d088ad479144a98b6bb4b8e2d62f58
+# 4e12a324fd0f488fbf5a526746784314
 #: ../../source/quick/quick-match.md:21
 msgid "Near the bottom left click Proceed to District to continue."
 msgstr ""
 
-# d81d0fbbe60742bc8b6f2d4406cfd8b9
+# 1d5c00eebee44121aaae74ab26fa7e7c
 #: ../../source/quick/quick-match.md:25
 msgid ""
 "At Level 2, the districts will automatically be matched. Click Proceed to"
 " Facility to continue."
 msgstr ""
 
-# 4e1737f6927942de8a9bea0c8787bf97
+# 8467b469691b481da628f4aaa842b319
 #: ../../source/quick/quick-match.md:29
 msgid "Click Proceed to Level 3."
 msgstr ""
 
-# c3435dd4d73b46cab387199f12e256d5
+# c309d3f6a541478ba1de841e03eb8404
 #: ../../source/quick/quick-match.md:30
 msgid "At Level 3, some facilities will not match."
 msgstr ""
 
-# 026327f28386440c9e4e901fdb658130
+# b07dc0962d89467c816fc54bf716b8cf
 #: ../../source/quick/quick-match.md:31
 msgid ""
 "There is a list of unmatched facilities in the light green box for Source"
 " 1."
 msgstr ""
 
-# 465dac97b1784354a0ced9f92e29f404
+# 3773c165515f4cafb0e88137f6c2cc54
 #: ../../source/quick/quick-match.md:35
 msgid "Select one of the facilities, like General Referral Hospital."
 msgstr ""
 
-# 30792f722f144109be76fcb2f5a698c1
+# b93b51a924f84e4bb5752a26d102dc1f
 #: ../../source/quick/quick-match.md:36
 msgid "A pop-up dialog will let you choose which facility to match it to."
 msgstr ""
 
-# 2d84368b6bad46d5ba600edd6540d69c
+# e3235450f4cb45c188c2c1a99a472b71
 #: ../../source/quick/quick-match.md:40
 msgid ""
 "Select the most appropriate match, in this case it is Referral Hospital, "
 "and click SAVE MATCH."
 msgstr ""
 
-# ef0f8e1d5cd3437389ef0002b8057c67
+# 281eae30519f4f1aa88123e8ace0509c
 #: ../../source/quick/quick-match.md:41
 msgid ""
 "Go through the unmatched facilities in Source 1, select and save the best"
 " matches. One you are done, you will see:"
 msgstr ""
 
-# a3940539d9cb442a9473a8ae1620e328
+# 97b31b3a4b01498890c961505c6176f7
 #: ../../source/quick/quick-match.md:45
 msgid ""
 "The Source 1 Reconciliation Status, in the top left-hand status box, "
 "should be 100%."
 msgstr ""
 
-# ceed31a282544884be161f0c1de86bbf
+# f14a520bad2c4ae796438ff5443a5011
 #: ../../source/quick/quick-match.md:47
 msgid "Export a reconciliation report"
 msgstr ""
 
-# d26bb72530b0411289a19e23bb9c0fa2
+# 88bd44119f5646699d944988763c736d
 #: ../../source/quick/quick-match.md:49
 msgid ""
 "On the top left of the reconciliation tab there is an option to output "
@@ -156,50 +153,13 @@ msgid ""
 "will receive three files of matches and unmatches."
 msgstr ""
 
-# cdecb15310054edab730cfd2b1849587
+# f06b1a9f52b546f89e81153858450102
 #: ../../source/quick/quick-match.md:51
 msgid "View reconciliation status"
 msgstr ""
 
-# 3aaabb37e2d245279a35a562ffb2688c
+# d224178020774e26958a099518da4437
 #: ../../source/quick/quick-match.md:53
 msgid "Select Reconciliation Status and view the overall status."
 msgstr ""
-
-# d240cb01dc194bceadb58043e38ca4ec
-#~ msgid "## Pair sources"
-#~ msgstr ""
-
-# da0e03921e8447fb8999effda6660232
-#~ msgid ""
-#~ "Go to the Data Source Pair tab "
-#~ "and select both data sources. The "
-#~ "data source you select under “Source "
-#~ "1”  is the target (the one you "
-#~ "want to fix). The data source you"
-#~ " select under “Source 2”  is the "
-#~ "one that is the leader that you"
-#~ " want to eventually merge your data"
-#~ " with."
-#~ msgstr ""
-
-# 1db6e295387e4b5cab7eafd5baa3c254
-#~ msgid ""
-#~ "There are only two regions (the "
-#~ "top administrative level in the fakeland"
-#~ " data). They are automatically matched. "
-#~ "The status wheels labeled “Matched” "
-#~ "indicate that 2 of 2 regions have"
-#~ " been matched. In the bottom portion"
-#~ " of the screenshot below, you can "
-#~ "also see that for Level 1 there"
-#~ " is 100% match, as the two "
-#~ "locations in Source 1 match the "
-#~ "two locations in Source 2. Select "
-#~ "Proceed to Level 2."
-#~ msgstr ""
-
-# 9e463257ac9a412384e0d5b3da1a7340
-#~ msgid "At Level 2, the districts will automatically be matched."
-#~ msgstr ""
 

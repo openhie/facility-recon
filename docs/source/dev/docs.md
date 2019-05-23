@@ -97,6 +97,12 @@ Do not replicate this process. It is here to document how it was done in the fir
 * Set languages correctly on both projects.
 * Assign the -fr project as a translation of the source. You must have two projects.
 
+
+Create gettest dir. `source` is required as the `conf.py` file is not in the docs directory.
+```sh
+sphinx-build -b gettext source build/gettext
+```
+
 Create `.pot` files for French. This puts a locales directory in `/docs/source/` and creates files for every `.md` and `.rst` file.
 ```sh
 cd docs
