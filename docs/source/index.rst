@@ -3,6 +3,8 @@ Facility Reconciliation Tool documentation
 
 The Facility Reconciliation Tool is an open source and open standards-based product to help anyone match lists of facilities from different data sources. The tools supports uploading data from CSV, FHIR servers and DHIS2 instances. 
 
+The tool can used as a standalone application with its own authentication or as a DHIS2 app that uses DHIS2 for authentication but runs the tool in the background.
+
 If you are new to the tools, please try the quick starts!
 
 For support, please have a look through this guide, including the FAQ.
