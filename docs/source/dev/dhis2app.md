@@ -41,10 +41,34 @@ A file chooser will open. Select the already packaged `.zip` file in the GitHub 
 Now the DHIS2 app is installed. Confirm:
 ![](../img/dhis2app_installed.png)
 
+**After installing the app but before setting up DHIS authentication, set the user role in DHIS2 to have permissions.**
+
+## Add app permission to User Role
+
+External authentication works by associating a DHIS2 user role. The Facility Reconciliation Tool must know the user role. The user role that is selected to manage the tool must have permissions added otherwise if it is not then the user will be locked out.
+
+Click on the `Users` app in the app menu dropdown.
+
+![](../img/dhis2app_usersapp.png)
+
+In the users app menu, select `User Roles`.
+
+![](../img/dhis2app_usersmenu.png)
+
+Select the name of the user role you will use to manage the Facility Reconciliation App. This will take you to a detailed view of the authorities granted to that user role.
+
+Under `Apps` check the box next to `Facility Reconciliation app`.
+
+![](../img/dhis2app_userroleperms.png)
+
+Click `Save` at the bottom on the page to submit the change.
+
+![](../img/dhis2share_confirmuserrole.png)
+
 
 ## Setup DHIS2 authentication
 
-Click on the now-installed Facility Reconciliation app icon to finish configuration and setup authentication.
+Back on the apps dropdown, click on the now-installed Facility Reconciliation app icon to finish configuration and setup authentication.
 
 Under `Configure Settings` turn on external authentication. Select DHIS2 as the authentication point.
 
