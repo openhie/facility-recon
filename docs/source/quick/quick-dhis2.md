@@ -14,9 +14,9 @@ The Base URL is the website for the DHIS2. The example URL for the playground ma
 
 ![](../img/dhis2_datasources.png)
 
-* Select 'Remote Source'
+* Select Remote Source
 
-* In the 'Add New Remote Source' form, put in the following:
+* In the Add New Remote Source form, put in the following:
 
 | Field | Entry | Notes |
 | ----------- | ----------- | ----------- |
@@ -32,11 +32,11 @@ The Base URL is the website for the DHIS2. The example URL for the playground ma
 
 ## Sync
 
-Select 'View Data Sources' from the 'Data Sources' dropdown.
+Select View Data Sources from the Data Sources tab.
 
-The data will not be pulled from DHIS2 unless you FORCE SYNC or SYNC UPDATE.
+The data will not be pulled from DHIS2 unless you Force Sync or Sync Update.
 * Click next to the DHIS source you added to select it.
-* Click SYNC UPDATE
+* Click Sync Update.
 
 ![](../img/dhis2_added.png)
 

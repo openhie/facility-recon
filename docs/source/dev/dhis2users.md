@@ -43,7 +43,7 @@ Options| Default (Y/N) | Description |
 
 Any existing data source can be shared to a DHIS2 user that has permission to use the app. One may share a dataset to particular users or all users or to limit the dataset based on the organization unit attached to DHIS2.
 
-Click on the `Data Sources` tab and choose to `View Data Sources`.
+Click on the Data Sources tab and choose to View Data Sources.
 
 ![](../img/dhis2_viewdatasources.png)
 
@@ -63,7 +63,7 @@ Sharing can be limited by either or both the user or location (DHIS2 org unit).
 
 Data sharing of pairs is similar to that of data sources.
 
-Go to the `Reconcile` tab and select `Create and Manage Data Source Pair`.
+Go to the Reconcile tab and select Create and Manage Data Source Pair.
 
 ![](../img/dhis2share_pairmenu.png)
 
@@ -73,7 +73,7 @@ The sharing status can be seen in the list data pairs.
 
 ![](../img/dhis2share_pairstatus.png)
 
-Click the `Share` button on the right hand side of the data source in the list to expand the pair sharing menu.
+Click the Share button on the right hand side of the data source in the list to expand the pair sharing menu.
 
 ![](../img/dhis2share_sharepair.png)
 

@@ -4,19 +4,19 @@ To match facility lists the steps are to first create a pair of data sources and
 
 ## Pair data sources
 
-* Go to the Data Source Pair tab and select both data sources. The data source you select under Source 1 is the target (the one you want to fix). The data source you select under Source 2 is the one that is the leader that you want to eventually merge your data with.
-* Choose NGO as Source 1 and DHIS2 as Source 2.
+* Go to the Reconcile tab and choose Create and Manage Data Source Pair. Select both data sources. The data source you select under Source 1 source of truth. The data source you select under Source 2 is the one that you want to fix.
+
+* Choose DHIS2 as Source 1 and NGO as Source 2.
 
 ![](../img/pair_data.png)
 
-* Click SAVE and you will be taken to the reconciliation screen.
+* Click Save and you will be taken to the Reconcile page.
 
 > Note. After saving the pair should be active. If not, then below the pair choose Active under Existing Data Source Pairs. Then click Activate Pair.
 
 ## Reconciliation
 
-* There are only two regions (the top administrative level in the fakeland data). They are automatically matched.
-The status wheels labeled Matched indicate that 2 of 2 regions have been matched. In the bottom portion of the screenshot below, you can also see that for Level 1 there is 100% match, as the two locations in Source 1 match the two locations in Source 2.
+* There are only two regions (the top administrative level in the fakeland data). They are automatically matched. The status wheels labeled Matched indicate that 2 of 2 regions have been matched. In the bottom portion of the screenshot below, you can also see that for Level 1 there is 100% match, as the two locations in Source 1 match the two locations in Source 2.
 
 * Near the bottom left click Proceed to District to continue.
 
@@ -37,7 +37,7 @@ The status wheels labeled Matched indicate that 2 of 2 regions have been matched
 
 ![](../img/level_3_match_hospital.png)
 
-* Select the most appropriate match, in this case it is Referral Hospital, and click SAVE MATCH.
+* Select the most appropriate match, in this case it is Referral Hospital, and click Save Match.
 * Go through the unmatched facilities in Source 1, select and save the best matches. One you are done, you will see:
 
 ![](../img/level_3.png)
@@ -46,7 +46,7 @@ The status wheels labeled Matched indicate that 2 of 2 regions have been matched
 
 ## Export a reconciliation report
 
-* On the top left of the reconciliation tab there is an option to output either a FHIR-based report of the final reconciled dataset or a CSV of what matched and did not match in either dataset. Choose CSV Export. You will receive three files of matches and unmatches.
+* On the top left of the reconciliation tab there is an option to output either a FHIR-based report of the final reconciled dataset or a CSV of what matched and did not match in either dataset. Choose CSV Export. You will be able to choose three files of matches and unmatches.
 
 ## View reconciliation status
 

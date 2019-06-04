@@ -24,7 +24,7 @@ The tool is comprised of four components: the app itself, Redis as an in-memory 
 
 The tool is designed to be hosted on a server, either locally or in the cloud. The tool supports user management and is meant to be available for many users to collaborate on matching facility lists. Server installation is the recommended way to deploy the tool.
 
-Docker is recommended is not recommended as by default it will not persist the data, meaning that when you stop Docker you lose your data. This can be changed by mounting a volume to store data. But, the tool is meant as a platform for multiple users to collaborate on matching. It can be deployed on a server using Docker but the administrator should be careful to mount a volume to ensure data persistence.
+Docker is not recommended as by default it will not persist the data, meaning that when you stop Docker you lose your data. This can be changed by mounting a volume to store data. But, the tool is meant as a platform for multiple users to collaborate on matching. It can be deployed on a server using Docker but the administrator should be careful to mount a volume to ensure data persistence.
 
 Developers may install the stack directly but this is not for production.
 

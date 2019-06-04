@@ -26,8 +26,8 @@ It is also possible to select no levels to match on a flat list with no hierarch
 
 ## Remote Servers -- DHIS2 or FHIR
 
-The tool supports remote sources. Any server for which the user can authenticate and is authorized to get the facility and hierarchy for can be used as a source.
+The tool supports remote sources. Any DHIS2 or FHIR server can be used as a source if the user has credentials to access it.
 
 Extensive compatibility testing has not been performed but DHIS2 versions >=2.22 should be supported. Please contact the maintainers if there is an issue.
 
-FHIR is supported for STU3 and R4 support is anticipated. Other FHIR servers may be added in future versions of the tool, such as the  HAPI FHIR server.
+FHIR is supported for STU3 and R4 support is anticipated. Other FHIR servers may be added in future versions of the tool, such as the HAPI FHIR server.
