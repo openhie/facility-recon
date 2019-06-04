@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 30cd426a85ed413a97a1b61d4d177c5c
 #: ../../source/faq.md:1
@@ -106,19 +106,36 @@ msgid ""
 "installation is the recommended way to deploy the tool."
 msgstr ""
 
-# d63267557ea34b2fa08fd6ebd8569d4e
+# 139a480a9f7d4f8bbbc687e81909278a
 #: ../../source/faq.md:27
 msgid ""
-"Docker is recommended is not recommended as by default it will not "
-"persist the data, meaning that when you stop Docker you lose your data. "
-"This can be changed by mounting a volume to store data. But, the tool is "
-"meant as a platform for multiple users to collaborate on matching. It can"
-" be deployed on a server using Docker but the administrator should be "
-"careful to mount a volume to ensure data persistence."
+"Docker is not recommended as by default it will not persist the data, "
+"meaning that when you stop Docker you lose your data. This can be changed"
+" by mounting a volume to store data. But, the tool is meant as a platform"
+" for multiple users to collaborate on matching. It can be deployed on a "
+"server using Docker but the administrator should be careful to mount a "
+"volume to ensure data persistence."
 msgstr ""
 
 # edce61d71e124fbaa2fa9565312de95b
 #: ../../source/faq.md:29
 msgid "Developers may install the stack directly but this is not for production."
 msgstr ""
+
+# d63267557ea34b2fa08fd6ebd8569d4e
+#~ msgid ""
+#~ "Docker is recommended is not recommended"
+#~ " as by default it will not "
+#~ "persist the data, meaning that when "
+#~ "you stop Docker you lose your "
+#~ "data. This can be changed by "
+#~ "mounting a volume to store data. "
+#~ "But, the tool is meant as a "
+#~ "platform for multiple users to "
+#~ "collaborate on matching. It can be "
+#~ "deployed on a server using Docker "
+#~ "but the administrator should be careful"
+#~ " to mount a volume to ensure "
+#~ "data persistence."
+#~ msgstr ""
 

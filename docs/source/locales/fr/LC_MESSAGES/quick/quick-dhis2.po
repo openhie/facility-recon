@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 52c7b1f0e08844b0b0331048e4a385fd
 #: ../../source/quick/quick-dhis2.md:1
@@ -64,14 +64,14 @@ msgstr ""
 msgid "Open the Facility Reconciliation Tool. Select 'Data Sources'"
 msgstr ""
 
-# 276663a898da49149b10b61a52bfec79
+# 04e223bc17434adeb16ecf2a14f1d2ab
 #: ../../source/quick/quick-dhis2.md:17
-msgid "Select 'Remote Source'"
+msgid "Select Remote Source"
 msgstr ""
 
-# 0d17ea8c8dd94eaf97116df67575e45d
+# 0d49c330a9664c67bb7ff2e8309fb48c
 #: ../../source/quick/quick-dhis2.md:19
-msgid "In the 'Add New Remote Source' form, put in the following:"
+msgid "In the Add New Remote Source form, put in the following:"
 msgstr ""
 
 # 035ebe5efb2c452ab62b46d68d68bf2c
@@ -84,16 +84,16 @@ msgstr ""
 msgid "Sync"
 msgstr ""
 
-# 353515d410d44a24983f252aeabbb42a
+# a6777b8605b946f9ab246a323ecc3816
 #: ../../source/quick/quick-dhis2.md:64
-msgid "Select 'View Data Sources' from the 'Data Sources' dropdown."
+msgid "Select View Data Sources from the Data Sources tab."
 msgstr ""
 
-# 009df57c402e49369dd767e70a999986
+# fc7292ff1e9049bc8ee1cc83d44f2a3e
 #: ../../source/quick/quick-dhis2.md:66
 msgid ""
-"The data will not be pulled from DHIS2 unless you FORCE SYNC or SYNC "
-"UPDATE."
+"The data will not be pulled from DHIS2 unless you Force Sync or Sync "
+"Update."
 msgstr ""
 
 # 911d9e5d43e046789a6ececad7af959d
@@ -101,9 +101,9 @@ msgstr ""
 msgid "Click next to the DHIS source you added to select it."
 msgstr ""
 
-# c5ca0fbf176846a7aff7b74392730d24
+# d882074a49eb435e864955077ba5c154
 #: ../../source/quick/quick-dhis2.md:68
-msgid "Click SYNC UPDATE"
+msgid "Click Sync Update."
 msgstr ""
 
 # e0248e0a7cf84396a934b3913bcb1f50
@@ -113,4 +113,27 @@ msgid ""
 "source. To continue, add another another data source or if there is "
 "already one you wish to match, then create a data pair."
 msgstr ""
+
+# 276663a898da49149b10b61a52bfec79
+#~ msgid "Select 'Remote Source'"
+#~ msgstr ""
+
+# 0d17ea8c8dd94eaf97116df67575e45d
+#~ msgid "In the 'Add New Remote Source' form, put in the following:"
+#~ msgstr ""
+
+# 353515d410d44a24983f252aeabbb42a
+#~ msgid "Select 'View Data Sources' from the 'Data Sources' dropdown."
+#~ msgstr ""
+
+# 009df57c402e49369dd767e70a999986
+#~ msgid ""
+#~ "The data will not be pulled from"
+#~ " DHIS2 unless you FORCE SYNC or "
+#~ "SYNC UPDATE."
+#~ msgstr ""
+
+# c5ca0fbf176846a7aff7b74392730d24
+#~ msgid "Click SYNC UPDATE"
+#~ msgstr ""
 

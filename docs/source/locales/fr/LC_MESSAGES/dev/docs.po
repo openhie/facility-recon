@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 4efd751132c04115bdc87d4a7a39a505
 #: ../../source/dev/docs.md:1
@@ -224,56 +224,63 @@ msgid ""
 "projects."
 msgstr ""
 
-# 6eddab1455b445cba1693a21f655457c
+# 0491cc6be7534f989fd955fef8545564
 #: ../../source/dev/docs.md:97
+msgid ""
+"Create gettest dir. source is required as the conf.py file is not in the "
+"docs directory."
+msgstr ""
+
+# 6eddab1455b445cba1693a21f655457c
+#: ../../source/dev/docs.md:102
 msgid ""
 "Create .pot files for French. This puts a locales directory in "
 "/docs/source/ and creates files for every .md and .rst file."
 msgstr ""
 
 # f80d05cdbeab4f64997897cc61a811b8
-#: ../../source/dev/docs.md:103
+#: ../../source/dev/docs.md:108
 msgid ""
 "Init Transifex support for the repo. Do it from the repo root, not docs. "
 "Add a Transifex API token env var prior to doing this."
 msgstr ""
 
 # 4f4f28e5e99b4edabead9c01038925b6
-#: ../../source/dev/docs.md:110
+#: ../../source/dev/docs.md:115
 msgid "Bulk-map all of the documents. This must be done in the root of the repo."
 msgstr ""
 
 # abbd97d297b74413a6e97a94dfce6f7b
-#: ../../source/dev/docs.md:117
+#: ../../source/dev/docs.md:122
 msgid "Do the initial push of the source language documents to Transifex."
 msgstr ""
 
 # dac2e8bed0394887a89c4d3c142d05ae
-#: ../../source/dev/docs.md:122
+#: ../../source/dev/docs.md:127
 msgid ""
 "Test by translating and editing a few files on Transifex. Pull from "
 "Transifex."
 msgstr ""
 
 # 0ec3d50551034defb3cb6e81d0687acd
-#: ../../source/dev/docs.md:127
+#: ../../source/dev/docs.md:132
 msgid "Manually check the .po files translated to confirm the changes."
 msgstr ""
 
 # 4c8201b81c43452cbea6169aca4a56dc
-#: ../../source/dev/docs.md:129
+#: ../../source/dev/docs.md:134
 msgid ""
 "Build locally to check. (FYI, this puts .mo files into the repo which "
 "could potentially be gitignored and removed.)"
 msgstr ""
 
 # 451a9f51f4474fa7b02c99a887e7ae30
-#: ../../source/dev/docs.md:135
+#: ../../source/dev/docs.md:140
 msgid "...then open the index.html in the built files for French to confirm."
 msgstr ""
 
 # a745869102b3419bba79b85e3711b355
-#: ../../source/dev/docs.md:137
+#: ../../source/dev/docs.md:142
 msgid "readthedocs.io should rebuild based on the existing webhook."
 msgstr ""
 

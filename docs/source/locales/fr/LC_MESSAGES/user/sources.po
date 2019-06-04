@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 3e02f34500214976bbbe729492079372
 #: ../../source/user/sources.md:1
@@ -92,12 +92,11 @@ msgstr ""
 msgid "Remote Servers -- DHIS2 or FHIR"
 msgstr ""
 
-# ff0fa3e52737428a8e6ebba47586197e
+# 724272d8c448492db335f029bfbbe6bb
 #: ../../source/user/sources.md:54
 msgid ""
-"The tool supports remote sources. Any server for which the user can "
-"authenticate and is authorized to get the facility and hierarchy for can "
-"be used as a source."
+"The tool supports remote sources. Any DHIS2 or FHIR server can be used as"
+" a source if the user has credentials to access it."
 msgstr ""
 
 # 2b2f92e04dfe4cf58ffaa27079b97345
@@ -108,11 +107,29 @@ msgid ""
 "an issue."
 msgstr ""
 
-# 173abb0225a047b6a983280763851b9d
+# 18299273b1244e4daba7efe11087a50c
 #: ../../source/user/sources.md:58
 msgid ""
 "FHIR is supported for STU3 and R4 support is anticipated. Other FHIR "
-"servers may be added in future versions of the tool, such as the  HAPI "
+"servers may be added in future versions of the tool, such as the HAPI "
 "FHIR server."
 msgstr ""
+
+# ff0fa3e52737428a8e6ebba47586197e
+#~ msgid ""
+#~ "The tool supports remote sources. Any"
+#~ " server for which the user can "
+#~ "authenticate and is authorized to get"
+#~ " the facility and hierarchy for can"
+#~ " be used as a source."
+#~ msgstr ""
+
+# 173abb0225a047b6a983280763851b9d
+#~ msgid ""
+#~ "FHIR is supported for STU3 and R4"
+#~ " support is anticipated. Other FHIR "
+#~ "servers may be added in future "
+#~ "versions of the tool, such as the"
+#~ "  HAPI FHIR server."
+#~ msgstr ""
 

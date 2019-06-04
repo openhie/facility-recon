@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 3bd227e90e634db3b0e39ec0a83c5621
 #: ../../source/quick/quick-fake.md:1
@@ -41,11 +41,11 @@ msgid ""
 "the tool."
 msgstr ""
 
-# 1e37d60d23204ca1a95a0d843c542f41
+# 70459f6f6bf3402caf0ae96df0b50059
 #: ../../source/quick/quick-fake.md:7
 msgid ""
-"Download CSV files for both worksheets to your computer by clicking under"
-" the File menu and choosing Download as: Comma-separated values"
+"Download each tab as a separate CSV files to your computer by clicking "
+"under the File menu and choosing Download as: Comma-separated values"
 msgstr ""
 
 # 34d5be3cda12490da06e351cd666da49
@@ -71,24 +71,24 @@ msgstr ""
 msgid "On the hosted version, login using demo:demo for user:password."
 msgstr ""
 
-# 497f3e4aeaa2461cb75c9cc70d0b3087
+# ba0ffa1170fd421eb8056eac59d6fb69
 #: ../../source/quick/quick-fake.md:16
 msgid ""
 "On the site, choose Add Source in the top center of the page and select "
-"Upload."
+"Upload CSV."
 msgstr ""
 
-# 0bbec1574d09435fb3829e50f8750bab
+# d575494451194beba4a981c9ae678790
 #: ../../source/quick/quick-fake.md:20
 msgid ""
-"Name the upload NGO (you can name it anything you wish) and click ‘Upload"
-" CSV.’ Select the Fakeland Health Facilities - Source 1 NGO file from "
-"where you saved it on your computer."
+"Name the upload as desired and click Upload CSV. Select the Fakeland "
+"Health Facilities - Source 1 NGO file from where you saved it on your "
+"computer."
 msgstr ""
 
-# 52a5209741ff4f5b9c4ee2926ac518b2
+# 65466a2b8c4043099a573438c9a0ca1c
 #: ../../source/quick/quick-fake.md:21
-msgid "Click CONTINUE. The data will be loaded into the system."
+msgid "Click Continue. The data will be loaded into the system."
 msgstr ""
 
 # 1c6de4641bc749779f3d09f506ad8507
@@ -100,9 +100,9 @@ msgid ""
 "below."
 msgstr ""
 
-# a1b6f253beb84063980493f0eef7a962
+# 71bfe66461bd4108bc6c6940e91b4b37
 #: ../../source/quick/quick-fake.md:29
-msgid "Click the blue UPLOAD button."
+msgid "Click the blue Upload button."
 msgstr ""
 
 # 27c96ffaa21f4ef0b318344e7bbfdf70
@@ -117,4 +117,37 @@ msgstr ""
 #: ../../source/quick/quick-fake.md:31
 msgid "You should now have two data sources."
 msgstr ""
+
+# 1e37d60d23204ca1a95a0d843c542f41
+#~ msgid ""
+#~ "Download CSV files for both worksheets"
+#~ " to your computer by clicking under"
+#~ " the File menu and choosing Download"
+#~ " as: Comma-separated values"
+#~ msgstr ""
+
+# 497f3e4aeaa2461cb75c9cc70d0b3087
+#~ msgid ""
+#~ "On the site, choose Add Source in"
+#~ " the top center of the page and"
+#~ " select Upload."
+#~ msgstr ""
+
+# 0bbec1574d09435fb3829e50f8750bab
+#~ msgid ""
+#~ "Name the upload NGO (you can name"
+#~ " it anything you wish) and click "
+#~ "‘Upload CSV.’ Select the Fakeland Health"
+#~ " Facilities - Source 1 NGO file "
+#~ "from where you saved it on your"
+#~ " computer."
+#~ msgstr ""
+
+# 52a5209741ff4f5b9c4ee2926ac518b2
+#~ msgid "Click CONTINUE. The data will be loaded into the system."
+#~ msgstr ""
+
+# a1b6f253beb84063980493f0eef7a962
+#~ msgid "Click the blue UPLOAD button."
+#~ msgstr ""
 

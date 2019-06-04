@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # b435e6075f384514816f55d79d54a714
 #: ../../source/quick/quick-match.md:1
@@ -36,27 +36,27 @@ msgstr ""
 msgid "Pair data sources"
 msgstr ""
 
-# 6d0b3afb29394b22a985671387c8c975
+# 2daf3df3ba3a44f98d7672c95d110001
 #: ../../source/quick/quick-match.md:7
 msgid ""
-"Go to the Data Source Pair tab and select both data sources. The data "
-"source you select under Source 1 is the target (the one you want to fix)."
-" The data source you select under Source 2 is the one that is the leader "
-"that you want to eventually merge your data with."
+"Go to the Reconcile tab and choose Create and Manage Data Source Pair. "
+"Select both data sources. The data source you select under Source 1 "
+"source of truth. The data source you select under Source 2 is the one "
+"that you want to fix."
 msgstr ""
 
-# 585d81ac3c874384ad96877126f8f033
-#: ../../source/quick/quick-match.md:8
-msgid "Choose NGO as Source 1 and DHIS2 as Source 2."
+# c47a4bc03eda4cf6bf1f3fa96a66d63d
+#: ../../source/quick/quick-match.md:9
+msgid "Choose DHIS2 as Source 1 and NGO as Source 2."
 msgstr ""
 
-# f1dfdca0940a451a835fc32ef83e26c7
-#: ../../source/quick/quick-match.md:12
-msgid "Click SAVE and you will be taken to the reconciliation screen."
+# d84edf5594644ea7aec66b133dde2378
+#: ../../source/quick/quick-match.md:13
+msgid "Click Save and you will be taken to the Reconcile page."
 msgstr ""
 
 # 164a8ca22a7546fca06f22790575ea16
-#: ../../source/quick/quick-match.md:14
+#: ../../source/quick/quick-match.md:15
 msgid ""
 "Note. After saving the pair should be active. If not, then below the pair"
 " choose Active under Existing Data Source Pairs. Then click Activate "
@@ -64,12 +64,12 @@ msgid ""
 msgstr ""
 
 # e285e03ad53644159b9e33b795820845
-#: ../../source/quick/quick-match.md:16
+#: ../../source/quick/quick-match.md:17
 msgid "Reconciliation"
 msgstr ""
 
 # 17421555476f45f1a56e385c6d41df37
-#: ../../source/quick/quick-match.md:18
+#: ../../source/quick/quick-match.md:19
 msgid ""
 "There are only two regions (the top administrative level in the fakeland "
 "data). They are automatically matched. The status wheels labeled Matched "
@@ -118,11 +118,11 @@ msgstr ""
 msgid "A pop-up dialog will let you choose which facility to match it to."
 msgstr ""
 
-# e3235450f4cb45c188c2c1a99a472b71
+# 4ea3467aa890400db77bb9d5b6e6da75
 #: ../../source/quick/quick-match.md:40
 msgid ""
 "Select the most appropriate match, in this case it is Referral Hospital, "
-"and click SAVE MATCH."
+"and click Save Match."
 msgstr ""
 
 # 281eae30519f4f1aa88123e8ace0509c
@@ -144,13 +144,13 @@ msgstr ""
 msgid "Export a reconciliation report"
 msgstr ""
 
-# 88bd44119f5646699d944988763c736d
+# 25ed3a9fee10410b80d5dfba60c7f417
 #: ../../source/quick/quick-match.md:49
 msgid ""
 "On the top left of the reconciliation tab there is an option to output "
 "either a FHIR-based report of the final reconciled dataset or a CSV of "
 "what matched and did not match in either dataset. Choose CSV Export. You "
-"will receive three files of matches and unmatches."
+"will be able to choose three files of matches and unmatches."
 msgstr ""
 
 # f06b1a9f52b546f89e81153858450102
@@ -162,4 +162,44 @@ msgstr ""
 #: ../../source/quick/quick-match.md:53
 msgid "Select Reconciliation Status and view the overall status."
 msgstr ""
+
+# 6d0b3afb29394b22a985671387c8c975
+#~ msgid ""
+#~ "Go to the Data Source Pair tab "
+#~ "and select both data sources. The "
+#~ "data source you select under Source "
+#~ "1 is the target (the one you "
+#~ "want to fix). The data source you"
+#~ " select under Source 2 is the "
+#~ "one that is the leader that you"
+#~ " want to eventually merge your data"
+#~ " with."
+#~ msgstr ""
+
+# 585d81ac3c874384ad96877126f8f033
+#~ msgid "Choose NGO as Source 1 and DHIS2 as Source 2."
+#~ msgstr ""
+
+# f1dfdca0940a451a835fc32ef83e26c7
+#~ msgid "Click SAVE and you will be taken to the reconciliation screen."
+#~ msgstr ""
+
+# e3235450f4cb45c188c2c1a99a472b71
+#~ msgid ""
+#~ "Select the most appropriate match, in"
+#~ " this case it is Referral Hospital,"
+#~ " and click SAVE MATCH."
+#~ msgstr ""
+
+# 88bd44119f5646699d944988763c736d
+#~ msgid ""
+#~ "On the top left of the "
+#~ "reconciliation tab there is an option"
+#~ " to output either a FHIR-based "
+#~ "report of the final reconciled dataset"
+#~ " or a CSV of what matched and"
+#~ " did not match in either dataset. "
+#~ "Choose CSV Export. You will receive "
+#~ "three files of matches and unmatches."
+#~ msgstr ""
 

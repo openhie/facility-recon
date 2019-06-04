@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Facility Reconciliation Tool \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 # 824b47f4d2ce4abc9b6bec93e414940a
 #: ../../source/user/match.md:1
@@ -43,17 +43,17 @@ msgstr ""
 msgid "Pair sources"
 msgstr ""
 
-# 5529f8bb3b314020bd393b332f7ad1a6
+# 2706b61375994f26a8cde8883cf601ff
 #: ../../source/user/match.md:9
 msgid ""
-"On the pair tab select one source on the left and one on the right. The "
-"source on the left (source 1) is the data the follower, the data that is "
-"meant to be cleaned. The source on the right is the leader, the source "
-"that is the source of truth."
+"Under the Reconcile tab is the Create and Manage Data Source page. On the"
+" pair tab select one source on the left and one on the right. The source "
+"on the left (source 1) is the leader -- the source of truth. The source "
+"on the right is the follower, the source that is meant to be cleaned."
 msgstr ""
 
 # 3791f488a1dc4663b65a92c85cb283df
-#: ../../source/user/match.md:11
+#: ../../source/user/match.md:13
 msgid ""
 "In the pairing process it is possible to share the pair with another user"
 " who may join in helping to match, for example where they are familiar "
@@ -61,26 +61,26 @@ msgid ""
 msgstr ""
 
 # 06e43fecb3c54397a1e55c8fe8dce0cd
-#: ../../source/user/match.md:13
+#: ../../source/user/match.md:15
 msgid "Automatic matching"
 msgstr ""
 
 # 357cf9a070594273974f9dc9b3bf7588
-#: ../../source/user/match.md:15
+#: ../../source/user/match.md:17
 msgid ""
 "When the reconciliation process starts it uses automatic matching. "
 "Matching proceeds like this:"
 msgstr ""
 
 # 63e630638d7d415bbc348ff13452be29
-#: ../../source/user/match.md:17
+#: ../../source/user/match.md:19
 msgid ""
 "The first level matches the highest administrative area names (termed "
 "region in the tool) using the Levenshtein distance."
 msgstr ""
 
 # 56e7ca421666463b86eedc0fb5ac8602
-#: ../../source/user/match.md:18
+#: ../../source/user/match.md:20
 msgid ""
 "The second level matches based on the first level and also the "
 "Levenshtein distance for the second level names, termed district in the "
@@ -88,20 +88,42 @@ msgid ""
 msgstr ""
 
 # ad8190bebca64f2cb3c793bfb5013aeb
-#: ../../source/user/match.md:19
+#: ../../source/user/match.md:21
 msgid ""
 "The final level matches based on the second level (which was already "
 "matched according to the level above it) as well as the Levenshtein "
 "distance."
 msgstr ""
 
+# 3ba9d599c483498481bc399ccc01db79
+#: ../../source/user/match.md:23
+msgid "Recalculate scores"
+msgstr ""
+
+# b1f0dd64e975402ba54218e73a2bb8f0
+#: ../../source/user/match.md:25
+msgid ""
+"During the matching process at any level, it is possible to ask the tool "
+"to match unmatched entities using the Recalculate Scores button. This "
+"process does not remove matches."
+msgstr ""
+
+# 74eac0fa800543fbb004116cf03d3043
+#: ../../source/user/match.md:29
+msgid ""
+"One common use for this is afer manual matching of any entities, to rerun"
+" the matching process and incorporate the results. This can also be used "
+"when an entity is is freed for matching after having been previously "
+"flagged."
+msgstr ""
+
 # 05ec3da54f334296b115b25fa8a2e763
-#: ../../source/user/match.md:21
+#: ../../source/user/match.md:31
 msgid "Manual matching"
 msgstr ""
 
 # 36931efcc7bf42268f86793bcfc0d41f
-#: ../../source/user/match.md:23
+#: ../../source/user/match.md:33
 msgid ""
 "Manual matching brings up a dialog box to choose options. If latitude and"
 " longitude coordinates were provided in the data sources, it additionally"
@@ -111,7 +133,7 @@ msgid ""
 msgstr ""
 
 # f262279f37004222884c082f8600e028
-#: ../../source/user/match.md:25
+#: ../../source/user/match.md:35
 msgid ""
 "Any administrative area or facility match may be broken. If this is "
 "desired, click Recalculate Scores to rebuild the scoring index and "
@@ -119,57 +141,109 @@ msgid ""
 msgstr ""
 
 # fbb3570577b544ca934b89069db2e29e
-#: ../../source/user/match.md:27
+#: ../../source/user/match.md:37
 msgid "Parent constraints"
 msgstr ""
 
 # 26f5808f9ac54441917dadc5f390097d
-#: ../../source/user/match.md:29
+#: ../../source/user/match.md:39
 msgid ""
 "The default is to match facilities between sources based on hierarchies "
 "only. This means that if a facility is in the wrong nested administrative"
 " level, it will not be matched."
 msgstr ""
 
-# 018010f35cd24eaebb2ced136dc176d9
-#: ../../source/user/match.md:31
+# d6248816a35f4963bfd5aadbfde906b9
+#: ../../source/user/match.md:41
 msgid ""
-"Under configure system parent constraint can be disabled to allow for "
-"matching of all facilities across the sources."
+"Under the Configure System tab the parent constraint can be disabled to "
+"allow for matching of all facilities across the sources."
 msgstr ""
 
 # f2fe19d00d6849caa0637020647ab5ca
-#: ../../source/user/match.md:33
+#: ../../source/user/match.md:43
 msgid "Reconcile without levels"
 msgstr ""
 
 # becbd473e7a84adcacd3c31fc364d9e6
-#: ../../source/user/match.md:35
+#: ../../source/user/match.md:45
 msgid "It is possible to match facilities from a flat list with no hierarchies."
 msgstr ""
 
 # e090620921ee4ac0a1c2cd70ef30bb2c
-#: ../../source/user/match.md:37
+#: ../../source/user/match.md:47
 msgid "Notifications"
 msgstr ""
 
 # 193b95c47d33428b97eb18e6588cdbfa
-#: ../../source/user/match.md:39
+#: ../../source/user/match.md:49
 msgid ""
 "When admins share a set of facilities for matching to a data manager, the"
 " data manager is notified by email when the matching is completed."
 msgstr ""
 
 # c101f11de8894923bc16b70adc3e73c2
-#: ../../source/user/match.md:41
+#: ../../source/user/match.md:51
 msgid "Flagging"
 msgstr ""
 
-# a1e0af9563204dd289114764db57a7d7
-#: ../../source/user/match.md:43
+# de5cf57da90242919fbe0e2356449c13
+#: ../../source/user/match.md:53
 msgid ""
 "Flagging allows for an export of facilities that require further "
 "examination and research. When a flag is set, the user may also include a"
-" comment"
+" comment."
 msgstr ""
+
+# 9f678ae2e5ce4f4d819a7bdb01bdbfd4
+#: ../../source/user/match.md:55
+msgid ""
+"Flags may be set on any entity. For example, an organizational unit or a "
+"facility."
+msgstr ""
+
+# 274f4809795e412a88019e2efd107974
+#: ../../source/user/match.md:57
+msgid ""
+"In order to see flagged items and their comments click the FLAGGED tab on"
+" the bottom of the RECONCILE menu for the level of interest. In this "
+"example, an org unit is flagged."
+msgstr ""
+
+# 5243b419c04a4610bdc7825ef929127b
+#: ../../source/user/match.md:61
+msgid ""
+"Also in this example, once flagged, a facility or administrative unit may"
+" be released back for matching to another entity, or the match that was "
+"flagged may be confirmed."
+msgstr ""
+
+# 5529f8bb3b314020bd393b332f7ad1a6
+#~ msgid ""
+#~ "On the pair tab select one source"
+#~ " on the left and one on the "
+#~ "right. The source on the left "
+#~ "(source 1) is the data the "
+#~ "follower, the data that is meant "
+#~ "to be cleaned. The source on the"
+#~ " right is the leader, the source "
+#~ "that is the source of truth."
+#~ msgstr ""
+
+# 018010f35cd24eaebb2ced136dc176d9
+#~ msgid ""
+#~ "Under configure system parent constraint "
+#~ "can be disabled to allow for "
+#~ "matching of all facilities across the"
+#~ " sources."
+#~ msgstr ""
+
+# a1e0af9563204dd289114764db57a7d7
+#~ msgid ""
+#~ "Flagging allows for an export of "
+#~ "facilities that require further examination"
+#~ " and research. When a flag is "
+#~ "set, the user may also include a"
+#~ " comment"
+#~ msgstr ""
 
