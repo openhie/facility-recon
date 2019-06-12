@@ -1,135 +1,141 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 3e02f34500214976bbbe729492079372
+# 830aade5664a45549e96db22386a8ea9
 #: ../../source/user/sources.md:1
 msgid "Data Sources"
-msgstr ""
+msgstr "Sources de données"
 
-# 17a430bba15f478fbf6fd04d43353a18
+# 3e13fe4c3496419192bcf53100debfa8
 #: ../../source/user/sources.md:3
 msgid ""
-"Note that there is a quick start in this documentation on how to upload "
-"CSV."
+"Note that there is a quick start in this documentation on how to upload CSV."
 msgstr ""
+"Veuillez noter que vous trouverez dans la présente documentation un "
+"démarrage rapide sur la manière de télécharger un fichier CSV."
 
-# 186e8ccd6ec04fdc8c34b892f8565b7c
+# 6d721dab83b048949f0c0371087dbbdc
 #: ../../source/user/sources.md:5
 msgid ""
 "The tool supports CSV as a file source, as well as remote connections to "
 "DHIS2 and FHIR servers."
 msgstr ""
+"L'outil prend en charge le fichier CSV comme fichier source, ainsi que toute"
+" connexion à distance aux serveurs DHIS2 et FHIR."
 
-# acec764fad0541ccb1f624073e9daab1
+# d3e077b4f26c41348bce25f7a98da0ce
 #: ../../source/user/sources.md:38
 msgid "Upload CSV"
-msgstr ""
+msgstr "Télécharger un fichier CSV"
 
-# 8b574b06788c462383c429d471ce10f2
+# 37110c4af29f4407b824c6b8570e22fb
 #: ../../source/user/sources.md:40
 msgid ""
-"The CSV file should have columns names in the first row of the file. "
-"Empty lines should be removed. The CSV file should be encoded as Unicode "
-"(utf-8) as that is what is used internally in the backend. If some "
-"entities are encoded in another format then matches that appear to be the"
-" same may not match as expected."
+"The CSV file should have columns names in the first row of the file. Empty "
+"lines should be removed. The CSV file should be encoded as Unicode (utf-8) "
+"as that is what is used internally in the backend. If some entities are "
+"encoded in another format then matches that appear to be the same may not "
+"match as expected."
 msgstr ""
+"Le nom des colonnes doit figuré sur la première rangée du fichier CSV. Les "
+"rangées vides doivent être supprimées. Le fichier CSV doit être encodé en "
+"format Unicode (utf-8) dans la mesure où c'est ce qui est utilisé en interne"
+" en backend. Si certaines entités sont encodées en format autre, alors les "
+"couplages qui semblent être identiques risquent de ne pas l'être comme "
+"escompté."
 
-# 0324143775bc4af7adf393d7b9f11b0d
+# 2f0e852c02ff4f2eb14efac6c9e39374
 #: ../../source/user/sources.md:42
 msgid ""
-"Latitude and longitude are optional columns. If they are included they "
-"will be used to facilitate manual matching but they are not used or "
-"required for automatic matching."
+"Latitude and longitude are optional columns. If they are included they will "
+"be used to facilitate manual matching but they are not used or required for "
+"automatic matching."
 msgstr ""
+"Les colonnes de latitude et de longitude sont facultatives. Si elles sont "
+"incluses, elles seront utilisées pour faciliter le rapprochement manuel mais"
+" elles ne seront pas utilisées ni requises en mode automatique."
 
-# c7cd120ce6e44d75800eeb6f633bc172
+# 9bef9bf4c6d34bfe958b9d8454c70eef
 #: ../../source/user/sources.md:44
 msgid ""
-"Once uploaded, in the View tab, CSV entries can be edited. Any edits do "
-"not modify the original data source but the edits will be exported after "
+"Once uploaded, in the View tab, CSV entries can be edited. Any edits do not "
+"modify the original data source but the edits will be exported after "
 "reconciliation."
 msgstr ""
+"Une fois téléchargées, dans l'onglet de visualisation, les saisies CSV "
+"peuvent être modifiées. Aucune modification ne peut changer la source de "
+"données d'origine mais les modifications seront exportées après le "
+"rapprochement."
 
-# 3d190a88b57b415798b7cdfb6e019968
+# 565a283d5fd04736ae5c5af3ed13d903
 #: ../../source/user/sources.md:46
 msgid "Select Levels"
-msgstr ""
+msgstr "Sélectionner les niveaux"
 
-# 6ebbd87ac1014427a4bdf650373ca860
+# 97472c12e5fd444ebeaf79466f2b088a
 #: ../../source/user/sources.md:48
 msgid ""
-"The user may choose any levels in their hierarchy to include but they "
-"must be ordered with the top most level first."
+"The user may choose any levels in their hierarchy to include but they must "
+"be ordered with the top most level first."
 msgstr ""
+"Les utilisateurs peuvent choisir d'inclure tout niveau de leur hiérarchie "
+"mais ils doivent être classés avec le niveau le plus élevé d'abord. "
 
-# 874541a78b954d39b2cc71f5b5f53dde
+# a0bc0491e1b846e7a50785cd15f36d85
 #: ../../source/user/sources.md:50
 msgid ""
 "It is also possible to select no levels to match on a flat list with no "
 "hierarchy. To do so, don't select levels."
 msgstr ""
+"Il est également possible de sélectionner aucun niveau pour coupler une "
+"liste plate sans hiérarchie. Pour ce faire, ne sélectionnez aucun niveau."
 
-# e1e43885ab194d92963a373727e775a0
+# a07f261118364b8db6dd360e23abbb6e
 #: ../../source/user/sources.md:52
 msgid "Remote Servers -- DHIS2 or FHIR"
-msgstr ""
+msgstr "Serveurs à distance -- DHIS2 ou FHIR"
 
 # 724272d8c448492db335f029bfbbe6bb
 #: ../../source/user/sources.md:54
 msgid ""
-"The tool supports remote sources. Any DHIS2 or FHIR server can be used as"
-" a source if the user has credentials to access it."
+"The tool supports remote sources. Any DHIS2 or FHIR server can be used as a "
+"source if the user has credentials to access it."
 msgstr ""
 
-# 2b2f92e04dfe4cf58ffaa27079b97345
+# d5baeb41295f4a2f86f700b953215b62
 #: ../../source/user/sources.md:56
 msgid ""
-"Extensive compatibility testing has not been performed but DHIS2 versions"
-" >=2.22 should be supported. Please contact the maintainers if there is "
-"an issue."
+"Extensive compatibility testing has not been performed but DHIS2 versions "
+">=2.22 should be supported. Please contact the maintainers if there is an "
+"issue."
 msgstr ""
+"Aucun test approfondi de compatibilité n'a été réalisé mais les versions de "
+"DHIS2 >=2.22 devraient être prises en charge. Veuillez contacter le service "
+"chargé de la maintenance en cas de problème. "
 
 # 18299273b1244e4daba7efe11087a50c
 #: ../../source/user/sources.md:58
 msgid ""
-"FHIR is supported for STU3 and R4 support is anticipated. Other FHIR "
-"servers may be added in future versions of the tool, such as the HAPI "
-"FHIR server."
+"FHIR is supported for STU3 and R4 support is anticipated. Other FHIR servers"
+" may be added in future versions of the tool, such as the HAPI FHIR server."
 msgstr ""
-
-# ff0fa3e52737428a8e6ebba47586197e
-#~ msgid ""
-#~ "The tool supports remote sources. Any"
-#~ " server for which the user can "
-#~ "authenticate and is authorized to get"
-#~ " the facility and hierarchy for can"
-#~ " be used as a source."
-#~ msgstr ""
-
-# 173abb0225a047b6a983280763851b9d
-#~ msgid ""
-#~ "FHIR is supported for STU3 and R4"
-#~ " support is anticipated. Other FHIR "
-#~ "servers may be added in future "
-#~ "versions of the tool, such as the"
-#~ "  HAPI FHIR server."
-#~ msgstr ""
-

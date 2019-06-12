@@ -1,99 +1,121 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 824b47f4d2ce4abc9b6bec93e414940a
+# e65c801933204587846c1f144801351d
 #: ../../source/user/match.md:1
 msgid "Match"
-msgstr ""
+msgstr "Couplage"
 
-# 5b92abefe1074170b719d70cbba8aa3e
+# def1467f24f74cbcb855a5b746314e39
 #: ../../source/user/match.md:3
 msgid ""
-"Note that there is a video tutorial on how to match on the OpenHIE "
-"YouTube channel and a quick start in this documentation."
+"Note that there is a video tutorial on how to match on the OpenHIE YouTube "
+"channel and a quick start in this documentation."
 msgstr ""
+"Veuillez noter qu'il existe, sur la chaîne YouTube Open HIE, un tutoriel "
+"vidéo sur la manière de coupler, ainsi qu'un démarrage rapide dans la "
+"présente documentation."
 
-# c3d30b73ba964159be833b0b9611401b
+# 7d58427fc39c4ed4a5ccf61b0c92f057
 #: ../../source/user/match.md:5
 msgid ""
-"Reconciling data sources involves choosing a pair of sources to work with"
-" and then running the automatic or manual matching tool. Any kind of "
-"match can be undone."
+"Reconciling data sources involves choosing a pair of sources to work with "
+"and then running the automatic or manual matching tool. Any kind of match "
+"can be undone."
 msgstr ""
+"Le rapprochement des sources de données implique le choix d'une paire de "
+"sources avec lesquelles travailler, puis le lancement de l'outil de couplage"
+" automatique ou manuel. Tout couplage peut être défait."
 
-# 1786d1e6ba8c4a628336ff94a00af910
+# 6ab05a337a8a46c0a900d4a4052855a2
 #: ../../source/user/match.md:7
 msgid "Pair sources"
-msgstr ""
+msgstr "Couplage de sources"
 
 # 2706b61375994f26a8cde8883cf601ff
 #: ../../source/user/match.md:9
 msgid ""
-"Under the Reconcile tab is the Create and Manage Data Source page. On the"
-" pair tab select one source on the left and one on the right. The source "
-"on the left (source 1) is the leader -- the source of truth. The source "
-"on the right is the follower, the source that is meant to be cleaned."
+"Under the Reconcile tab is the Create and Manage Data Source page. On the "
+"pair tab select one source on the left and one on the right. The source on "
+"the left (source 1) is the leader -- the source of truth. The source on the "
+"right is the follower, the source that is meant to be cleaned."
 msgstr ""
 
-# 3791f488a1dc4663b65a92c85cb283df
+# 65c94c4606324fe59df1754f824573c2
 #: ../../source/user/match.md:13
 msgid ""
-"In the pairing process it is possible to share the pair with another user"
-" who may join in helping to match, for example where they are familiar "
-"with a specific area."
+"In the pairing process it is possible to share the pair with another user "
+"who may join in helping to match, for example where they are familiar with a"
+" specific area."
 msgstr ""
+"Dans le cadre du processus de couplage, il est possible de partager la paire"
+" avec un autre utilisateur susceptible de contribuer à l'exercice de "
+"rapprochement, par exemple, lorsqu'il s'agit d'une personne qui connaît bien"
+" le lieu."
 
-# 06e43fecb3c54397a1e55c8fe8dce0cd
+# 2d40df97b8e646e08991f6fb671c4543
 #: ../../source/user/match.md:15
 msgid "Automatic matching"
-msgstr ""
+msgstr "Couplage automatique"
 
-# 357cf9a070594273974f9dc9b3bf7588
+# b1f0718e1cf247099c63a7772f186e4e
 #: ../../source/user/match.md:17
 msgid ""
-"When the reconciliation process starts it uses automatic matching. "
-"Matching proceeds like this:"
+"When the reconciliation process starts it uses automatic matching. Matching "
+"proceeds like this:"
 msgstr ""
+"Lorsque le processus de rapprochement démarre, il utilise le couplage "
+"automatique. Le couplage se fait ainsi :"
 
-# 63e630638d7d415bbc348ff13452be29
+# d8000f0e9fbe4f33b3295a423b9b0b24
 #: ../../source/user/match.md:19
 msgid ""
-"The first level matches the highest administrative area names (termed "
-"region in the tool) using the Levenshtein distance."
+"The first level matches the highest administrative area names (termed region"
+" in the tool) using the Levenshtein distance."
 msgstr ""
+"Le premier niveau rapproche les noms des zones administratives les plus "
+"élevées (intitulées régions pour les besoins de cet outil) à l'aide de la "
+"distance de Levenshtein."
 
-# 56e7ca421666463b86eedc0fb5ac8602
+# ccdfbea9694a4b7c8a1faa3d9eecdc7d
 #: ../../source/user/match.md:20
 msgid ""
-"The second level matches based on the first level and also the "
-"Levenshtein distance for the second level names, termed district in the "
-"tool."
+"The second level matches based on the first level and also the Levenshtein "
+"distance for the second level names, termed district in the tool."
 msgstr ""
+"Le couplage au deuxième niveau se fait sur la base du premier niveau, ainsi "
+"que de la distance de Levenshtein pour les noms de deuxième niveau, appelés "
+"districts pour les besoins de l'outil."
 
-# ad8190bebca64f2cb3c793bfb5013aeb
+# ba816bf538c241a7b510b85e7931e8b2
 #: ../../source/user/match.md:21
 msgid ""
-"The final level matches based on the second level (which was already "
-"matched according to the level above it) as well as the Levenshtein "
-"distance."
+"The final level matches based on the second level (which was already matched"
+" according to the level above it) as well as the Levenshtein distance."
 msgstr ""
+"Les couplages de derniers niveaux sont basés sur ceux du deuxième niveau "
+"(qui se basaient déjà sur le niveau supérieur) ainsi que sur la distance de "
+"Levenshtein."
 
 # 3ba9d599c483498481bc399ccc01db79
 #: ../../source/user/match.md:23
@@ -103,55 +125,68 @@ msgstr ""
 # b1f0dd64e975402ba54218e73a2bb8f0
 #: ../../source/user/match.md:25
 msgid ""
-"During the matching process at any level, it is possible to ask the tool "
-"to match unmatched entities using the Recalculate Scores button. This "
-"process does not remove matches."
+"During the matching process at any level, it is possible to ask the tool to "
+"match unmatched entities using the Recalculate Scores button. This process "
+"does not remove matches."
 msgstr ""
 
 # 74eac0fa800543fbb004116cf03d3043
 #: ../../source/user/match.md:29
 msgid ""
-"One common use for this is afer manual matching of any entities, to rerun"
-" the matching process and incorporate the results. This can also be used "
-"when an entity is is freed for matching after having been previously "
-"flagged."
+"One common use for this is afer manual matching of any entities, to rerun "
+"the matching process and incorporate the results. This can also be used when"
+" an entity is is freed for matching after having been previously flagged."
 msgstr ""
 
-# 05ec3da54f334296b115b25fa8a2e763
+# 9bca392e4241454992ce14a7811bff4c
 #: ../../source/user/match.md:31
 msgid "Manual matching"
-msgstr ""
+msgstr "Couplage manuel"
 
-# 36931efcc7bf42268f86793bcfc0d41f
+# b94b17fa2da7422f91c2f7d0d8f991d9
 #: ../../source/user/match.md:33
 msgid ""
-"Manual matching brings up a dialog box to choose options. If latitude and"
-" longitude coordinates were provided in the data sources, it additionally"
-" scores matches based on the haversine formula for shortest path across a"
-" sphere (geodesic distance) between the points. This is not used in the "
+"Manual matching brings up a dialog box to choose options. If latitude and "
+"longitude coordinates were provided in the data sources, it additionally "
+"scores matches based on the haversine formula for shortest path across a "
+"sphere (geodesic distance) between the points. This is not used in the "
 "automatic matching but is provided for manual matching."
 msgstr ""
+"Le couplage manuel fait apparaître une fenêtre de dialogue pour le choix des"
+" options. Si les coordonnées géographiques (latitude et longitude) ont été "
+"fournies dans les sources de données, le couplage se base en outre sur la "
+"formule de haversine pour déterminer la distance la plus faible sur une "
+"sphère (distance géodésique) entre les points. Cette fonctionnalité n'est "
+"pas utilisée dans le cadre du couplage automatique mais elle est proposée "
+"pour le couplage manuel."
 
-# f262279f37004222884c082f8600e028
+# 16ea8fb5588241549ddba3ced6d3d35a
 #: ../../source/user/match.md:35
 msgid ""
-"Any administrative area or facility match may be broken. If this is "
-"desired, click Recalculate Scores to rebuild the scoring index and "
-"manually match or flag as desired."
+"Any administrative area or facility match may be broken. If this is desired,"
+" click Recalculate Scores to rebuild the scoring index and manually match or"
+" flag as desired."
 msgstr ""
+"Tout couplage de domaines administratifs ou de centres peut être brisé. Si "
+"c'est ce que vous souhaitez, cliquez sur « Recalculer les scores  afin de "
+"recréer l'index de score et coupler de manière manuelle ou indiquer ce que "
+"vous souhaitez."
 
-# fbb3570577b544ca934b89069db2e29e
+# d58923d45c7c457ea5f90a76f52caf1a
 #: ../../source/user/match.md:37
 msgid "Parent constraints"
-msgstr ""
+msgstr "Contraintes parents"
 
-# 26f5808f9ac54441917dadc5f390097d
+# d635abd837e34de2b7a81e1f17b623be
 #: ../../source/user/match.md:39
 msgid ""
 "The default is to match facilities between sources based on hierarchies "
-"only. This means that if a facility is in the wrong nested administrative"
-" level, it will not be matched."
+"only. This means that if a facility is in the wrong nested administrative "
+"level, it will not be matched."
 msgstr ""
+"Le processus par défaut consiste à coupler des centres entre des sources "
+"basées sur des hiérarchies uniquement. Cela signifie que tout centre se "
+"trouvant dans un niveau administratif imbriqué incorrect ne sera pas couplé."
 
 # d6248816a35f4963bfd5aadbfde906b9
 #: ../../source/user/match.md:41
@@ -160,39 +195,44 @@ msgid ""
 "allow for matching of all facilities across the sources."
 msgstr ""
 
-# f2fe19d00d6849caa0637020647ab5ca
+# 4d9bfa1930ff492cb1f7303582dcf32c
 #: ../../source/user/match.md:43
 msgid "Reconcile without levels"
-msgstr ""
+msgstr "Rapprochement sans niveaux"
 
-# becbd473e7a84adcacd3c31fc364d9e6
+# dd5d64014b434b2c82689f4c93ac92e1
 #: ../../source/user/match.md:45
-msgid "It is possible to match facilities from a flat list with no hierarchies."
+msgid ""
+"It is possible to match facilities from a flat list with no hierarchies."
 msgstr ""
+"Il est possible de coupler des centres à partir d'une liste plate sans "
+"hiérarchie."
 
-# e090620921ee4ac0a1c2cd70ef30bb2c
+# 0c027d5ecced4e30a96fb0461399dd3f
 #: ../../source/user/match.md:47
 msgid "Notifications"
-msgstr ""
+msgstr "Notifications"
 
-# 193b95c47d33428b97eb18e6588cdbfa
+# 93616bcd98db498796bf869976338950
 #: ../../source/user/match.md:49
 msgid ""
-"When admins share a set of facilities for matching to a data manager, the"
-" data manager is notified by email when the matching is completed."
+"When admins share a set of facilities for matching to a data manager, the "
+"data manager is notified by email when the matching is completed."
 msgstr ""
+"Lorsque les administrateurs partagent un ensemble de centres à coupler avec "
+"le responsable des données, ce dernier est averti par e-mail lorsque le "
+"couplage est terminé."
 
-# c101f11de8894923bc16b70adc3e73c2
+# 4d747accdeed4bd686d61ceaf54ff097
 #: ../../source/user/match.md:51
 msgid "Flagging"
-msgstr ""
+msgstr "Signalement"
 
 # de5cf57da90242919fbe0e2356449c13
 #: ../../source/user/match.md:53
 msgid ""
-"Flagging allows for an export of facilities that require further "
-"examination and research. When a flag is set, the user may also include a"
-" comment."
+"Flagging allows for an export of facilities that require further examination"
+" and research. When a flag is set, the user may also include a comment."
 msgstr ""
 
 # 9f678ae2e5ce4f4d819a7bdb01bdbfd4
@@ -205,45 +245,15 @@ msgstr ""
 # 274f4809795e412a88019e2efd107974
 #: ../../source/user/match.md:57
 msgid ""
-"In order to see flagged items and their comments click the FLAGGED tab on"
-" the bottom of the RECONCILE menu for the level of interest. In this "
-"example, an org unit is flagged."
+"In order to see flagged items and their comments click the FLAGGED tab on "
+"the bottom of the RECONCILE menu for the level of interest. In this example,"
+" an org unit is flagged."
 msgstr ""
 
 # 5243b419c04a4610bdc7825ef929127b
 #: ../../source/user/match.md:61
 msgid ""
-"Also in this example, once flagged, a facility or administrative unit may"
-" be released back for matching to another entity, or the match that was "
-"flagged may be confirmed."
+"Also in this example, once flagged, a facility or administrative unit may be"
+" released back for matching to another entity, or the match that was flagged"
+" may be confirmed."
 msgstr ""
-
-# 5529f8bb3b314020bd393b332f7ad1a6
-#~ msgid ""
-#~ "On the pair tab select one source"
-#~ " on the left and one on the "
-#~ "right. The source on the left "
-#~ "(source 1) is the data the "
-#~ "follower, the data that is meant "
-#~ "to be cleaned. The source on the"
-#~ " right is the leader, the source "
-#~ "that is the source of truth."
-#~ msgstr ""
-
-# 018010f35cd24eaebb2ced136dc176d9
-#~ msgid ""
-#~ "Under configure system parent constraint "
-#~ "can be disabled to allow for "
-#~ "matching of all facilities across the"
-#~ " sources."
-#~ msgstr ""
-
-# a1e0af9563204dd289114764db57a7d7
-#~ msgid ""
-#~ "Flagging allows for an export of "
-#~ "facilities that require further examination"
-#~ " and research. When a flag is "
-#~ "set, the user may also include a"
-#~ " comment"
-#~ msgstr ""
-

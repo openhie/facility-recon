@@ -1,85 +1,88 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 0cb44d94647241188000794f527b57c4
+# 55913f67f6c74005b7b3f5b2fdacac68
 #: ../../source/index.rst:2
 msgid "Facility Reconciliation Tool documentation"
-msgstr ""
+msgstr "Documentation de l'outil de rapprochement des centres"
 
 # 506fe81c9d6e43109ff1877fd1a791d8
 #: ../../source/index.rst:4
 msgid ""
-"The Facility Reconciliation Tool is an open source and open standards-"
-"based product used to compare lists of facilities from different data "
-"sources. The tools supports uploading CSV, and connecting to FHIR servers"
-" and DHIS2."
+"The Facility Reconciliation Tool is an open source and open standards-based "
+"product used to compare lists of facilities from different data sources. The"
+" tools supports uploading CSV, and connecting to FHIR servers and DHIS2."
 msgstr ""
 
 # 37a688c45700460fa8ef340dada00af9
 #: ../../source/index.rst:6
 msgid ""
-"The tool can be used as a standalone application with its own "
-"authentication or as an easily installable DHIS2 app that uses DHIS2 for "
-"authentication that runs the tool in the background."
+"The tool can be used as a standalone application with its own authentication"
+" or as an easily installable DHIS2 app that uses DHIS2 for authentication "
+"that runs the tool in the background."
 msgstr ""
 
-# aa3825a213d5457683a92715e6a04d6f
+# 8d9a2c6febc148bfb7d4581d56af1297
 #: ../../source/index.rst:8
 msgid "If you are new to the tools, please try the quick starts!"
 msgstr ""
+"Si vous apprenez tout juste à connaître ces outils, veuillez essayer les "
+"démarrages rapides !"
 
-# 1fe4c99fca5d45dbbc5657840bf43233
+# 7c7fb9cc97044d778e3a3de6538d13a8
 #: ../../source/index.rst:10
 msgid "For support, please have a look through this guide, including the FAQ."
 msgstr ""
+"Pour obtenir de l'aide, veuillez consulter ce guide, y compris la section "
+"FAQ."
 
-# 2d1a5d4e41984ca8bac71404fe58aad1
+# 4ac50323d3bc493aac8205ec01a41129
 #: ../../source/index.rst:12
 msgid ""
-"For announcements and discussions, join the `Facility Registry Google "
-"Group <https://groups.google.com/forum/#!forum/facility-registry>`_."
+"For announcements and discussions, join the `Facility Registry Google Group "
+"<https://groups.google.com/forum/#!forum/facility-registry>`_."
 msgstr ""
+"Pour consulter les annonces ou discussions, inscrivez-vous sur le Groupe "
+"Google de registres d'installations  "
+"<https://groups.google.com/forum/#!forum/facility-registry>`_."
 
-# 3643849670cd4129917318e56226fd0f
+# 31c51f9ce72f41f5917cad56d2478c7a
 #: ../../source/index.rst:13
 msgid ""
 "For monthly discussions about facility registries, join the `OpenHIE "
 "Facility Registry Community "
 "<https://wiki.ohie.org/display/SUB/Facility+Registry+Community>`_."
 msgstr ""
+"Pour participer à des discussions mensuelles au sujet des registres "
+"d'installations, inscrivez-vous à la « Communauté de registre "
+"d'installations OpenHIE "
+"»<https://wiki.ohie.org/display/SUB/Facility+Registry+Community>`_."
 
-# cfd3bf9a966d45dca0524c7384a77dfa
+# 841c78f23754424e8a78496a28843087
 #: ../../source/index.rst:14
 msgid ""
 "Create an issue in the `GitHub Repository <https://github.com/openhie"
 "/facility-recon/issues>`_."
 msgstr ""
-
-# 69f03aa4ea1140cba3a894172025c212
-#~ msgid ""
-#~ "The Facility Reconciliation Tool is an"
-#~ " open source and open standards-based"
-#~ " product to help anyone match lists"
-#~ " of facilities from different data "
-#~ "sources. The tools supports uploading "
-#~ "data from CSV, FHIR servers and "
-#~ "DHIS2 instances."
-#~ msgstr ""
-
+"Créez une question sur le repositoire GitHub  `GitHub Repository "
+"<https://github.com/openhie/facility-recon/issues>`_."

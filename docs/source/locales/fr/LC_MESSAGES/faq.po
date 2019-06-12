@@ -1,141 +1,155 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 30cd426a85ed413a97a1b61d4d177c5c
+# 2143fe65e87344cdb9982555c2b8899a
 #: ../../source/faq.md:1
 msgid "FAQ"
-msgstr ""
+msgstr "FAQ"
 
-# cdc1e8844c20481dbabbeafaf8670087
+# d38173a0b0944b00a5abd1bd5bab5b55
 #: ../../source/faq.md:3
 msgid "Is there an API?"
-msgstr ""
+msgstr "Qu'est-ce qu'une interface de programme d'application (API) ?"
 
-# 5fb94f3ff863450fb8aa590331f6e814
+# 9c47d184585949a2a266f87405a619a1
 #: ../../source/faq.md:5
 msgid ""
 "The tool uses a FHIR server, Hearth for persistent storage. Hearth uses "
 "MongoDB for its storage layer."
 msgstr ""
+"L'outil utilise un serveur FHIR, Hearth pour un stockage persistant. Hearth "
+"utilise MongoDB comme couche de stockage."
 
-# 693788cbc11e42ef8a0010e0b74a3d89
+# 4d764bde808a4e11ac252efef9505439
 #: ../../source/faq.md:7
 msgid ""
 "To obtain data sources and reconciled sources a user with access to the "
-"underlying stack can make queries to MongoDB or to the FHIR-based REST "
-"API for Hearth. There is no authentication for the raw access in this "
-"manner."
+"underlying stack can make queries to MongoDB or to the FHIR-based REST API "
+"for Hearth. There is no authentication for the raw access in this manner."
 msgstr ""
+"Pour obtenir des sources de données et procéder au rapprochement, les "
+"utilisateurs ayant accès à la pile sous-jacente peuvent interroger MongoDB "
+"ou l'API REST basée sur FHIR pour Hearth. Aucune authentification n'est "
+"nécessaire pour l'accès brut de cette manière."
 
-# e4a19c06ef814e1abb0ab7c677fb4cf5
+# c7db525236ba45d0a2ba0836a93318e2
 #: ../../source/faq.md:9
 msgid "Can this tool be used in education or agriculture?"
 msgstr ""
+"Cet outil peut-il être utilisé dans les secteurs éducatif et agricole ?"
 
-# 085a684ac108421bb4833decc2ee5c2a
+# 4f880d3314eb43beac053a925698be8b
 #: ../../source/faq.md:11
 msgid ""
 "Yes! The tool was first created for the health sector and uses the FHIR "
 "standard based on the mCSD IHE profile."
 msgstr ""
+"Oui ! Cet outil a été créé pour le secteur de la santé et utilise la norme "
+"FHIR basée sur le profil mCSD IHE."
 
-# 59ffa183026e4d33866211ac526bcade
+# eebb159ba89f4d4790ae1672d16f6ef2
 #: ../../source/faq.md:13
 msgid ""
 "Any hierarchical location list can potentially be supported. The backend "
-"representation can be exported in CSV and others may be added as use "
-"cases dictate."
+"representation can be exported in CSV and others may be added as use cases "
+"dictate."
 msgstr ""
+"Toute liste d'emplacements hiérarchiques peut être potentiellement prise en "
+"charge. La représentation dorsale peut être exportée en format CSV et "
+"d'autres peuvent être ajoutées en fonction des cas d'utilisation."
 
-# e27c0977aeb441ddaefaa979ce7dcd49
+# 292166d5ea71427596fc8ab2d2ec0a3f
 #: ../../source/faq.md:15
 msgid "Does the tool clean the source data?"
-msgstr ""
+msgstr "L'outil nettoye-t-il les données sources ?"
 
-# bef5e0b8a8d0486985da8935c1115567
+# a6a4dc841af540ca90074afc74737dac
 #: ../../source/faq.md:17
 msgid ""
-"No. The tool takes a pair of sources and uses automatic and manual "
-"methods to identify matches. If there are corrections needed, the tool "
-"can export a CSV or FHIR representation of what was and was not matched. "
-"The data sources have to be cleaned outside of the tool."
+"No. The tool takes a pair of sources and uses automatic and manual methods "
+"to identify matches. If there are corrections needed, the tool can export a "
+"CSV or FHIR representation of what was and was not matched. The data sources"
+" have to be cleaned outside of the tool."
 msgstr ""
+"Non. Cet outil prend une paire de sources et utilise des méthodes "
+"automatiques et manuelles afin d'identifier des correspondances. Si des "
+"corrections sont nécessaires, l'outil peut exporter un CSV ou une "
+"représentation FHIR de ce qui est couplé et ce qui ne l'est pas. Ces sources"
+" de données doivent être nettoyées à l'extérieur de l'outil."
 
-# 3306ea294f6145ed9ea2f95966a9f964
+# 8e57756f264a4a5db644620c1a56ab44
 #: ../../source/faq.md:19
 msgid "If this is a feature for your use case, please get in touch."
 msgstr ""
+"Si cette caractéristique s'applique à votre cas d'utilisation, veuillez nous"
+" contacter."
 
-# 09dc58cddfa94cf388a079d9e19e8561
+# 014dd083fbc84cb4aa947da7461cf58d
 #: ../../source/faq.md:21
 msgid "Can I run the tool on my own PC?"
-msgstr ""
+msgstr "Puis-je utiliser l'outil sur mon propre ordinateur personnel ?"
 
-# 78abc089b3ee45eeaa143d91f090f6b1
+# 3dae1577d122415e9e1edf59a236229a
 #: ../../source/faq.md:23
 msgid ""
 "The tool is comprised of four components: the app itself, Redis as an in-"
-"memory database for performance, the Hearth FHIR server, and MongoDB "
-"which is used by both Hearth for storing resources and the app for "
-"managing state."
+"memory database for performance, the Hearth FHIR server, and MongoDB which "
+"is used by both Hearth for storing resources and the app for managing state."
 msgstr ""
+"Cet outil compte quatre composantes : l'application à proprement parler, "
+"Redis, une base de données mémoire pour la performance, le serveur FHIR "
+"Hearth et MongoDB qui est utilisé aussi bien par Hearth pour le stockage des"
+" ressources que par l'application pour la gestion"
 
-# 665235f4c7a6417aa8567141043292ea
+# aaa5fe196d2f4a5d92b1dd881c770d0b
 #: ../../source/faq.md:25
 msgid ""
 "The tool is designed to be hosted on a server, either locally or in the "
-"cloud. The tool supports user management and is meant to be available for"
-" many users to collaborate on matching facility lists. Server "
-"installation is the recommended way to deploy the tool."
+"cloud. The tool supports user management and is meant to be available for "
+"many users to collaborate on matching facility lists. Server installation is"
+" the recommended way to deploy the tool."
 msgstr ""
+"Cet outil est conçu de manière à être hébergé sur un serveur local ou sur le"
+" nuage. Cet outil prend en charge la gestion des utilisateurs et est censé "
+"être mis à la disposition de nombreux utilisateurs pour leur permettre de "
+"collaborer sur le rapprochement des listes des centres. L'installation "
+"serveur est recommandée pour le déploiement de l'outil."
 
 # 139a480a9f7d4f8bbbc687e81909278a
 #: ../../source/faq.md:27
 msgid ""
 "Docker is not recommended as by default it will not persist the data, "
-"meaning that when you stop Docker you lose your data. This can be changed"
-" by mounting a volume to store data. But, the tool is meant as a platform"
-" for multiple users to collaborate on matching. It can be deployed on a "
-"server using Docker but the administrator should be careful to mount a "
-"volume to ensure data persistence."
+"meaning that when you stop Docker you lose your data. This can be changed by"
+" mounting a volume to store data. But, the tool is meant as a platform for "
+"multiple users to collaborate on matching. It can be deployed on a server "
+"using Docker but the administrator should be careful to mount a volume to "
+"ensure data persistence."
 msgstr ""
 
-# edce61d71e124fbaa2fa9565312de95b
+# a52ad54f4f644f948ee0b513fa844cdc
 #: ../../source/faq.md:29
-msgid "Developers may install the stack directly but this is not for production."
+msgid ""
+"Developers may install the stack directly but this is not for production."
 msgstr ""
-
-# d63267557ea34b2fa08fd6ebd8569d4e
-#~ msgid ""
-#~ "Docker is recommended is not recommended"
-#~ " as by default it will not "
-#~ "persist the data, meaning that when "
-#~ "you stop Docker you lose your "
-#~ "data. This can be changed by "
-#~ "mounting a volume to store data. "
-#~ "But, the tool is meant as a "
-#~ "platform for multiple users to "
-#~ "collaborate on matching. It can be "
-#~ "deployed on a server using Docker "
-#~ "but the administrator should be careful"
-#~ " to mount a volume to ensure "
-#~ "data persistence."
-#~ msgstr ""
-
+"Les développeurs peuvent installer les piles directement mais cela ne "
+"s'applique pas à la production."

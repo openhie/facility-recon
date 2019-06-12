@@ -1,54 +1,58 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-05-08 19:36+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# c3e60a32b4ed44feb41ac653a63413d1
+# f4baef307c684efeb597f2333290f546
 #: ../../source/dev/docker.md:1
 msgid "Quickstart with Docker"
-msgstr ""
+msgstr "Démarrage rapide avec Docker"
 
-# 5034e1b3d1704ab5ba1e45ca72734dd1
+# 6157116d327f4c05bb34e9f1dd265aba
 #: ../../source/dev/docker.md:3
 msgid ""
 "The fastest way to get started is to use Docker Compose which runs all "
 "components: app, Redis, MongoDB, and the Hearth FHIR server."
 msgstr ""
+"La manière la plus rapide de démarrer est d'utiliser Docker Compose qui fait"
+" tourner toutes les composantes : appli, Redis, MongoDB et le serveur Hearth"
+" FHIR."
 
-# de29a628a63f408784fb94e90737f4c7
+# 503acdc460c146e28e74617d9349f238
 #: ../../source/dev/docker.md:5
 msgid "Clone the repo and start the docker apps."
-msgstr ""
+msgstr "Clonez le repo et lancez les applis docker."
 
 # 339f56dba34d49a98e3887826bc0302f
 #: ../../source/dev/docker.md:12
 msgid "Visit: http://localhost:3000"
 msgstr ""
 
-# 998b948607ee4eccaab8e88f9db806a4
+# 0f784c7ab8094dbab1e19dad61885727
 #: ../../source/dev/docker.md:14
 msgid ""
-"The default admin user is root@gofr.org and pass is gofr. A different "
-"admin users should immediately be created, the default deleted, and "
-"ordinary users added as well."
+"The default admin user is root@gofr.org and pass is gofr. A different admin "
+"users should immediately be created, the default deleted, and ordinary users"
+" added as well."
 msgstr ""
-
-# c1f9faf6c5a9468cab00736754185c83
-#~ msgid "Visit: http://localhost:3000/gofr"
-#~ msgstr ""
-
+"L'utilisateur admin par défaut est root@gofr.org et le pass est gofr. Les "
+"autres utilisateurs admin doivent immédiatement être créés, le défaut "
+"supprimé et les utilisateurs ordinaires ajoutés également."
