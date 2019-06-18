@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-06-13 18:56+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 # 2a2a8d339e3b4091b109d1448888d87c
 #: ../../source/dev/dhis2users.md:1
@@ -26,9 +25,9 @@ msgstr ""
 # 514def7188ed40eda27258476599a8bc
 #: ../../source/dev/dhis2users.md:3
 msgid ""
-"With DHIS2 set as the authentication layer, users from DHIS2 can be given"
-" access to particular data sources and pairs, be restricted to pairs, and"
-" have their organizational unit restrictions also be reflected in the "
+"With DHIS2 set as the authentication layer, users from DHIS2 can be given "
+"access to particular data sources and pairs, be restricted to pairs, and "
+"have their organizational unit restrictions also be reflected in the "
 "Facility Reconciliation Tool."
 msgstr ""
 
@@ -45,15 +44,15 @@ msgstr ""
 # b20238644c394ea9a7ea0b1e8d4c984a
 #: ../../source/dev/dhis2users.md:8
 msgid ""
-"Then, the app should be installed. See the developer guide page for DHIS2"
-" app installation."
+"Then, the app should be installed. See the developer guide page for DHIS2 "
+"app installation."
 msgstr ""
 
 # 39ca2b25d59d4d1b9c8bccdac9ba2158
 #: ../../source/dev/dhis2users.md:9
 msgid ""
-"Once DHIS2 is the authentication layer, users must exist in DHIS2 for "
-"them to be able to use the Facility Reconciliation App."
+"Once DHIS2 is the authentication layer, users must exist in DHIS2 for them "
+"to be able to use the Facility Reconciliation App."
 msgstr ""
 
 # 043e44612f4a480792591807fcb5b7a8
@@ -64,9 +63,9 @@ msgstr ""
 # 2a82940315a44df194bf45e7110314c9
 #: ../../source/dev/dhis2users.md:13
 msgid ""
-"The building blocks of user management in DHIS2 are authorities, users, "
-"user roles, and user groups. See the latest DHIS2 documentation for an "
-"overview which is partly reproduced here."
+"The building blocks of user management in DHIS2 are authorities, users, user"
+" roles, and user groups. See the latest DHIS2 documentation for an overview "
+"which is partly reproduced here."
 msgstr ""
 
 # f58f4c6cdfeb4691aa89b86ef89054cc
@@ -90,22 +89,22 @@ msgstr ""
 # 957545188b2d486390f61ebae3be0275
 #: ../../source/dev/dhis2users.md:49
 msgid ""
-"Users will be able to only see the org units they have permission to see "
-"in DHIS2."
+"Users will be able to only see the org units they have permission to see in "
+"DHIS2."
 msgstr ""
 
 # 7c943eddcb3249a780df709d9b36cd4a
 #: ../../source/dev/dhis2users.md:50
 msgid ""
-"Org units can be pulled into the Facility Reconciliation Tool into a "
-"dataset named as desired."
+"Org units can be pulled into the Facility Reconciliation Tool into a dataset"
+" named as desired."
 msgstr ""
 
 # 4d9b28046c1a427a831568af43c798e2
 #: ../../source/dev/dhis2users.md:51
 msgid ""
-"Org units can be shared to users and not just the user who configured the"
-" system."
+"Org units can be shared to users and not just the user who configured the "
+"system."
 msgstr ""
 
 # d066322b6acd463fb607369e5b5fedf3
@@ -121,10 +120,9 @@ msgstr ""
 # 818bc4e5a9224e94b65171be8d15e62c
 #: ../../source/dev/dhis2users.md:84
 msgid ""
-"Any existing data source can be shared to a DHIS2 user that has "
-"permission to use the app. One may share a dataset to particular users or"
-" all users or to limit the dataset based on the organization unit "
-"attached to DHIS2."
+"Any existing data source can be shared to a DHIS2 user that has permission "
+"to use the app. One may share a dataset to particular users or all users or "
+"to limit the dataset based on the organization unit attached to DHIS2."
 msgstr ""
 
 # 7c4890db4f2a4dc68c910070e35e5b0a
@@ -135,8 +133,8 @@ msgstr ""
 # 66c529502a03486eb691ea705a8571cf
 #: ../../source/dev/dhis2users.md:90
 msgid ""
-"Sharing status is listed for each data source and if not being shared it "
-"is blank."
+"Sharing status is listed for each data source and if not being shared it is "
+"blank."
 msgstr ""
 
 # 74c2438be1f04582a572bbb23171449d
@@ -169,9 +167,9 @@ msgstr ""
 # 1ea0628fc6994dd698e8d5a71dfc9d07
 #: ../../source/dev/dhis2users.md:110
 msgid ""
-"This page lists the pairs and is where to create pairs. In this example, "
-"we have two data sources from the DHIS2 currently being used and one for "
-"a remote DHIS2."
+"This page lists the pairs and is where to create pairs. In this example, we "
+"have two data sources from the DHIS2 currently being used and one for a "
+"remote DHIS2."
 msgstr ""
 
 # 62937d5bfa9748b0afe6528bc3fb86db
@@ -182,7 +180,6 @@ msgstr ""
 # c9f5763d57684195aa7d24d38d4ab788
 #: ../../source/dev/dhis2users.md:116
 msgid ""
-"Click the Share button on the right hand side of the data source in the "
-"list to expand the pair sharing menu."
+"Click the Share button on the right hand side of the data source in the list"
+" to expand the pair sharing menu."
 msgstr ""
-

@@ -1,86 +1,96 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 2dfb15cd064348bab67fe17a5e40edad
+# 92a178afefc04a3aa5c9a0c06543f1e8
 #: ../../source/dev/terraform.md:1
 msgid "Terraform"
-msgstr ""
+msgstr "Terraform"
 
-# 86159e9da12c4aa3ba70b413160044e0
+# 40918254d71b46f49690091437313df2
 #: ../../source/dev/terraform.md:3
 msgid ""
-"This is an example Terraform remote installation on a VM provided by "
-"Digital Ocean. See the /packaging/terraform directory for the example "
+"This is an example Terraform remote installation on a VM provided by Digital"
+" Ocean. See the /packaging/terraform directory for the example "
 "configuration."
 msgstr ""
+"Il s'agit d'un exemple d'installation de Terraform à distance sur une "
+"mémoire virtuelle fournie par Digital Ocean. Cf. répertoir "
+"/packaging/terraform pour l'exemple de configuration."
 
-# 319f6ce54dfe4251ae841b879740ec73
+# 41c07611a96d4ef9ba641b8fd1ab83a8
 #: ../../source/dev/terraform.md:5
 msgid ""
-"Create an account on DO and upload a public SSH key and note your API "
-"token."
-msgstr ""
+"Create an account on DO and upload a public SSH key and note your API token."
+msgstr "Créer un compte"
 
-# 3cee1bb7874145ed9273146de9e711d8
+# 5af90e2cfd9544e9a59cdf288a24f881
 #: ../../source/dev/terraform.md:6
 msgid "Export a DIGITALOCEAN_TOKEN variable with your API token."
-msgstr ""
+msgstr "Exporter une variable DIGITALOCEAN-TOKEN avec votre jeton API."
 
-# 9eb7599087a24362ac2807ecbce6dec3
+# f3d5bda8ed2240b2ba212e0b4c4038f1
 #: ../../source/dev/terraform.md:7
 msgid ""
-"Get the hash fingerprint that DO generated for your SSH key (this is a DO"
-" thing)."
+"Get the hash fingerprint that DO generated for your SSH key (this is a DO "
+"thing)."
 msgstr ""
+"Obtenez l'empreinte de hachage que DO a générée pour votre clé SSH (dépend "
+"de DO)."
 
-# b1da3db77b1c4697a5502b2720965e72
+# 1f99383cb3864063898cdeb9bc62ffd7
 #: ../../source/dev/terraform.md:11
 msgid "Export a TF_VAR_fingerprint variable with the hash."
-msgstr ""
+msgstr "Exportez une variable TF_VAR_fingerprint avec le hachage."
 
-# 42dec0beff204b258b375f88696e706b
+# 7e7bd43b0a6d4a5aa9254ae1c35e5090
 #: ../../source/dev/terraform.md:12
 msgid ""
 "Get the latest droplet instances and sizes, you'll need the awesome jq "
 "parser for JSON installed."
 msgstr ""
+"Prenez connaissance des instances et de la taille des dernières "
+"gouttelettes, il faudra que le super parseur jq pour JSON soit installé."
 
-# 32f0a7e3ba7245ba96f0074fce282597
+# dc6adf29cd5646e091bbee9ade1dd648
 #: ../../source/dev/terraform.md:17
 msgid "Adjust droplet config as you wish using info from the above."
-msgstr ""
+msgstr "Ajuster la configuration "
 
-# d3592f06e246440693ca8bf5e57af537
+# 1ab8e7a1d1204e6cab4f9c36000900f8
 #: ../../source/dev/terraform.md:18
 msgid "Profit!"
-msgstr ""
+msgstr "Profitez-en !"
 
-# a51fc485da66459988e895a50d00fc2f
+# a59ac92737dc4b7c83c54fa6c28b845a
 #: ../../source/dev/terraform.md:25
 msgid ""
-"You should be able to ssh as root if the public key was set correctly "
-"(this is the default of DO)."
+"You should be able to ssh as root if the public key was set correctly (this "
+"is the default of DO)."
 msgstr ""
+"Vous devriez pouvoir utiliser ssh comme racine si la clé a été configurée "
+"correctement (configuration par défaut de DO)."
 
-# d9454477cdc745c6b88aa8e13d0de9a2
+# b1300ebc8df04344bd7ccc667602f11e
 #: ../../source/dev/terraform.md:27
 msgid "Clean up."
-msgstr ""
-
+msgstr "Nettoyer."

@@ -1,168 +1,199 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 3f326c7c9e554180b49973ab494b9aa2
+# 0785dd2632704df5982ace375adfe5d9
 #: ../../source/dev/ansible.md:1
 msgid "Ansible"
-msgstr ""
+msgstr "Ansible"
 
-# a402556345424a76b159e100d557faa0
+# 19605fae032744c1944dc3a2105dff5b
 #: ../../source/dev/ansible.md:3
 msgid ""
 "These steps are for installing on a server OS directly and require "
 "experience with remote configuration."
 msgstr ""
+"Ces étapes s'appliquent à l'installation directe sur un serveur OS et exige "
+"une expérience en configuration à distance."
 
-# 239e106e7cc5462d987c949603a08e51
+# 07940040955745538285a929f011a8ba
 #: ../../source/dev/ansible.md:5
 msgid ""
-"To use Ansible, your SSH public key should be in .ssh/authorized_keys on "
-"the remote host and you must also create an /etc/ansible/hosts or similar"
-" with the IP address or hostname of the remote host. An ansible/hosts "
-"file that has an entry for localhost and one server would be:"
+"To use Ansible, your SSH public key should be in .ssh/authorized_keys on the"
+" remote host and you must also create an /etc/ansible/hosts or similar with "
+"the IP address or hostname of the remote host. An ansible/hosts file that "
+"has an entry for localhost and one server would be:"
 msgstr ""
+"Pour utiliser Ansible, votre clé SSH publique doit être dans "
+".ssh/authorized_keys sur l'hébergement à distance et vous devez également "
+"créer un /etc/ansible/hosts ou semblable avec l'adresse IP ou le nom de "
+"l'hébergement à distance. Un fichier Ansible/hébergement qui dispose d'une "
+"entrée pour l'hébergement local et un serveur doit être :"
 
-# d82a1749c49f4c95be6d8dd49f938315
+# b25c371310e744799a1eaa6c32e8af49
 #: ../../source/dev/ansible.md:15
 msgid "SSH setup"
-msgstr ""
+msgstr "Installation SSH"
 
-# 43cf60decca241e0af7028d65083272c
+# 12dd95c19a004379b802973cd653878c
 #: ../../source/dev/ansible.md:17
 msgid ""
 "A example playbook is provided to show how to create a fr user with sudo "
-"permissions using Ansible to be used with VM. See /packaging for "
-"Terraform (Digital Ocean) and Vagrant (CentOS 7 and Ubuntu 18) for "
-"working examples."
+"permissions using Ansible to be used with VM. See /packaging for Terraform "
+"(Digital Ocean) and Vagrant (CentOS 7 and Ubuntu 18) for working examples."
 msgstr ""
+"Un modèle de playbook est fourni pour vous montrer comment créer un "
+"utilisateur fr doté de permissions sudo à l'aide d'Ansible à utiliser avec "
+"la mémoire virtuelle. Cf. /packaging pour Terraform (Digital Ocean) et "
+"Vagrant (CentOS 7 et Ubuntu 18) pour des exemples qui fonctionnent."
 
-# cdd6dbe8a2bf45b79949e2b3828189bb
+# f0b3c25db9b34fa5b6b9bee23d11e8fb
 #: ../../source/dev/ansible.md:19
 msgid ""
 "Create a VM. Make sure to include a public ssh key for the user who will "
 "install prerequisites."
 msgstr ""
+"Créez une mémoire virtuelle. Assurez-vous d'inclure une clé ssh publique "
+"pour l'utilisateur qui installera les prérequis."
 
-# c17edd455e7443cc815c92007217cc15
+# eb2349fb174241f1a28f85946b62ffaa
 #: ../../source/dev/ansible.md:21
 msgid "Create the fr user and gives it sudo access:"
-msgstr ""
+msgstr "Créez un utilisateur fr et octroyez-lui un accès sudo :"
 
-# c0b80236711a49128d2bbd461ec3fa65
+# ef4a6ae447b24acaafbf33843e1576ed
 #: ../../source/dev/ansible.md:26
 msgid ""
 "As necessary, add additional ssh keys to the user fr. (Ensure that the "
 "user's public key is available on github, ie. "
 "https://github.com/citizenrich.keys):"
 msgstr ""
+"En fonction des besoins, ajoutez des clés ssh pour l'utilisateur fr. "
+"(Assurez-vous que la clé publique de l'utilisateur est disponible sur "
+"github, c'est-à-dire https://github.com/citizenrich.keys) :"
 
-# aa0eee983c0d460989a4c1098ebe4d02
+# 22acbc5e6c1e420ead588fc3beb96b34
 #: ../../source/dev/ansible.md:31
 msgid "Installation"
-msgstr ""
+msgstr "Installation"
 
-# 65d1528bf1e94a5b9da023947629c43e
+# c22a20812f3a47b9bad6d36bf0115872
 #: ../../source/dev/ansible.md:33
 msgid "Prerequisites: git, redis, mongo, nodejs, native build pkgs for node:"
 msgstr ""
+"Prérequis : git, redis, mongo, nodejs, paquets de construction natives pour "
+"nœud :"
 
-# 76ff341b59f3417696dd093eeafd64f3
+# 9d7b1e30542b41ac8e9dac96c9ca50f1
 #: ../../source/dev/ansible.md:41
 msgid "Install the services and load and start them in systemd:"
-msgstr ""
+msgstr "Installez les services, chargez-les et démarrez-les dans le système :"
 
-# 7a69ffae23934d51adfdaf3abef69f05
+# fc093b3487d2429597eb4fd3bc3f4992
 #: ../../source/dev/ansible.md:49
 msgid "Troubleshooting"
-msgstr ""
+msgstr "Résolution de problème"
 
-# a7f35f3138dd43f99cc3b4bf41926b77
+# d08093daafd0490ab02279eb87142daf
 #: ../../source/dev/ansible.md:51
 msgid ""
-"Check that all processes are running and see the latest status for hearth"
-" and the backend:"
+"Check that all processes are running and see the latest status for hearth "
+"and the backend:"
 msgstr ""
+"Vérifiez que tous les process tournent ainsi que le dernier statut en date "
+"pour hearth et backend :"
 
-# 4b3b7f24e53c4f1abf850152862a24a6
+# 1eb257c7f6be46e69239a10937c6d331
 #: ../../source/dev/ansible.md:56
 msgid "Upgrades"
-msgstr ""
+msgstr "Mises à niveau"
 
-# d7e6caf2cd5d4dde8c17b691ef3a6bba
+# eb833dc048a2434fb581c5839cdc9118
 #: ../../source/dev/ansible.md:58
 msgid ""
-"Rerunning the install playbook updates intrahealth/hearth and app repos "
-"on the remote server. Rerunning the services.yaml playbook updates "
-"services. Services are restarted (not just reloaded)."
+"Rerunning the install playbook updates intrahealth/hearth and app repos on "
+"the remote server. Rerunning the services.yaml playbook updates services. "
+"Services are restarted (not just reloaded)."
 msgstr ""
+"Relancez l'installation des mises à jour de playbook intrahealth/hearth et "
+"appli repos sur le serveur à distance. Relancez les services de mise à jour "
+"de playbook services. yaml. Les services sont réinitialisés (pas simplement "
+"retéléchargés)."
 
-# eecd2ddc0531429abdbf540b0814b272
+# 5f5f6705e9da41a08107ca4909ed6f15
 #: ../../source/dev/ansible.md:60
 msgid "The install.yaml playbook uses:"
-msgstr ""
+msgstr "Le playbook install.yaml utilise :"
 
-# c9ffce6f092f4c40b655fcedbcd18ceb
+# 0059191993bd4ba9b54246a23c2f8971
 #: ../../source/dev/ansible.md:61
 msgid "git pull to get the latest updates to the master branch."
 msgstr ""
+"Utilisez git pull pour obtenir les dernières mises à jour en date pour la "
+"branche master."
 
-# bca02cb0e6db4a8d9f3d861a1ae7e11a
+# 47ff8fb5a1154ed7a858d2118e76a100
 #: ../../source/dev/ansible.md:62
 msgid "npm install to update packages."
-msgstr ""
+msgstr "Installation npm pour la mise à jour des packages."
 
-# e1795f585ffd4f019e2c2e4675e33851
+# 9338748803854e3fa8e83476837a6a86
 #: ../../source/dev/ansible.md:64
 msgid "Basic status"
-msgstr ""
+msgstr "Statut de base"
 
-# e3dd899a1ee3441db99eaa531c43fd7d
+# 62de2fdb4e874c478195cf13dd8b63d4
 #: ../../source/dev/ansible.md:75
 msgid "Logs"
-msgstr ""
+msgstr "Connexions"
 
-# fce1d25191334bb8a755dab76f6a42ea
+# 9143ff2f9d3947638339ae8fc846af53
 #: ../../source/dev/ansible.md:86
 msgid "Restart services"
-msgstr ""
+msgstr "Redémarrage des services"
 
-# dfffbb01889346a191dd083cf0806c9a
+# f940ffbde3de4578a6cda8d4184e26af
 #: ../../source/dev/ansible.md:92
 msgid "Restart databases"
-msgstr ""
+msgstr "Redémarrez les bases de données"
 
-# 2b59dc53228842b69685977a5b8b46d6
+# 92cc1ee828b24787a08f2cc332afd8ae
 #: ../../source/dev/ansible.md:101
 msgid "Networking"
-msgstr ""
+msgstr "Mise en réseau"
 
-# 3e235ee70150459f9120d6819b593b18
+# 0dffc3b7839d4c108571d85533f6d71f
 #: ../../source/dev/ansible.md:103
 msgid ""
 "Ensure processes are listening on the correct ports: See "
-"https://serverfault.com/questions/725262/what-causes-the-connection-"
-"refused-message"
+"https://serverfault.com/questions/725262/what-causes-the-connection-refused-"
+"message"
 msgstr ""
+"Assurez-vous que les process écoutent sur les ports qui conviennent : cf. "
+"https://serverfault.com/questions/725262/what-causes-the-connection-refused-"
+"message"
 
-# 9d1d3b6daa82463a9eea9264f8f4b15d
+# 10eb50bd92bf408fa66fb6de6430a057
 #: ../../source/dev/ansible.md:114
 msgid "Check for firewall blocks. Rerun the gui and:"
 msgstr ""
-
+"Vérifiez qu'il n'y ait pas de blocage de pare-feu. Relancez le gui et :"

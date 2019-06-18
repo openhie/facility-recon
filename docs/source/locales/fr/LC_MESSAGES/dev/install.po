@@ -1,100 +1,110 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:36+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 25d3fb6385da44d9b1d33f0249f0474a
+# c332dea9619a4e3b9317741d45aa0e4a
 #: ../../source/dev/install.md:1
 msgid "Install Locally"
-msgstr ""
+msgstr "Installation locale"
 
-# a76de883616443a4abbb5806e6c0f782
+# 1e465f3d95c0495bb075c9725be5f2e4
 #: ../../source/dev/install.md:3
 msgid "Hearth (FHIR Server) Installation"
-msgstr ""
+msgstr "Installation de Hearth (Serveur FHIR)"
 
-# ed1e393a1b244c4999182b25d4958e9c
+# 7b6e7fdc2617477e9803ea675db81667
 #: ../../source/dev/install.md:5
 msgid ""
-"Make sure mongo 3.6 or above is installed and running before proceeding "
-"with below instructions"
+"Make sure mongo 3.6 or above is installed and running before proceeding with"
+" below instructions"
 msgstr ""
+"Assurez que mongo 3.6 ou une version ultérieure est installé et lancé avant "
+"de suivre les consignes suivantes"
 
-# fd941fb6f03042eba9db84c726fe9241
+# cadadbdb6a7b4fa68a44aa34ed423057
 #: ../../source/dev/install.md:12
 msgid ""
 "Open the config file located under config/default.json and disable "
 "authentication by setting authentication type to disabled i.e "
 "\"authentication\": { \"type\": \"disabled\"}"
 msgstr ""
+"Ouvrez le fichier de config situé sous config/default.json et désactivez "
+"l'authentification en configurant le type d'authenfication en mode "
+"désactivé, c'est-à-dire \"authentication\": { \"type\": \"disabled\"}"
 
-# 718858207c87461d9f301febeb298034
+# 2d1726fffd1d41d8b4f996869ee052e2
 #: ../../source/dev/install.md:14
 msgid "Start hearth"
-msgstr ""
+msgstr "Démarrez Hearth"
 
-# ce50029dc121483783ce1267a4fd57d4
+# 46609635c5aa431ba59308d0f5bc897a
 #: ../../source/dev/install.md:19
 msgid "Backend"
-msgstr ""
+msgstr "Backend"
 
-# ff6b471f9f464c32a8fa7983942700eb
+# b03a1b543ab44123af11fbc7fe266073
 #: ../../source/dev/install.md:21
 msgid "Download the repo."
-msgstr ""
+msgstr "Téléchargez le repo."
 
-# ff2d149a19264faf8445613caa89a1d1
+# 9e4858383a5f4d819e3a2df0b19aa530
 #: ../../source/dev/install.md:31
 msgid "Install and run Redis"
-msgstr ""
+msgstr "Installez et lancez Redis"
 
-# 75e6d14b676c4b53951706d0cf8902bf
+# 65cd29e4111e446292fd73afaa381e33
 #: ../../source/dev/install.md:40
 msgid "Run the backend"
-msgstr ""
+msgstr "Faites tourner backend"
 
-# 462e70ba7cbc4e3791a7918426030296
+# 7b31e5e1c81e4f2fa6e84c686bb96825
 #: ../../source/dev/install.md:46
 msgid "Frontend"
-msgstr ""
+msgstr "Frontend"
 
-# 2fba8da370c243388325520fd6edd793
+# 53d9dd53f7fd444aa6522362d66a32ea
 #: ../../source/dev/install.md:53
 msgid "DHIS2 App (Optional)"
-msgstr ""
+msgstr "Appli DHIS2 (facultative)"
 
-# 27210819bc6e48d9886d0863aa296438
+# f76906dd69914b648fcc8afa8ee1a308
 #: ../../source/dev/install.md:54
 msgid ""
-"Note that the DHIS2 app is not required for running the tool as it can be"
-" run standalone from the GUI."
+"Note that the DHIS2 app is not required for running the tool as it can be "
+"run standalone from the GUI."
 msgstr ""
+"Veuillez noter que l'appli DHIS2 n'est pas requise pour le fonctionnement de"
+" l'outil dans la mesure où il peut fonctionner indépendemment du GUI."
 
-# 73e1edd1f99448069e48c2a85cde90d9
+# bd14dc3407eb4bb9850b8f1023efa2eb
 #: ../../source/dev/install.md:56
 msgid ""
-"Copy the frontend build contents from facility-recon/facility-recon-"
-"gui/dist into facility-recon/dhis2App/ and then zip the content of of "
-"dhis2App"
+"Copy the frontend build contents from facility-recon/facility-recon-gui/dist"
+" into facility-recon/dhis2App/ and then zip the content of of dhis2App"
 msgstr ""
+"Copiez les contenus constitués sur le frontend de facility-recon/facility-"
+"recon-gui/dist à facility-recon/dhis2App/ puis zippez le contenu de dhis2App"
 
-# 6777af4e555c44ee8c8ad81bd9a322a5
+# b5e02b539596478a8abec6f872663ab7
 #: ../../source/dev/install.md:63
 msgid "Login to DHIS2 and install the zipped file (GOFR.zip)"
-msgstr ""
-
+msgstr "Connectez-vous à DHIS2 et installez le fichier zippé (GOFR.zip)"

@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2019-06-13 18:56+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 # a75f2e00512d488fa3e9dd3196395bde
 #: ../../source/dev/dhis2app.md:1
@@ -27,9 +26,9 @@ msgstr ""
 #: ../../source/dev/dhis2app.md:3
 msgid ""
 "DHIS2 is a popular open source and open standards-based HMIS in global "
-"health. The Facility Reconciliation Tool can be installed as a DHIS2 app "
-"and configured as required to restrict users to the organization units "
-"they need to access."
+"health. The Facility Reconciliation Tool can be installed as a DHIS2 app and"
+" configured as required to restrict users to the organization units they "
+"need to access."
 msgstr ""
 
 # e10a15229ab24791991fe8c3cc80406b
@@ -73,8 +72,8 @@ msgstr ""
 #: ../../source/dev/dhis2app.md:17
 msgid ""
 "For the Facility Reconciliation Tool to be used as a DHIS2 app, the "
-"standalone tool itself must be installed. It is expected that the tool is"
-" installed on the same server as DHIS2."
+"standalone tool itself must be installed. It is expected that the tool is "
+"installed on the same server as DHIS2."
 msgstr ""
 
 # 779db1a8d16c441d99a66784751db776
@@ -85,8 +84,8 @@ msgstr ""
 # a1f4b6a52fd54d99ad2a9b3f385d7db5
 #: ../../source/dev/dhis2app.md:25
 msgid ""
-"Log in as an admin in DHIS2 with permission to install apps. Open the app"
-" called App Management."
+"Log in as an admin in DHIS2 with permission to install apps. Open the app "
+"called App Management."
 msgstr ""
 
 # bc040669e5e64a4fbd263ef3bbfd873e
@@ -123,8 +122,8 @@ msgstr ""
 # 053792cbbb794ca68d03ffc04b37c75c
 #: ../../source/dev/dhis2app.md:44
 msgid ""
-"After installing the app but before setting up DHIS authentication, set "
-"the user role in DHIS2 to have permissions."
+"After installing the app but before setting up DHIS authentication, set the "
+"user role in DHIS2 to have permissions."
 msgstr ""
 
 # a3361142d6134465bd139ab56699feb4
@@ -135,10 +134,10 @@ msgstr ""
 # 3bd8a23dc2364f01bebd158968dce103
 #: ../../source/dev/dhis2app.md:48
 msgid ""
-"External authentication works by associating a DHIS2 user role. The "
-"Facility Reconciliation Tool must know the user role. The user role that "
-"is selected to manage the tool must have permissions added otherwise if "
-"it is not then the user will be locked out."
+"External authentication works by associating a DHIS2 user role. The Facility"
+" Reconciliation Tool must know the user role. The user role that is selected"
+" to manage the tool must have permissions added otherwise if it is not then "
+"the user will be locked out."
 msgstr ""
 
 # 742bddb8f36c4d65aa4cb2fb96d86a06
@@ -155,8 +154,8 @@ msgstr ""
 #: ../../source/dev/dhis2app.md:58
 msgid ""
 "Select the name of the user role you will use to manage the Facility "
-"Reconciliation App. This will take you to a detailed view of the "
-"authorities granted to that user role."
+"Reconciliation App. This will take you to a detailed view of the authorities"
+" granted to that user role."
 msgstr ""
 
 # 3e8bc269cb224273b0c0e0138d957cc3
@@ -184,22 +183,22 @@ msgstr ""
 # 643b4eb0340f4b278eecec67302a3433
 #: ../../source/dev/dhis2app.md:72
 msgid ""
-"Under Configure Settings turn on external authentication. Select DHIS2 as"
-" the authentication point."
+"Under Configure Settings turn on external authentication. Select DHIS2 as "
+"the authentication point."
 msgstr ""
 
 # c32403785eef4267bd83a4fe1ef93045
 #: ../../source/dev/dhis2app.md:74
 msgid ""
-"Select the superuser role in DHIS2 that will be used to administer "
-"facility reconciliation."
+"Select the superuser role in DHIS2 that will be used to administer facility "
+"reconciliation."
 msgstr ""
 
 # d5c5f8bcd46a4efda4f8269435a7447a
 #: ../../source/dev/dhis2app.md:78
 msgid ""
-"Then, enter a username and password that the backend will use to pull "
-"data from DHIS2."
+"Then, enter a username and password that the backend will use to pull data "
+"from DHIS2."
 msgstr ""
 
 # 74dbe5ccb4484b92993f86fbb4ce8bca
@@ -212,8 +211,8 @@ msgstr ""
 # 98208eed11eb4e2bb53f4a0aaf460932
 #: ../../source/dev/dhis2app.md:86
 msgid ""
-"Once the app is done it will redirect to the data sources view to confirm"
-" the DHIS2 data source is now there."
+"Once the app is done it will redirect to the data sources view to confirm "
+"the DHIS2 data source is now there."
 msgstr ""
 
 # 0972869c6d424cbb89459729de74f8df
@@ -224,8 +223,8 @@ msgstr ""
 # b578a9d3e5d54ca198bd64679ca8e523
 #: ../../source/dev/dhis2app.md:92
 msgid ""
-"The Facility Reconciliation Tool should be running. A quick way to do "
-"this for a demo is to use Docker."
+"The Facility Reconciliation Tool should be running. A quick way to do this "
+"for a demo is to use Docker."
 msgstr ""
 
 # 422b8840f62d41f7909b0e5c49c4bada
@@ -253,9 +252,9 @@ msgstr ""
 # 41eb2127219e44a6b4a6e8866f615191
 #: ../../source/dev/dhis2app.md:106
 msgid ""
-"If the DHIS2 app must talk to a backend that is on another server, then "
-"the prebuilt package is not suitable and must be rebuilt with the correct"
-" address."
+"If the DHIS2 app must talk to a backend that is on another server, then the "
+"prebuilt package is not suitable and must be rebuilt with the correct "
+"address."
 msgstr ""
 
 # 3d70aed4bf854ff99c86eaa35f94a92b
@@ -282,4 +281,3 @@ msgid ""
 "built with the server chosen in the above step and can be installed into "
 "DHIS2."
 msgstr ""
-
