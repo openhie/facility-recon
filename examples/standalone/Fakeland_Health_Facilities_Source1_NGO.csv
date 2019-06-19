@@ -1,0 +1,21 @@
+Region,District,Facility,Code
+Northern,Lake,Lake Health Center II,51
+Northern,Lake,Health Centre III,52
+Northern,Lake,NGO Clinic,53
+Northern,Lake,Referral Hospital,54
+Northern,Lake,Mobile Clinic,55
+Northern,Mountain,Mntn Health Center II,56
+Northern,Mountain,Health Centre III,57
+Northern,Mountain,NGO Clinic,58
+Northern,Mountain,General Referral Hospital,59
+Northern,Mountain,Mobile Clinic,60
+Southern,Beach,Health Centre II,81
+Southern,Beach,Health Centre III,82
+Southern,Beach,New NGO Clinic,83
+Southern,Beach,Referral Hospital,84
+Southern,Beach,Old Mobile Clinic,85
+Southern,Forest,Health Centre II,86
+Southern,Forest,Health Centre III,87
+Southern,Forest,NGO Clinic,88
+Southern,Forest,Referral Hospital,89
+Southern,Forest,Mobile Clinic,90

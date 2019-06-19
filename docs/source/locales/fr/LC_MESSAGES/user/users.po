@@ -1,94 +1,132 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 42807c6efb32444bbf7ffa41e0a9c86b
+# 38a7a02369a74dec8c6a2acb363e5e80
 #: ../../source/user/users.md:1
-msgid "User Management"
+msgid "Users and sharing"
 msgstr ""
 
-# be38cd4614b140648eefbc021e39c2fd
+# 186fbffe6ae74aefa67a349c467d1390
 #: ../../source/user/users.md:3
 msgid ""
-"There are two classes of users, admin and data managers. The initial "
-"server configuration includes on administrator role. This account and "
-"password should be immediately changed after installation. See the "
-"Developer Guide for more information."
+"There are two classes of users, admin and data managers. The initial server "
+"configuration includes an administrator role. This account and password "
+"should be immediately changed after installation. See the Developer Guide "
+"for more information."
 msgstr ""
 
-# f91a074b1b534561aab3ebf4a298827f
+# c7af27d6a4074c6990586827d841c117
 #: ../../source/user/users.md:5
 msgid "Roles"
-msgstr ""
+msgstr "Rôles"
 
-# c17a70d23c5f47ceab952238236b84f6
+# 9c32884214b34af0b748fc59a212ad7c
 #: ../../source/user/users.md:7
-msgid "Admin accounts can add users and manage workspaces."
+msgid ""
+"Admin accounts can add users, configure the system, and all tasks of data "
+"managers."
 msgstr ""
 
-# 27403593e7b845a5bad04c8551f86267
+# ee730e1178694bc39e24377752c93e81
 #: ../../source/user/users.md:9
-msgid "Data manager accounts can manage data only."
+msgid ""
+"Data manager accounts can manage data only. They can share data sources and "
+"do other matching tasks."
 msgstr ""
 
-# 9d3461254d204bca81a3da1e3ac11cee
+# dd1a060d64de4cba8cba1a59fe84df28
 #: ../../source/user/users.md:11
 msgid ""
-"Custom accounts with specific roles may be created in the future. Please "
-"let the community know if you have use cases for custom account roles."
+"Custom accounts with specific roles may be created in the future. Please let"
+" the community know if you have use cases for custom account roles."
 msgstr ""
+"Des comptes personnalisés avec des rôles donnés peuvent être créés à "
+"l'avenir. Veuillez informer la communauté de tout cas d'utilisation "
+"nécessistant des rôles de comptes personnalisés."
 
-# 1ce664573dfb4bd0868379c5c3d2f425
+# 17cddcfdb2434a5581dd1816b80faf23
 #: ../../source/user/users.md:13
 msgid "Self-registration"
-msgstr ""
+msgstr "Auto-inscription"
 
-# bb18c86ccc04429e851f3069a21f2161
+# 9d27c16ea5b94813bf711709f9991b92
 #: ../../source/user/users.md:15
 msgid ""
 "Administrators may configure the system to allow for anyone to self-"
-"register. This is under the configure system tab. This option is off by "
+"register. This is under the Configure System tab. This option is off by "
 "default."
 msgstr ""
 
-# 66eb52820fa74338ac264525bdec37cd
+# 47b65b6f278e47d2ad6455626f85bad6
 #: ../../source/user/users.md:17
-msgid "Adding to a Pair"
+msgid "Share a data source"
 msgstr ""
 
-# 8a510fffa7b543dba41fed2274f82d66
+# 08a4e87d8c9c479e86435ded4e24e241
 #: ../../source/user/users.md:19
-msgid ""
-"Data managers and administrators are able to add other users to help with"
-" reconciliation. To do so, the data source pairing has an option to share"
-" the pairing with another user."
+msgid "Data sources may be shared by location to others or entirely."
 msgstr ""
 
-# a25faf0d0bab4b8aad0395baac57f520
+# 351fff6daefb4394b3a35c60bfbcc0aa
 #: ../../source/user/users.md:21
-msgid "Password reset"
+msgid "On the Data Sources tab, select View Data Sources."
 msgstr ""
 
-# d16f589fc8fc418f9eb4afa54f607f22
+# a1b9dde9e0564df0aae0028450fb631f
 #: ../../source/user/users.md:23
-msgid ""
-"Under accounts a user password can be reset. The reset password is the "
-"user's surname exactly as it was entered including case."
+msgid "Select the Share button on the far right."
 msgstr ""
 
+# 2391cc97f7a04265a0456aa7e8b11780
+#: ../../source/user/users.md:27
+msgid "This brings up a dialog to share data sources by user and location."
+msgstr ""
+
+# a0dad68ac5604c638f27d1469548b517
+#: ../../source/user/users.md:31
+msgid "Add to a Pair"
+msgstr ""
+
+# 170415e85b4f4eca8bd0be71a7818ec5
+#: ../../source/user/users.md:33
+msgid ""
+"Data managers and administrators are able to add other users to help with "
+"reconciliation. To do so, the data source pairing has an option to share the"
+" pairing with another user."
+msgstr ""
+"Les responsables des données et les administrateurs sont en mesure d'ajouter"
+" d'autres utilisateurs pour qu'ils contribuent au travail de rapprochement. "
+"Pour ce faire, le couplage des sources de données dispose d'une option de "
+"partage du couplage avec un autre utilisateur."
+
+# bf1c980b26914ba3b77ab1e50c254748
+#: ../../source/user/users.md:37
+msgid "Password reset"
+msgstr "Modifier le mot de passe"
+
+# 284d545ceef84932af55521a2af01858
+#: ../../source/user/users.md:39
+msgid ""
+"Under the Accounts tab a user password can be reset. The reset password is "
+"the user's surname exactly as it was entered including case."
+msgstr ""

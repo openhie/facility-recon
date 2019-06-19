@@ -1,56 +1,71 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# bf299faf12914aed9f907ffe1cd3046e
+# 3a00dee2dced415e8de21de9930c5493
 #: ../../source/dev/contrib.md:1
 msgid "Contribute"
-msgstr ""
+msgstr "Contribuer"
 
-# bd4e8626df30467aa8d384959b0fde45
+# ddf5634f21b8443f94eaf2b023b572d6
 #: ../../source/dev/contrib.md:3
 msgid ""
 "The Reconciliation Tool is distributed under the Apache 2.0 license. The "
 "community welcomes contributions!"
 msgstr ""
+"L'outil de rapprochement est distribué sous licence Apache 2.0. La "
+"communauté se réjouit de toute contribution !"
 
-# 891a9043e7004c80b3fccd6d727dd2e4
+# b5dd004818254134a4e8096049693958
 #: ../../source/dev/contrib.md:5
 msgid ""
-"For substantial features please consider engaging with the community "
-"first and be prepared to be asked to create a design document. A design "
-"document can simply be a brief Google Doc that community members can "
-"provide feedback towards."
+"For substantial features please consider engaging with the community first "
+"and be prepared to be asked to create a design document. A design document "
+"can simply be a brief Google Doc that community members can provide feedback"
+" towards."
 msgstr ""
+"Pour les fonctionnalités de substance, veuillez envisager de vous impliquer "
+"dans la commauntauté avant tout et soyez prêts à ce que l'on vous demande de"
+" préparer une document de conception. Un document de conception peut être un"
+" bref Google Doc sur lequel la communauté peut apporter un retour "
+"d'informations."
 
-# cb98f75bb62a4401b7ddfc9fb140844e
+# c47550c7c6a644ffbc85eb0ea3b46348
 #: ../../source/dev/contrib.md:6
 msgid ""
 "For smaller features please engage in a GitHub issue or approach the "
 "community and ask early on about the approach."
 msgstr ""
+"Pour les fonctionalités de moindre taille, veuillez soumettre une question "
+"sur GitHub ou la poser à la communauté en vous enquérant d'emblée de "
+"l'approche."
 
-# 36194a37bb4048e59598039f541ffb7d
+# bd316c7962b84d02a82357f14ba2eb61
 #: ../../source/dev/contrib.md:8
 msgid ""
 "Please join the OpenHIE Facility Registry Community for open monthly "
 "discussions and the Facility Registry Google Group for announcements and "
 "discussions."
 msgstr ""
-
+"Veuillez-vous joindre à la Communauté de registre des centres OpenHIE pour "
+"démarrer des conversations mensuelles et au Groupe Google de registre des "
+"centres pour recevoir des annonces et participer à des discussions."

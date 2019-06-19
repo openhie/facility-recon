@@ -1,116 +1,137 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 52c7b1f0e08844b0b0331048e4a385fd
+# fea00d155d8b45ab8b944a4e5b9b2679
 #: ../../source/quick/quick-dhis2.md:1
 msgid "Add DHIS2 source"
-msgstr ""
+msgstr "Ajouter une source DHIS2"
 
-# eb9bbad67ea14f30bcd92e5beee6bccc
+# d55924b83a594014847405d1e740d976
 #: ../../source/quick/quick-dhis2.md:3
 msgid ""
-"This example uses the DHIS2 Playground which is already loaded with fake "
-"but realistic facility data."
+"This example uses the DHIS2 Playground which is already loaded with fake but"
+" realistic facility data."
 msgstr ""
+"Cet exemple utilise le terrain de jeu DHIS2 (Playground) qui contient déjà "
+"des données fictives, toutefois réalistes, sur un centre."
 
-# 0b2084b70a654596a303ce3f9862d206
+# 6217989d5d4f442fb49c063222f54635
 #: ../../source/quick/quick-dhis2.md:5
 msgid "Configure DHIS2 Data Source"
-msgstr ""
+msgstr "Configurer une source de données DHIS2"
 
-# 2d46019bde4145aba50c5819122788eb
+# da3fb6b677f34561b7df1f05a2930987
 #: ../../source/quick/quick-dhis2.md:7
 msgid ""
 "To connect to any DHIS2, you need a username and password and the URL "
 "(website address) of the DHIS2. This example uses the demo playground "
 "provided username and password."
 msgstr ""
+"Pour vous connecter à tout système DHIS2, vous aurez besoin d'un nom "
+"d'utilisateur, d'un mot de passe et de l'URL (adresse Internet)  du système "
+"DHIS2. Cet exemple utilise le nom d'utilisateur et le mot de passe fournis "
+"par le terrain de jeu de démonstration."
 
-# 67ffccdb354944ceb5242cd62873b553
+# bf683b7cb448464faf4829663bf09654
 #: ../../source/quick/quick-dhis2.md:9
 msgid ""
-"Any DHIS2 server can be used as a source for which the user can "
-"authenticate and is authorized to get the facility and hierarchy."
+"Any DHIS2 server can be used as a source for which the user can authenticate"
+" and is authorized to get the facility and hierarchy."
 msgstr ""
+"Tout serveur DHIS2 peut être utilisé comme source pour laquelle "
+"l'utilisateur peut s'authentifier et est autorisé à accéder au centre et à "
+"la hiérarchie."
 
-# 75edbfaa6b724ba4baa72685b5f55474
+# 1c9cf972e2c14c66b1a87487ce458d29
 #: ../../source/quick/quick-dhis2.md:11
 msgid ""
 "The Base URL is the website for the DHIS2. The example URL for the "
 "playground may be a bit confusing because it has '/2.31.3' but that is "
-"because the playground is hosting many DHIS2 versions at the same address"
-" like '/2.32' etc. In other DHIS2, there will be no '/version'."
+"because the playground is hosting many DHIS2 versions at the same address "
+"like '/2.32' etc. In other DHIS2, there will be no '/version'."
 msgstr ""
+"L'URL de base est le site Web du système DHIS2. L'URL donnée en exemple dans"
+" le terrain de jeu peut prêter à confusion quelque peu parce qu'il contient "
+"/2.31.3, la raison étant que le terrain de jeu héberge de nombreuses "
+"versions du système DHIS2 à la même adresse tels que /2.32, etc. Dans "
+"d'autres systèmes DHIS2, il n'y aura pas de /version."
 
-# 1d23f189a6f748b5ae48480454bd6000
+# 42c6a8e639b8444e859c96a2afb6b598
 #: ../../source/quick/quick-dhis2.md:13
 msgid "Open the Facility Reconciliation Tool. Select 'Data Sources'"
 msgstr ""
+"Ouvrez l'outil de rapprochement des données sur les centres. Sélectionnez « "
+"Sources de données ». "
 
-# 276663a898da49149b10b61a52bfec79
+# 04e223bc17434adeb16ecf2a14f1d2ab
 #: ../../source/quick/quick-dhis2.md:17
-msgid "Select 'Remote Source'"
+msgid "Select Remote Source"
 msgstr ""
 
-# 0d17ea8c8dd94eaf97116df67575e45d
+# 0d49c330a9664c67bb7ff2e8309fb48c
 #: ../../source/quick/quick-dhis2.md:19
-msgid "In the 'Add New Remote Source' form, put in the following:"
+msgid "In the Add New Remote Source form, put in the following:"
 msgstr ""
 
-# 035ebe5efb2c452ab62b46d68d68bf2c
+# a5da0c5015bb49c58a19d5fc2cfcc7f3
 #: ../../source/quick/quick-dhis2.md:60
 msgid "Click Add."
-msgstr ""
+msgstr "Cliquez sur Ajouter."
 
-# b1116ed866704e67956743b9ead95b31
+# 246a74b3947d4a7eb3b2fc9f71bb7a66
 #: ../../source/quick/quick-dhis2.md:62
 msgid "Sync"
-msgstr ""
+msgstr "Synchro"
 
-# 353515d410d44a24983f252aeabbb42a
+# a6777b8605b946f9ab246a323ecc3816
 #: ../../source/quick/quick-dhis2.md:64
-msgid "Select 'View Data Sources' from the 'Data Sources' dropdown."
+msgid "Select View Data Sources from the Data Sources tab."
 msgstr ""
 
-# 009df57c402e49369dd767e70a999986
+# fc7292ff1e9049bc8ee1cc83d44f2a3e
 #: ../../source/quick/quick-dhis2.md:66
 msgid ""
-"The data will not be pulled from DHIS2 unless you FORCE SYNC or SYNC "
-"UPDATE."
+"The data will not be pulled from DHIS2 unless you Force Sync or Sync Update."
 msgstr ""
 
-# 911d9e5d43e046789a6ececad7af959d
+# 4f8cc8c542e44d89b188ad60b679e831
 #: ../../source/quick/quick-dhis2.md:67
 msgid "Click next to the DHIS source you added to select it."
 msgstr ""
+"Cliquez à côté de la source DHIS que vous avez ajoutée pour la sélectionner."
 
-# c5ca0fbf176846a7aff7b74392730d24
+# d882074a49eb435e864955077ba5c154
 #: ../../source/quick/quick-dhis2.md:68
-msgid "Click SYNC UPDATE"
+msgid "Click Sync Update."
 msgstr ""
 
-# e0248e0a7cf84396a934b3913bcb1f50
+# 1278d518216c4f95a52669a42f838181
 #: ../../source/quick/quick-dhis2.md:72
 msgid ""
 "The Facility Reconciliation Tool will now add the data from the DHIS2 "
-"source. To continue, add another another data source or if there is "
-"already one you wish to match, then create a data pair."
+"source. To continue, add another another data source or if there is already "
+"one you wish to match, then create a data pair."
 msgstr ""
-
+"L'outil de rapprochement sera maintenant ajouté aux données de la source "
+"DHIS2. Pour continuer, ajoutez une autre source de données ou s'il y en a "
+"déjà une que vous souhaitez utiliser, créez une paire de données."

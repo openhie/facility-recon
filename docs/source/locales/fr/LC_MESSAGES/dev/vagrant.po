@@ -1,63 +1,74 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# e91ee14244544532bc067ae9c44ffc96
+# 75977c1cc33a499f98f9a0ce4a5d76c5
 #: ../../source/dev/vagrant.md:1
 msgid "Vagrant"
-msgstr ""
+msgstr "Vagrant"
 
-# e0b2633324134b5293cb16d14096d6dd
+# 48832b993e164019ab00a80d2ac72ba1
 #: ../../source/dev/vagrant.md:3
 msgid "Install"
-msgstr ""
+msgstr "Installer"
 
-# e6f2e0a3ccef4fc4b9e1e615eaa53f38
+# a788bc686a274657a4e6105715bd051b
 #: ../../source/dev/vagrant.md:5
 msgid ""
 "This an example using Vagrant for an Ubuntu or CentOS VM for end-to-end "
 "testing of facility recon."
 msgstr ""
+"Il s'agit d'un exemple qui utilise Vagrant pour une mémoire virtuelle Ubuntu"
+" ou CentOS pour le test du début à la fin de la reconnaissance des centres."
 
-# a2c22081138f490b97e14d8ee79644b9
+# b6725019f0184e02a1e333731922c7b1
 #: ../../source/dev/vagrant.md:7
 msgid ""
-"To use just change directory into the OS (CentOS or Ubuntu) you want to "
-"use and fire it up."
+"To use just change directory into the OS (CentOS or Ubuntu) you want to use "
+"and fire it up."
 msgstr ""
+"Pour utiliser l'outil, changez simplement le répertoire dans OS (CentOS ou "
+"Ubuntu) que vous souhaitez utiliser et démarrez-le."
 
-# ccfcfc3b053a4ec39e691a0f85e7d32d
+# 211919871da644afa918c14b38f0dbde
 #: ../../source/dev/vagrant.md:13
 msgid "Troubleshooting"
-msgstr ""
+msgstr "Résoudre les problème"
 
-# 76ac05e9cc37404589c6d2a4ebffcc52
+# 6f90bcf4fdf84173959473578b37703a
 #: ../../source/dev/vagrant.md:15
-msgid "For cleaning up, note that Vagrant boxes are stored in ~/.vagrant.d/boxes."
+msgid ""
+"For cleaning up, note that Vagrant boxes are stored in ~/.vagrant.d/boxes."
 msgstr ""
+"Pour le nettoyage, veuillez noter que les boîtes Vagrant sont stockées dans "
+"~/.vagrant.d/boxes."
 
-# 6ad4b978a495470ba064099656ab6776
+# 2bbcde3f993e4f7e80248a4da13cae18
 #: ../../source/dev/vagrant.md:16
 msgid ""
 "[macOS] If there is a port conflict error for ssh, then clear out port "
-"forwarding entry for 2222 in /Library/Preferences/VMware\\ "
-"Fusion/networking and /Library/Preferences/VMware\\ "
-"Fusion/vmnet8/nat.conf"
+"forwarding entry for 2222 in /Library/Preferences/VMware\\ Fusion/networking"
+" and /Library/Preferences/VMware\\ Fusion/vmnet8/nat.conf"
 msgstr ""
-
+"[macOS] En cas d'erreur due à un conflit de ports pour ssh, dégagez l'entrée"
+" de transmission du port pour 2222 dans /Library/Preferences/VMware\\ "
+"Fusion/networking et /Library/Preferences/VMware\\ Fusion/vmnet8/nat.conf"

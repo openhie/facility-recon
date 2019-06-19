@@ -1,84 +1,107 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:36+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# a6d8225323b04430839a3b0062c5bace
+# 6229000a8fd44414b5fb0d6a03de4d48
 #: ../../source/dev/host.md:1
 msgid "Production considerations"
-msgstr ""
+msgstr "Considérations relatives à la production"
 
-# 52feab1e088c4de9b62a49d7fe049f14
+# 2e7ef86266b44398955fa852267c97dd
 #: ../../source/dev/host.md:3
 msgid "System Resources"
-msgstr ""
+msgstr "Ressources système"
 
-# 219b94799ddf41b4a42505521ef93e15
+# 6ec4716718494f9e95fdcf8da2b019c3
 #: ../../source/dev/host.md:5
 msgid ""
 "Systems planners should test locally with the largest data sources that "
-"would represent their use case. With no user interaction, the demo server"
-" uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: "
+"would represent their use case. With no user interaction, the demo server "
+"uses ~740MB of RAM (mongo: 200MB, redis: 10MB, hearth: 250MB, backend: "
 "250MB)."
 msgstr ""
+"Les planificateurs des systèmes doivent procéder à des tests au niveau local"
+" avec les plus grandes sources de données qui représenteraient leur cas "
+"d'utilisation. Sans intéraction avec des utilisateurs, le serveur de démo "
+"utilise ~740Mo de RAM (mongo : 200Mo, redis : 10Mo, hearth : 250Mo, backend "
+": 250Mo)."
 
-# a306d11abf724bf1bd67a4b59dd11279
+# 9222553857874b8ab28162ce9f960709
 #: ../../source/dev/host.md:7
 msgid ""
 "The demo version uses 2 virtual CPUs, 4GB RAM, and 20GB SSD in a cloud-"
-"hosted VPS. For use cases with large data sources, such as 10k "
-"facilities, expect to increase RAM allocation."
+"hosted VPS. For use cases with large data sources, such as 10k facilities, "
+"expect to increase RAM allocation."
 msgstr ""
+"La version de démo utilise deux unités centrales de traitement, 4Go de RAM "
+"et 20Go SSD sur un VPS hébergé sur le nuage. Pour les cas d'utilisation avec"
+" des sources de données plus larges, tels que des centres de 10k, attendez-"
+"vous à accroître l'allocation de RAM."
 
-# 426d4fb5830f427095d3255744135306
+# 86ebf22818e64734af5fc47b71175e9d
 #: ../../source/dev/host.md:9
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
-# 4dba7f8549584ebbbfc8584bc7b2753b
+# b805c668f0fe40129603a74f09bcd886
 #: ../../source/dev/host.md:11
 msgid ""
-"DNS can be configured a myriad of ways for hosting. One method is to "
-"create a DNS record for the domain and then add an A record under the "
-"root domain for the application server."
+"DNS can be configured a myriad of ways for hosting. One method is to create "
+"a DNS record for the domain and then add an A record under the root domain "
+"for the application server."
 msgstr ""
+"DNS peut être configuré de toutes sortes de manières pour l'hébergement. Une"
+" des méthodes consiste à créer un enregistrement DNS pour le domaine et à "
+"ajouter ensuite un enregistrement A sous le domaine racine pour le serveur "
+"de l'application."
 
-# dc832a6348da43dd8abb62364095f901
+# 41b03c38417a48dfa4ecdf1eb29fbd5c
 #: ../../source/dev/host.md:13
 msgid "Reverse Proxy and HTTPS"
-msgstr ""
+msgstr "Inversez Proxy et HTTPS"
 
-# 912053ff1ab84bad9b75da8e3d5409da
+# 6ae9eeaa4a8a43a193ff58c72ca644c6
 #: ../../source/dev/host.md:15
 msgid ""
 "To host the tool behind a reverse proxy like nginx, configure it to pass "
 "requests to the nodejs server running the application on port 3000."
 msgstr ""
+"Pour héberger l'outil derrière un proxy inverse tel que nginx, configurez-le"
+" de manière à ce qu'il transmette les requêtes au serveur nodejs qui fait "
+"tourner l'application sur le port 3000."
 
-# eb4e6e4ec988495c93b88299d3d6ad4b
+# d3054968b5a541e89d41594a2ac154dd
 #: ../../source/dev/host.md:17
 msgid ""
-"A full recipe for reverse proxy and SSL is here: "
-"https://www.linode.com/docs/web-servers/nginx/use-nginx-reverse-proxy/"
+"A full recipe for reverse proxy and SSL is here: https://www.linode.com/docs"
+"/web-servers/nginx/use-nginx-reverse-proxy/"
 msgstr ""
+"Une recette complète pour l'inversement proxy et SSL se trouve à l'adresse "
+"suivante : https://www.linode.com/docs/web-servers/nginx/use-nginx-reverse-"
+"proxy/"
 
-# a75afefd50584c689eb06f9adab8a677
+# 4bc9e1698c36469d838516348f1c20bf
 #: ../../source/dev/host.md:19
 msgid "If using Ubuntu with Nginx, you may have to disable Apache."
 msgstr ""
-
+"Si vous utilisez Ubuntu avec Nginx, vous risquez de devoir désactiver "
+"Apache."

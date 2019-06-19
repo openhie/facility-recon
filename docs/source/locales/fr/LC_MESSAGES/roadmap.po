@@ -1,30 +1,243 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# 1153f02b7a034b60b0eace2248d371cf
+# fcc0344800dd4431902f20e69bbadc8e
 #: ../../source/roadmap.md:1
 msgid "Roadmap"
-msgstr ""
+msgstr "Feuille de route"
 
-# ea2b4087ef4a4984beff77f164fd9683
+# 7a417b1a6c12480cb13d47c37b018d89
 #: ../../source/roadmap.md:3
-msgid "Coming soon."
+msgid ""
+"Proposed features are managed in a publicly-viewable Google Doc and managed "
+"in GitHub issues."
 msgstr ""
 
+# 091f6f1e72d34412b3d7df67af1f5604
+#: ../../source/roadmap.md:5
+msgid "Version: 0.1.0"
+msgstr ""
+
+# 3a86fd49900f486bbd8c056867e2cca5
+#: ../../source/roadmap.md:7
+msgid "Timeline: February 2018 to July 2018, Status: Completed"
+msgstr ""
+
+# d572ac7cf43c49049951b43d8cfaa696
+# c2881bd1823b482388cd43a401e4d6ca
+# 01461d2eda404c94a8de3e7f8e27f9f2
+# 0b43306e787f445fae6fc07d06084393
+# b5552a0e323b40438947a3f58c0f457c
+# 30092cfd41454cc4b8253f2fbe44ab0e
+# bcc639fb9ab34f21b45334f6fb50542c
+#: ../../source/roadmap.md:9 ../../source/roadmap.md:19
+#: ../../source/roadmap.md:29 ../../source/roadmap.md:36
+#: ../../source/roadmap.md:46 ../../source/roadmap.md:55
+#: ../../source/roadmap.md:66
+msgid "Features:"
+msgstr ""
+
+# 1217e430e9e142a789104a5ed439f335
+#: ../../source/roadmap.md:10
+msgid "Matching based on one uploaded data source."
+msgstr ""
+
+# 5ce961da102648638942f3fbe8ddd7f4
+#: ../../source/roadmap.md:11
+msgid "Other data source is one customized DHIS2 instance (GeoAlign)."
+msgstr ""
+
+# 042704f20d184ca89eae89e5a1185d6c
+#: ../../source/roadmap.md:12
+msgid "Preliminary DHIS2 authentication."
+msgstr ""
+
+# 2ef9599a7ef34835a8654f83dcb6d0b2
+#: ../../source/roadmap.md:13
+msgid "Preliminary exports of matched and unmatched facilities."
+msgstr ""
+
+# fedf3cc61ce940739e3f20f9a10b4ec2
+#: ../../source/roadmap.md:15
+msgid "Version: 0.2.0"
+msgstr ""
+
+# e2ea013433bc409698fb66412e48fdcf
+#: ../../source/roadmap.md:17
+msgid "Timeline: August 2018 to October 2018, Status: Completed"
+msgstr ""
+
+# 2a37abb46463486d8abefd082a5bbbb5
+#: ../../source/roadmap.md:20
+msgid "User-configurable to any data pair."
+msgstr ""
+
+# 46f29f9d86384883a8c541570d2ba581
+#: ../../source/roadmap.md:21
+msgid "Any DHIS2 instance for which the user has access."
+msgstr ""
+
+# 0e68fc2824404fadacbfd0a41748525b
+#: ../../source/roadmap.md:23
+msgid ""
+"Note: Version 0.2.0 was extensively production-tested on ~80K facilities."
+msgstr ""
+
+# 878aecda6beb4303b6af2e1ed7d96dd7
+#: ../../source/roadmap.md:25
+msgid "Version: 0.3.0"
+msgstr ""
+
+# 60a0da968e2c4610933d7e0d30fb163a
+#: ../../source/roadmap.md:27
+msgid "Timeline: November 2018 to December 2018, Status: Completed"
+msgstr ""
+
+# db46bcc6585f48a6bf54f7ce43537a9a
+#: ../../source/roadmap.md:30
+msgid "User interface overhaul."
+msgstr ""
+
+# 2cb5d1ee9eea454d848457a4a1af5863
+#: ../../source/roadmap.md:32
+msgid "Version: 0.4.0"
+msgstr ""
+
+# 25d9dcacad344f1b83afd1af0b60bb2c
+#: ../../source/roadmap.md:34
+msgid "Timeline: January 2019 to February 2019, Status: Completed"
+msgstr ""
+
+# c30da6b08bf44d77abe96fff1cd2597d
+#: ../../source/roadmap.md:37
+msgid "Containerization."
+msgstr ""
+
+# 87aae67faee645d5979070d39a9835f3
+#: ../../source/roadmap.md:38
+msgid "Hosting scripts and utilities."
+msgstr ""
+
+# ad6b2d203a1a4cbea7470b958831e8ab
+#: ../../source/roadmap.md:40
+msgid ""
+"Note: Version 0.3.0 was tested in user-centered design workshops using a "
+"cloud-hosted instance."
+msgstr ""
+
+# 18c5ab469c6d48e98d71a192cb92c9c1
+#: ../../source/roadmap.md:42
+msgid "Version: 0.5.0"
+msgstr ""
+
+# 7ab2cccb87364885b302e2ecd816888d
+#: ../../source/roadmap.md:44
+msgid "Timeline: March 2019 to April 2019, Status: Completed"
+msgstr ""
+
+# 3e162f021a54406eaaefca85d4e34601
+#: ../../source/roadmap.md:47
+msgid "Documentation on facility-recon.readthedocs.org."
+msgstr ""
+
+# 40b00556c4e94fc393347b6b9ccdc4a4
+#: ../../source/roadmap.md:48
+msgid "Enhanced export to show all matched and unmatched records."
+msgstr ""
+
+# 4cb84791f23a47c582c6cd01846acbff
+#: ../../source/roadmap.md:49
+msgid "Matching enabled on Facility IDs and Geo Coordinates."
+msgstr ""
+
+# db757a3a19444af68e0f8412be467737
+#: ../../source/roadmap.md:51
+msgid "Version: 0.6.0"
+msgstr ""
+
+# 2b7bb5c9fe7c4b8790da47dd6c61ad7d
+#: ../../source/roadmap.md:53
+msgid "Timeline: May 2019 to June 2019, Status: Completed"
+msgstr ""
+
+# 683bca9ae91c484fad4421fd19cd8ec9
+#: ../../source/roadmap.md:56
+msgid "Options for external authentication (DHIS2, iHRIS)"
+msgstr ""
+
+# f4566eec19d04fe7ab76fcf11ba6e3eb
+#: ../../source/roadmap.md:57
+msgid "DHIS2 data source sharing."
+msgstr ""
+
+# ad90afada73146a987afd778e6dec334
+#: ../../source/roadmap.md:58
+msgid "DHIS2 pair sharing."
+msgstr ""
+
+# ac9de6456fc146908216b8a5624b032e
+#: ../../source/roadmap.md:59
+msgid "Easily-installable DHIS2 app."
+msgstr ""
+
+# ffbafdbe7b504a068bad09049f3259b0
+#: ../../source/roadmap.md:60
+msgid ""
+"Configurable matching - matching based on parent constraint can be turned "
+"off"
+msgstr ""
+
+# f0d29189371740bba44a65bb0d1199e7
+#: ../../source/roadmap.md:62
+msgid "Version: 0.7.0"
+msgstr ""
+
+# 521360b4e2064f5b93c2e20c01140d9b
+#: ../../source/roadmap.md:64
+msgid "Timeline: TBD, Status: In-progress"
+msgstr ""
+
+# 364e55f194a846c6b9007b13a5921723
+#: ../../source/roadmap.md:67
+msgid "Preparation for 1.0 release."
+msgstr ""
+
+# 23f3a93631eb4936aae8ef1d585c1bef
+#: ../../source/roadmap.md:68
+msgid "Extensive end-to-end testing."
+msgstr ""
+
+# 1db30c6fb5a340f6b7ec3362c91e39ea
+#: ../../source/roadmap.md:69
+msgid "Bugs resolved."
+msgstr ""
+
+# c3978f48a04247c8802733ba52c37fc7
+#: ../../source/roadmap.md:70
+msgid "Updated FHIR version."
+msgstr ""
+
+# 0f77f575a73346308bd6f14f1220a635
+#: ../../source/roadmap.md:71
+msgid "Consider moving to HAPI FHIR."
+msgstr ""

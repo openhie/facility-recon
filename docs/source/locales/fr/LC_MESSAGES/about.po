@@ -1,61 +1,78 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# de58a0a5d6104223b98e51b27be7e046
+# e4c48a081bba49a6b7fef3ac186eb950
 #: ../../source/about.md:1
 msgid "About"
-msgstr ""
+msgstr "À propros de"
 
-# 5bf5834fdc024fa984aa709fcc7aa946
+# a0a68276111e4f27af4e5b8ce908af52
 #: ../../source/about.md:3
 msgid ""
 "The tool was built by the international development community for the "
 "initial use case of supporing a monitoring and evaluation platform for "
 "multiple countries. The tool was first created in the .NET framework."
 msgstr ""
+"L'outil a été conçu par la communauté de développement internationale pour "
+"le premier cas d'utilisation de prise en charge d'une plateforme de suivi et"
+" d'évaluation pour de multiples pays. Cet outil est le premier créé dans le "
+"cadre .NET."
 
-# 6f3dc8976601403183086d9bd57a1bed
+# 1d9b9ed6b3a04a8a81ed3206a4ddef51
 #: ../../source/about.md:5
 msgid ""
-"This version of the tool was created in an open framework in order to "
-"create a larger community around it and ensure long-term contributions "
-"from the community as well as to add new features."
+"This version of the tool was created in an open framework in order to create"
+" a larger community around it and ensure long-term contributions from the "
+"community as well as to add new features."
 msgstr ""
+"Cette version de l'outil a été créée dans un cadre ouvert de manière à créer"
+" une communauté plus large autour d'elle et d'assurer des contributions sur "
+"le long terme de la part de la communauté ainsi que l'ajout de nouvelles "
+"fonctionnalités."
 
-# 75677566c01d471abc307e757e97d468
+# f78a005650664478ab64c4a181393432
 #: ../../source/about.md:7
 msgid ""
-"The initial use cases have been centered on the health sector. It is "
-"built using the emerging FHIR standard based on the mCSD IHE profile. The"
-" backend is a FHIR server which means that a FHIR-compliant API is "
-"available from server for operations. All data sources are converted to "
-"FHIR Location Resources. This means that ordinary FHIR REST API queries "
-"can be pursued against the backend server."
+"The initial use cases have been centered on the health sector. It is built "
+"using the emerging FHIR standard based on the mCSD IHE profile. The backend "
+"is a FHIR server which means that a FHIR-compliant API is available from "
+"server for operations. All data sources are converted to FHIR Location "
+"Resources. This means that ordinary FHIR REST API queries can be pursued "
+"against the backend server."
 msgstr ""
+"Les cas d'utilisation initiaux sont centrés sur le secteur de la santé. "
+"L'outil est conçu à l'aide de la norme FHIR émergente basée sur le profile "
+"mCSD IHE. Le backend est un serveur FHIR, ce qui signifie qu'une API "
+"conforme à la norme FHIR est disponible sur le serveur pour la prise en "
+"charge des opérations. Toutes les sources de données sont converties en "
+"ressources d'emplacement FHIR. Cela signifie que les requêtes ordinaires "
+"FHIR REST API peuvent être interrogées sur le serveur backend."
 
-# 73b8580280b94a3992bfb10cf7274755
+# ccfcf022ed794d70b72ee95b8c19f3cb
 #: ../../source/about.md:9
 msgid ""
-"In future, the tool may easily support any hierarchical or flat data, "
+"In the future, the tool may easily support any hierarchical or flat data, "
 "both in and outside of the health sector. Matching algorithms, new data "
-"sources, and export formats can be created to meet a variety of use cases"
-" as the community requires."
+"sources, and export formats can be created to meet a variety of use cases as"
+" the community requires."
 msgstr ""
-

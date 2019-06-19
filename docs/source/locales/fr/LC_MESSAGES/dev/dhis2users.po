@@ -1,0 +1,185 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, IntraHealth International
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Facility Reconciliation Tool\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-06-13 18:56+0000\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# 2a2a8d339e3b4091b109d1448888d87c
+#: ../../source/dev/dhis2users.md:1
+msgid "DHIS2 users and sharing"
+msgstr ""
+
+# 514def7188ed40eda27258476599a8bc
+#: ../../source/dev/dhis2users.md:3
+msgid ""
+"With DHIS2 set as the authentication layer, users from DHIS2 can be given "
+"access to particular data sources and pairs, be restricted to pairs, and "
+"have their organizational unit restrictions also be reflected in the "
+"Facility Reconciliation Tool."
+msgstr ""
+
+# b41e2b40907b4d79bcd42e27508a4647
+#: ../../source/dev/dhis2users.md:5
+msgid "Prequisites"
+msgstr ""
+
+# 90a49d802c5b4c8f9d7b737fbede443e
+#: ../../source/dev/dhis2users.md:7
+msgid "The Facility Reconciliation Tool application must be running."
+msgstr ""
+
+# b20238644c394ea9a7ea0b1e8d4c984a
+#: ../../source/dev/dhis2users.md:8
+msgid ""
+"Then, the app should be installed. See the developer guide page for DHIS2 "
+"app installation."
+msgstr ""
+
+# 39ca2b25d59d4d1b9c8bccdac9ba2158
+#: ../../source/dev/dhis2users.md:9
+msgid ""
+"Once DHIS2 is the authentication layer, users must exist in DHIS2 for them "
+"to be able to use the Facility Reconciliation App."
+msgstr ""
+
+# 043e44612f4a480792591807fcb5b7a8
+#: ../../source/dev/dhis2users.md:11
+msgid "About DHIS2 users"
+msgstr ""
+
+# 2a82940315a44df194bf45e7110314c9
+#: ../../source/dev/dhis2users.md:13
+msgid ""
+"The building blocks of user management in DHIS2 are authorities, users, user"
+" roles, and user groups. See the latest DHIS2 documentation for an overview "
+"which is partly reproduced here."
+msgstr ""
+
+# f58f4c6cdfeb4691aa89b86ef89054cc
+#: ../../source/dev/dhis2users.md:42
+msgid "Configuration options"
+msgstr ""
+
+# 740d3c976e0740db8875758b640c9e72
+#: ../../source/dev/dhis2users.md:44
+msgid ""
+"When the Facility Reconciliation DHIS2 App is installed and DHIS2 is "
+"selected as an authentication source, a DHIS2 superuser role must be "
+"selected. There are several additional options."
+msgstr ""
+
+# 91abaa991e6843dbb9332b5dd421381b
+#: ../../source/dev/dhis2users.md:48
+msgid "In the default settings:"
+msgstr ""
+
+# 957545188b2d486390f61ebae3be0275
+#: ../../source/dev/dhis2users.md:49
+msgid ""
+"Users will be able to only see the org units they have permission to see in "
+"DHIS2."
+msgstr ""
+
+# 7c943eddcb3249a780df709d9b36cd4a
+#: ../../source/dev/dhis2users.md:50
+msgid ""
+"Org units can be pulled into the Facility Reconciliation Tool into a dataset"
+" named as desired."
+msgstr ""
+
+# 4d9b28046c1a427a831568af43c798e2
+#: ../../source/dev/dhis2users.md:51
+msgid ""
+"Org units can be shared to users and not just the user who configured the "
+"system."
+msgstr ""
+
+# d066322b6acd463fb607369e5b5fedf3
+#: ../../source/dev/dhis2users.md:53
+msgid "The default configurations may be switched on or off as desired."
+msgstr ""
+
+# d4bf6ac8f7f64190ba52d0d770fa183f
+#: ../../source/dev/dhis2users.md:82
+msgid "Share data sources"
+msgstr ""
+
+# 818bc4e5a9224e94b65171be8d15e62c
+#: ../../source/dev/dhis2users.md:84
+msgid ""
+"Any existing data source can be shared to a DHIS2 user that has permission "
+"to use the app. One may share a dataset to particular users or all users or "
+"to limit the dataset based on the organization unit attached to DHIS2."
+msgstr ""
+
+# 7c4890db4f2a4dc68c910070e35e5b0a
+#: ../../source/dev/dhis2users.md:86
+msgid "Click on the Data Sources tab and choose to View Data Sources."
+msgstr ""
+
+# 66c529502a03486eb691ea705a8571cf
+#: ../../source/dev/dhis2users.md:90
+msgid ""
+"Sharing status is listed for each data source and if not being shared it is "
+"blank."
+msgstr ""
+
+# 74c2438be1f04582a572bbb23171449d
+#: ../../source/dev/dhis2users.md:94
+msgid "Click on the share button to bring up the menu."
+msgstr ""
+
+# 1e665bfaac704797bd112955cea14650
+#: ../../source/dev/dhis2users.md:98
+msgid ""
+"Sharing can be limited by either or both the user or location (DHIS2 org "
+"unit)."
+msgstr ""
+
+# 5b60f016d0da4cf18df905986cdba6df
+#: ../../source/dev/dhis2users.md:102
+msgid "Share data pairs"
+msgstr ""
+
+# 3c916798476d432893604423ba0a58de
+#: ../../source/dev/dhis2users.md:104
+msgid "Data sharing of pairs is similar to that of data sources."
+msgstr ""
+
+# 894bcb2c03844eaf85d052820d323a55
+#: ../../source/dev/dhis2users.md:106
+msgid "Go to the Reconcile tab and select Create and Manage Data Source Pair."
+msgstr ""
+
+# 1ea0628fc6994dd698e8d5a71dfc9d07
+#: ../../source/dev/dhis2users.md:110
+msgid ""
+"This page lists the pairs and is where to create pairs. In this example, we "
+"have two data sources from the DHIS2 currently being used and one for a "
+"remote DHIS2."
+msgstr ""
+
+# 62937d5bfa9748b0afe6528bc3fb86db
+#: ../../source/dev/dhis2users.md:112
+msgid "The sharing status can be seen in the list data pairs."
+msgstr ""
+
+# c9f5763d57684195aa7d24d38d4ab788
+#: ../../source/dev/dhis2users.md:116
+msgid ""
+"Click the Share button on the right hand side of the data source in the list"
+" to expand the pair sharing menu."
+msgstr ""

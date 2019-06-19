@@ -28,10 +28,23 @@ sphinx-build -b gettext source build/gettext -l fr
 sphinx-intl update -p build/gettext -l fr
 ```
 
+If a page is created it needs to be added to `.tx/config` by using `tx init` mapping and then pushed to Transifex. For example
+```
+# try
+tx config mapping --resource facility-recon.docs_build_gettext_dev_dhis2users \
+--source-lang en --type PO --source-file docs/build/gettext/dev/dhis2users.pot \
+--expression 'docs/source/locales/<lang>/LC_MESSAGES/dev/dhis2users.po'
+# add --execute to do it if all looks well
+tx config mapping --resource facility-recon.docs_build_gettext_dev_dhis2users \
+--source-lang en --type PO --source-file docs/build/gettext/dev/dhis2users.pot \
+--expression 'docs/source/locales/<lang>/LC_MESSAGES/dev/dhis2users.po' --execute
+```
+
 Push files to Transifex.
 ```
 tx push -tl fr
 ```
+
 
 ## Build Documentation from New Translations
 

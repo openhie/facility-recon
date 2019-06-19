@@ -1,165 +1,189 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) 2019, IntraHealth International
-# This file is distributed under the same license as the Facility
-# Reconciliation Tool package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
-#
+# This file is distributed under the same license as the Facility Reconciliation Tool package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Facility Reconciliation Tool \n"
+"Project-Id-Version: Facility Reconciliation Tool\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-08 15:20-0400\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2019-06-04 17:58-0400\n"
+"PO-Revision-Date: 2019-05-08 19:35+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
+"Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-# b435e6075f384514816f55d79d54a714
+# 792a12955c454899b2046ae455186a15
 #: ../../source/quick/quick-match.md:1
 msgid "Match data sources"
-msgstr ""
+msgstr "Mise en correspondance des données"
 
-# 1412e9fb938d4ef39f04f4b394b6869a
+# a871c8a31bf04b0abaa276ade4687f2a
 #: ../../source/quick/quick-match.md:3
 msgid ""
-"To match facility lists the steps are to first create a pair of data "
-"sources and then to do the reconciliation starting at the highest level "
-"and going down the hierarchy to the last level."
+"To match facility lists the steps are to first create a pair of data sources"
+" and then to do the reconciliation starting at the highest level and going "
+"down the hierarchy to the last level."
 msgstr ""
+"Le couplage des listes de centres consiste tout d'abord à créer une paire de"
+" sources de données et puis de procéder au rapprochement en commençant par "
+"le niveau le plus élevé et en descendant dans la hiérarchie jusqu'au dernier"
+" niveau."
 
-# 234c2a649b594f63ae0082fe5f7761be
+# 7e128286b5694ce397454fe4f48590c1
 #: ../../source/quick/quick-match.md:5
 msgid "Pair data sources"
-msgstr ""
+msgstr "Couplage des données"
 
-# 6d0b3afb29394b22a985671387c8c975
+# 2daf3df3ba3a44f98d7672c95d110001
 #: ../../source/quick/quick-match.md:7
 msgid ""
-"Go to the Data Source Pair tab and select both data sources. The data "
-"source you select under Source 1 is the target (the one you want to fix)."
-" The data source you select under Source 2 is the one that is the leader "
-"that you want to eventually merge your data with."
+"Go to the Reconcile tab and choose Create and Manage Data Source Pair. "
+"Select both data sources. The data source you select under Source 1 source "
+"of truth. The data source you select under Source 2 is the one that you want"
+" to fix."
 msgstr ""
 
-# 585d81ac3c874384ad96877126f8f033
-#: ../../source/quick/quick-match.md:8
-msgid "Choose NGO as Source 1 and DHIS2 as Source 2."
+# c47a4bc03eda4cf6bf1f3fa96a66d63d
+#: ../../source/quick/quick-match.md:9
+msgid "Choose DHIS2 as Source 1 and NGO as Source 2."
 msgstr ""
 
-# f1dfdca0940a451a835fc32ef83e26c7
-#: ../../source/quick/quick-match.md:12
-msgid "Click SAVE and you will be taken to the reconciliation screen."
+# d84edf5594644ea7aec66b133dde2378
+#: ../../source/quick/quick-match.md:13
+msgid "Click Save and you will be taken to the Reconcile page."
 msgstr ""
 
-# 164a8ca22a7546fca06f22790575ea16
-#: ../../source/quick/quick-match.md:14
+# afa753250eee4abebfc3f2b60c41da37
+#: ../../source/quick/quick-match.md:15
 msgid ""
-"Note. After saving the pair should be active. If not, then below the pair"
-" choose Active under Existing Data Source Pairs. Then click Activate "
-"Pair."
+"Note. After saving the pair should be active. If not, then below the pair "
+"choose Active under Existing Data Source Pairs. Then click Activate Pair."
 msgstr ""
+"N.B. : Après la sauvegarde, la paire devrait être active. Si ce n'est pas le"
+" cas, choisissez,  « Active sous paires de données existantes », puis "
+"cliquez sur « Activer la paire »."
 
-# e285e03ad53644159b9e33b795820845
-#: ../../source/quick/quick-match.md:16
+# 15ecaeee8be04a6ca91a8fc4f7674733
+#: ../../source/quick/quick-match.md:17
 msgid "Reconciliation"
-msgstr ""
+msgstr "Rapprochement"
 
-# 17421555476f45f1a56e385c6d41df37
-#: ../../source/quick/quick-match.md:18
+# ea3bbf526a7b4f0498f2497c29270a7a
+#: ../../source/quick/quick-match.md:19
 msgid ""
 "There are only two regions (the top administrative level in the fakeland "
 "data). They are automatically matched. The status wheels labeled Matched "
-"indicate that 2 of 2 regions have been matched. In the bottom portion of "
-"the screenshot below, you can also see that for Level 1 there is 100% "
-"match, as the two locations in Source 1 match the two locations in Source"
-" 2."
+"indicate that 2 of 2 regions have been matched. In the bottom portion of the"
+" screenshot below, you can also see that for Level 1 there is 100% match, as"
+" the two locations in Source 1 match the two locations in Source 2."
 msgstr ""
+"Il n'existe que deux régions (le niveau administratif le plus élevé des "
+"données de Fauxpays). Elles seront automatiquement mises en correspondance. "
+"L'indicateur de statut intitulé COUPLÉ indique que 2 des 2 régions ont été "
+"couplées. Dans la partie inférieure de la capture d'écran ci-dessous, vous "
+"pouvez également voir que pour le Niveau 1, la correspondance est de 100 %, "
+"dans la mesure où les deux emplacements de la Source 1 correspondent aux "
+"deux emplacements de la Source 2."
 
-# 4e12a324fd0f488fbf5a526746784314
+# 82589ea9a5d0400ea0bbbe425c105803
 #: ../../source/quick/quick-match.md:21
 msgid "Near the bottom left click Proceed to District to continue."
-msgstr ""
+msgstr "En bas à gauche, cliquez sur District pour continuer."
 
-# 1d5c00eebee44121aaae74ab26fa7e7c
+# 49d04861f6e645e29368f627f2f77218
 #: ../../source/quick/quick-match.md:25
 msgid ""
-"At Level 2, the districts will automatically be matched. Click Proceed to"
-" Facility to continue."
+"At Level 2, the districts will automatically be matched. Click Proceed to "
+"Facility to continue."
 msgstr ""
+"Au Niveau 2, les districts seront automatiquement mis en correspondance. "
+"Cliquez sur Accès au centre pour continuer."
 
-# 8467b469691b481da628f4aaa842b319
+# 35b3b187d07f4801820c2c2ee7862a40
 #: ../../source/quick/quick-match.md:29
 msgid "Click Proceed to Level 3."
-msgstr ""
+msgstr "Cliquez sur Passer au Niveau 3."
 
-# c309d3f6a541478ba1de841e03eb8404
+# 421e9178e3404c8597516596da30f02f
 #: ../../source/quick/quick-match.md:30
 msgid "At Level 3, some facilities will not match."
-msgstr ""
+msgstr "Au Niveau 3, certains centres ne seront pas couplés."
 
-# b07dc0962d89467c816fc54bf716b8cf
+# 79e112c0e4ea4672b8212f9c306a8d1d
 #: ../../source/quick/quick-match.md:31
 msgid ""
-"There is a list of unmatched facilities in the light green box for Source"
-" 1."
+"There is a list of unmatched facilities in the light green box for Source 1."
 msgstr ""
+"Une liste de centres sans centre correspondant se trouve dans la boîte de "
+"dialogue vert clair pour la Source 1."
 
-# 3773c165515f4cafb0e88137f6c2cc54
+# 59d70e98d761488bbaeaee0205e07ccd
 #: ../../source/quick/quick-match.md:35
 msgid "Select one of the facilities, like General Referral Hospital."
-msgstr ""
+msgstr "Sélectionnez un des centres, tel que l'Hôpital de référence générale."
 
-# b93b51a924f84e4bb5752a26d102dc1f
+# 9969e28065854f53bb77feb764ba1d41
 #: ../../source/quick/quick-match.md:36
 msgid "A pop-up dialog will let you choose which facility to match it to."
 msgstr ""
+"Une fenêtre de dialogue pop-up vous permettra de choisir le centre qui lui "
+"correspond."
 
-# e3235450f4cb45c188c2c1a99a472b71
+# 4ea3467aa890400db77bb9d5b6e6da75
 #: ../../source/quick/quick-match.md:40
 msgid ""
-"Select the most appropriate match, in this case it is Referral Hospital, "
-"and click SAVE MATCH."
+"Select the most appropriate match, in this case it is Referral Hospital, and"
+" click Save Match."
 msgstr ""
 
-# 281eae30519f4f1aa88123e8ace0509c
+# 7adde7c4b4e24bef9f7a9294a0734c47
 #: ../../source/quick/quick-match.md:41
 msgid ""
-"Go through the unmatched facilities in Source 1, select and save the best"
-" matches. One you are done, you will see:"
+"Go through the unmatched facilities in Source 1, select and save the best "
+"matches. One you are done, you will see:"
 msgstr ""
+"Passez en revue les centres non couplés sous Source 1, sélectionnez et "
+"sauvegardez les meilleurs couplages. Une fois que vous aurez fini, vous "
+"verrez :"
 
-# 97b31b3a4b01498890c961505c6176f7
+# c471b9f92ae645efb0da2548583a2473
 #: ../../source/quick/quick-match.md:45
 msgid ""
-"The Source 1 Reconciliation Status, in the top left-hand status box, "
-"should be 100%."
+"The Source 1 Reconciliation Status, in the top left-hand status box, should "
+"be 100%."
 msgstr ""
+"Le Statut de rapprochement de la Source 1, dans la boîte de statut en haut à"
+" gauche, doit indiquer 100 %."
 
-# f14a520bad2c4ae796438ff5443a5011
+# 23f9eb03d2cb40cca04bf06809acd708
 #: ../../source/quick/quick-match.md:47
 msgid "Export a reconciliation report"
-msgstr ""
+msgstr "Exporter le rapport de rapprochement"
 
-# 88bd44119f5646699d944988763c736d
+# 25ed3a9fee10410b80d5dfba60c7f417
 #: ../../source/quick/quick-match.md:49
 msgid ""
 "On the top left of the reconciliation tab there is an option to output "
-"either a FHIR-based report of the final reconciled dataset or a CSV of "
-"what matched and did not match in either dataset. Choose CSV Export. You "
-"will receive three files of matches and unmatches."
+"either a FHIR-based report of the final reconciled dataset or a CSV of what "
+"matched and did not match in either dataset. Choose CSV Export. You will be "
+"able to choose three files of matches and unmatches."
 msgstr ""
 
-# f06b1a9f52b546f89e81153858450102
+# 0f5a8228071f4042ae9099a88182eece
 #: ../../source/quick/quick-match.md:51
 msgid "View reconciliation status"
-msgstr ""
+msgstr "Consultez le statut du rapprochement"
 
-# d224178020774e26958a099518da4437
+# c7a56448ff4b42b3a649a9b6b0955691
 #: ../../source/quick/quick-match.md:53
 msgid "Select Reconciliation Status and view the overall status."
-msgstr ""
-
+msgstr "Sélectionnez Statut du rapprochement et voyez le statut global."

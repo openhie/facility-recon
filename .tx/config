@@ -127,3 +127,15 @@ source_file = docs/build/gettext/dev/host.pot
 source_lang = en
 type = PO
 
+[facility-recon.docs_build_gettext_dev_dhis2app]
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/dhis2app.po
+source_file = docs/build/gettext/dev/dhis2app.pot
+source_lang = en
+type = PO
+
+[facility-recon.docs_build_gettext_dev_dhis2users]
+file_filter = docs/source/locales/<lang>/LC_MESSAGES/dev/dhis2users.po
+source_file = docs/build/gettext/dev/dhis2users.pot
+source_lang = en
+type = PO
+
