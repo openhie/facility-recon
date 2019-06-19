@@ -197,7 +197,7 @@ export const generalMixin = {
       } else if (process.env.NODE_ENV === 'development') {
         this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
         this.$store.state.dhis.dev.auth.username = 'bombaliuser1'
-        this.$store.state.dhis.dev.auth.password = 'Mw@n@m1gu'
+        this.$store.state.dhis.dev.auth.password = 'Qv?B/*w6'
       }
     }
   }

@@ -22,6 +22,7 @@ const config = require('./config');
 module.exports = function () {
   return {
     getLocations(database, callback) {
+      winston.error(database)
       let baseUrl = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').toString();
       let url = baseUrl + '?_count=37000'
       let locations

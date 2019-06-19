@@ -29,13 +29,13 @@ export default {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
         if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
-          this.$store.state.errorDescription = 'Unauthorized, please reload the app'
+          this.$store.state.errorDescription = 'Unauthorized, esnure that you DHIS2 login is active'
           this.$router.push({ name: 'Logout' })
         } else {
-          this.$store.state.errorDescription = 'An error has occured, switching back to GOFR authentication mode'
-          this.$store.state.config.generalConfig.authDisabled = false
-          this.$store.state.initializingApp = false
-          this.saveConfiguration('generalConfig', 'authDisabled')
+          this.$store.state.errorDescription = 'Unauthorized, please reload the app'
+          // this.$store.state.config.generalConfig.authDisabled = false
+          // this.$store.state.initializingApp = false
+          // this.saveConfiguration('generalConfig', 'authDisabled')
         }
       })
     }
