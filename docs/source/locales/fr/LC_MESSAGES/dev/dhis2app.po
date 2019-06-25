@@ -3,6 +3,9 @@
 # This file is distributed under the same license as the Facility Reconciliation Tool package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,6 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: 2019-06-13 18:56+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
 "Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +24,7 @@ msgstr ""
 # a75f2e00512d488fa3e9dd3196395bde
 #: ../../source/dev/dhis2app.md:1
 msgid "DHIS2 app installation"
-msgstr ""
+msgstr "Installation de l'appli DHIS2"
 
 # 9b0d4535004641f7bfa0decc079e4493
 #: ../../source/dev/dhis2app.md:3
@@ -30,31 +34,41 @@ msgid ""
 " configured as required to restrict users to the organization units they "
 "need to access."
 msgstr ""
+"DHIS2 est un HMIS de source ouverte basé sur des normes dans le domaine de "
+"la santé dans le monde. L'outil de rapprochement des centres peut être "
+"installé sous la forme de l'appli DHIS2 et configuré de manière convenable "
+"afin de restreindre les utilisateurs aux unités de l'organisation auxquelles"
+" ils ont besoin d'avoir accès."
 
 # e10a15229ab24791991fe8c3cc80406b
 #: ../../source/dev/dhis2app.md:7
 msgid "Features"
-msgstr ""
+msgstr "Caractéristiques"
 
 # 513351e9bad64f9399d18281ba6fa0c2
 #: ../../source/dev/dhis2app.md:9
 msgid "The Facility Reconciliation DHIS2 App has the ability to:"
-msgstr ""
+msgstr "L'appli de rapprochement des centres DHIS2 a la capacité de :"
 
 # 10ddff449c3449e78f900b2bc7722c3e
 #: ../../source/dev/dhis2app.md:10
 msgid "Authenticate only using DHIS2 users and roles."
 msgstr ""
+"Authentifier uniquement à l'aide des utilisateurs DHIS2 et de leurs rôles."
 
 # 0de9cd1213b84f71be8503213ada5659
 #: ../../source/dev/dhis2app.md:11
 msgid "Add DHIS2 users to data sources and data pairs."
 msgstr ""
+"Ajouter des utilisateurs DHIS2 aux sources de données et aux paires de "
+"données."
 
 # 2c35993b6d214094b8c9c9634ab05f05
 #: ../../source/dev/dhis2app.md:12
 msgid "Restrict DHIS2 users to specific data pairs or one pair."
 msgstr ""
+"Restreindre les utilisateurs DHIS2 à une ou plusieurs paires de données "
+"particulières."
 
 # ad5e74b3afc64fcca0471777eef187f7
 #: ../../source/dev/dhis2app.md:13
@@ -62,11 +76,14 @@ msgid ""
 "Restrict users to specific organizational units in DHIS2 and have this "
 "reflected in access in the Facility Reconciliation Tool."
 msgstr ""
+"Restreindre les utilisateurs à des unités particulières de l'organisation "
+"dans DHIS2 et faire en sorte que cela soit reflété dans l'accès à l'outil de"
+" rapprochement des centres."
 
 # 1e95659c44824b23a898addfd8489478
 #: ../../source/dev/dhis2app.md:15
 msgid "Install DHIS2 app on the same server running DHIS2"
-msgstr ""
+msgstr "Installer l'appli DHIS2 sur le même serveur qui prend en charge DHIS2"
 
 # 411b561e7c5c492191ccd06c4b6ed0a9
 #: ../../source/dev/dhis2app.md:17
@@ -75,11 +92,14 @@ msgid ""
 "standalone tool itself must be installed. It is expected that the tool is "
 "installed on the same server as DHIS2."
 msgstr ""
+"Pour que l'outil de rapprochement des centres soit utilisé sous la forme de "
+"l'appli DHIS2, l'outil indépendant doit être installé. L'outil doit être "
+"installé sur le même serveur que DHIS2."
 
 # 779db1a8d16c441d99a66784751db776
 #: ../../source/dev/dhis2app.md:19
 msgid "Clone the GitHub repository."
-msgstr ""
+msgstr "Clonez le repositaire GitHub."
 
 # a1f4b6a52fd54d99ad2a9b3f385d7db5
 #: ../../source/dev/dhis2app.md:25
@@ -87,11 +107,13 @@ msgid ""
 "Log in as an admin in DHIS2 with permission to install apps. Open the app "
 "called App Management."
 msgstr ""
+"Accédez à DHIS2 comme administrateur avec la permission d'installer des "
+"applis. Ouvrez l'appli intitulée App Management (gestion des applis)"
 
 # bc040669e5e64a4fbd263ef3bbfd873e
 #: ../../source/dev/dhis2app.md:29
 msgid "Choose to install an app using the button on the far right."
-msgstr ""
+msgstr "Choisissez d'installer une appli à l'aide du bouton tout à droite."
 
 # c1d7757749bf4bc78024ba8b24bae22e
 #: ../../source/dev/dhis2app.md:33
@@ -99,6 +121,8 @@ msgid ""
 "A file chooser will open. Select the already packaged .zip file in the "
 "GitHub repository folder dhis2App."
 msgstr ""
+"Une fenêtre de navigation des fichiers s'ouvrira. Choisissez le fichier .zip"
+" déjà empaqueté dans le repositaire le dossier GitHub dhis2App."
 
 # b9b395bc99cc469c99ad5a43fd517843
 #: ../../source/dev/dhis2app.md:37
@@ -106,6 +130,8 @@ msgid ""
 "To install the app on the DHIS2 demo playground you need a different "
 "package, see modifications below."
 msgstr ""
+"Pour installer l'appli que le terrain de jeu de démo DHIS2, vous aurez "
+"besoin d'un autre paquet, cf. modifications ci-dessous."
 
 # 92c695096a23473581daab893b0012ca
 #: ../../source/dev/dhis2app.md:39
@@ -113,11 +139,13 @@ msgid ""
 "To point the app at another server for the backend you need a different "
 "package, see modifications below."
 msgstr ""
+"Pour orienter l'appli vers un autre serveur pour le backend, vous aurez "
+"besoin d'un paquet différent, cf. modifications ci-dessous."
 
 # 8467e85b4d3a49f3bc9eaed2a3bed35c
 #: ../../source/dev/dhis2app.md:41
 msgid "Now the DHIS2 app is installed. Confirm:"
-msgstr ""
+msgstr "L'appli DHIS2 est maintenant installée. Confirmez :"
 
 # 053792cbbb794ca68d03ffc04b37c75c
 #: ../../source/dev/dhis2app.md:44
@@ -125,11 +153,14 @@ msgid ""
 "After installing the app but before setting up DHIS authentication, set the "
 "user role in DHIS2 to have permissions."
 msgstr ""
+"Après avoir installé l'appli mais avant la configuration de "
+"l'authentification DHIS, réglez le rôle de l'utilisateur dans DHIS pour "
+"qu'il ait des permissions."
 
 # a3361142d6134465bd139ab56699feb4
 #: ../../source/dev/dhis2app.md:46
 msgid "Add app permission to User Role"
-msgstr ""
+msgstr "Ajoutez des permissions pour l'appli au rôle d'utilisateur"
 
 # 3bd8a23dc2364f01bebd158968dce103
 #: ../../source/dev/dhis2app.md:48
@@ -139,16 +170,22 @@ msgid ""
 " to manage the tool must have permissions added otherwise if it is not then "
 "the user will be locked out."
 msgstr ""
+"L'authentification externe fonctionne en associant un rôle d'utilisateur "
+"DHIS2. L'outil de rapprochement des centres doit connaître le rôle de "
+"l'utilisateur. Le rôle de l'utilisateur sélectionné pour gérer l'outil doit "
+"disposer de permissions ajoutées, sinon l'utilisateur sera bloqué."
 
 # 742bddb8f36c4d65aa4cb2fb96d86a06
 #: ../../source/dev/dhis2app.md:50
 msgid "Click on the Users app in the app menu dropdown."
-msgstr ""
+msgstr "Cliquez sur l'appli utilisateurs dans le menu déroulant de l'appli."
 
 # e71ea9e89b654fc6b81aaec4883adde1
 #: ../../source/dev/dhis2app.md:54
 msgid "In the users app menu, select User Roles."
 msgstr ""
+"Dans le menu de l'appli des utilisateurs, sélectionnez rôle des "
+"utilisateurs."
 
 # 2e88993f792b4d7cb86deb63cec0b8b8
 #: ../../source/dev/dhis2app.md:58
@@ -157,21 +194,26 @@ msgid ""
 "Reconciliation App. This will take you to a detailed view of the authorities"
 " granted to that user role."
 msgstr ""
+"Sélectionnez le nom du rôle d'utilisateur que vous utiliserez pour prendre "
+"en charge l'appli de rapprochement des centres. Vous serez envoyer vers un "
+"affichage détaillé des autorités octroyées à ce rôle d'utilisateur."
 
 # 3e8bc269cb224273b0c0e0138d957cc3
 #: ../../source/dev/dhis2app.md:60
 msgid "Under Apps check the box next to Facility Reconciliation app."
 msgstr ""
+"Sous Applis, cochez la case à côté de l'appli de rapprochement des centres."
 
 # e311af335c4048e29b3a55e6223a4d25
 #: ../../source/dev/dhis2app.md:64
 msgid "Click Save at the bottom on the page to submit the change."
 msgstr ""
+"Cliquez sur Sauvegarder au bas de la page pour soumettre la modification."
 
 # 50f82b79f3ca47739f50aa3120c25343
 #: ../../source/dev/dhis2app.md:68
 msgid "Setup DHIS2 authentication"
-msgstr ""
+msgstr "Paramétrage de l'authentification DHIS"
 
 # 83277a40549a42f29e09ac882539f115
 #: ../../source/dev/dhis2app.md:70
@@ -179,6 +221,9 @@ msgid ""
 "Back on the apps dropdown, click on the now-installed Facility "
 "Reconciliation app icon to finish configuration and setup authentication."
 msgstr ""
+"Dans le menu déroulant des applis, à nouveau, cliquez sur l'icône de l'appli"
+" de rapprochement des centres désormais installée afin de terminer la "
+"configuration et la paramétrage de l'authentification."
 
 # 643b4eb0340f4b278eecec67302a3433
 #: ../../source/dev/dhis2app.md:72
@@ -186,6 +231,8 @@ msgid ""
 "Under Configure Settings turn on external authentication. Select DHIS2 as "
 "the authentication point."
 msgstr ""
+"Sous Paramètres de configuration, activez l'authentification externe. "
+"Sélectionnez DHIS2 comme point d'authentification."
 
 # c32403785eef4267bd83a4fe1ef93045
 #: ../../source/dev/dhis2app.md:74
@@ -193,6 +240,8 @@ msgid ""
 "Select the superuser role in DHIS2 that will be used to administer facility "
 "reconciliation."
 msgstr ""
+"Sélectionnez le rôle de superutilisateur dans DHIS2 qui sera utilisé pour "
+"prendre en charge le rapprochement des centres."
 
 # d5c5f8bcd46a4efda4f8269435a7447a
 #: ../../source/dev/dhis2app.md:78
@@ -200,6 +249,8 @@ msgid ""
 "Then, enter a username and password that the backend will use to pull data "
 "from DHIS2."
 msgstr ""
+"Puis, saisissez un nom d'utilisateur et un mot de passe que le backend "
+"pourra utiliser pour extraire des données auprès de DHIS2."
 
 # 74dbe5ccb4484b92993f86fbb4ce8bca
 #: ../../source/dev/dhis2app.md:82
@@ -207,6 +258,9 @@ msgid ""
 "Select Pull to get data into the app. This is necessary for two-way "
 "communication to work between the app and the reconciliation backend."
 msgstr ""
+"Sélectionnez Extraire pour alimenter l'appli en données. Cela est nécessaire"
+" au bon fonctionnement de la communication à deux sens entre l'appli et le "
+"backend du rapprochement."
 
 # 98208eed11eb4e2bb53f4a0aaf460932
 #: ../../source/dev/dhis2app.md:86
@@ -214,11 +268,14 @@ msgid ""
 "Once the app is done it will redirect to the data sources view to confirm "
 "the DHIS2 data source is now there."
 msgstr ""
+"Une fois que l'appli a terminé, elle réoriente vers l'affichage des sources "
+"de données pour une confirmation de la présence de la source de données "
+"DHIS2."
 
 # 0972869c6d424cbb89459729de74f8df
 #: ../../source/dev/dhis2app.md:90
 msgid "Install DHIS2 app on DHIS playground"
-msgstr ""
+msgstr "Installez l'appli DHIS2 sur le terrain de jeu DHIS2."
 
 # b578a9d3e5d54ca198bd64679ca8e523
 #: ../../source/dev/dhis2app.md:92
@@ -226,11 +283,15 @@ msgid ""
 "The Facility Reconciliation Tool should be running. A quick way to do this "
 "for a demo is to use Docker."
 msgstr ""
+"L'outil de rapprochement des centres doit être en marche. Une manière rapide"
+" de ce faire pour une démonstration consiste à utiliser Docker."
 
 # 422b8840f62d41f7909b0e5c49c4bada
 #: ../../source/dev/dhis2app.md:94
 msgid "Visit https://play.dhis2.org and select a DHIS2 demo version."
 msgstr ""
+"Consultez https://play.dhis2.org et sélectionnez une version de "
+"démonstration de DHIS2."
 
 # 21c622f489f34461b8f3098bd466ebb1
 #: ../../source/dev/dhis2app.md:98
@@ -238,16 +299,18 @@ msgid ""
 "Follow the above recipe but use the prebuilt version designed for DHIS2 "
 "playground."
 msgstr ""
+"Suivez les consignes ci-dessus mais utilisez la version précréée conçue pour"
+" le terrain de jeu DHIS2."
 
 # 203bb13cc1344424aa1b6c1f498abf51
 #: ../../source/dev/dhis2app.md:102
 msgid "Then follow the rest of the recipe above."
-msgstr ""
+msgstr "Puis suivez le reste des consignes ci-dessus."
 
 # 293e9853beea450ea77607d766912778
 #: ../../source/dev/dhis2app.md:104
 msgid "Setup a different backend server"
-msgstr ""
+msgstr "Installer un serveur backend différent"
 
 # 41eb2127219e44a6b4a6e8866f615191
 #: ../../source/dev/dhis2app.md:106
@@ -256,11 +319,14 @@ msgid ""
 "prebuilt package is not suitable and must be rebuilt with the correct "
 "address."
 msgstr ""
+"Si l'appli DHIS2 doit communiquer avec un backend qui se trouve sur un autre"
+" serveur, le paquet préconçu ne convient alors pas et doit être reconstitué "
+"avec l'adresse correcte."
 
 # 3d70aed4bf854ff99c86eaa35f94a92b
 #: ../../source/dev/dhis2app.md:108
 msgid "The file /facility-recon-gui/config/prod.env.js must be modified."
-msgstr ""
+msgstr "Le fichier /facility-recon-gui/config/prod.env.js doit être modifié."
 
 # c783e85ceb2d492d89a82d53bb8d08d8
 #: ../../source/dev/dhis2app.md:117
@@ -268,11 +334,14 @@ msgid ""
 "Change the BACKEND_SERVER variable to the server. For example, for "
 "localhost:"
 msgstr ""
+"Modifiez la variable BACKEND_SERVER avec le serveur qui convient. Par "
+"exemple, pour localhost : "
 
 # 2228eca573914f8ba47daefbcf64355f
 #: ../../source/dev/dhis2app.md:126
 msgid "Once the file is edited and saved, build the gui."
 msgstr ""
+"Une fois que le fichier a été modifié et sauvegardé, constituez le gui."
 
 # d05bab250c0749edbf0dc14e518c3e5b
 #: ../../source/dev/dhis2app.md:134
@@ -281,3 +350,6 @@ msgid ""
 "built with the server chosen in the above step and can be installed into "
 "DHIS2."
 msgstr ""
+"La nouvelle appli est installée dans la racine sous /dhis2App/GOFR.zip. Cela"
+" est désormais intégré au serveur choisi lors de l'étape ci-dessus et peut "
+"être installé dans DHIS2."

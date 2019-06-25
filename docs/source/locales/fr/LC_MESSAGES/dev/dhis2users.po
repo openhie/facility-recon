@@ -3,6 +3,9 @@
 # This file is distributed under the same license as the Facility Reconciliation Tool package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# Celine Colvin <celine.r.colvin@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,6 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-04 17:58-0400\n"
 "PO-Revision-Date: 2019-06-13 18:56+0000\n"
+"Last-Translator: Celine Colvin <celine.r.colvin@gmail.com>, 2019\n"
 "Language-Team: French (https://www.transifex.com/openhie/teams/95506/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +24,7 @@ msgstr ""
 # 2a2a8d339e3b4091b109d1448888d87c
 #: ../../source/dev/dhis2users.md:1
 msgid "DHIS2 users and sharing"
-msgstr ""
+msgstr "Utilisateurs et partage de DHIS2"
 
 # 514def7188ed40eda27258476599a8bc
 #: ../../source/dev/dhis2users.md:3
@@ -30,16 +34,21 @@ msgid ""
 "have their organizational unit restrictions also be reflected in the "
 "Facility Reconciliation Tool."
 msgstr ""
+"Avec DHIS2 comme couche d'authentification, les utilisateurs de DHIS2 "
+"peuvent se voir accorder l'accès à des sources et paires de données "
+"particulières, être restreints à certaines paires et faire en sorte que les "
+"restrictions de leurs unités organisationnelles se retrouvent également dans"
+" l'outil de rapprochement des centres."
 
 # b41e2b40907b4d79bcd42e27508a4647
 #: ../../source/dev/dhis2users.md:5
 msgid "Prequisites"
-msgstr ""
+msgstr "Préalables"
 
 # 90a49d802c5b4c8f9d7b737fbede443e
 #: ../../source/dev/dhis2users.md:7
 msgid "The Facility Reconciliation Tool application must be running."
-msgstr ""
+msgstr "L'application de rapprochement des centres doit être en marche."
 
 # b20238644c394ea9a7ea0b1e8d4c984a
 #: ../../source/dev/dhis2users.md:8
@@ -47,6 +56,8 @@ msgid ""
 "Then, the app should be installed. See the developer guide page for DHIS2 "
 "app installation."
 msgstr ""
+"Ensuite, l'appli doit être installée. Cf. page du guide du développeur pour "
+"l'installation de l'appli DHIS2."
 
 # 39ca2b25d59d4d1b9c8bccdac9ba2158
 #: ../../source/dev/dhis2users.md:9
@@ -54,11 +65,14 @@ msgid ""
 "Once DHIS2 is the authentication layer, users must exist in DHIS2 for them "
 "to be able to use the Facility Reconciliation App."
 msgstr ""
+"Une fois que DHIS2 est une couche d'authentification, les utilisateurs "
+"doivent exister dans DHIS2 pour pouvoir utiliser l'appli de rapprochement "
+"des centres."
 
 # 043e44612f4a480792591807fcb5b7a8
 #: ../../source/dev/dhis2users.md:11
 msgid "About DHIS2 users"
-msgstr ""
+msgstr "À propos des utilisateurs DHIS2"
 
 # 2a82940315a44df194bf45e7110314c9
 #: ../../source/dev/dhis2users.md:13
@@ -67,11 +81,15 @@ msgid ""
 " roles, and user groups. See the latest DHIS2 documentation for an overview "
 "which is partly reproduced here."
 msgstr ""
+"Les éléments constitutifs de la gestion des utilisateurs dans DHIS2 sont les"
+" autorités, les utilisateurs, les rôles des utilisateurs et les groupes "
+"d'utilisateurs. Cf. la dernière documentation DHIS2 en date pour un aperçu "
+"qui est en partie reproduit dans le présent."
 
 # f58f4c6cdfeb4691aa89b86ef89054cc
 #: ../../source/dev/dhis2users.md:42
 msgid "Configuration options"
-msgstr ""
+msgstr "Options de configuration"
 
 # 740d3c976e0740db8875758b640c9e72
 #: ../../source/dev/dhis2users.md:44
@@ -80,11 +98,15 @@ msgid ""
 "selected as an authentication source, a DHIS2 superuser role must be "
 "selected. There are several additional options."
 msgstr ""
+"Lorsque l'appli DHIS2 de rapprochement des centres est installée et que "
+"DHIS2 est sélectionné comme source d'authentification, un rôle de "
+"superutilisateur DHIS2 doit être sélectionné. Il existe plusieurs autres "
+"options."
 
 # 91abaa991e6843dbb9332b5dd421381b
 #: ../../source/dev/dhis2users.md:48
 msgid "In the default settings:"
-msgstr ""
+msgstr "Dans les paramètres par défaut :"
 
 # 957545188b2d486390f61ebae3be0275
 #: ../../source/dev/dhis2users.md:49
@@ -92,6 +114,8 @@ msgid ""
 "Users will be able to only see the org units they have permission to see in "
 "DHIS2."
 msgstr ""
+"Les utilisateurs seront en mesure de ne voir que les unités "
+"organisationnelles qu'ils ont la permission de voir dans DHIS2."
 
 # 7c943eddcb3249a780df709d9b36cd4a
 #: ../../source/dev/dhis2users.md:50
@@ -99,6 +123,8 @@ msgid ""
 "Org units can be pulled into the Facility Reconciliation Tool into a dataset"
 " named as desired."
 msgstr ""
+"Les unités organisationnelles peuvent être intégrées à l'outil de "
+"rapprochement des centres dans un ensemble de données du nom de votre choix."
 
 # 4d9b28046c1a427a831568af43c798e2
 #: ../../source/dev/dhis2users.md:51
@@ -106,16 +132,21 @@ msgid ""
 "Org units can be shared to users and not just the user who configured the "
 "system."
 msgstr ""
+"Les unités organisationnelles peuvent être partagées entre plusieurs "
+"utilisateurs et pas uniquement associées à l'utilisateur qui a configuré le "
+"système."
 
 # d066322b6acd463fb607369e5b5fedf3
 #: ../../source/dev/dhis2users.md:53
 msgid "The default configurations may be switched on or off as desired."
 msgstr ""
+"Les configurations par défaut peuvent être activées ou non, comme vous le "
+"souhaitez."
 
 # d4bf6ac8f7f64190ba52d0d770fa183f
 #: ../../source/dev/dhis2users.md:82
 msgid "Share data sources"
-msgstr ""
+msgstr "Partager des sources de données"
 
 # 818bc4e5a9224e94b65171be8d15e62c
 #: ../../source/dev/dhis2users.md:84
@@ -124,11 +155,18 @@ msgid ""
 "to use the app. One may share a dataset to particular users or all users or "
 "to limit the dataset based on the organization unit attached to DHIS2."
 msgstr ""
+"Toute source de données existante peut être partagée avec un utilisateur "
+"DHIS2 qui dispose de la permission d'utiliser l'appli. Il est possible de "
+"partager un ensemble de données avec des utilisateurs particuliers ou avec "
+"tous les utilisateurs ou encore de limiter l'ensemble de données sur la base"
+" de l'unité organisationnelle associée à DHIS2."
 
 # 7c4890db4f2a4dc68c910070e35e5b0a
 #: ../../source/dev/dhis2users.md:86
 msgid "Click on the Data Sources tab and choose to View Data Sources."
 msgstr ""
+"Cliquez sur l'onglet de sources de données et choisissez affichage des "
+"sources de données."
 
 # 66c529502a03486eb691ea705a8571cf
 #: ../../source/dev/dhis2users.md:90
@@ -136,11 +174,13 @@ msgid ""
 "Sharing status is listed for each data source and if not being shared it is "
 "blank."
 msgstr ""
+"Le statut de partage est indiqué pour chaque source de données et dans le "
+"cas contraire, il est vierge."
 
 # 74c2438be1f04582a572bbb23171449d
 #: ../../source/dev/dhis2users.md:94
 msgid "Click on the share button to bring up the menu."
-msgstr ""
+msgstr "Cliquez sur le bouton de partage pour faire apparaître le menu."
 
 # 1e665bfaac704797bd112955cea14650
 #: ../../source/dev/dhis2users.md:98
@@ -148,21 +188,27 @@ msgid ""
 "Sharing can be limited by either or both the user or location (DHIS2 org "
 "unit)."
 msgstr ""
+"Le partage peut être limité en fonction des utilisateurs ou des emplacements"
+" (unités organisationnelles DHIS2)."
 
 # 5b60f016d0da4cf18df905986cdba6df
 #: ../../source/dev/dhis2users.md:102
 msgid "Share data pairs"
-msgstr ""
+msgstr "Partager des paires de données"
 
 # 3c916798476d432893604423ba0a58de
 #: ../../source/dev/dhis2users.md:104
 msgid "Data sharing of pairs is similar to that of data sources."
 msgstr ""
+"Le partage de paires de données est semblable à celui des sources de "
+"données."
 
 # 894bcb2c03844eaf85d052820d323a55
 #: ../../source/dev/dhis2users.md:106
 msgid "Go to the Reconcile tab and select Create and Manage Data Source Pair."
 msgstr ""
+"À partir de l'onglet de rapprochement, sélectionnez créer et gérer une paire"
+" de sources."
 
 # 1ea0628fc6994dd698e8d5a71dfc9d07
 #: ../../source/dev/dhis2users.md:110
@@ -171,11 +217,14 @@ msgid ""
 "have two data sources from the DHIS2 currently being used and one for a "
 "remote DHIS2."
 msgstr ""
+"Cette page dresse la liste des paires et est l'endroit où les paires sont "
+"créées. Dans cet exemple, nous avons deux sources de données de DHIS2 "
+"actuellement utilisées et une pour un DHIS2 à distance."
 
 # 62937d5bfa9748b0afe6528bc3fb86db
 #: ../../source/dev/dhis2users.md:112
 msgid "The sharing status can be seen in the list data pairs."
-msgstr ""
+msgstr "Le statut de partage peut être vu sur la liste des paires de données."
 
 # c9f5763d57684195aa7d24d38d4ab788
 #: ../../source/dev/dhis2users.md:116
@@ -183,3 +232,5 @@ msgid ""
 "Click the Share button on the right hand side of the data source in the list"
 " to expand the pair sharing menu."
 msgstr ""
+"Cliquez sur le bouton de partage à droite de la source de données dans la "
+"liste pour faire apparaître le menu de partage des paires."
