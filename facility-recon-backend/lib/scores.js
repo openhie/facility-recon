@@ -289,7 +289,7 @@ module.exports = function () {
 
                   if (lev == 0 && 
                     !matchBroken && 
-                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true))
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     ignore.push(source2Entry.resource.id)
                     thisRanking.exactMatch = {

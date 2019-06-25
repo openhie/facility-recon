@@ -105,7 +105,9 @@ let router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (!store.state.auth.token && (!VueCookies.get('token') || !VueCookies.get('userID'))) {
+  if (!store.state.auth.token &&
+    (!VueCookies.get('token') || VueCookies.get('token') === 'null' || !VueCookies.get('userID') || VueCookies.get('userID') === 'null')
+  ) {
     if (to.path !== '/Login' && to.path !== '/Signup' && !store.state.config.generalConfig.authDisabled) {
       next({
         path: '/Login'
