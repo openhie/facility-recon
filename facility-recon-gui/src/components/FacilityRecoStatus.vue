@@ -492,7 +492,7 @@ export default {
   },
   computed: {
     currentLevelText () {
-      return this.translateDataHeader('source1', this.$store.state.recoLevel - 1)
+      return this.translateDataHeader('source1', this.recoLevel - 1)
     },
     source1 () {
       let source = this.$store.state.activePair.source1.name
