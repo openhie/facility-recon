@@ -68,7 +68,7 @@
           <v-card-text>
             <v-radio-group v-model="dataSource" row @change="sourceSelected">
               <v-radio color="primary" label="Upload CSV" value="upload"></v-radio>
-              <v-radio color="primary" label="Remote Souce" value="remote"></v-radio>
+              <v-radio color="primary" label="Remote Source" value="remote"></v-radio>
             </v-radio-group>
           </v-card-text>
         </v-card>

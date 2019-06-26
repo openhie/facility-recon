@@ -71,14 +71,6 @@
                   v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
                 >
                 </v-switch>
-                <v-switch
-                  v-if="$store.state.dhis.user.orgId"
-                  @change="saveConfiguration('generalConfig', 'parentConstraint')"
-                  color="primary"
-                  label="Single data source pair per org unit"
-                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
-                >
-                </v-switch>
                 <v-card
                   v-if="!$store.state.config.generalConfig.reconciliation.parentConstraint.enabled"
                   color="grey lighten-3"
@@ -98,6 +90,14 @@
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.nameAutoMatch"
                   ></v-checkbox>
                 </v-card>
+                <v-switch
+                  v-if="$store.state.dhis.user.orgId"
+                  @change="saveConfiguration('generalConfig', 'parentConstraint')"
+                  color="primary"
+                  label="Single data source pair per org unit"
+                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
+                >
+                </v-switch>
               </v-flex>
               <v-flex>
                 <v-switch
