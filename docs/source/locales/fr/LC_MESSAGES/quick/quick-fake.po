@@ -53,6 +53,9 @@ msgid ""
 "Download each tab as a separate CSV files to your computer by clicking under"
 " the File menu and choosing Download as: Comma-separated values"
 msgstr ""
+"Téléchargez chaque onglet comme fichier CSV séparé sur votre ordinateur en "
+"cliquant sur le menu Fichier et en choisissant Télécharger comme; valeurs "
+"séparées par des virgules"
 
 # bfee8a9bedae43258553c3e898dd3ceb
 #: ../../source/quick/quick-fake.md:8
@@ -90,6 +93,8 @@ msgid ""
 "On the site, choose Add Source in the top center of the page and select "
 "Upload CSV."
 msgstr ""
+"Sur le site, choisissez Ajouter une source en haut de la page au centre et "
+"sélectionnez Télécharger CVS."
 
 # d575494451194beba4a981c9ae678790
 #: ../../source/quick/quick-fake.md:20
@@ -97,11 +102,15 @@ msgid ""
 "Name the upload as desired and click Upload CSV. Select the Fakeland Health "
 "Facilities - Source 1 NGO file from where you saved it on your computer."
 msgstr ""
+"Donnez le nom de votre choix au téléchargement et cliquez sur Téléchargement"
+" CSV. Sélectionnez le fichier Centres de soins de Fauxpays - Source 1 ONG là"
+" où vous l'avez sauvegardé sur votre ordinateur. "
 
 # 65466a2b8c4043099a573438c9a0ca1c
 #: ../../source/quick/quick-fake.md:21
 msgid "Click Continue. The data will be loaded into the system."
 msgstr ""
+"Cliquez pour continuer. Les données seront téléchargées dans le système."
 
 # 41338d37e80f4e649c3bf75b23cdd1f8
 #: ../../source/quick/quick-fake.md:25
@@ -119,7 +128,7 @@ msgstr ""
 # 71bfe66461bd4108bc6c6940e91b4b37
 #: ../../source/quick/quick-fake.md:29
 msgid "Click the blue Upload button."
-msgstr ""
+msgstr "Cliquez sur le bouton bleu de téléchargement."
 
 # a0eb134311c54dac9724db337b3b3351
 #: ../../source/quick/quick-fake.md:30

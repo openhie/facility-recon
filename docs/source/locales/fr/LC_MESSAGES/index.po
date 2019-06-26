@@ -33,6 +33,10 @@ msgid ""
 "product used to compare lists of facilities from different data sources. The"
 " tools supports uploading CSV, and connecting to FHIR servers and DHIS2."
 msgstr ""
+"L'outil de rapprochement des centres est un produit de sources ouvertes et "
+"basé sur des normes ouvertes utilisé pour comparer les listes de centres à "
+"partir de différentes sources de données. L'outil prend en charge le "
+"téléchargement de fichiers CSV et la connexion aux serveurs FHIR et DHIS2."
 
 # 37a688c45700460fa8ef340dada00af9
 #: ../../source/index.rst:6
@@ -41,6 +45,10 @@ msgid ""
 " or as an easily installable DHIS2 app that uses DHIS2 for authentication "
 "that runs the tool in the background."
 msgstr ""
+"L'outil peut être utilisé comme application indépendante avec sa propre "
+"authentification ou sous forme d'appli DHIS2 facile d'installation qui "
+"utilise DHIS2 pour l'authentification prenant en charge l'outil en arrière-"
+"plan."
 
 # 8d9a2c6febc148bfb7d4581d56af1297
 #: ../../source/index.rst:8

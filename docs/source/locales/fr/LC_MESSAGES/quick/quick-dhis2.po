@@ -86,12 +86,13 @@ msgstr ""
 # 04e223bc17434adeb16ecf2a14f1d2ab
 #: ../../source/quick/quick-dhis2.md:17
 msgid "Select Remote Source"
-msgstr ""
+msgstr "Sélectionnez la source à distance"
 
 # 0d49c330a9664c67bb7ff2e8309fb48c
 #: ../../source/quick/quick-dhis2.md:19
 msgid "In the Add New Remote Source form, put in the following:"
 msgstr ""
+"Dans le formulaire d'ajout de nouvelle source à distance, procédez ainsi :"
 
 # a5da0c5015bb49c58a19d5fc2cfcc7f3
 #: ../../source/quick/quick-dhis2.md:60
@@ -107,12 +108,15 @@ msgstr "Synchro"
 #: ../../source/quick/quick-dhis2.md:64
 msgid "Select View Data Sources from the Data Sources tab."
 msgstr ""
+"Sélectionnez Voir sources de données dans l'onglat Sources de données."
 
 # fc7292ff1e9049bc8ee1cc83d44f2a3e
 #: ../../source/quick/quick-dhis2.md:66
 msgid ""
 "The data will not be pulled from DHIS2 unless you Force Sync or Sync Update."
 msgstr ""
+"Les données ne seront extraites de DHIS2 à moins que vous ne procédiez à une"
+" synchrnisation forcée ou à une mise à jour de la syncrhonisation."
 
 # 4f8cc8c542e44d89b188ad60b679e831
 #: ../../source/quick/quick-dhis2.md:67
@@ -123,7 +127,7 @@ msgstr ""
 # d882074a49eb435e864955077ba5c154
 #: ../../source/quick/quick-dhis2.md:68
 msgid "Click Sync Update."
-msgstr ""
+msgstr "Cliquez sur Mise à jour de la synchronisation."
 
 # 1278d518216c4f95a52669a42f838181
 #: ../../source/quick/quick-dhis2.md:72

@@ -51,16 +51,22 @@ msgid ""
 "of truth. The data source you select under Source 2 is the one that you want"
 " to fix."
 msgstr ""
+"Cliquez sur l'onglet de rapprochement et choisissez Créer et gérer une paire"
+" de sources de données. Sélectionnez les deux sources de données. La source "
+"de données qui vous choisissez comme Source 1 est la vérité. La source de "
+"données que vous sélectionnez comme Source 2 est celle que vous souhaitez "
+"corriger."
 
 # c47a4bc03eda4cf6bf1f3fa96a66d63d
 #: ../../source/quick/quick-match.md:9
 msgid "Choose DHIS2 as Source 1 and NGO as Source 2."
-msgstr ""
+msgstr "Choisissez DHIS2 comme Source 1 et ONG commes Source 2."
 
 # d84edf5594644ea7aec66b133dde2378
 #: ../../source/quick/quick-match.md:13
 msgid "Click Save and you will be taken to the Reconcile page."
 msgstr ""
+"Cliquez sur Sauvegarder et vous serez envoyé sur la page de rapprochement."
 
 # afa753250eee4abebfc3f2b60c41da37
 #: ../../source/quick/quick-match.md:15
@@ -144,6 +150,8 @@ msgid ""
 "Select the most appropriate match, in this case it is Referral Hospital, and"
 " click Save Match."
 msgstr ""
+"Sélectionnez le couplage le mieux adapté, dans ce cas-ci, il s'agit de "
+"l'hôpital de référence, et cliquez sur Sauvegarder couplage."
 
 # 7adde7c4b4e24bef9f7a9294a0734c47
 #: ../../source/quick/quick-match.md:41
@@ -177,6 +185,12 @@ msgid ""
 "matched and did not match in either dataset. Choose CSV Export. You will be "
 "able to choose three files of matches and unmatches."
 msgstr ""
+"En haut à gauche de l'onglet de rapprochement, se trouve une option pour la "
+"production d'un rapport des ensembles de données rapprochées basé sur FHIR "
+"ou d'un fichier CSV de ce qui correspond et ce qui ne correspond pas dans "
+"chacun des ensembles de données. Choisissez Exporter CSV. Vous serez alors "
+"en mesure de choisir trois fichiers de correspondances et non "
+"correspondances."
 
 # 0f5a8228071f4042ae9099a88182eece
 #: ../../source/quick/quick-match.md:51

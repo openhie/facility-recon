@@ -44,7 +44,7 @@ msgstr "Clonez le repo et lancez les applis docker."
 # 339f56dba34d49a98e3887826bc0302f
 #: ../../source/dev/docker.md:12
 msgid "Visit: http://localhost:3000"
-msgstr ""
+msgstr "Consultez : http://localhost:3000"
 
 # 0f784c7ab8094dbab1e19dad61885727
 #: ../../source/dev/docker.md:14

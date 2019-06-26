@@ -60,6 +60,11 @@ msgid ""
 "the left (source 1) is the leader -- the source of truth. The source on the "
 "right is the follower, the source that is meant to be cleaned."
 msgstr ""
+"Sous l'onglet de rapprochement sur la page de création et de gestion des "
+"sources de données. Sous l'onglet des paires, sélectionnez une source à "
+"gauche et une source à droite, la source de gauche (la source 1) est la "
+"source leader, celle de la vérité. La source de droite est la source "
+"suiveuse, celle qui est doit être nettoyée."
 
 # 65c94c4606324fe59df1754f824573c2
 #: ../../source/user/match.md:13
@@ -120,7 +125,7 @@ msgstr ""
 # 3ba9d599c483498481bc399ccc01db79
 #: ../../source/user/match.md:23
 msgid "Recalculate scores"
-msgstr ""
+msgstr "Recalculer les scores"
 
 # b1f0dd64e975402ba54218e73a2bb8f0
 #: ../../source/user/match.md:25
@@ -129,6 +134,9 @@ msgid ""
 "match unmatched entities using the Recalculate Scores button. This process "
 "does not remove matches."
 msgstr ""
+"Lors du processus de couplage à tout niveau, il est possible de demander à "
+"l'outil de coupler des entité non couplées à l'aide du bouton de recalcu des"
+" scores. Ce processus ne retire pas les paires."
 
 # 74eac0fa800543fbb004116cf03d3043
 #: ../../source/user/match.md:29
@@ -137,6 +145,10 @@ msgid ""
 "the matching process and incorporate the results. This can also be used when"
 " an entity is is freed for matching after having been previously flagged."
 msgstr ""
+"Une des utilisations courantes de cela est le couplage manuel d'entités, "
+"quelles qu'elles soient, pour réexécuter le processus de couplage et "
+"incorporer les résultats. Cela peut également être utilisé lorsqu'une entité"
+" est libérée d'un couplage après avoir été préalablement signalée."
 
 # 9bca392e4241454992ce14a7811bff4c
 #: ../../source/user/match.md:31
@@ -194,6 +206,9 @@ msgid ""
 "Under the Configure System tab the parent constraint can be disabled to "
 "allow for matching of all facilities across the sources."
 msgstr ""
+"Sous l'onglet de configuration du système, la contrainte parent peut être "
+"désactivée afin de permettre le couplage de tous les centres sur toutes les "
+"sources."
 
 # 4d9bfa1930ff492cb1f7303582dcf32c
 #: ../../source/user/match.md:43
@@ -234,6 +249,9 @@ msgid ""
 "Flagging allows for an export of facilities that require further examination"
 " and research. When a flag is set, the user may also include a comment."
 msgstr ""
+"Le signalement permet d'exporter les centres qui exigent un examen et des "
+"recherches plus approfondis. Lorsqu'un signalement est réalisé, "
+"l'utilisateur peut également inclure un commentaire."
 
 # 9f678ae2e5ce4f4d819a7bdb01bdbfd4
 #: ../../source/user/match.md:55
@@ -241,6 +259,8 @@ msgid ""
 "Flags may be set on any entity. For example, an organizational unit or a "
 "facility."
 msgstr ""
+"Les signalements peuvent porter sur n'importe quelle entité. Par exemple, "
+"une unité organisationnelle ou un centre."
 
 # 274f4809795e412a88019e2efd107974
 #: ../../source/user/match.md:57
@@ -249,6 +269,10 @@ msgid ""
 "the bottom of the RECONCILE menu for the level of interest. In this example,"
 " an org unit is flagged."
 msgstr ""
+"Pour voir les éléments signalés et les commentaires qui leur sont associés, "
+"cliquez sur l'onglet des signalements au bas du menu de rapprochement pour "
+"le niveau d'intérêt. Dans cet exemple, une unité organisationnelle a été "
+"signalée."
 
 # 5243b419c04a4610bdc7825ef929127b
 #: ../../source/user/match.md:61
@@ -257,3 +281,6 @@ msgid ""
 " released back for matching to another entity, or the match that was flagged"
 " may be confirmed."
 msgstr ""
+"Dans cet exemple, en outre, lorsqu'un centre ou une unité administrative ont"
+" été signalés, ils peuvent être libérés pour faire l'objet d'un couplage "
+"avec une autre entité ou le couplage signalé peut être confirmé."

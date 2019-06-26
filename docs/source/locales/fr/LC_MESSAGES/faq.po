@@ -29,7 +29,7 @@ msgstr "FAQ"
 # d38173a0b0944b00a5abd1bd5bab5b55
 #: ../../source/faq.md:3
 msgid "Is there an API?"
-msgstr "Qu'est-ce qu'une interface de programme d'application (API) ?"
+msgstr "Existe-t-il une API ?"
 
 # 9c47d184585949a2a266f87405a619a1
 #: ../../source/faq.md:5
@@ -145,6 +145,14 @@ msgid ""
 "using Docker but the administrator should be careful to mount a volume to "
 "ensure data persistence."
 msgstr ""
+"Docker n'est pas recommandé par défaut dans la mesure où il ne permettra pas"
+" aux données de persister, ce qui veut dire que lorsque vous arrêtez Docker,"
+" vous perdez vos données. Cela peut être modifié par la création d'un volume"
+" pour stocker les données. Mais l'outil est censé être utilisé comme "
+"plateforme permettant à de multiples utilisateurs de collaborer sur le "
+"couplage. Il peut être déployé sur un serveur à l'aide de Docker mais "
+"l'administrateur doit prendre garde de créer un volume pour assurer la "
+"persistance des données. "
 
 # a52ad54f4f644f948ee0b513fa844cdc
 #: ../../source/faq.md:29

@@ -121,6 +121,9 @@ msgid ""
 "The tool supports remote sources. Any DHIS2 or FHIR server can be used as a "
 "source if the user has credentials to access it."
 msgstr ""
+"L'outil prend en charge les sources à distance. Tout serveur DHIS2 ou FHIR "
+"peut être utilisé comme source si l'utilisateur est habilité à y avoir "
+"accès."
 
 # d5baeb41295f4a2f86f700b953215b62
 #: ../../source/user/sources.md:56
@@ -139,3 +142,6 @@ msgid ""
 "FHIR is supported for STU3 and R4 support is anticipated. Other FHIR servers"
 " may be added in future versions of the tool, such as the HAPI FHIR server."
 msgstr ""
+"FHIR est pris en charge pour STU3 et la prise en charge de R4 est anticipée."
+" D'autres serveurs FHIR peuvent être ajoutés à des versions ultérieures de "
+"l'outil, tels que le serveur HAPI FHIR."

@@ -24,7 +24,7 @@ msgstr ""
 # 38a7a02369a74dec8c6a2acb363e5e80
 #: ../../source/user/users.md:1
 msgid "Users and sharing"
-msgstr ""
+msgstr "Utilisateurs et partage"
 
 # 186fbffe6ae74aefa67a349c467d1390
 #: ../../source/user/users.md:3
@@ -34,6 +34,11 @@ msgid ""
 "should be immediately changed after installation. See the Developer Guide "
 "for more information."
 msgstr ""
+"Il existe deux catégories d'utilisateurs, les admins et les gestionnaires de"
+" données. La configuration initiale du serveur inclut un rôle "
+"d'administrateur. Ce compte et son mot de passe doivent être immédiatement "
+"modifiés à la suite de l'installation. Cf. Guide du développeur pour plus de"
+" renseignements."
 
 # c7af27d6a4074c6990586827d841c117
 #: ../../source/user/users.md:5
@@ -46,6 +51,8 @@ msgid ""
 "Admin accounts can add users, configure the system, and all tasks of data "
 "managers."
 msgstr ""
+"Les comptes d'admin peuvent ajouter des utilisateurs, configurer le système "
+"et réaliser toutes les tâches des gestionnaires de données."
 
 # ee730e1178694bc39e24377752c93e81
 #: ../../source/user/users.md:9
@@ -53,6 +60,9 @@ msgid ""
 "Data manager accounts can manage data only. They can share data sources and "
 "do other matching tasks."
 msgstr ""
+"Les comptes de gestionnaires de données ne peuvent que gérer les données. "
+"Ils peuvent partager les sources de donner et réaliser d'autres tâches de "
+"couplage."
 
 # dd1a060d64de4cba8cba1a59fe84df28
 #: ../../source/user/users.md:11
@@ -76,36 +86,45 @@ msgid ""
 "register. This is under the Configure System tab. This option is off by "
 "default."
 msgstr ""
+"Les administrateurs peuvent configurer le système de manière à permettre à "
+"quiconque de s'auto-enregistrer. Cela se trouve sous l'onglet de "
+"configuration du système. Cette option est désactivée par défaut."
 
 # 47b65b6f278e47d2ad6455626f85bad6
 #: ../../source/user/users.md:17
 msgid "Share a data source"
-msgstr ""
+msgstr "Partager une source de données"
 
 # 08a4e87d8c9c479e86435ded4e24e241
 #: ../../source/user/users.md:19
 msgid "Data sources may be shared by location to others or entirely."
 msgstr ""
+"Les sources de données peuvent être partagées par lieu avec d'autres ou "
+"entièrement."
 
 # 351fff6daefb4394b3a35c60bfbcc0aa
 #: ../../source/user/users.md:21
 msgid "On the Data Sources tab, select View Data Sources."
 msgstr ""
+"Sous l'onglet de Sources de données, sélectionnez voir les sources de "
+"données."
 
 # a1b9dde9e0564df0aae0028450fb631f
 #: ../../source/user/users.md:23
 msgid "Select the Share button on the far right."
-msgstr ""
+msgstr "Sélectionnez le bouton de partage tout à fait à droite."
 
 # 2391cc97f7a04265a0456aa7e8b11780
 #: ../../source/user/users.md:27
 msgid "This brings up a dialog to share data sources by user and location."
 msgstr ""
+"Une fenêtre de dialogue apparaît alors pour vous permettre de partager les "
+"sources de données par utilisateur et lieu."
 
 # a0dad68ac5604c638f27d1469548b517
 #: ../../source/user/users.md:31
 msgid "Add to a Pair"
-msgstr ""
+msgstr "Ajouter à une paire"
 
 # 170415e85b4f4eca8bd0be71a7818ec5
 #: ../../source/user/users.md:33
@@ -130,3 +149,6 @@ msgid ""
 "Under the Accounts tab a user password can be reset. The reset password is "
 "the user's surname exactly as it was entered including case."
 msgstr ""
+"Sous l'onglet des Comptes, il est possible de réinitialiser le mot de passe "
+"d'un utilisateur. Le mot de passe de réinitialisation est le nom de famille "
+"de l'utilisateur tel qu'il a été saisi, y compris les majuscules."

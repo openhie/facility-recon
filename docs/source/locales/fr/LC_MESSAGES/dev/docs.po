@@ -285,6 +285,8 @@ msgid ""
 "Create gettest dir. source is required as the conf.py file is not in the "
 "docs directory."
 msgstr ""
+"La création d'une source gettest dir. est requise dans la mesure om le "
+"fichier conf.py ne se trouve pas dans le répertoire de documents."
 
 # 1f8863ccaf9b42fd8efc47db1eca2ac4
 #: ../../source/dev/docs.md:102
