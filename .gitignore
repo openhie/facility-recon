@@ -2,7 +2,7 @@ dhis2App/index.html
 dhis2App/static
 facility-recon-gui/dist/static
 facility-recon-backend/lib/dbArchives/*
-
+**/facility-recon-backend/node_modules/
 # ansible
 *.retry
 .vagrant

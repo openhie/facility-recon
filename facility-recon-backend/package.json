@@ -42,7 +42,7 @@
     "memory-cache": "^0.2.0",
     "moment": "^2.22.2",
     "mongodb": "^3.1.1",
-    "mongoose": "^5.1.6",
+    "mongoose": "5.6.0",
     "multer": "^1.3.0",
     "nconf": "^0.10.0",
     "node-oauth2-server": "^2.4.0",

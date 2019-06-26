@@ -2994,6 +2994,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/getUploadedCSV/:sourceOwner/:name', (req, res) => {
+    winston.info('Received a request to export CSV file')
     let sourceOwner = req.params.sourceOwner
     let name = mixin.toTitleCase(req.params.name)
     const filter = function (stat, path) {

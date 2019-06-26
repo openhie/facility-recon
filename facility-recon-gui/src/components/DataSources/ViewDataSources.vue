@@ -542,11 +542,17 @@ export default {
     exportCSV () {
       let sourceOwner = this.server.userID._id
       axios.get(backendServer + '/getUploadedCSV/' + sourceOwner + '/' + this.server.name).then((resp) => {
-        let csvData = encodeURI('data:text/csv;charset=utf-8,' + resp.data)
-        const link = document.createElement('a')
-        link.setAttribute('href', csvData)
-        link.setAttribute('download', `${this.server.name}.csv`)
-        link.click()
+        let blob = new Blob([resp.data])
+        if (window.navigator.msSaveOrOpenBlob) {
+          window.navigator.msSaveBlob(blob, `${this.server.name}.csv`)
+        } else {
+          let a = window.document.createElement('a')
+          a.href = window.URL.createObjectURL(blob, {type: 'text/plain'})
+          a.download = `${this.server.name}.csv`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+        }
       }).catch((err) => {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
