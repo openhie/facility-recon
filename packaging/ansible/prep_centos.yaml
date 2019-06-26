@@ -37,8 +37,26 @@
       state: started
       enabled: yes
 
+# rpm subdomain
+  - name: Download nodesource script for node v8
+    get_url:
+      url: https://rpm.nodesource.com/setup_8.x
+      dest: $HOME/nodesource.sh
+      mode: 0644
+      # overwrite
+      force: yes
 
- 
+
+  - name: Install nodesource for node 8
+    command: bash $HOME/nodesource.sh
+    register: hello
+
+
+  - name: install nodejs packages
+    yum: 
+      name: nodejs
+      state: present
+
 
   - name: Ensure npm is latest
     npm: 
