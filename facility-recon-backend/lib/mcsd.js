@@ -10,19 +10,17 @@ const isJSON = require('is-json');
 const levenshtein = require('fast-levenshtein');
 const geodist = require('geodist');
 const redis = require('redis');
+const cache = require('memory-cache');
 const mongo = require('./mongo')();
-const mixin = require('./mixin')()
+const mixin = require('./mixin')();
 
 const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST || '127.0.0.1'
+  host: process.env.REDIS_HOST || '127.0.0.1',
 });
-const cache = require('memory-cache');
 const config = require('./config');
 
-module.exports = function () {
-  return {
+module.exports = () => ({
     getLocations(database, callback) {
-      winston.error(database)
       let baseUrl = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location').toString();
       let url = baseUrl + '?_count=37000'
       let locations
@@ -74,7 +72,7 @@ module.exports = function () {
             winston.info("Not more than 1 entry for " + baseUrl + " so not caching.");
           }
           cache.del('started_' + baseUrl);
-          callback(locations);
+          return callback(locations);
         },
       );
     },
@@ -1511,5 +1509,4 @@ module.exports = function () {
         }
       });
     }
-  };
-};
+  });

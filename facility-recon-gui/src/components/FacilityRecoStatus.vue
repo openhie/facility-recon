@@ -470,22 +470,30 @@ export default {
       this.mappingStatus()
     },
     markRecoDone () {
+      this.$store.state.progressTitle = 'Marking reconciliation as Done'
+      this.$store.state.dynamicProgress = true
       let userID = this.$store.state.activePair.userID._id
       axios.get(backendServer + '/markRecoDone/' + this.source1 + '/' + this.source2 + '/' + userID).then((status) => {
+        this.$store.state.dynamicProgress = false
         if (status.data.status) {
           this.$store.state.recoStatus = status.data.status
         }
       }).catch((err) => {
+        this.$store.state.dynamicProgress = false
         console.log(err.response.data.error)
       })
     },
     markRecoUnDone () {
       let userID = this.$store.state.activePair.userID._id
+      this.$store.state.progressTitle = 'Marking reconciliation as Un Done'
+      this.$store.state.dynamicProgress = true
       axios.get(backendServer + '/markRecoUnDone/' + this.source1 + '/' + this.source2 + '/' + userID).then((status) => {
+        this.$store.state.dynamicProgress = false
         if (status.data.status) {
           this.$store.state.recoStatus = status.data.status
         }
       }).catch((err) => {
+        this.$store.state.dynamicProgress = false
         console.log(err.response.data.error)
       })
     }

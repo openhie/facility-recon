@@ -2602,7 +2602,7 @@ if (cluster.isMaster) {
               sendNotification((err, not) => {
                 res.status(200).json({
                   status: 'Done'
-                });
+                })
               })
             }
           })
@@ -2679,6 +2679,8 @@ if (cluster.isMaster) {
               }
               return callback(false, body)
             });
+          } else {
+            return callback(false, false)
           }
         })
       })
