@@ -1,8 +1,53 @@
 <template>
   <v-container>
-    <v-dialog persistent v-model="defineSuperuserRole" width="620px">
+    <v-dialog
+      persistent
+      v-model="autoDisableSingleDatasourceDialog"
+      max-width="500px"
+    >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="error"
+          dark
+        >
+          <v-toolbar-title>
+            Disabling Single Data Source Limit
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            dark
+            @click.native="autoDisableSingleDatasource('cancel')"
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          Disabling limiting reconciliation to be done against one choosen data source will also disable the single data source limit, click OK to proceed
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="primary"
+            @click.native="autoDisableSingleDatasource('cancel')"
+          >Cancel</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            @click.native="autoDisableSingleDatasource('ok')"
+          >Ok</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      persistent
+      v-model="defineSuperuserRole"
+      width="620px"
+    >
+      <v-card>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             DHIS2 superuser role that can be an administrator of GOFR
           </v-toolbar-title>
@@ -24,6 +69,92 @@
             color="success"
             :disabled='!$store.state.config.generalConfig.externalAuth.adminRole || dhis2Roles.length === 0'
             @click="saveConfiguration('generalConfig', 'authDisabled')"
+          >
+            <v-icon left>save</v-icon>
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      persistent
+      v-model="selectDatasourceDialog"
+      width="800px"
+    >
+      <v-card>
+        <v-toolbar
+          color="primary"
+          dark
+        >
+          <v-toolbar-title>
+            Select datasource to fix source 2
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="searchDatasource"
+            append-icon="search"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+          <v-btn
+            icon
+            dark
+            @click.native="closeDatasourceDialog"
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        This lists only those datasets that have been shared to all users
+        <v-card-text>
+          <v-data-table
+            :headers="dataSourceHeaders"
+            :items="sharedToAllDatasets"
+            dark
+            class="elevation-1"
+            :search="searchDatasource"
+          >
+            <v-progress-linear
+              slot="progress"
+              color="blue"
+              indeterminate
+            ></v-progress-linear>
+            <template
+              slot="items"
+              slot-scope="props"
+            >
+              <v-radio-group
+                v-model='fixSource2To'
+                style="height: 5px"
+              >
+                <td>
+                  <v-radio
+                    :value="props.item._id"
+                    color="blue"
+                  ></v-radio>
+                </td>
+              </v-radio-group>
+              <td>{{props.item.name}}</td>
+              <td>{{props.item.userID.userName}}</td>
+              <td>
+                {{props.item.createdTime}}
+              </td>
+            </template>
+          </v-data-table>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="error"
+            @click="closeDatasourceDialog"
+          >
+            <v-icon left>cancel</v-icon>
+            Cancel
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="success"
+            :disabled='!fixSource2To || sharedToAllDatasets.length === 0'
+            @click="savefixSource2To"
           >
             <v-icon left>save</v-icon>
             Save
@@ -91,13 +222,47 @@
                   ></v-checkbox>
                 </v-card>
                 <v-switch
+                  @change="singleDatasource"
+                  color="primary"
+                  label="Single data source per user"
+                  v-model="$store.state.config.generalConfig.reconciliation.singleDataSource"
+                >
+                </v-switch>
+                <v-switch
                   v-if="$store.state.dhis.user.orgId"
-                  @change="saveConfiguration('generalConfig', 'parentConstraint')"
+                  @change="saveConfiguration('generalConfig', 'singlePair')"
                   color="primary"
                   label="Single data source pair per org unit"
                   v-model="$store.state.config.generalConfig.reconciliation.singlePair"
                 >
                 </v-switch>
+                <v-tooltip top>
+                  <v-switch
+                    @change="displayDatasourceDialog"
+                    color="primary"
+                    label="Limit all reconciliation to be done against one choosen data source"
+                    v-model="$store.state.config.generalConfig.reconciliation.fixSource2"
+                    slot="activator"
+                  >
+                  </v-switch>
+                  <span>This will limit users to perform reconciliations against the selected data source</span>
+                </v-tooltip>
+                <template v-if='$store.state.config.generalConfig.reconciliation.fixSource2'>
+                  Source2 Limited To: <v-chip>{{fixedSource2To}}</v-chip>
+                  <v-tooltip top>
+                    <v-btn
+                      fab
+                      dark
+                      color="primary"
+                      small
+                      @click="displayDatasourceDialog"
+                      slot="activator"
+                    >
+                      <v-icon dark>list</v-icon>
+                    </v-btn>
+                    <span>Change dataset</span>
+                  </v-tooltip>
+                </template>
               </v-flex>
               <v-flex>
                 <v-switch
@@ -117,8 +282,16 @@
                     v-model="$store.state.config.generalConfig.authMethod"
                     @change="saveConfiguration('generalConfig', 'useDhis2Auth')"
                   >
-                    <v-radio label="dhis2" value="dhis2" disabled></v-radio>
-                    <v-radio label="iHRIS" value="iHRIS" disabled></v-radio>
+                    <v-radio
+                      label="dhis2"
+                      value="dhis2"
+                      disabled
+                    ></v-radio>
+                    <v-radio
+                      label="iHRIS"
+                      value="iHRIS"
+                      disabled
+                    ></v-radio>
                   </v-radio-group>
                   <v-select
                     @change="saveConfiguration('generalConfig', 'externalAuth')"
@@ -135,14 +308,16 @@
                     color="success"
                     v-if="$store.state.config.generalConfig.authMethod"
                     label="Pull org units"
-                    v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits">
+                    v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                  >
                   </v-checkbox>
                   <v-checkbox
                     @change="saveConfiguration('generalConfig', 'externalAuth')"
                     color="success"
                     v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
                     label="Share orgs with other users"
-                    v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits">
+                    v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits"
+                  >
                   </v-checkbox>
                   <v-checkbox
                     @change="saveConfiguration('generalConfig', 'externalAuth')"
@@ -152,13 +327,16 @@
                       $store.state.config.generalConfig.externalAuth.pullOrgUnits
                     "
                     label="Limit orgs sharing by user orgid"
-                    v-model="$store.state.config.generalConfig.externalAuth.shareByOrgId">
+                    v-model="$store.state.config.generalConfig.externalAuth.shareByOrgId"
+                  >
                   </v-checkbox>
                   <v-text-field
                     v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
                     label="Dataset Name"
                     v-model="$store.state.config.generalConfig.externalAuth.datasetName"
-                    @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="datasetNameErrors"
+                    @blur="ensureNameUnique"
+                    @input="ensureNameUnique"
+                    :error-messages="datasetNameErrors"
                     required
                   ></v-text-field>
                   <v-text-field
@@ -275,10 +453,18 @@
                         ></v-text-field>
                       </v-flex>
                       <v-flex>
-                        <v-layout row wrap>
+                        <v-layout
+                          row
+                          wrap
+                        >
                           <v-spacer></v-spacer>
                           <v-flex xs1>
-                            <v-btn color="success" @click="recoProgressNotificationChanged"><v-icon>save</v-icon>Save</v-btn>
+                            <v-btn
+                              color="success"
+                              @click="recoProgressNotificationChanged"
+                            >
+                              <v-icon>save</v-icon>Save
+                            </v-btn>
                           </v-flex>
                         </v-layout>
                       </v-flex>
@@ -324,6 +510,16 @@ export default {
   },
   data () {
     return {
+      autoDisableSingleDatasourceDialog: false,
+      selectDatasourceDialog: false,
+      fixSource2To: '',
+      searchDatasource: '',
+      dataSourceHeaders: [
+        { sortable: false },
+        { text: 'Source Name', align: 'left', value: 'name' },
+        { text: 'Owner', value: 'owner', sortable: false },
+        { text: 'Created Time', value: 'createdTime' }
+      ],
       useCSVHeader: false,
       moreFields: false,
       fieldLabel: '',
@@ -341,13 +537,74 @@ export default {
     }
   },
   methods: {
+    autoDisableSingleDatasource (confirmation) {
+      if (confirmation === 'ok') {
+        this.$store.state.config.generalConfig.reconciliation.singleDataSource = false
+        this.saveConfiguration('generalConfig', 'fixSource2')
+        this.saveConfiguration('generalConfig', 'singleDataSource')
+      } else if (confirmation === 'cancel') {
+        this.$store.state.config.generalConfig.reconciliation.fixSource2 = true
+      }
+      this.autoDisableSingleDatasourceDialog = false
+    },
+    singleDatasource () {
+      if (
+        this.$store.state.config.generalConfig.reconciliation.singleDataSource
+      ) {
+        if (
+          !this.$store.state.config.generalConfig.reconciliation.fixSource2To ||
+          !this.$store.state.config.generalConfig.reconciliation.fixSource2
+        ) {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorColor = 'error'
+          this.$store.state.errorDescription =
+            'This feature can only be enabled if there is a defined fixed source 2 and enabled'
+          setTimeout(() => {
+            this.$store.state.config.generalConfig.reconciliation.singleDataSource = false
+          })
+        } else {
+          this.saveConfiguration('generalConfig', 'singleDataSource')
+        }
+      } else {
+        this.saveConfiguration('generalConfig', 'singleDataSource')
+      }
+    },
+    displayDatasourceDialog () {
+      if (
+        this.$store.state.config.generalConfig.reconciliation.fixSource2 ===
+        true
+      ) {
+        this.fixSource2To = this.$store.state.config.generalConfig.reconciliation.fixSource2To
+        this.selectDatasourceDialog = true
+        this.saveConfiguration('generalConfig', 'fixSource2')
+      } else {
+        if (this.$store.state.config.generalConfig.reconciliation.singleDataSource) {
+          this.autoDisableSingleDatasourceDialog = true
+        } else {
+          this.saveConfiguration('generalConfig', 'fixSource2')
+        }
+      }
+    },
+    closeDatasourceDialog () {
+      this.selectDatasourceDialog = false
+      if (!this.$store.state.config.generalConfig.reconciliation.fixSource2To) {
+        this.$store.state.config.generalConfig.reconciliation.fixSource2 = false
+        this.saveConfiguration('generalConfig', 'fixSource2')
+      }
+    },
+    savefixSource2To () {
+      this.$store.state.config.generalConfig.reconciliation.fixSource2To = this.fixSource2To
+      this.saveConfiguration('generalConfig', 'fixSource2To')
+      this.selectDatasourceDialog = false
+    },
     disableGOFRAuth () {
       if (!this.$store.state.config.generalConfig.authDisabled) {
         this.saveConfiguration('generalConfig', 'authDisabled')
       } else if (this.$store.state.config.generalConfig.authDisabled) {
         this.setDHIS2Credentials()
         this.loadingDhis2Roles = true
-        this.getDHIS2Roles((roles) => {
+        this.getDHIS2Roles(roles => {
           this.loadingDhis2Roles = false
           this.dhis2Roles = [...roles.data.userRoles]
         })
@@ -355,7 +612,11 @@ export default {
       }
     },
     recoProgressNotificationChanged () {
-      if (!this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
+      if (
+        !this.$store.state.config.generalConfig.hasOwnProperty(
+          'recoProgressNotification'
+        )
+      ) {
         this.$store.state.config.generalConfig.recoProgressNotification = {}
       }
       this.$store.state.config.generalConfig.recoProgressNotification.url = this.notification_endpoint
@@ -381,36 +642,44 @@ export default {
         formData.append('fieldLabel', this.fieldLabel)
         formData.append('fieldRequired', required)
         formData.append('form', 'signup')
-        axios.post(backendServer + '/addFormField', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }).then(() => {
-          this.$store.state.dynamicProgress = false
-          this.$store.state.dialogError = true
-          this.$store.state.errorTitle = 'Info'
-          this.$store.state.errorDescription = 'Field added successfully'
-
-          this.$store.state.signupFields[this.fieldName] = {
-            type: 'String',
-            display: this.fieldLabel
-          }
-          this.$store.state.customSignupFields[this.fieldName] = {
-            type: 'String',
-            display: this.fieldLabel
-          }
-          VueCookies.set('signupFields', this.$store.state.signupFields, 'infinity')
-          VueCookies.set('customSignupFields', this.$store.state.customSignupFields, 'infinity')
-
-          this.signupFields[0].children.push({
-            id: this.fieldName,
-            name: this.fieldLabel
+        axios
+          .post(backendServer + '/addFormField', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           })
+          .then(() => {
+            this.$store.state.dynamicProgress = false
+            this.$store.state.dialogError = true
+            this.$store.state.errorTitle = 'Info'
+            this.$store.state.errorDescription = 'Field added successfully'
 
-          this.fieldName = ''
-          this.fieldLabel = ''
-          this.required = 'No'
-        })
+            this.$store.state.signupFields[this.fieldName] = {
+              type: 'String',
+              display: this.fieldLabel
+            }
+            this.$store.state.customSignupFields[this.fieldName] = {
+              type: 'String',
+              display: this.fieldLabel
+            }
+            VueCookies.set(
+              'signupFields',
+              this.$store.state.signupFields,
+              'infinity'
+            )
+            VueCookies.set(
+              'customSignupFields',
+              this.$store.state.customSignupFields,
+              'infinity'
+            )
+            this.signupFields[0].children.push({
+              id: this.fieldName,
+              name: this.fieldLabel
+            })
+            this.fieldName = ''
+            this.fieldLabel = ''
+            this.required = 'No'
+          })
       } else {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Error'
@@ -423,33 +692,54 @@ export default {
       formData.append('host', this.$store.state.dhis.host)
       formData.append('sourceType', 'DHIS2')
       formData.append('source', 'syncServer')
-      formData.append('shareToAll', this.$store.state.config.generalConfig.externalAuth.shareOrgUnits)
-      formData.append('limitByUserLocation', this.$store.state.config.generalConfig.externalAuth.shareByOrgId)
-      formData.append('username', this.$store.state.config.generalConfig.externalAuth.userName)
-      formData.append('password', this.$store.state.config.generalConfig.externalAuth.password)
-      formData.append('name', this.$store.state.config.generalConfig.externalAuth.datasetName)
+      formData.append(
+        'shareToAll',
+        this.$store.state.config.generalConfig.externalAuth.shareOrgUnits
+      )
+      formData.append(
+        'limitByUserLocation',
+        this.$store.state.config.generalConfig.externalAuth.shareByOrgId
+      )
+      formData.append(
+        'username',
+        this.$store.state.config.generalConfig.externalAuth.userName
+      )
+      formData.append(
+        'password',
+        this.$store.state.config.generalConfig.externalAuth.password
+      )
+      formData.append(
+        'name',
+        this.$store.state.config.generalConfig.externalAuth.datasetName
+      )
       formData.append('userID', this.$store.state.auth.userID)
 
-      axios.post(backendServer + '/addDataSource', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((response) => {
-        eventBus.$emit('runRemoteSync')
-      })
+      axios
+        .post(backendServer + '/addDataSource', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(response => {
+          eventBus.$emit('runRemoteSync')
+        })
     },
     getDHIS2Roles (callback) {
       let auth = this.$store.state.dhis.dev.auth
       if (auth.username === '') {
         auth = ''
       }
-      axios.get(this.$store.state.dhis.host + 'api/userRoles', {auth}).then((roles) => {
-        callback(roles)
-      })
+      axios
+        .get(this.$store.state.dhis.host + 'api/userRoles', { auth })
+        .then(roles => {
+          callback(roles)
+        })
     },
     ensureNameUnique () {
       this.datasetNameErrors = []
-      if (this.$store.state.config.generalConfig.externalAuth.datasetName === '') {
+      if (
+        this.$store.state.config.generalConfig.externalAuth.datasetName === ''
+      ) {
         return this.datasetNameErrors.push('Dataset name is required')
       }
       for (let dtSrc of this.$store.state.dataSources) {
@@ -461,9 +751,12 @@ export default {
     }
   },
   created () {
-    if (this.$store.state.config.generalConfig.authDisabled && this.$store.state.config.generalConfig.authMethod === 'dhis2') {
+    if (
+      this.$store.state.config.generalConfig.authDisabled &&
+      this.$store.state.config.generalConfig.authMethod === 'dhis2'
+    ) {
       this.loadingDhis2Roles = true
-      this.getDHIS2Roles((roles) => {
+      this.getDHIS2Roles(roles => {
         this.loadingDhis2Roles = false
         this.dhis2Roles = [...roles.data.userRoles]
       })
@@ -479,17 +772,48 @@ export default {
         name: field
       })
     }
-    if (this.$store.state.config.generalConfig.hasOwnProperty('recoProgressNotification')) {
+    if (
+      this.$store.state.config.generalConfig.hasOwnProperty(
+        'recoProgressNotification'
+      )
+    ) {
       this.notification_endpoint = this.$store.state.config.generalConfig.recoProgressNotification.url
       this.notification_username = this.$store.state.config.generalConfig.recoProgressNotification.username
       this.notification_password = this.$store.state.config.generalConfig.recoProgressNotification.password
+    }
+  },
+  computed: {
+    fixedSource2To () {
+      let dtSrc = ''
+      for (let source of this.$store.state.dataSources) {
+        if (
+          source._id ===
+          this.$store.state.config.generalConfig.reconciliation.fixSource2To
+        ) {
+          dtSrc = source
+        }
+      }
+      return dtSrc.name
+    },
+    sharedToAllDatasets () {
+      let servers = []
+      for (let sources of this.$store.state.dataSources) {
+        if (sources.shareToAll.activated) {
+          servers.push(sources)
+        } else {
+          servers.push(sources)
+        }
+      }
+      return servers
     }
   },
   beforeCreate () {
     if (!this.$store.state.config.generalConfig.hasOwnProperty('authMethod')) {
       this.$set(this.$store.state.config.generalConfig, 'authMethod', 'dhis2')
     }
-    if (!this.$store.state.config.generalConfig.hasOwnProperty('externalAuth')) {
+    if (
+      !this.$store.state.config.generalConfig.hasOwnProperty('externalAuth')
+    ) {
       let externalAuth = {
         pullOrgUnits: true,
         shareOrgUnits: false,
@@ -497,11 +821,15 @@ export default {
         datasetName: '',
         adminRole: ''
       }
-      this.$set(this.$store.state.config.generalConfig, 'externalAuth', externalAuth)
+      this.$set(
+        this.$store.state.config.generalConfig,
+        'externalAuth',
+        externalAuth
+      )
     }
   },
   components: {
-    'appRemoteSync': RemoteSync
+    appRemoteSync: RemoteSync
   }
 }
 </script>

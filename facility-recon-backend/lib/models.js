@@ -1,38 +1,39 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 
 let usersFields = {
   firstName: {
     type: String,
-    required: true
+    required: true,
   },
   otherName: {
-    type: String
+    type: String,
   },
   surname: {
     type: String,
-    required: true
+    required: true,
   },
   role: {
     type: Schema.Types.ObjectId,
     ref: 'Roles',
-    required: true
+    required: true,
   },
   userName: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   password: {
     type: String,
-    required: true
+    required: true,
   },
   status: {
     type: String,
-    required: true
+    required: true,
   },
   lastModified: {
-    type: Date
+    type: Date,
   }
 }
 let Users = new mongoose.Schema(usersFields)
@@ -40,254 +41,265 @@ let Roles = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   }
 })
 
 let DataSources = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   host: {
-    type: String
+    type: String,
   },
   sourceType: {
     type: String,
-    required: true
+    required: true,
   },
   source: {
     type: String,
-    required: true
+    required: true,
   },
   // share to specific users only
   shared: {
     users: [{
       type: Schema.Types.ObjectId,
-      ref: 'Users'
+      ref: 'Users',
     }]
   },
   // share to all system users and decide to limit what they can view based on their attached location
   shareToAll: {
     limitByUserLocation: {
-      type: Boolean
+      type: Boolean,
     },
     activated: {
-      type: Boolean
+      type: Boolean,
     }
   },
   // share wuth all users that are on the same orgid as the datasource owner
   shareToSameOrgid: {
-    type: Boolean
+    type: Boolean,
   },
   username: {
-    type: String
+    type: String,
   },
   password: {
-    type: String
+    type: String,
   },
   // this will be removed in the future, we will rely on the owner.id instead
   userID: {
     type: Schema.Types.ObjectId,
     ref: 'Users',
-    required: true
+    required: true,
   },
   owner: {
     id: {
       type: Schema.Types.ObjectId,
       ref: 'Users',
-      required: true
+      required: true,
     },
     orgId: {
-      type: String
-    }
-  }
-})
+      type: String,
+    },
+  },
+});
 
 let SharedDataSourceLocations = new mongoose.Schema({
   dataSource: {
     type: Schema.Types.ObjectId,
-    ref: 'DataSources'
+    ref: 'DataSources',
   },
   user: {
     type: Schema.Types.ObjectId,
-    ref: 'Users'
+    ref: 'Users',
   },
   location: {
-    type: String
+    type: String,
   }
 })
 
 let DataSourcePair = new mongoose.Schema({
   source1: {
     type: Schema.Types.ObjectId,
-    ref: 'DataSources'
+    ref: 'DataSources',
   },
   source2: {
     type: Schema.Types.ObjectId,
-    ref: 'DataSources'
+    ref: 'DataSources',
   },
   status: {
-    type: String
+    type: String,
   },
   shared: {
     users: [{
       type: Schema.Types.ObjectId,
-      ref: 'Users'
+      ref: 'Users',
     }],
     activeUsers: [{
       type: Schema.Types.ObjectId,
-      ref: 'Users'
-    }]
+      ref: 'Users',
+    }],
   },
   // this will be removed in the future, we will rely on the owner.id instead
   userID: {
     type: Schema.Types.ObjectId,
     ref: 'Users',
-    required: true
+    required: true,
   },
   owner: {
     id: {
       type: Schema.Types.ObjectId,
       ref: 'Users',
-      required: true
+      required: true,
     },
     orgId: {
-      type: String
-    }
-  }
-})
+      type: String,
+    },
+  },
+});
 
 let MetaData = new mongoose.Schema({
   lastUpdated: {
-    type: String
+    type: String,
   },
   config: {
     userConfig: [{
       userID: {
         type: Schema.Types.ObjectId,
-        ref: 'Users'
+        ref: 'Users',
       },
       reconciliation: {
         useCSVHeader: {
-          type: Boolean
+          type: Boolean,
         }
       }
     }],
     generalConfig: {
       selfRegistration: {
-        type: Boolean
+        type: Boolean,
       },
       reconciliation: {
         parentConstraint: {
           enabled: {
-            type: Boolean
+            type: Boolean,
           },
           idAutoMatch: {
-            type: Boolean
+            type: Boolean,
           },
           nameAutoMatch: {
-            type: Boolean
-          }
+            type: Boolean,
+          },
         },
         singlePair: {
-          type: Boolean
-        }
+          type: Boolean,
+        },
+        singleDataSource: {
+          type: Boolean,
+        },
+        fixSource2To: {
+          type: Schema.Types.ObjectId,
+          ref: 'DataSources',
+        },
+        fixSource2: {
+          type: Boolean,
+        },
       },
       recoProgressNotification: {
         enabled: {
-          type: Boolean
+          type: Boolean,
         },
         url: {
-          type: String
+          type: String,
         },
         username: {
-          type: String
+          type: String,
         },
         password: {
-          type: String
-        }
+          type: String,
+        },
       },
       authDisabled: {
-        type: Boolean
+        type: Boolean,
       },
       authMethod: {
-        type: String
+        type: String,
       },
       externalAuth: {
         pullOrgUnits: {
-          type: Boolean
+          type: Boolean,
         },
         shareOrgUnits: {
-          type: Boolean
+          type: Boolean,
         },
         shareByOrgId: {
-          type: Boolean
+          type: Boolean,
         },
         datasetName: {
-          type: String
+          type: String,
         },
         adminRole: {
-          type: String
+          type: String,
         },
         userName: {
-          type: String
+          type: String,
         },
         password: {
-          type: String
-        }
-      }
-    }
+          type: String,
+        },
+      },
+    },
   },
   recoStatus: {
-    type: String
+    type: String,
   },
   forms: [{}],
   levelMapping: {
     facility: {
-      type: String
+      type: String,
     },
     code: {
-      type: String
+      type: String,
     },
     level1: {
-      type: String
+      type: String,
     },
     level2: {
-      type: String
+      type: String,
     },
     level3: {
-      type: String
+      type: String,
     },
     level4: {
-      type: String
+      type: String,
     },
     level5: {
-      type: String
+      type: String,
     },
     level6: {
-      type: String
+      type: String,
     },
     level7: {
-      type: String
+      type: String,
     },
     level8: {
-      type: String
+      type: String,
     },
     level9: {
-      type: String
+      type: String,
     },
     level10: {
-      type: String
-    }
-  }
-})
-let DataSourcesModel = mongoose.model('DataSources', DataSources)
-let SharedDataSourceLocationsModel = mongoose.model('SharedDataSourceLocations', SharedDataSourceLocations)
-let DataSourcePairModel = mongoose.model('DataSourcePair', DataSourcePair)
-let MetaDataModel = mongoose.model('MetaData', MetaData)
-let RolesModel = mongoose.model('Roles', Roles)
-let UsersModel = mongoose.model('Users', Users)
+      type: String,
+    },
+  },
+});
+
+const DataSourcesModel = mongoose.model('DataSources', DataSources);
+const SharedDataSourceLocationsModel = mongoose.model('SharedDataSourceLocations', SharedDataSourceLocations);
+const DataSourcePairModel = mongoose.model('DataSourcePair', DataSourcePair);
+const MetaDataModel = mongoose.model('MetaData', MetaData);
+const RolesModel = mongoose.model('Roles', Roles);
+const UsersModel = mongoose.model('Users', Users);
 module.exports = {
   DataSourcesModel,
   SharedDataSourceLocationsModel,
@@ -295,5 +307,5 @@ module.exports = {
   MetaDataModel,
   UsersModel,
   RolesModel,
-  usersFields
+  usersFields,
 }

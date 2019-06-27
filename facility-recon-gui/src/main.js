@@ -7,7 +7,9 @@ import Vuetify from 'vuetify'
 import Vuelidate from 'vuelidate'
 import 'vuetify/dist/vuetify.min.css'
 import axios from 'axios'
-import { store } from './store/store'
+import {
+  store
+} from './store/store'
 import i18n from './i18n'
 const backendServer = process.env.BACKEND_SERVER
 
@@ -29,11 +31,10 @@ Vue.config.productionTip = false
 export const eventBus = new Vue()
 /* eslint-disable no-new */
 // get general config of App and pass it to the App component as props
-axios.get(backendServer + '/getGeneralConfig').then(genConfig => {
-  if (!genConfig.data) {
+let defaultGenerConfig = JSON.stringify(store.state.config.generalConfig)
+axios.get(backendServer + '/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig).then(genConfig => {
+  if (!genConfig) {
     genConfig.data = {}
-    genConfig.data.config = {}
-    genConfig.data.config.generalConfig = {}
   }
   new Vue({
     el: '#app',
@@ -45,7 +46,7 @@ axios.get(backendServer + '/getGeneralConfig').then(genConfig => {
     },
     data () {
       return {
-        config: genConfig.data.config
+        config: genConfig.data
       }
     },
 

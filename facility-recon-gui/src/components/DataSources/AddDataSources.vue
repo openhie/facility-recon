@@ -30,6 +30,35 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-model="datasetLimitWarn"
+      scrollable
+      persistent :overlay="false"
+      max-width="770px"
+      transition="dialog-transition"
+    >
+      <v-card>
+        <v-toolbar color="error" dark>
+          <v-toolbar-title>
+            <v-icon>info</v-icon> Datasets limit Warning
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click.native="datasetLimitWarn = false">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+          You cant add more datasets as you have reached the datasets limit, contact system administrator for help
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            @click.native="datasetLimitWarn = false"
+          >Ok</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-layout column>
       <v-flex xs6>
         <v-alert
@@ -67,8 +96,8 @@
           </v-card-title>
           <v-card-text>
             <v-radio-group v-model="dataSource" row @change="sourceSelected">
-              <v-radio color="primary" label="Upload CSV" value="upload"></v-radio>
-              <v-radio color="primary" label="Remote Source" value="remote"></v-radio>
+              <v-radio :disabled="!canAddDataset" color="primary" label="Upload CSV" value="upload"></v-radio>
+              <v-radio :disabled="!canAddDataset" color="primary" label="Remote Source" value="remote"></v-radio>
             </v-radio-group>
           </v-card-text>
         </v-card>
@@ -94,6 +123,7 @@ export default {
   data () {
     return {
       helpDialog: false,
+      datasetLimitWarn: false,
       selectedComponent: '',
       dataSources: [
         { text: 'Upload CSV', value: 'upload' },
@@ -113,6 +143,20 @@ export default {
         this.selectedComponent = 'FacilityReconUpload'
       } else if (selection === 'remote') {
         this.selectedComponent = 'FacilityReconRemoteSources'
+      }
+    }
+  },
+  computed: {
+    canAddDataset () {
+      if (!this.$store.state.config.generalConfig.reconciliation.singleDataSource) {
+        return true
+      } else {
+        if (this.$store.state.dataSources.length >= 2) {
+          this.datasetLimitWarn = true
+          return false
+        } else {
+          return true
+        }
       }
     }
   },

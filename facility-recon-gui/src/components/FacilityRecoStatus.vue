@@ -267,7 +267,7 @@
           </v-flex>
           <v-spacer></v-spacer>
           <v-flex xs2>
-            <template v-if="this.$store.state.activePair.userID._id === this.$store.state.auth.userID">
+            <template v-if="$store.state.activePair.userID._id === $store.state.auth.userID">
               <v-btn
                 color="success"
                 round

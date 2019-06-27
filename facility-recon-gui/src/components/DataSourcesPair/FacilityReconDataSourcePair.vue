@@ -27,7 +27,7 @@
         transition="dialog-transition"
       >
         <v-card>
-          <v-toolbar color="primary" dark>
+          <v-toolbar color="error" dark>
             <v-toolbar-title>
               <v-icon>info</v-icon> Pair creation limit
             </v-toolbar-title>

@@ -228,14 +228,18 @@
       >
         <v-card>
           <v-toolbar
-            color="primary"
+            :color="$store.state.errorColor"
             dark
           >
             <v-toolbar-title>
               {{$store.state.errorTitle}}
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon dark @click.native="$store.state.dialogError = false">
+            <v-btn
+              icon
+              dark
+              @click.native="$store.state.dialogError = false"
+            >
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -245,7 +249,7 @@
           <v-card-actions>
             <v-btn
               color="primary"
-              @click.native="$store.state.dialogError = false"
+              @click.native="closeDialogError"
             >Ok</v-btn>
           </v-card-actions>
         </v-card>
@@ -335,6 +339,10 @@ export default {
     }
   },
   methods: {
+    closeDialogError () {
+      this.$store.state.errorColor = 'primary'
+      this.$store.state.dialogError = false
+    },
     renderInitialPage () {
       let source1 = this.$store.state.activePair.source1.name
       let source2 = this.$store.state.activePair.source2.name
@@ -357,14 +365,14 @@ export default {
       axios
         .get(
           backendServer +
-            '/uploadAvailable/' +
-            source1 +
-            '/' +
-            source2 +
-            '/' +
-            sourcesOwner.source1Owner +
-            '/' +
-            sourcesOwner.source2Owner
+          '/uploadAvailable/' +
+          source1 +
+          '/' +
+          source2 +
+          '/' +
+          sourcesOwner.source1Owner +
+          '/' +
+          sourcesOwner.source2Owner
         )
         .then(results => {
           if (results.data.dataUploaded) {
@@ -420,12 +428,12 @@ export default {
       axios
         .get(
           backendServer +
-            '/recoStatus/' +
-            source1 +
-            '/' +
-            source2 +
-            '/' +
-            userID
+          '/recoStatus/' +
+          source1 +
+          '/' +
+          source2 +
+          '/' +
+          userID
         )
         .then(status => {
           if (status.data.status) {
@@ -434,12 +442,12 @@ export default {
             axios
               .get(
                 backendServer +
-                  '/markRecoUnDone/' +
-                  source1 +
-                  '/' +
-                  source2 +
-                  '/' +
-                  userID
+                '/markRecoUnDone/' +
+                source1 +
+                '/' +
+                source2 +
+                '/' +
+                userID
               )
               .then(status => {
                 if (status.data.status) {
@@ -477,7 +485,7 @@ export default {
         .get(backendServer + '/getUserConfig/' + userID)
         .then(config => {
           if (config.data) {
-            this.$store.state.config.userConfig = {...this.$store.state.config.userConfig, ...config.data}
+            this.$store.state.config.userConfig = { ...this.$store.state.config.userConfig, ...config.data }
           }
           this.getGeneralConfig()
         })
@@ -486,11 +494,12 @@ export default {
         })
     },
     getGeneralConfig () {
+      let defaultGenerConfig = JSON.stringify(this.$store.state.config.generalConfig)
       axios
-        .get(backendServer + '/getGeneralConfig')
+        .get(backendServer + '/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig)
         .then(config => {
-          if (config.data) {
-            this.$store.state.config.generalConfig = config.data.config.generalConfig
+          if (config) {
+            this.$store.state.config.generalConfig = config.data
           }
           this.getDataSources()
         })
@@ -532,7 +541,7 @@ export default {
     }
   },
   created () {
-    this.$store.state.config.generalConfig = {...this.$store.state.config.generalConfig, ...this.generalConfig.generalConfig}
+    this.$store.state.config.generalConfig = this.generalConfig
     if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
       this.$store.state.auth.userID = VueCookies.get('userID')
@@ -540,7 +549,7 @@ export default {
       this.$store.state.auth.role = VueCookies.get('role')
       this.$store.state.signupFields = VueCookies.get('signupFields')
       this.$store.state.customSignupFields = VueCookies.get(
-      'customSignupFields'
+        'customSignupFields'
       )
       if (!this.$store.state.config.generalConfig.authDisabled) {
         axios.get(backendServer + '/isTokenActive/').then(response => {

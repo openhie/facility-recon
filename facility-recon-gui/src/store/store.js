@@ -31,7 +31,10 @@ export const store = new Vuex.Store({
             idAutoMatch: true,
             nameAutoMatch: false
           },
-          singlePair: false
+          singlePair: false,
+          singleDataSource: false,
+          fixSource2To: null,
+          fixSource2: false
         },
         recoProgressNotification: {
           enabled: false
@@ -43,8 +46,8 @@ export const store = new Vuex.Store({
           pullOrgUnits: true,
           shareOrgUnits: true,
           shareByOrgId: true,
-          datasetName: '',
-          adminRole: ''
+          datasetName: null,
+          adminRole: null
         }
       }
     },
@@ -56,6 +59,7 @@ export const store = new Vuex.Store({
     dialogError: false,
     errorTitle: '',
     errorDescription: '',
+    errorColor: 'primary',
     clientId: null,
     denyAccess: true,
     source2Hierarchy: '',

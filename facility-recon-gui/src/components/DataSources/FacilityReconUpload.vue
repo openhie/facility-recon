@@ -117,13 +117,14 @@
                 ></v-text-field>
                 <input type="file" @change="fileSelected">
                 <br><br>
-                <v-card v-if="$store.state.dhis.user.orgId">
+                <v-card>
                   <v-card-title primary-title>
                     Advanced Options
                   </v-card-title>
                   <v-card-text>
                     <v-tooltip top>
                       <v-checkbox
+                        v-if="$store.state.dhis.user.orgId"
                         :disabled="shareWithAll"
                         slot="activator"
                         color="primary"
@@ -142,9 +143,9 @@
                     </v-checkbox>
                     <v-tooltip top>
                       <v-checkbox
+                        v-if="shareWithAll && $store.state.dhis.user.orgId"
                         slot="activator"
                         color="primary"
-                        v-if="shareWithAll"
                         label="Limit orgs sharing by user orgid"
                         v-model="limitShareByOrgId">
                       </v-checkbox>

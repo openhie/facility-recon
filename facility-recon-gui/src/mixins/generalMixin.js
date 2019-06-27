@@ -1,5 +1,7 @@
 import axios from 'axios'
-import { eventBus } from '@/main'
+import {
+  eventBus
+} from '@/main'
 const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
   data () {
@@ -18,7 +20,7 @@ export const generalMixin = {
       /**
        * if the use of CSV Headers is not enabled or csv header enabled but level mapping were not available
        * and instead the app manually mapped i.e level1 to level1, level2 to level2 .... facility to level5
-      */
+       */
       if (!useCSVHeader || (useCSVHeader && levelMapping[source]['level' + level] === 'level' + level)) {
         return 'Level ' + level
       }
@@ -154,7 +156,10 @@ export const generalMixin = {
     getRoles () {
       axios.get(backendServer + '/getRoles').then((roles) => {
         for (let role of roles.data) {
-          this.roles.push({text: role.name, value: role._id})
+          this.roles.push({
+            text: role.name,
+            value: role._id
+          })
         }
       }).catch((err) => {
         console.log(err.response)
@@ -182,7 +187,9 @@ export const generalMixin = {
             eventBus.$emit('changeCSVHeaderNames')
           }
           if (configName === 'authDisabled') {
-            this.$router.push({ name: 'Logout' })
+            this.$router.push({
+              name: 'Logout'
+            })
           }
         })
     },
