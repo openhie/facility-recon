@@ -802,29 +802,22 @@ if (cluster.isMaster) {
   app.get('/getGeneralConfig', (req, res) => {
     const defaultGenerConfig = JSON.parse(req.query.defaultGenerConfig);
     winston.info('Received a request to get general configuration');
-    const database = config.getConf('DB_NAME');
-    const mongoose = require('mongoose');
-    let uri;
-    if (mongoUser && mongoPasswd) {
-      uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, {
-        'config.generalConfig': 1,
-      }, (err, resData) => {
-        if (err) {
-          winston.error(err);
-          res.status(500).json({
-            error: 'internal error occured while getting configurations',
-          });
+    mongo.getGeneralConfig((err, resData) => {
+      if (err) {
+        winston.error(err);
+        res.status(500).json({
+          error: 'internal error occured while getting configurations',
+        });
+      } else {
+        const data = JSON.parse(JSON.stringify(resData));
+        let merged = {};
+        if (data) {
+          merged = deepmerge.all([defaultGenerConfig, data.config.generalConfig]);
         } else {
-          const data = JSON.parse(JSON.stringify(resData));
-          const merged = deepmerge.all([defaultGenerConfig, data.config.generalConfig]);
-          res.status(200).json(merged);
+          merged = defaultGenerConfig;
         }
-      });
+        res.status(200).json(merged);
+      }
     });
   });
 
@@ -1357,7 +1350,6 @@ if (cluster.isMaster) {
         winston.info(`Creating ${source} Grid`);
         mcsd.createGrid(id, sourceLimitOrgId, data.buildings, data.mcsdData, start, count, (grid, total) => {
           winston.info(`Done Creating ${source} Grid`);
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             grid,
             total,
@@ -3006,7 +2998,6 @@ if (cluster.isMaster) {
         winston.error({
           error: 'Missing CSV Name',
         });
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
           error: 'Missing CSV Name',
         });
@@ -3024,7 +3015,6 @@ if (cluster.isMaster) {
       redisClient.set(uploadRequestId, uploadReqPro);
       if (!Array.isArray(expectedLevels)) {
         winston.error('Invalid config data for key Levels ');
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
           error: 'Un expected error occured while processing this request',
         });

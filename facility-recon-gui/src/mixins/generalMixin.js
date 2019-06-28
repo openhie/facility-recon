@@ -9,7 +9,44 @@ export const generalMixin = {
       roles: []
     }
   },
+  computed: {
+    canAddDataset () {
+      if (!this.$store.state.config.generalConfig.reconciliation.singleDataSource) {
+        return true
+      } else {
+        let totalDtSrcs = 0
+        for (let source of this.$store.state.dataSources) {
+          if (
+            source._id !==
+            this.$store.state.config.generalConfig.reconciliation.fixSource2To
+          ) {
+            totalDtSrcs++
+          }
+        }
+        if (totalDtSrcs >= 1) {
+          this.datasetLimitWarn = true
+          return false
+        } else {
+          return true
+        }
+      }
+    }
+  },
   methods: {
+    getGeneralConfig (callback) {
+      let defaultGenerConfig = JSON.stringify(this.$store.state.config.generalConfig)
+      axios
+        .get(backendServer + '/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig)
+        .then(config => {
+          if (config) {
+            this.$store.state.config.generalConfig = config.data
+          }
+          return callback()
+        })
+        .catch(() => {
+          return callback()
+        })
+    },
     toTitleCase (str) {
       return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('')
     },
@@ -135,7 +172,6 @@ export const generalMixin = {
     },
     getLimitOrgIdOnDataSource (dataSource) {
       let limitOrgId
-
       if (dataSource && dataSource.hasOwnProperty('userID') && dataSource.userID._id !== this.$store.state.auth.userID) {
         let limit = dataSource.sharedLocation.find((sharedLocation) => {
           return sharedLocation.user === this.$store.state.auth.userID
@@ -203,7 +239,7 @@ export const generalMixin = {
         this.$store.state.dhis.host = location.href.split('api').shift()
       } else if (process.env.NODE_ENV === 'development') {
         this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
-        this.$store.state.dhis.dev.auth.username = 'bombaliuser1'
+        this.$store.state.dhis.dev.auth.username = 'bombaliuser2'
         this.$store.state.dhis.dev.auth.password = 'Qv?B/*w6'
       }
     }

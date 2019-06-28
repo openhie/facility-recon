@@ -1,28 +1,46 @@
 <template>
   <v-container fluid>
     <template v-if='$store.state.uploadRunning'><br><br><br>
-      <v-alert type="info" :value="true">
+      <v-alert
+        type="info"
+        :value="true"
+      >
         <b>Wait for upload to finish ...</b>
-        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+        <v-progress-linear
+          indeterminate
+          color="white"
+          class="mb-0"
+        ></v-progress-linear>
       </v-alert>
     </template>
     <template v-if='!$store.state.denyAccess & !$store.state.uploadRunning'>
       <v-layout column>
-        <v-flex xs1 text-xs-right>
+        <v-flex
+          xs1
+          text-xs-right
+        >
           <v-dialog
             v-model="helpDialog"
             scrollable
-            persistent :overlay="false"
+            persistent
+            :overlay="false"
             max-width="700px"
             transition="dialog-transition"
           >
             <v-card>
-              <v-toolbar color="primary" dark>
+              <v-toolbar
+                color="primary"
+                dark
+              >
                 <v-toolbar-title>
                   <v-icon>info</v-icon> About this page
                 </v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn icon dark @click.native="helpDialog = false">
+                <v-btn
+                  icon
+                  dark
+                  @click.native="helpDialog = false"
+                >
                   <v-icon>close</v-icon>
                 </v-btn>
               </v-toolbar>
@@ -33,16 +51,30 @@
             </v-card>
           </v-dialog>
           <v-tooltip top>
-            <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+            <v-btn
+              flat
+              icon
+              color="primary"
+              @click="helpDialog = true"
+              slot="activator"
+            >
               <v-icon>help</v-icon>
             </v-btn>
             <span>Help</span>
           </v-tooltip>
         </v-flex>
       </v-layout>
-      <v-dialog persistent transition="scale-transition" v-model="confirmDelete" max-width="500px">
+      <v-dialog
+        persistent
+        transition="scale-transition"
+        v-model="confirmDelete"
+        max-width="500px"
+      >
         <v-card>
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               Warning
             </v-toolbar-title>
@@ -51,30 +83,50 @@
             Are you sure that you want to delete {{deleteLocationData.facility}}
           </v-card-text>
           <v-card-actions>
-            <v-btn color="error" @click.native="confirmDelete = false">Cancel</v-btn>
+            <v-btn
+              color="error"
+              @click.native="confirmDelete = false"
+            >Cancel</v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="primary" dark @click.native="deleteLocation()">Proceed</v-btn>
+            <v-btn
+              color="primary"
+              dark
+              @click.native="deleteLocation()"
+            >Proceed</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="editDialog" transition="scale-transition" max-width="500px">
+      <v-dialog
+        persistent
+        v-model="editDialog"
+        transition="scale-transition"
+        max-width="500px"
+      >
         <v-card height="500px">
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               Edit Location
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-icon @click="editDialog = false" style="cursor: pointer">close</v-icon>
+            <v-icon
+              @click="editDialog = false"
+              style="cursor: pointer"
+            >close</v-icon>
           </v-toolbar>
           <v-card-text>
             <v-layout column>
               <v-flex>
-                <v-text-field v-model="editLocationName"
+                <v-text-field
+                  v-model="editLocationName"
                   @blur="$v.editLocationName.$touch()"
                   @change="$v.editLocationName.$touch()"
                   :error-messages="editLocationNameErrors"
                   required
-                  label="Facility">
+                  label="Facility"
+                >
                 </v-text-field>
               </v-flex>
               <v-flex>
@@ -90,20 +142,44 @@
         </v-card>
         <v-layout column>
           <v-flex>
-            <v-toolbar >
-              <v-layout row wrap>
-                <v-flex xs6 text-sm-left>
-                  <v-btn color="error" @click.native="editDialog = false"><v-icon left>cancel</v-icon> Cancel</v-btn>
+            <v-toolbar>
+              <v-layout
+                row
+                wrap
+              >
+                <v-flex
+                  xs6
+                  text-sm-left
+                >
+                  <v-btn
+                    color="error"
+                    @click.native="editDialog = false"
+                  >
+                    <v-icon left>cancel</v-icon> Cancel
+                  </v-btn>
                 </v-flex>
-                <v-flex xs6 text-sm-right>
-                  <v-btn color="primary" :disabled="$v.$invalid" dark @click="saveEdit()"><v-icon left>save</v-icon>Save</v-btn>
+                <v-flex
+                  xs6
+                  text-sm-right
+                >
+                  <v-btn
+                    color="primary"
+                    :disabled="$v.$invalid"
+                    dark
+                    @click="saveEdit()"
+                  >
+                    <v-icon left>save</v-icon>Save
+                  </v-btn>
                 </v-flex>
               </v-layout>
             </v-toolbar>
           </v-flex>
         </v-layout>
       </v-dialog>
-      <v-layout row wrap>
+      <v-layout
+        row
+        wrap
+      >
         <v-flex xs6>
           <v-card>
             <v-card-title primary-title>
@@ -115,7 +191,12 @@
             <template v-else>
               <v-card-text>
                 <p>
-                  <liquor-tree @node:selected="source1NodeSelected" :data="source1Tree" :options="{}" ref="source1Tree" />
+                  <liquor-tree
+                    @node:selected="source1NodeSelected"
+                    :data="source1Tree"
+                    :options="{}"
+                    ref="source1Tree"
+                  />
                 </p>
               </v-card-text>
             </template>
@@ -132,7 +213,12 @@
             <template v-else>
               <v-card-text>
                 <p>
-                  <liquor-tree @node:selected="source2NodeSelected" :data="source2Tree" :options="{}" ref="source2Tree" />
+                  <liquor-tree
+                    @node:selected="source2NodeSelected"
+                    :data="source2Tree"
+                    :options="{}"
+                    ref="source2Tree"
+                  />
                 </p>
               </v-card-text>
             </template>
@@ -148,15 +234,43 @@
             </template>
             <template v-else>
               <v-card-title>
-                <v-text-field v-model="searchSource1" append-icon="search" label="Search" single-line hide-details></v-text-field>
+                <v-text-field
+                  v-model="searchSource1"
+                  append-icon="search"
+                  label="Search"
+                  single-line
+                  hide-details
+                ></v-text-field>
               </v-card-title>
               <v-card-text>
-                <v-data-table :headers="source1GridHeader" :items="source1Grid" :search="searchSource1" :pagination.sync="source1Pagination" :total-items="totalSource1Records" :loading="loadingSource1" hide-actions class="elevation-1">
-                  <template slot="items" slot-scope="props">
-                    <td v-for='(header, key) in source1GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 1">
+                <v-data-table
+                  :headers="source1GridHeader"
+                  :items="source1Grid"
+                  :search="searchSource1"
+                  :pagination.sync="source1Pagination"
+                  :total-items="totalSource1Records"
+                  :loading="loadingSource1"
+                  hide-actions
+                  class="elevation-1"
+                >
+                  <template
+                    slot="items"
+                    slot-scope="props"
+                  >
+                    <td
+                      v-for='(header, key) in source1GridHeader'
+                      style="white-space:nowrap;overflow: hidden;"
+                      :key="header.value + 1"
+                    >
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source1')" style="cursor: pointer">edit</v-icon> |
-                        <v-icon @click="deleteLocation(props.item, 'source1', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
+                        <v-icon
+                          @click="edit(props.item, 'source1')"
+                          style="cursor: pointer"
+                        >edit</v-icon> |
+                        <v-icon
+                          @click="deleteLocation(props.item, 'source1', 'requestConfirmation')"
+                          style="cursor: pointer"
+                        >delete</v-icon>
                       </template>
                       <template v-else>
                         {{props.item[header.value]}}
@@ -166,7 +280,10 @@
                 </v-data-table>
               </v-card-text>
               <div class="text-xs-center pt-2">
-                <v-pagination v-model="source1Pagination.page" :length="source1Pages"></v-pagination>
+                <v-pagination
+                  v-model="source1Pagination.page"
+                  :length="source1Pages"
+                ></v-pagination>
               </div>
             </template>
           </v-card>
@@ -181,15 +298,43 @@
             </template>
             <template v-else>
               <v-card-title>
-                <v-text-field v-model="searchSource2" append-icon="search" label="Search" single-line hide-details></v-text-field>
+                <v-text-field
+                  v-model="searchSource2"
+                  append-icon="search"
+                  label="Search"
+                  single-line
+                  hide-details
+                ></v-text-field>
               </v-card-title>
               <v-card-text>
-                <v-data-table :headers="source2GridHeader" :items="source2Grid" :search="searchSource2" :pagination.sync="source2Pagination" :total-items="totalSource2Records" :loading="loadingSource2" hide-actions class="elevation-1">
-                  <template slot="items" slot-scope="props">
-                    <td v-for='(header, key) in source2GridHeader' style="white-space:nowrap;overflow: hidden;" :key="header.value + 2">
+                <v-data-table
+                  :headers="source2GridHeader"
+                  :items="source2Grid"
+                  :search="searchSource2"
+                  :pagination.sync="source2Pagination"
+                  :total-items="totalSource2Records"
+                  :loading="loadingSource2"
+                  hide-actions
+                  class="elevation-1"
+                >
+                  <template
+                    slot="items"
+                    slot-scope="props"
+                  >
+                    <td
+                      v-for='(header, key) in source2GridHeader'
+                      style="white-space:nowrap;overflow: hidden;"
+                      :key="header.value + 2"
+                    >
                       <template v-if="key === 0">
-                        <v-icon @click="edit(props.item, 'source2')" style="cursor: pointer">edit</v-icon> |
-                        <v-icon @click="deleteLocation(props.item, 'source2', 'requestConfirmation')" style="cursor: pointer">delete</v-icon>
+                        <v-icon
+                          @click="edit(props.item, 'source2')"
+                          style="cursor: pointer"
+                        >edit</v-icon> |
+                        <v-icon
+                          @click="deleteLocation(props.item, 'source2', 'requestConfirmation')"
+                          style="cursor: pointer"
+                        >delete</v-icon>
                       </template>
                       <template v-else>
                         {{props.item[header.value]}}
@@ -199,16 +344,29 @@
                 </v-data-table>
               </v-card-text>
               <div class="text-xs-center pt-2">
-                <v-pagination v-model="source2Pagination.page" :length="source2Pages"></v-pagination>
+                <v-pagination
+                  v-model="source2Pagination.page"
+                  :length="source2Pages"
+                ></v-pagination>
               </div>
             </template>
           </v-card>
         </v-flex>
       </v-layout>
       <br>
-      <v-layout row wrap>
-        <v-flex xs1 xl10>
-          <v-btn color="primary" dark @click='$router.push({name:"FacilityReconScores"})'>
+      <v-layout
+        row
+        wrap
+      >
+        <v-flex
+          xs1
+          xl10
+        >
+          <v-btn
+            color="primary"
+            dark
+            @click='$router.push({name:"FacilityReconScores"})'
+          >
             <v-icon>find_in_page</v-icon>
             Reconcile
           </v-btn>

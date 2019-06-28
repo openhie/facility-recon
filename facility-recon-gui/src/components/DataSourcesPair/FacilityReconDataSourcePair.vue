@@ -22,17 +22,25 @@
       <v-dialog
         v-model="pairLimitWarn"
         scrollable
-        persistent :overlay="false"
+        persistent
+        :overlay="false"
         max-width="770px"
         transition="dialog-transition"
       >
         <v-card>
-          <v-toolbar color="error" dark>
+          <v-toolbar
+            color="error"
+            dark
+          >
             <v-toolbar-title>
               <v-icon>info</v-icon> Pair creation limit
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon dark @click.native="pairLimitWarn = false">
+            <v-btn
+              icon
+              dark
+              @click.native="pairLimitWarn = false"
+            >
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -51,17 +59,25 @@
       <v-dialog
         v-model="mapSourcePairLevels"
         scrollable
-        persistent :overlay="false"
+        persistent
+        :overlay="false"
         max-width="770px"
         transition="dialog-transition"
       >
         <v-card>
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               <v-icon>info</v-icon> Data sources has different level counts, please map Levels to proceed
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon dark @click.native="closeLevelMappingDialog">
+            <v-btn
+              icon
+              dark
+              @click.native="closeLevelMappingDialog"
+            >
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -70,13 +86,19 @@
               :headers="pairLevelsMappingHeader"
               :items="source1Levels"
             >
-              <template slot="items" slot-scope="props">
+              <template
+                slot="items"
+                slot-scope="props"
+              >
                 <tr>
                   <td>{{props.item.text}}</td>
                   <td>
                     <template v-if='pairLevelsMapping[props.item.value]'>
                       {{$store.state.levelMapping.source2[pairLevelsMapping[props.item.value]]}}
-                      <v-icon small @click="clearMappingSelection(props.item.value)">close</v-icon>
+                      <v-icon
+                        small
+                        @click="clearMappingSelection(props.item.value)"
+                      >close</v-icon>
                     </template>
                     <v-select
                       v-else
@@ -91,11 +113,18 @@
             </v-data-table>
           </v-card-text>
           <v-card-actions>
-            <v-btn color="error" round @click="closeLevelMappingDialog">
+            <v-btn
+              color="error"
+              round
+              @click="closeLevelMappingDialog"
+            >
               <v-icon left>cancel</v-icon> Cancel
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="primary" round>
+            <v-btn
+              color="primary"
+              round
+            >
               <v-icon left>save</v-icon>Save Mapping
             </v-btn>
           </v-card-actions>
@@ -104,17 +133,25 @@
       <v-dialog
         v-model="helpDialog"
         scrollable
-        persistent :overlay="false"
+        persistent
+        :overlay="false"
         max-width="700px"
         transition="dialog-transition"
       >
         <v-card>
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               <v-icon>info</v-icon> About this page
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon dark @click.native="helpDialog = false">
+            <v-btn
+              icon
+              dark
+              @click.native="helpDialog = false"
+            >
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
@@ -124,23 +161,52 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-      <v-dialog persistent v-model="shareDialog" width="530px">
+      <v-dialog
+        persistent
+        v-model="shareDialog"
+        width="530px"
+      >
         <v-card width='530px'>
-          <v-toolbar color="primary" dark>
+          <v-toolbar
+            color="primary"
+            dark
+          >
             <v-toolbar-title>
               Sharing <template v-if="sharePair.hasOwnProperty('source1')">{{sharePair.source1.name}} - {{sharePair.source2.name}}</template>
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn icon dark @click.native="shareDialog = false">
+            <v-btn
+              icon
+              dark
+              @click.native="shareDialog = false"
+            >
               <v-icon>close</v-icon>
             </v-btn>
           </v-toolbar>
           <v-card-text>
-            <v-text-field v-model="searchUsers" append-icon="search" label="Search" single-line hide-details></v-text-field>
-            <v-data-table :headers="usersHeader" :items="users" :search="searchUsers" class="elevation-1">
-              <template slot="items" slot-scope="props">
+            <v-text-field
+              v-model="searchUsers"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+            <v-data-table
+              :headers="usersHeader"
+              :items="users"
+              :search="searchUsers"
+              class="elevation-1"
+            >
+              <template
+                slot="items"
+                slot-scope="props"
+              >
                 <tr v-if="props.item.userName !== $store.state.auth.username">
-                  <td><v-checkbox v-model="sharedUsers" :value="props.item._id"></v-checkbox>
+                  <td>
+                    <v-checkbox
+                      v-model="sharedUsers"
+                      :value="props.item._id"
+                    ></v-checkbox>
                   <td>{{props.item.userName}}</td>
                   <td>{{props.item.firstName}}</td>
                   <td>{{props.item.surname}}</td>
@@ -149,11 +215,22 @@
             </v-data-table>
           </v-card-text>
           <v-card-actions style='float: center'>
-            <v-btn color="error" @click.native="shareDialog = false" style="color: white">
-              <v-icon dark left>cancel</v-icon>Cancel
+            <v-btn
+              color="error"
+              @click.native="shareDialog = false"
+              style="color: white"
+            >
+              <v-icon
+                dark
+                left
+              >cancel</v-icon>Cancel
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="primary" dark @click.native="share('', 'saveShare')">
+            <v-btn
+              color="primary"
+              dark
+              @click.native="share('', 'saveShare')"
+            >
               <v-icon left>share</v-icon>Share
             </v-btn>
           </v-card-actions>
@@ -163,9 +240,18 @@
         <v-flex xs11>
           Create/Choose a pair of data sources to use for reconciliation. Source 1 is the source while source 2 is the target
         </v-flex>
-        <v-flex xs1 text-xs-right>
+        <v-flex
+          xs1
+          text-xs-right
+        >
           <v-tooltip top>
-            <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+            <v-btn
+              flat
+              icon
+              color="primary"
+              @click="helpDialog = true"
+              slot="activator"
+            >
               <v-icon>help</v-icon>
             </v-btn>
             <span>Help</span>
@@ -174,14 +260,24 @@
       </v-layout>
       <v-layout column>
         <v-flex>
-          <v-card style="width: 1000px" color='cyan lighten-5'>
+          <v-card
+            style="width: 1000px"
+            color='cyan lighten-5'
+          >
             <v-card-title primary-title>
-              <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
+              <v-toolbar
+                color="white lighten-2"
+                style="font-weight: bold; font-size: 18px;"
+              >
                 Choose Data Source Pair
               </v-toolbar>
             </v-card-title>
             <v-card-text style="float: center">
-              <v-layout row wrap style="float: center">
+              <v-layout
+                row
+                wrap
+                style="float: center"
+              >
                 <v-flex xs6>
                   <v-data-table
                     :headers="source1Headers"
@@ -189,11 +285,24 @@
                     :loading="$store.state.loadingServers"
                     dark
                   >
-                    <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-                    <template slot="items" slot-scope="props">
-                      <v-radio-group v-model='source1' style="height: 5px">
+                    <v-progress-linear
+                      slot="progress"
+                      color="blue"
+                      indeterminate
+                    ></v-progress-linear>
+                    <template
+                      slot="items"
+                      slot-scope="props"
+                    >
+                      <v-radio-group
+                        v-model='source1'
+                        style="height: 5px"
+                      >
                         <td>
-                          <v-radio :value="props.item" color="blue"></v-radio>
+                          <v-radio
+                            :value="props.item"
+                            color="blue"
+                          ></v-radio>
                         </td>
                       </v-radio-group>
                       <td>{{props.item.name}}</td>
@@ -203,15 +312,28 @@
                 <v-flex xs6>
                   <v-data-table
                     :headers="source2Headers"
-                    :items="$store.state.dataSources"
+                    :items="dataSources2"
                     item-key="id"
                     :loading="$store.state.loadingServers"
                   >
-                    <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-                    <template slot="items" slot-scope="props">
-                      <v-radio-group v-model='source2' style="height: 5px">
+                    <v-progress-linear
+                      slot="progress"
+                      color="blue"
+                      indeterminate
+                    ></v-progress-linear>
+                    <template
+                      slot="items"
+                      slot-scope="props"
+                    >
+                      <v-radio-group
+                        v-model='source2'
+                        style="height: 5px"
+                      >
                         <td>
-                          <v-radio :value="props.item" color="blue"></v-radio>
+                          <v-radio
+                            :value="props.item"
+                            color="blue"
+                          ></v-radio>
                         </td>
                       </v-radio-group>
                       <td>{{props.item.name}}</td>
@@ -221,18 +343,44 @@
               </v-layout>
             </v-card-text>
             <v-card-actions>
-              <v-btn color="error" round @click="reset"><v-icon left>refresh</v-icon> Reset</v-btn>
+              <v-btn
+                color="error"
+                round
+                @click="reset"
+              >
+                <v-icon left>refresh</v-icon> Reset
+              </v-btn>
               <v-spacer></v-spacer>
-              <v-btn :disabled='!canCreatePair' color="primary" round @click="checkLevels"><v-icon left>save</v-icon> Save</v-btn>
+              <v-btn
+                :disabled='!canCreatePair'
+                color="primary"
+                round
+                @click="checkLevels"
+              >
+                <v-icon left>save</v-icon> Save
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
         <v-flex>
-          <v-card style="width: 1000px" color='cyan lighten-4'>
+          <v-card
+            style="width: 1000px"
+            color='cyan lighten-4'
+          >
             <v-card-title primary-title>
-              <v-toolbar color="white lighten-2" style="font-weight: bold; font-size: 18px;">
+              <v-toolbar
+                color="white lighten-2"
+                style="font-weight: bold; font-size: 18px;"
+              >
                 Existing Data Source Pairs
-                <v-spacer></v-spacer><v-text-field v-model="searchPairs" append-icon="search" label="Search" single-line hide-details></v-text-field>
+                <v-spacer></v-spacer>
+                <v-text-field
+                  v-model="searchPairs"
+                  append-icon="search"
+                  label="Search"
+                  single-line
+                  hide-details
+                ></v-text-field>
               </v-toolbar>
             </v-card-title>
             <v-card-text style="float: center">
@@ -242,20 +390,37 @@
                 :search="searchPairs"
                 :loading="$store.state.loadingServers"
               >
-                <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-                <template slot="items" slot-scope="props">
+                <v-progress-linear
+                  slot="progress"
+                  color="blue"
+                  indeterminate
+                ></v-progress-linear>
+                <template
+                  slot="items"
+                  slot-scope="props"
+                >
                   <td>{{props.item.source1.name}} - {{props.item.source2.name}}</td>
                   <td>{{props.item.userID.userName}}</td>
-                  <v-radio-group v-model='activeDataSourcePair' style="height: 5px">
+                  <v-radio-group
+                    v-model='activeDataSourcePair'
+                    style="height: 5px"
+                  >
                     <td>
-                      <v-radio :value="props.item" color="blue"></v-radio>
+                      <v-radio
+                        :value="props.item"
+                        color="blue"
+                      ></v-radio>
                     </td>
                   </v-radio-group>
                   <td>
                     {{props.item.shared.users | mergeUsers}}
                   </td>
                   <td v-if='props.item.userID._id === $store.state.auth.userID'>
-                    <v-btn flat color="primary" @click="share(props.item, 'showDialog')">
+                    <v-btn
+                      flat
+                      color="primary"
+                      @click="share(props.item, 'showDialog')"
+                    >
                       <v-icon>share</v-icon>Share
                     </v-btn>
                   </td>
@@ -264,7 +429,13 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary" round @click="activatePair"><v-icon left>save</v-icon>Activate Pair</v-btn>
+              <v-btn
+                color="primary"
+                round
+                @click="activatePair"
+              >
+                <v-icon left>save</v-icon>Activate Pair
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -276,9 +447,10 @@
 import axios from 'axios'
 import { eventBus } from '@/main'
 import { generalMixin } from '@/mixins/generalMixin'
+import { dataSourcePairMixin } from './dataSourcePairMixin'
 const backendServer = process.env.BACKEND_SERVER
 export default {
-  mixins: [generalMixin],
+  mixins: [generalMixin, dataSourcePairMixin],
   data () {
     return {
       helpDialog: false,
@@ -396,7 +568,7 @@ export default {
             this.$store.state.errorDescription = 'Make sure source1 has the same or less levels as source2'
             this.$store.state.dialogError = true
           } else {
-            this.createPair()
+            this.createDatasourcePair(this.source1, this.source2)
           }
         })
     },
@@ -428,103 +600,6 @@ export default {
         })
       }
       this.mapSourcePairLevels = false
-    },
-    createPair () {
-      if (Object.keys(this.source1).length === 0 || Object.keys(this.source2).length === 0) {
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Info'
-        this.$store.state.errorDescription = 'Please select data source'
-        return
-      }
-      if (this.source1.name === this.source2.name && this.source1.source === this.source2.source) {
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        this.$store.state.errorDescription = 'Data source pair of the same data source is not allowed, change one of the source'
-        return
-      }
-
-      this.$store.state.dynamicProgress = true
-      this.$store.state.progressTitle = 'Saving Data Sources'
-      let activePairID = null
-      if (this.$store.state.activePair.hasOwnProperty('shared') &&
-        this.$store.state.activePair.shared.hasOwnProperty('activeUsers') &&
-        this.$store.state.activePair.shared.activeUsers.indexOf(this.$store.state.auth.userID) !== -1
-      ) {
-        activePairID = this.$store.state.activePair._id
-      }
-      let singlePair = false
-      if (this.$store.state.dhis.user.orgId && this.$store.state.config.generalConfig.reconciliation.singlePair) {
-        singlePair = true
-      }
-      if (!activePairID) {
-        activePairID = false
-      }
-      let formData = new FormData()
-      formData.append('source1', JSON.stringify(this.source1))
-      formData.append('source2', JSON.stringify(this.source2))
-      formData.append('userID', this.$store.state.auth.userID)
-      formData.append('orgId', this.$store.state.dhis.user.orgId)
-      formData.append('singlePair', singlePair)
-      formData.append('activePairID', activePairID)
-      axios.post(backendServer + '/addDataSourcePair', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((response) => {
-        this.$store.state.levelMapping.source1 = JSON.parse(response.data).levelMapping1
-        this.$store.state.levelMapping.source2 = JSON.parse(response.data).levelMapping2
-        eventBus.$emit('getDataSourcePair')
-        this.alertSuccess = true
-        this.alertMsg = 'Data Source Pair Saved Successfully'
-        this.$store.state.dynamicProgress = false
-      }).catch((error) => {
-        this.alertError = true
-        this.$store.state.dialogError = true
-        if (error.response.data.error) {
-          this.$store.state.errorDescription = error.response.data.error
-          this.$store.state.errorTitle = 'Pair was not created'
-          this.alertMsg = error.response.data.error
-        } else {
-          this.alertMsg = 'Something went wrong while saving data source pairs.'
-        }
-        this.$store.state.dynamicProgress = false
-        console.log(error)
-      })
-    },
-    activateSharedPair (pairID) {
-      this.$store.state.dynamicProgress = true
-      this.$store.state.progressTitle = 'Activating Shared Data Source Pair'
-      let formData = new FormData()
-      formData.append('pairID', pairID)
-      formData.append('userID', this.$store.state.auth.userID)
-      axios.post(backendServer + '/activateSharedPair', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((response) => {
-        eventBus.$emit('getDataSourcePair')
-        this.alertSuccess = true
-        this.alertMsg = 'Data Source Pair Activated Successfully'
-        this.$store.state.dynamicProgress = false
-      }).catch((error) => {
-        this.alertError = true
-        this.alertMsg = 'Something went wrong while activating data source pair'
-        this.$store.state.dynamicProgress = false
-        console.log(error.response.data)
-      })
-    },
-    activatePair () {
-      if (this.activeDataSourcePair.userID._id !== this.$store.state.auth.userID) {
-        this.activateSharedPair(this.activeDataSourcePair._id)
-      } else {
-        this.source1 = this.$store.state.dataSources.find((dataSource) => {
-          return dataSource._id === this.activeDataSourcePair.source1._id
-        })
-        this.source2 = this.$store.state.dataSources.find((dataSource) => {
-          return dataSource._id === this.activeDataSourcePair.source2._id
-        })
-        this.createPair()
-      }
     },
     share (pair, action) {
       if (action === 'showDialog') {
@@ -569,6 +644,22 @@ export default {
     }
   },
   computed: {
+    dataSources2 () {
+      if (!this.$store.state.config.generalConfig.reconciliation.fixSource2) {
+        return this.$store.state.dataSources
+      } else {
+        let dtSrc = ''
+        for (let source of this.$store.state.dataSources) {
+          if (
+            source._id ===
+            this.$store.state.config.generalConfig.reconciliation.fixSource2To
+          ) {
+            dtSrc = source
+          }
+        }
+        return [dtSrc]
+      }
+    },
     canCreatePair () {
       if (this.$store.state.dhis.user.orgId && this.$store.state.config.generalConfig.reconciliation.singlePair) {
         if (this.$store.state.dataSourcePairs.length === 0) {

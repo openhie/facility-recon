@@ -1,8 +1,16 @@
 <template>
   <v-container fluid>
-    <v-dialog persistent transition="scale-transition" v-model="dialog" max-width="500px">
+    <v-dialog
+      persistent
+      transition="scale-transition"
+      v-model="dialog"
+      max-width="500px"
+    >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             Information
           </v-toolbar-title>
@@ -11,36 +19,68 @@
           Data uploaded successfully
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" dark @click.native="closeDialog('FacilityReconView')">
+          <v-btn
+            color="primary"
+            dark
+            @click.native="closeDialog('FacilityReconView')"
+          >
             <v-icon left>list</v-icon>
             View Data
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent transition="scale-transition" v-model="invalidRows" max-width="1050px">
+    <v-dialog
+      persistent
+      transition="scale-transition"
+      v-model="invalidRows"
+      max-width="1050px"
+    >
       <v-card>
-        <v-toolbar color="error" dark>
+        <v-toolbar
+          color="error"
+          dark
+        >
           <v-toolbar-title>
             <v-icon>error</v-icon>Data Upload was not successful,review below invalid rows in your CSV
           </v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="closeInvalidRows()">
+          <v-btn
+            icon
+            dark
+            @click.native="closeInvalidRows()"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-toolbar>
         <v-card-text>
-          <v-data-table :headers="invalidRowsHeader" :items="invalidRowsContent" light class="elevation-1">
-            <template slot="items" slot-scope="props">
+          <v-data-table
+            :headers="invalidRowsHeader"
+            :items="invalidRowsContent"
+            light
+            class="elevation-1"
+          >
+            <template
+              slot="items"
+              slot-scope="props"
+            >
               <td v-for='header in invalidRowsHeader'>{{props.item[header.value]}}</td>
             </template>
           </v-data-table>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog persistent transition="scale-transition" v-model="confirmUpload" max-width="500px">
+    <v-dialog
+      persistent
+      transition="scale-transition"
+      v-model="confirmUpload"
+      max-width="500px"
+    >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             Warning
           </v-toolbar-title>
@@ -49,13 +89,25 @@
           You are about to upload CSV data into the app, click proceed to upload
         </v-card-text>
         <v-card-actions>
-          <v-btn color="error" @click.native="confirmUpload = false">Cancel</v-btn>
+          <v-btn
+            color="error"
+            @click.native="confirmUpload = false"
+          >Cancel</v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" dark @click.native="submitCSV">Proceed</v-btn>
+          <v-btn
+            color="primary"
+            dark
+            @click.native="performExtraCheck"
+          >Proceed</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent transition="scale-transition" v-model="errorDialog" max-width="500px">
+    <v-dialog
+      persistent
+      transition="scale-transition"
+      v-model="errorDialog"
+      max-width="500px"
+    >
       <v-card>
         <v-card-title>
           {{errorTitle}}
@@ -64,27 +116,65 @@
           {{errorContent}}
         </v-card-text>
         <v-card-actions>
-          <v-btn color="error" @click.native="errorDialog = false">Ok</v-btn>
+          <v-btn
+            color="error"
+            @click.native="errorDialog = false"
+          >Ok</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="uploadPrepaProgr" transition="scale-transition" persistent width="300">
-      <v-card color="primary" dark>
+    <v-dialog
+      v-model="uploadPrepaProgr"
+      transition="scale-transition"
+      persistent
+      width="300"
+    >
+      <v-card
+        color="primary"
+        dark
+      >
         <v-card-text>
           {{uploadStatus}}
-          <v-progress-linear indeterminate color="white" class="mb-0" v-if='!fileUploadPercentage'></v-progress-linear>
-          <v-progress-linear v-model="fileUploadPercentage" color="white" class="mb-0" v-else></v-progress-linear>
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-0"
+            v-if='!fileUploadPercentage'
+          ></v-progress-linear>
+          <v-progress-linear
+            v-model="fileUploadPercentage"
+            color="white"
+            class="mb-0"
+            v-else
+          ></v-progress-linear>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="percentDialog" transition="scale-transition" persistent width="270">
-      <v-card color="white" dark>
+    <v-dialog
+      v-model="percentDialog"
+      transition="scale-transition"
+      persistent
+      width="270"
+    >
+      <v-card
+        color="white"
+        dark
+      >
         <v-card-text>
           <center>
             <font style="color:blue">{{uploadStatus}}</font><br>
-            <v-progress-circular :rotate="-90" :size="100" :width="15" :value="uploadPercent" color="primary">
-              <v-avatar color="indigo" size="50px">
+            <v-progress-circular
+              :rotate="-90"
+              :size="100"
+              :width="15"
+              :value="uploadPercent"
+              color="primary"
+            >
+              <v-avatar
+                color="indigo"
+                size="50px"
+              >
                 <span class="white--text">
                   <b>{{ uploadPercent }}%</b>
                 </span>
@@ -94,28 +184,45 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-slide-y-transition mode="out-in" v-if='!$store.state.denyAccess'>
+    <v-slide-y-transition
+      mode="out-in"
+      v-if='!$store.state.denyAccess'
+    >
       <v-stepper v-model="e1">
         <v-stepper-header>
-          <v-stepper-step step="1" :complete="e1 > 1">Upload CSV</v-stepper-step>
+          <v-stepper-step
+            step="1"
+            :complete="e1 > 1"
+          >Upload CSV</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step step="2" :complete="e1 > 2">Map Headers</v-stepper-step>
-          <v-btn icon @click.native="closeUploadWindow()">
+          <v-stepper-step
+            step="2"
+            :complete="e1 > 2"
+          >Map Headers</v-stepper-step>
+          <v-btn
+            icon
+            @click.native="closeUploadWindow()"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-stepper-header>
         <v-stepper-items>
           <v-stepper-content step="1">
-            <v-card class="mb-5" >
+            <v-card class="mb-5">
               <v-card-title>Upload CSV (utf-8 only) - <b>Select a CSV file and upload</b></v-card-title>
               <v-card-text>
                 <v-text-field
                   label="Enter Unique Name For Your Data"
                   v-model="uploadName"
-                  @blur="ensureNameUnique" @input="ensureNameUnique" :error-messages="uploadNameErrors"
+                  @blur="ensureNameUnique"
+                  @input="ensureNameUnique"
+                  :error-messages="uploadNameErrors"
                   required
                 ></v-text-field>
-                <input type="file" @change="fileSelected">
+                <input
+                  type="file"
+                  @change="fileSelected"
+                >
                 <br><br>
                 <v-card>
                   <v-card-title primary-title>
@@ -139,7 +246,8 @@
                       @change="sharingOptions"
                       color="primary"
                       label="Share with all other users"
-                      v-model="shareWithAll">
+                      v-model="shareWithAll"
+                    >
                     </v-checkbox>
                     <v-tooltip top>
                       <v-checkbox
@@ -147,7 +255,8 @@
                         slot="activator"
                         color="primary"
                         label="Limit orgs sharing by user orgid"
-                        v-model="limitShareByOrgId">
+                        v-model="limitShareByOrgId"
+                      >
                       </v-checkbox>
                       <span>
                         if activated, other users will see locations (including location children) that has the same location id as their location id
@@ -157,13 +266,27 @@
                 </v-card>
               </v-card-text>
             </v-card>
-            <v-btn color="primary" @click.native="e1 = 2" v-if='uploadedFileName && uploadName && uploadNameErrors.length === 0'>Continue</v-btn>
-            <v-btn color="primary" @click.native="e1 = 2" v-else disabled>Continue</v-btn>
+            <v-btn
+              color="primary"
+              @click.native="e1 = 2"
+              v-if='uploadedFileName && uploadName && uploadNameErrors.length === 0'
+            >Continue</v-btn>
+            <v-btn
+              color="primary"
+              @click.native="e1 = 2"
+              v-else
+              disabled
+            >Continue</v-btn>
           </v-stepper-content>
           <v-stepper-content step="2">
             <b>Map an appropriate CSV header against those on the app.</b>
             <v-container fluid>
-              <v-layout row wrap ref="form" v-model="valid">
+              <v-layout
+                row
+                wrap
+                ref="form"
+                v-model="valid"
+              >
                 <v-flex xs6>
                   <v-subheader>Facility*</v-subheader>
                 </v-flex>
@@ -177,7 +300,8 @@
                     label="Select"
                     required
                     single-line
-                    clearable>
+                    clearable
+                  >
                   </v-select>
                 </v-flex>
                 <v-flex xs6>
@@ -193,7 +317,8 @@
                     label="Select"
                     required
                     single-line
-                    clearable>
+                    clearable
+                  >
                   </v-select>
                 </v-flex>
                 <v-flex xs6>
@@ -205,7 +330,8 @@
                     v-model="lat"
                     label="Select"
                     single-line
-                    clearable>
+                    clearable
+                  >
                   </v-select>
                 </v-flex>
                 <v-flex xs6>
@@ -217,7 +343,8 @@
                     v-model="long"
                     label="Select"
                     single-line
-                    clearable>
+                    clearable
+                  >
                   </v-select>
                 </v-flex>
                 <template>
@@ -230,7 +357,8 @@
                       v-model="level1"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -244,7 +372,8 @@
                       v-model="level2"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -258,7 +387,8 @@
                       v-model="level3"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -272,7 +402,8 @@
                       v-model="level4"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -286,7 +417,8 @@
                       v-model="level5"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -300,7 +432,8 @@
                       v-model="level6"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
@@ -314,26 +447,48 @@
                       v-model="level7"
                       label="Select"
                       single-line
-                      clearable>
+                      clearable
+                    >
                     </v-select>
                   </v-flex>
                 </template>
-                <v-layout row wrap>
+                <v-layout
+                  row
+                  wrap
+                >
                   <v-spacer></v-spacer>
                   <v-tooltip top>
-                    <v-btn v-if='!showLevel7' color="success" slot="activator" icon @click="showMoreLevel"><v-icon>add</v-icon></v-btn>
+                    <v-btn
+                      v-if='!showLevel7'
+                      color="success"
+                      slot="activator"
+                      icon
+                      @click="showMoreLevel"
+                    >
+                      <v-icon>add</v-icon>
+                    </v-btn>
                     <span>Add More Level</span>
                   </v-tooltip>
                 </v-layout>
               </v-layout>
             </v-container>
-            <v-layout row wrap>
+            <v-layout
+              row
+              wrap
+            >
               <v-flex xs1>
-                <v-btn color="error" @click.native="e1 = 1">Go Back</v-btn>
+                <v-btn
+                  color="error"
+                  @click.native="e1 = 1"
+                >Go Back</v-btn>
               </v-flex>
               <v-spacer></v-spacer>
               <v-flex xs1>
-                <v-btn color="primary" @click.native="confirmUpload = true" :disabled="$v.$invalid">Upload</v-btn>
+                <v-btn
+                  color="primary"
+                  @click.native="confirmUpload = true"
+                  :disabled="$v.$invalid"
+                >Upload</v-btn>
               </v-flex>
             </v-layout>
           </v-stepper-content>
@@ -345,6 +500,7 @@
 
 <script>
 import axios from 'axios'
+import Dialogs from './dialogs'
 import { dataSourcesMixin } from './dataSourcesMixin'
 import { generalMixin } from '../../mixins/generalMixin'
 import { required } from 'vuelidate/lib/validators'
@@ -355,6 +511,7 @@ export default {
   mixins: [dataSourcesMixin, generalMixin],
   data () {
     return {
+      datasetLimitWarn: false,
       errorDialog: false,
       errorTitle: '',
       errorContent: '',
@@ -500,6 +657,21 @@ export default {
         console.log(err)
       })
     },
+    performExtraCheck () {
+      // reload general config and see if still allowed to upload more data sources
+      this.$store.state.dynamicProgress = true
+      this.$store.state.progressTitle = 'Performing extra validations'
+      this.getGeneralConfig(() => {
+        this.datasetLimitWarn = false
+        this.$store.state.dynamicProgress = false
+        if (this.canAddDataset) {
+          this.submitCSV()
+        } else {
+          this.confirmUpload = false
+          this.datasetLimitWarn = true
+        }
+      })
+    },
     submitCSV () {
       let formData = new FormData()
       formData.append('file', this.file)
@@ -614,6 +786,9 @@ export default {
         this.showLevel7 = true
       }
     }
+  },
+  components: {
+    'appDialogs': Dialogs
   },
   computed: {
     uploadNameErrorsss () {

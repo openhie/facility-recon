@@ -1,8 +1,14 @@
 <template>
   <v-container fluid>
-    <v-dialog v-model="deleteConfirm" width="530px">
+    <v-dialog
+      v-model="deleteConfirm"
+      width="530px"
+    >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             Info
           </v-toolbar-title>
@@ -11,30 +17,54 @@
           Are you sure you want to delete {{server.name}} {{server.host}} <br> This will also delete the Database
         </v-card-text>
         <v-card-actions>
-          <v-btn color="error" @click="deleteConfirm = false">Cancel</v-btn>
+          <v-btn
+            color="error"
+            @click="deleteConfirm = false"
+          >Cancel</v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="success" @click="deleteDataSource">Yes</v-btn>
+          <v-btn
+            color="success"
+            @click="deleteDataSource"
+          >Yes</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent v-model="editDialog" width="530px">
+    <v-dialog
+      persistent
+      v-model="editDialog"
+      width="530px"
+    >
       <v-card width='530px'>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             Editing {{server.host}}
           </v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="editDialog = false">
+          <v-btn
+            icon
+            dark
+            @click.native="editDialog = false"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-toolbar>
         <v-card-text>
           <v-layout column>
             <v-flex xs1>
-              <v-text-field v-model="server.name" label="Name" disabled></v-text-field>
+              <v-text-field
+                v-model="server.name"
+                label="Name"
+                disabled
+              ></v-text-field>
             </v-flex>
             <v-flex xs1>
-              <v-text-field v-model="server.host" label="Host"></v-text-field>
+              <v-text-field
+                v-model="server.host"
+                label="Host"
+              ></v-text-field>
             </v-flex>
             <v-flex xs1>
               <v-select
@@ -44,32 +74,61 @@
               ></v-select>
             </v-flex>
             <v-flex xs1>
-              <v-text-field v-model="server.username" label="User Name"></v-text-field>
+              <v-text-field
+                v-model="server.username"
+                label="User Name"
+              ></v-text-field>
             </v-flex>
             <v-flex xs1>
-              <v-text-field v-model="server.password" label="Password" type="password"></v-text-field>
+              <v-text-field
+                v-model="server.password"
+                label="Password"
+                type="password"
+              ></v-text-field>
             </v-flex>
           </v-layout>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="error" @click.native="editDialog = false" style="color: white">
-            <v-icon dark left>cancel</v-icon>Cancel
+          <v-btn
+            color="error"
+            @click.native="editDialog = false"
+            style="color: white"
+          >
+            <v-icon
+              dark
+              left
+            >cancel</v-icon>Cancel
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" dark @click.native="saveEdit('match')">
+          <v-btn
+            color="primary"
+            dark
+            @click.native="saveEdit('match')"
+          >
             <v-icon left>save</v-icon>Save
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog persistent v-model="shareDialog" width="530px">
+    <v-dialog
+      persistent
+      v-model="shareDialog"
+      width="530px"
+    >
       <v-card width='530px'>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             Sharing {{shareSource.name}}
           </v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="shareDialog = false">
+          <v-btn
+            icon
+            dark
+            @click.native="shareDialog = false"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -80,12 +139,23 @@
           <template v-else>
             <v-card-text>
               <p>
-                <liquor-tree @node:selected="locationSelected" :data="locationTree" :options="{}" ref="locationTree" />
+                <liquor-tree
+                  @node:selected="locationSelected"
+                  :data="locationTree"
+                  :options="{}"
+                  ref="locationTree"
+                />
               </p>
             </v-card-text>
           </template>
           <v-icon small>lock</v-icon> Limiting Sharing to: <b>{{limitLocationName}}</b>
-          <v-text-field v-model="searchUsers" append-icon="search" label="Search" single-line hide-details></v-text-field>
+          <v-text-field
+            v-model="searchUsers"
+            append-icon="search"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
           <v-data-table
             :headers="usersHeader"
             :items="users"
@@ -110,11 +180,23 @@
           </v-data-table>
         </v-card-text>
         <v-card-actions style='float: center'>
-          <v-btn color="error" :disabled='loadingLocationTree' @click.native="shareDialog = false" style="color: white">
-            <v-icon dark left>cancel</v-icon>Cancel
+          <v-btn
+            color="error"
+            :disabled='loadingLocationTree'
+            @click.native="shareDialog = false"
+            style="color: white"
+          >
+            <v-icon
+              dark
+              left
+            >cancel</v-icon>Cancel
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" :disabled='loadingLocationTree' @click.native="share('', 'saveShare')">
+          <v-btn
+            color="primary"
+            :disabled='loadingLocationTree'
+            @click.native="share('', 'saveShare')"
+          >
             <v-icon left>share</v-icon>Share
           </v-btn>
         </v-card-actions>
@@ -123,17 +205,25 @@
     <v-dialog
       v-model="helpDialog"
       scrollable
-      persistent :overlay="false"
+      persistent
+      :overlay="false"
       max-width="700px"
       transition="dialog-transition"
     >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             <v-icon>info</v-icon> About this page
           </v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="helpDialog = false">
+          <v-btn
+            icon
+            dark
+            @click.native="helpDialog = false"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -146,11 +236,23 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-layout row wrap>
+    <v-layout
+      row
+      wrap
+    >
       <v-spacer></v-spacer>
-      <v-flex xs1 text-xs-right>
+      <v-flex
+        xs1
+        text-xs-right
+      >
         <v-tooltip top>
-          <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+          <v-btn
+            flat
+            icon
+            color="primary"
+            @click="helpDialog = true"
+            slot="activator"
+          >
             <v-icon>help</v-icon>
           </v-btn>
           <span>Help</span>
@@ -179,50 +281,119 @@
         </v-alert>
       </v-flex>
     </v-layout>
-    <v-layout row wrap>
+    <v-layout
+      row
+      wrap
+    >
       <v-spacer></v-spacer>
       <v-flex>
         <v-card color="cyan lighten-5">
           <v-card-title primary-title>
-            <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
+            <v-toolbar
+              color="white"
+              style="font-weight: bold; font-size: 18px;"
+            >
               Remote Sources
             </v-toolbar>
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-actions>
-            <v-btn color="primary" @click="sync('full')" round v-if="remoteServers.length > 0">
+            <v-btn
+              color="primary"
+              @click="sync('full')"
+              round
+              v-if="remoteServers.length > 0"
+            >
               <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="primary" @click="sync('full')" round disabled v-else>
+            <v-btn
+              color="primary"
+              @click="sync('full')"
+              round
+              disabled
+              v-else
+            >
               <v-icon left>sync</v-icon>Force Full Sync
             </v-btn>
-            <v-btn color="primary lighten-1" @click="sync('update')" round v-if="remoteServers.length > 0">
+            <v-btn
+              color="primary lighten-1"
+              @click="sync('update')"
+              round
+              v-if="remoteServers.length > 0"
+            >
               <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
-            <v-btn color="primary lighten-1" @click="sync('update')" round disabled v-else>
+            <v-btn
+              color="primary lighten-1"
+              @click="sync('update')"
+              round
+              disabled
+              v-else
+            >
               <v-icon left>sync</v-icon>Sync (Update)
             </v-btn>
             <v-spacer></v-spacer>
-            <v-btn color="success" @click="editDataSource" round v-if="remoteServers.length > 0">
+            <v-btn
+              color="success"
+              @click="editDataSource"
+              round
+              v-if="remoteServers.length > 0"
+            >
               <v-icon left>edit</v-icon>Edit
             </v-btn>
-            <v-btn color="success" @click="editDataSource" round disabled v-else>
+            <v-btn
+              color="success"
+              @click="editDataSource"
+              round
+              disabled
+              v-else
+            >
               <v-icon left>edit</v-icon>Edit
             </v-btn>
-            <v-btn color="error" @click="validateDelete" round v-if="remoteServers.length > 0">
+            <v-btn
+              color="error"
+              @click="validateDelete"
+              round
+              v-if="remoteServers.length > 0"
+            >
               <v-icon left>delete</v-icon>Delete
             </v-btn>
-            <v-btn color="error" @click="validateDelete" round disabled v-else>
+            <v-btn
+              color="error"
+              @click="validateDelete"
+              round
+              disabled
+              v-else
+            >
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
           <v-card-text>
-            <v-data-table :headers="syncServersHeader" :items="remoteServers" dark class="elevation-1" :loading='$store.state.loadingServers'>
-              <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-              <template slot="items" slot-scope="props">
-                <v-radio-group v-model='server' style="height: 5px">
+            <v-data-table
+              :headers="syncServersHeader"
+              :items="remoteServers"
+              dark
+              class="elevation-1"
+              :loading='$store.state.loadingServers'
+            >
+              <v-progress-linear
+                slot="progress"
+                color="blue"
+                indeterminate
+              ></v-progress-linear>
+              <template
+                slot="items"
+                slot-scope="props"
+              >
+                <v-radio-group
+                  v-model='server'
+                  style="height: 5px"
+                >
                   <td>
-                    <v-radio :value="props.item" color="blue"></v-radio>
+                    <v-radio
+                      :value="props.item"
+                      color="blue"
+                    ></v-radio>
                   </td>
                 </v-radio-group>
                 <td>{{props.item.name}}</td>
@@ -240,41 +411,93 @@
                   {{props.item.createdTime}}
                 </td>
                 <td v-if='props.item.userID._id === $store.state.auth.userID'>
-                  <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
+                  <v-btn
+                    color="success"
+                    flat
+                    @click="share(props.item, 'showDialog')"
+                  >
+                    <v-icon>share</v-icon> Share
+                  </v-btn>
                 </td>
               </template>
             </v-data-table>
           </v-card-text>
           <v-card-title primary-title>
-            <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
+            <v-toolbar
+              color="white"
+              style="font-weight: bold; font-size: 18px;"
+            >
               Uploaded Sources
             </v-toolbar>
           </v-card-title>
           <v-card-actions>
             <v-tooltip top>
-              <v-btn color="success" @click="exportCSV" round v-if="uploadedSources.length > 0" slot="activator">
+              <v-btn
+                color="success"
+                @click="exportCSV"
+                round
+                v-if="uploadedSources.length > 0"
+                slot="activator"
+              >
                 <v-icon left>file_copy</v-icon>Export
               </v-btn>
-              <v-btn color="success" @click="exportCSV" round disabled v-else slot="activator">
+              <v-btn
+                color="success"
+                @click="exportCSV"
+                round
+                disabled
+                v-else
+                slot="activator"
+              >
                 <v-icon left>file_copy</v-icon>Export
               </v-btn>
               <span>Export Original CSV</span>
             </v-tooltip>
             <v-spacer></v-spacer>
-            <v-btn color="error" @click="validateDelete" round v-if="uploadedSources.length > 0">
+            <v-btn
+              color="error"
+              @click="validateDelete"
+              round
+              v-if="uploadedSources.length > 0"
+            >
               <v-icon left>delete</v-icon>Delete
             </v-btn>
-            <v-btn color="error" @click="validateDelete" round disabled v-else>
+            <v-btn
+              color="error"
+              @click="validateDelete"
+              round
+              disabled
+              v-else
+            >
               <v-icon left>delete</v-icon>Delete
             </v-btn>
           </v-card-actions>
           <v-card-text>
-            <v-data-table :headers="uploadSourcesHeader" :items="uploadedSources" dark class="elevation-1" :loading='$store.state.loadingServers'>
-              <v-progress-linear slot="progress" color="blue" indeterminate></v-progress-linear>
-              <template slot="items" slot-scope="props">
-                <v-radio-group v-model='server' style="height: 5px">
+            <v-data-table
+              :headers="uploadSourcesHeader"
+              :items="uploadedSources"
+              dark
+              class="elevation-1"
+              :loading='$store.state.loadingServers'
+            >
+              <v-progress-linear
+                slot="progress"
+                color="blue"
+                indeterminate
+              ></v-progress-linear>
+              <template
+                slot="items"
+                slot-scope="props"
+              >
+                <v-radio-group
+                  v-model='server'
+                  style="height: 5px"
+                >
                   <td>
-                    <v-radio :value="props.item" color="blue"></v-radio>
+                    <v-radio
+                      :value="props.item"
+                      color="blue"
+                    ></v-radio>
                   </td>
                 </v-radio-group>
                 <td>{{props.item.name}}</td>
@@ -286,7 +509,13 @@
                   {{props.item.createdTime}}
                 </td>
                 <td v-if='props.item.userID._id === $store.state.auth.userID'>
-                  <v-btn color="success" flat @click="share(props.item, 'showDialog')"><v-icon>share</v-icon> Share</v-btn>
+                  <v-btn
+                    color="success"
+                    flat
+                    @click="share(props.item, 'showDialog')"
+                  >
+                    <v-icon>share</v-icon> Share
+                  </v-btn>
                 </td>
               </template>
             </v-data-table>
@@ -296,6 +525,7 @@
       <v-spacer></v-spacer>
     </v-layout>
     <appRemoteSync
+      v-if='server.name'
       :syncType="syncType"
       :serverName="server.name"
       :userID="$store.state.auth.userID"
@@ -351,7 +581,8 @@ export default {
       ],
       uploadSourcesHeader: [
         { sortable: false },
-        { text: 'Source Name',
+        {
+          text: 'Source Name',
           align: 'left',
           value: 'name'
         },
@@ -547,7 +778,7 @@ export default {
           window.navigator.msSaveBlob(blob, `${this.server.name}.csv`)
         } else {
           let a = window.document.createElement('a')
-          a.href = window.URL.createObjectURL(blob, {type: 'text/plain'})
+          a.href = window.URL.createObjectURL(blob, { type: 'text/plain' })
           a.download = `${this.server.name}.csv`
           document.body.appendChild(a)
           a.click()

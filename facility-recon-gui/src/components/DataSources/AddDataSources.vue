@@ -3,17 +3,25 @@
     <v-dialog
       v-model="helpDialog"
       scrollable
-      persistent :overlay="false"
+      persistent
+      :overlay="false"
       max-width="700px"
       transition="dialog-transition"
     >
       <v-card>
-        <v-toolbar color="primary" dark>
+        <v-toolbar
+          color="primary"
+          dark
+        >
           <v-toolbar-title>
             <v-icon>info</v-icon> About this page
           </v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="helpDialog = false">
+          <v-btn
+            icon
+            dark
+            @click.native="helpDialog = false"
+          >
             <v-icon>close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -28,35 +36,6 @@
             Same applies to DHIS2 base URL
           </v-list>
         </v-card-text>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="datasetLimitWarn"
-      scrollable
-      persistent :overlay="false"
-      max-width="770px"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-toolbar color="error" dark>
-          <v-toolbar-title>
-            <v-icon>info</v-icon> Datasets limit Warning
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon dark @click.native="datasetLimitWarn = false">
-            <v-icon>close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card-text>
-          You cant add more datasets as you have reached the datasets limit, contact system administrator for help
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            @click.native="datasetLimitWarn = false"
-          >Ok</v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
     <v-layout column>
@@ -81,45 +60,84 @@
         </v-alert>
       </v-flex>
       <v-flex>
-        <component :is="selectedComponent" v-if='addDataSource' />
+        <component
+          :is="selectedComponent"
+          v-if='addDataSource'
+        />
       </v-flex>
     </v-layout>
-    <v-layout row wrap>
+    <v-layout
+      row
+      wrap
+    >
       <v-spacer></v-spacer>
       <v-flex xs6>
-        <v-card >
+        <v-card>
           <v-card-title primary-title>
-            <v-toolbar color="white" style="font-weight: bold; font-size: 18px;">
+            <v-toolbar
+              color="white"
+              style="font-weight: bold; font-size: 18px;"
+            >
               Choose Data Source Type
             </v-toolbar>
             <v-spacer></v-spacer>
           </v-card-title>
           <v-card-text>
-            <v-radio-group v-model="dataSource" row @change="sourceSelected">
-              <v-radio :disabled="!canAddDataset" color="primary" label="Upload CSV" value="upload"></v-radio>
-              <v-radio :disabled="!canAddDataset" color="primary" label="Remote Source" value="remote"></v-radio>
+            <v-radio-group
+              v-model="dataSource"
+              row
+              @change="sourceSelected"
+            >
+              <v-radio
+                :disabled="!canAddDataset"
+                color="primary"
+                label="Upload CSV"
+                value="upload"
+              ></v-radio>
+              <v-radio
+                :disabled="!canAddDataset"
+                color="primary"
+                label="Remote Source"
+                value="remote"
+              ></v-radio>
             </v-radio-group>
           </v-card-text>
         </v-card>
       </v-flex>
       <v-spacer></v-spacer>
-      <v-flex xs1 text-xs-right>
+      <v-flex
+        xs1
+        text-xs-right
+      >
         <v-tooltip top>
-          <v-btn flat icon color="primary" @click="helpDialog = true" slot="activator">
+          <v-btn
+            flat
+            icon
+            color="primary"
+            @click="helpDialog = true"
+            slot="activator"
+          >
             <v-icon>help</v-icon>
           </v-btn>
           <span>Help</span>
         </v-tooltip>
       </v-flex>
     </v-layout>
+    <appDialogs
+      :datasetLimitWarn="datasetLimitWarn"
+      @limitWarnStateChange='limitWarnStateChange'
+    ></appDialogs>
   </v-container>
 </template>
 
 <script>
 import FacilityReconUpload from './FacilityReconUpload'
 import FacilityReconRemoteSources from './FacilityReconRemoteSources'
+import Dialogs from './dialogs'
+import { generalMixin } from '../../mixins/generalMixin'
 import { eventBus } from '../../main'
 export default {
+  mixins: [generalMixin],
   data () {
     return {
       helpDialog: false,
@@ -137,6 +155,9 @@ export default {
     }
   },
   methods: {
+    limitWarnStateChange (newVal) {
+      this.datasetLimitWarn = newVal
+    },
     sourceSelected (selection) {
       this.addDataSource = true
       if (selection === 'upload') {
@@ -146,23 +167,10 @@ export default {
       }
     }
   },
-  computed: {
-    canAddDataset () {
-      if (!this.$store.state.config.generalConfig.reconciliation.singleDataSource) {
-        return true
-      } else {
-        if (this.$store.state.dataSources.length >= 2) {
-          this.datasetLimitWarn = true
-          return false
-        } else {
-          return true
-        }
-      }
-    }
-  },
   components: {
     'FacilityReconUpload': FacilityReconUpload,
-    'FacilityReconRemoteSources': FacilityReconRemoteSources
+    'FacilityReconRemoteSources': FacilityReconRemoteSources,
+    'appDialogs': Dialogs
   },
   created () {
     eventBus.$on('dataSourceSaved', () => {

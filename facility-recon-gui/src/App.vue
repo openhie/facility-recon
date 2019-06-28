@@ -314,13 +314,14 @@
 import axios from 'axios'
 import { scoresMixin } from './mixins/scoresMixin'
 import { generalMixin } from './mixins/generalMixin'
+import { dataSourcePairMixin } from './components/DataSourcesPair/dataSourcePairMixin'
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
 import VueCookies from 'vue-cookies'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
-  mixins: [scoresMixin, generalMixin],
+  mixins: [dataSourcePairMixin, scoresMixin, generalMixin],
   props: ['generalConfig'],
   data () {
     return {
@@ -330,7 +331,8 @@ export default {
       locales: [
         { text: 'English', value: 'en' },
         { text: 'French', value: 'fr' }
-      ]
+      ],
+      activeDataSourcePair: {}
     }
   },
   watch: {
@@ -487,24 +489,14 @@ export default {
           if (config.data) {
             this.$store.state.config.userConfig = { ...this.$store.state.config.userConfig, ...config.data }
           }
-          this.getGeneralConfig()
+          this.getGeneralConfig(() => {
+            this.getDataSources()
+          })
         })
         .catch(() => {
-          this.getGeneralConfig()
-        })
-    },
-    getGeneralConfig () {
-      let defaultGenerConfig = JSON.stringify(this.$store.state.config.generalConfig)
-      axios
-        .get(backendServer + '/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig)
-        .then(config => {
-          if (config) {
-            this.$store.state.config.generalConfig = config.data
-          }
-          this.getDataSources()
-        })
-        .catch(() => {
-          this.getDataSources()
+          this.getGeneralConfig(() => {
+            this.getDataSources()
+          })
         })
     },
     getDataSourcePair () {
@@ -527,6 +519,11 @@ export default {
             this.$store.state.activePair.shared = activeSource.shared
             this.$store.state.activePair.userID = activeSource.userID
           }
+          this.autoActivateDatasourcePair((created) => {
+            if (!created) {
+              this.autoCreateDatasourcePair()
+            }
+          })
           this.renderInitialPage()
           this.getTotalLevels()
         })
@@ -538,6 +535,47 @@ export default {
           this.renderInitialPage()
           this.getTotalLevels()
         })
+    },
+    autoCreateDatasourcePair () {
+      if (this.$store.state.config.generalConfig.reconciliation.singleDataSource) {
+        if (Object.keys(this.$store.state.activePair.source1).length > 0) {
+          return false
+        }
+        if (this.$store.state.dataSources.length > 2) {
+          return false
+        }
+        let fixedSource2To = this.$store.state.config.generalConfig.reconciliation.fixSource2To
+        let source1 = {}
+        let source2 = {}
+        for (let source of this.$store.state.dataSources) {
+          if (source._id === fixedSource2To) {
+            source2 = source
+          } else {
+            source1 = source
+          }
+        }
+        if (Object.keys(source1).length === 0 || Object.keys(source2).length === 0) {
+          return false
+        }
+        this.createDatasourcePair(source1, source2)
+      }
+    },
+    autoActivateDatasourcePair (callback) {
+      if (Object.keys(this.$store.state.activePair.source1).length > 0) {
+        let val = false
+        return callback(val)
+      }
+      if (this.$store.state.dataSourcePairs.length > 1 || this.$store.state.dataSourcePairs.length === 0) {
+        let val = false
+        return callback(val)
+      }
+      if (this.$store.state.dhis.user.orgId && this.$store.state.config.generalConfig.reconciliation.singlePair) {
+        this.$store.state.dataSourcePairs.status = 'active'
+        this.activeDataSourcePair = this.$store.state.dataSourcePairs[0]
+        let val = true
+        callback(val)
+        this.activatePair()
+      }
     }
   },
   created () {
