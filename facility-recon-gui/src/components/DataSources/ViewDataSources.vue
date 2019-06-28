@@ -684,7 +684,7 @@ export default {
         this.$store.state.errorDescription = 'Please select data source'
         return
       }
-      if (this.server.userID._id !== this.$store.state.auth.userID) {
+      if (this.server.userID._id !== this.$store.state.auth.userID && this.$store.state.auth.role !== 'Admin') {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Info'
         this.$store.state.errorDescription = 'You are not the owner of this data source, ask the owner to remove you from the share'

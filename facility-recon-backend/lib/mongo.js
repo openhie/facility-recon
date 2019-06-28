@@ -294,6 +294,15 @@ module.exports = function () {
       });
     },
 
+    deleteSourcePair(id, callback) {
+      const mongoose = require('mongoose');
+      mongoose.connect(uri, {}, () => {
+        models.DataSourcePairModel.deleteOne({
+          _id: id,
+        }, (err, data) => callback(err, data));
+      });
+    },
+
     deleteFile(path, callback) {
       async.each(path, (file, nxtFile) => {
         fs.unlink(file, (err) => {
@@ -305,13 +314,16 @@ module.exports = function () {
       }, () => callback());
     },
 
-    getDataSources(userID, orgId, callback) {
+    getDataSources(userID, role, orgId, callback) {
       const mongoose = require('mongoose');
       if (!orgId) {
         orgId = 'undefined';
       }
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.find({
+      let filters;
+      if (role == 'Admin') {
+        filters = {};
+      } else {
+        filters = {
           $or: [{
             userID,
           },
@@ -329,7 +341,10 @@ module.exports = function () {
             }],
           },
           ],
-        }).populate('shared.users', 'userName').populate('userID', 'userName').lean()
+        };
+      }
+      mongoose.connect(uri, {}, () => {
+        models.DataSourcesModel.find(filters).populate('shared.users', 'userName').populate('userID', 'userName').lean()
           .exec({}, (err, sources) => {
             async.eachOfSeries(sources, (source, key, nxtSrc) => {
               // converting _bsontype property into normal property

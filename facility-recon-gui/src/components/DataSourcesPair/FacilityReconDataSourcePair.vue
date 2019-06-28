@@ -1,6 +1,44 @@
 <template>
   <v-container fluid>
     <center>
+      <v-dialog
+        persistent
+        v-model="confirmPairDeleteDialog"
+        max-width="500px"
+      >
+        <v-card>
+          <v-toolbar
+            color="error"
+            dark
+          >
+            <v-toolbar-title>
+              Confirm deleting
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              dark
+              @click.native="confirmPairDeleteDialog = false"
+            >
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text>
+            Are you sure you want to delete this data source pair
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+              color="primary"
+              @click.native="confirmPairDeleteDialog = false"
+            >Cancel</v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="error"
+              @click.native="deletePair"
+            >Ok</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <v-alert
         style="width: 1000px"
         v-model="alertSuccess"
@@ -428,6 +466,14 @@
               </v-data-table>
             </v-card-text>
             <v-card-actions>
+              <v-btn
+                :disabled="!canDeletePair"
+                color="error"
+                round
+                @click="confirmDeletePair"
+              >
+                <v-icon left>delete</v-icon>Delete Pair
+              </v-btn>
               <v-spacer></v-spacer>
               <v-btn
                 color="primary"
@@ -453,6 +499,7 @@ export default {
   mixins: [generalMixin, dataSourcePairMixin],
   data () {
     return {
+      confirmPairDeleteDialog: false,
       helpDialog: false,
       alertSuccess: false,
       alertError: false,
@@ -514,6 +561,26 @@ export default {
     }
   },
   methods: {
+    confirmDeletePair () {
+      this.confirmPairDeleteDialog = true
+    },
+    deletePair () {
+      this.confirmPairDeleteDialog = false
+      axios.delete(backendServer + '/deleteSourcePair/' + this.activeDataSourcePair._id).then((resp) => {
+        this.$store.state.errorTitle = 'Pair Deletion'
+        this.$store.state.errorDescription = 'Pair deleted successfully'
+        this.$store.state.dialogError = true
+        setTimeout(() => {
+          eventBus.$emit('getDataSourcePair')
+        }, 500)
+      }).catch((err) => {
+        this.$store.state.errorTitle = 'Pair Deletion'
+        this.$store.state.errorDescription = 'An error occured while deleting pair, please retry'
+        this.$store.state.errorColor = 'error'
+        this.$store.state.dialogError = true
+        console.log(JSON.stringify(err))
+      })
+    },
     reset () {
       this.source1 = {}
       this.source2 = {}
@@ -669,6 +736,16 @@ export default {
         }
       } else {
         return true
+      }
+    },
+    canDeletePair () {
+      if (JSON.stringify(this.activeDataSourcePair) === '{}') {
+        return false
+      }
+      if (this.activeDataSourcePair.owner.id === this.$store.state.auth.userID) {
+        return true
+      } else {
+        return false
       }
     }
   },

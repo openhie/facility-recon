@@ -469,8 +469,10 @@ export default {
       this.$store.state.loadingServers = true
       this.$store.state.dataSources = []
       let userID = this.$store.state.auth.userID
+      let role = this.$store.state.auth.role
+      let orgId = this.$store.state.dhis.user.orgId
       axios
-        .get(backendServer + '/getDataSources/' + userID + '/' + this.$store.state.dhis.user.orgId)
+        .get(backendServer + '/getDataSources/' + userID + '/' + role + '/' + orgId)
         .then(response => {
           this.$store.state.loadingServers = false
           this.$store.state.dataSources = response.data.servers
