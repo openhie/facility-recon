@@ -78,7 +78,7 @@
               color="white"
               style="font-weight: bold; font-size: 18px;"
             >
-              Choose Data Source Type
+              Choose way to add data source
             </v-toolbar>
             <v-spacer></v-spacer>
           </v-card-title>
@@ -89,12 +89,14 @@
               @change="sourceSelected"
             >
               <v-radio
+                v-if='canUseUploadWay'
                 :disabled="!canAddDataset"
                 color="primary"
                 label="Upload CSV"
                 value="upload"
               ></v-radio>
               <v-radio
+                v-if='canUseRemoteWay'
                 :disabled="!canAddDataset"
                 color="primary"
                 label="Remote Source"
@@ -164,6 +166,22 @@ export default {
         this.selectedComponent = 'FacilityReconUpload'
       } else if (selection === 'remote') {
         this.selectedComponent = 'FacilityReconRemoteSources'
+      }
+    }
+  },
+  computed: {
+    canUseUploadWay () {
+      if (this.$store.state.config.generalConfig.datasetsAdditionWays.indexOf('CSV Upload') === -1) {
+        return false
+      } else {
+        return true
+      }
+    },
+    canUseRemoteWay () {
+      if (this.$store.state.config.generalConfig.datasetsAdditionWays.indexOf('Remote Servers Sync') === -1) {
+        return false
+      } else {
+        return true
       }
     }
   },

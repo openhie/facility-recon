@@ -49,17 +49,17 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -134,11 +134,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -180,7 +180,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -812,7 +812,11 @@ if (cluster.isMaster) {
         const data = JSON.parse(JSON.stringify(resData));
         let merged = {};
         if (data) {
-          merged = deepmerge.all([defaultGenerConfig, data.config.generalConfig]);
+          // overwrite array on the left with one on the right
+          const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray;
+          merged = deepmerge.all([defaultGenerConfig, data.config.generalConfig], {
+            arrayMerge: overwriteMerge,
+          });
         } else {
           merged = defaultGenerConfig;
         }
@@ -2615,11 +2619,11 @@ if (cluster.isMaster) {
             return callback(true, false);
           }
 
-          if (configData.hasOwnProperty('config')
-            && configData.config.hasOwnProperty('generalConfig')
-            && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-            && configData.config.generalConfig.recoProgressNotification.enabled
-            && configData.config.generalConfig.recoProgressNotification.url
+          if (configData.hasOwnProperty('config') &&
+            configData.config.hasOwnProperty('generalConfig') &&
+            configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+            configData.config.generalConfig.recoProgressNotification.enabled &&
+            configData.config.generalConfig.recoProgressNotification.url
           ) {
             const url = configData.config.generalConfig.recoProgressNotification.url;
             const username = configData.config.generalConfig.recoProgressNotification.username;
@@ -3098,10 +3102,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null
-              || headerMapping[level] === 'null'
-              || headerMapping[level] === undefined
-              || !headerMapping[level]) {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
               return nxtLevel();
             }
             if (index === 0) {
@@ -3120,13 +3124,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null
-                || data[headerMapping[level]] === undefined
-                || data[headerMapping[level]] === false
-                || !data[headerMapping[level]]
-                || data[headerMapping[level]] === ''
-                || !isNaN(headerMapping[level])
-                || data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
+                data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3134,11 +3138,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null
-              || data[headerMapping.facility] === undefined
-              || data[headerMapping.facility] === false
-              || data[headerMapping.facility] === ''
-              || data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

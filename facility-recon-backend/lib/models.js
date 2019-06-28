@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-let usersFields = {
+const usersFields = {
   firstName: {
     type: String,
     required: true,
@@ -34,18 +34,18 @@ let usersFields = {
   },
   lastModified: {
     type: Date,
-  }
-}
-let Users = new mongoose.Schema(usersFields)
-let Roles = new mongoose.Schema({
+  },
+};
+const Users = new mongoose.Schema(usersFields);
+const Roles = new mongoose.Schema({
   name: {
     type: String,
     required: true,
     unique: true,
-  }
-})
+  },
+});
 
-let DataSources = new mongoose.Schema({
+const DataSources = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -66,7 +66,7 @@ let DataSources = new mongoose.Schema({
     users: [{
       type: Schema.Types.ObjectId,
       ref: 'Users',
-    }]
+    }],
   },
   // share to all system users and decide to limit what they can view based on their attached location
   shareToAll: {
@@ -75,7 +75,7 @@ let DataSources = new mongoose.Schema({
     },
     activated: {
       type: Boolean,
-    }
+    },
   },
   // share wuth all users that are on the same orgid as the datasource owner
   shareToSameOrgid: {
@@ -105,7 +105,7 @@ let DataSources = new mongoose.Schema({
   },
 });
 
-let SharedDataSourceLocations = new mongoose.Schema({
+const SharedDataSourceLocations = new mongoose.Schema({
   dataSource: {
     type: Schema.Types.ObjectId,
     ref: 'DataSources',
@@ -116,10 +116,10 @@ let SharedDataSourceLocations = new mongoose.Schema({
   },
   location: {
     type: String,
-  }
-})
+  },
+});
 
-let DataSourcePair = new mongoose.Schema({
+const DataSourcePair = new mongoose.Schema({
   source1: {
     type: Schema.Types.ObjectId,
     ref: 'DataSources',
@@ -159,7 +159,7 @@ let DataSourcePair = new mongoose.Schema({
   },
 });
 
-let MetaData = new mongoose.Schema({
+const MetaData = new mongoose.Schema({
   lastUpdated: {
     type: String,
   },
@@ -172,13 +172,14 @@ let MetaData = new mongoose.Schema({
       reconciliation: {
         useCSVHeader: {
           type: Boolean,
-        }
-      }
+        },
+      },
     }],
     generalConfig: {
       selfRegistration: {
         type: Boolean,
       },
+      datasetsAdditionWays: [],
       reconciliation: {
         parentConstraint: {
           enabled: {
@@ -308,4 +309,4 @@ module.exports = {
   UsersModel,
   RolesModel,
   usersFields,
-}
+};

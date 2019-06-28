@@ -236,6 +236,25 @@
                   v-model="$store.state.config.generalConfig.reconciliation.singlePair"
                 >
                 </v-switch>
+                <v-card>
+                  <v-card-title primary-title>
+                    Choose ways datasets can be added
+                  </v-card-title>
+                  <v-card-text>
+                    <v-checkbox
+                      label="CSV Upload"
+                      v-model="$store.state.config.generalConfig.datasetsAdditionWays"
+                      value="CSV Upload"
+                      @change="checkDatasetsAdditionWays('upload')"
+                    ></v-checkbox>
+                    <v-checkbox
+                      label="Remote Servers Sync"
+                      v-model="$store.state.config.generalConfig.datasetsAdditionWays"
+                      value="Remote Servers Sync"
+                      @change="checkDatasetsAdditionWays('remote')"
+                    ></v-checkbox>
+                  </v-card-text>
+                </v-card>
                 <v-tooltip top>
                   <v-switch
                     @change="displayDatasourceDialog"
@@ -265,103 +284,111 @@
                 </template>
               </v-flex>
               <v-flex>
-                <v-switch
-                  @change="disableGOFRAuth"
-                  color="primary"
-                  label="Disable Authentication"
-                  v-model="$store.state.config.generalConfig.authDisabled"
-                >
-                </v-switch>
-                <v-card
-                  v-if="$store.state.config.generalConfig.authDisabled"
-                  color="grey lighten-3"
-                  style="margin-left:100px"
-                >
-                  External Authentication Method
-                  <v-radio-group
-                    v-model="$store.state.config.generalConfig.authMethod"
-                    @change="saveConfiguration('generalConfig', 'useDhis2Auth')"
-                  >
-                    <v-radio
-                      label="dhis2"
-                      value="dhis2"
-                      disabled
-                    ></v-radio>
-                    <v-radio
-                      label="iHRIS"
-                      value="iHRIS"
-                      disabled
-                    ></v-radio>
-                  </v-radio-group>
-                  <v-select
-                    @change="saveConfiguration('generalConfig', 'externalAuth')"
-                    label="Superuser Role Name"
-                    item-text='displayName'
-                    item-value='id'
-                    :loading="loadingDhis2Roles"
-                    required
-                    :items="dhis2Roles"
-                    v-model="$store.state.config.generalConfig.externalAuth.adminRole"
-                  ></v-select>
-                  <v-checkbox
-                    @change="saveConfiguration('generalConfig', 'externalAuth')"
-                    color="success"
-                    v-if="$store.state.config.generalConfig.authMethod"
-                    label="Pull org units"
-                    v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                  >
-                  </v-checkbox>
-                  <v-checkbox
-                    @change="saveConfiguration('generalConfig', 'externalAuth')"
-                    color="success"
-                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                    label="Share orgs with other users"
-                    v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits"
-                  >
-                  </v-checkbox>
-                  <v-checkbox
-                    @change="saveConfiguration('generalConfig', 'externalAuth')"
-                    color="success"
-                    v-if="
+                <v-card>
+                  <v-card-text>
+                    <v-switch
+                      @change="disableGOFRAuth"
+                      color="primary"
+                      label="Disable Authentication"
+                      v-model="$store.state.config.generalConfig.authDisabled"
+                    >
+                    </v-switch>
+                    <v-card
+                      v-if="$store.state.config.generalConfig.authDisabled"
+                      color="grey lighten-3"
+                      style="margin-left:100px"
+                    >
+                      External Authentication Method
+                      <v-radio-group
+                        v-model="$store.state.config.generalConfig.authMethod"
+                        @change="saveConfiguration('generalConfig', 'useDhis2Auth')"
+                      >
+                        <v-radio
+                          label="dhis2"
+                          value="dhis2"
+                          disabled
+                        ></v-radio>
+                        <v-radio
+                          label="iHRIS"
+                          value="iHRIS"
+                          disabled
+                        ></v-radio>
+                      </v-radio-group>
+                      <v-select
+                        style="width: 350px"
+                        @change="saveConfiguration('generalConfig', 'externalAuth')"
+                        label="Superuser Role Name"
+                        item-text='displayName'
+                        item-value='id'
+                        :loading="loadingDhis2Roles"
+                        required
+                        :items="dhis2Roles"
+                        v-model="$store.state.config.generalConfig.externalAuth.adminRole"
+                      ></v-select>
+                      <v-checkbox
+                        @change="saveConfiguration('generalConfig', 'externalAuth')"
+                        v-if="$store.state.config.generalConfig.authMethod"
+                        label="Pull org units"
+                        v-model="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                      >
+                      </v-checkbox>
+                      <v-checkbox
+                        @change="saveConfiguration('generalConfig', 'externalAuth')"
+                        v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                        label="Share orgs with other users"
+                        v-model="$store.state.config.generalConfig.externalAuth.shareOrgUnits"
+                      >
+                      </v-checkbox>
+                      <v-checkbox
+                        @change="saveConfiguration('generalConfig', 'externalAuth')"
+                        v-if="
                       $store.state.config.generalConfig.externalAuth.shareOrgUnits &&
                       $store.state.config.generalConfig.externalAuth.pullOrgUnits
                     "
-                    label="Limit orgs sharing by user orgid"
-                    v-model="$store.state.config.generalConfig.externalAuth.shareByOrgId"
-                  >
-                  </v-checkbox>
-                  <v-text-field
-                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                    label="Dataset Name"
-                    v-model="$store.state.config.generalConfig.externalAuth.datasetName"
-                    @blur="ensureNameUnique"
-                    @input="ensureNameUnique"
-                    :error-messages="datasetNameErrors"
-                    required
-                  ></v-text-field>
-                  <v-text-field
-                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                    label="Username"
-                    v-model="$store.state.config.generalConfig.externalAuth.userName"
-                    required
-                  ></v-text-field>
-                  <v-text-field
-                    v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                    label="Password"
-                    v-model="$store.state.config.generalConfig.externalAuth.password"
-                    type="password"
-                    required
-                  ></v-text-field>
-                  <v-flex xs3>
-                    <v-btn
-                      color="success"
-                      :disabled='datasetNameErrors.length > 0 || !$store.state.config.generalConfig.externalAuth.datasetName'
-                      small
-                      round
-                      v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
-                      @click="pullOrgUnits"
-                    >start pulling</v-btn>
-                  </v-flex>
+                        label="Limit orgs sharing by user orgid"
+                        v-model="$store.state.config.generalConfig.externalAuth.shareByOrgId"
+                      >
+                      </v-checkbox>
+                      <v-text-field
+                        style="width: 350px"
+                        outline
+                        v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                        label="Dataset Name"
+                        v-model="$store.state.config.generalConfig.externalAuth.datasetName"
+                        @blur="ensureNameUnique"
+                        @input="ensureNameUnique"
+                        :error-messages="datasetNameErrors"
+                        required
+                      ></v-text-field>
+                      <v-text-field
+                        style="width: 350px"
+                        outline
+                        v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                        label="Username"
+                        v-model="$store.state.config.generalConfig.externalAuth.userName"
+                        required
+                      ></v-text-field>
+                      <v-text-field
+                        style="width: 350px"
+                        outline
+                        v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                        label="Password"
+                        v-model="$store.state.config.generalConfig.externalAuth.password"
+                        type="password"
+                        required
+                      ></v-text-field>
+                      <v-flex xs3>
+                        <v-btn
+                          color="primary"
+                          :disabled='datasetNameErrors.length > 0 || !$store.state.config.generalConfig.externalAuth.datasetName'
+                          small
+                          round
+                          v-if="$store.state.config.generalConfig.externalAuth.pullOrgUnits"
+                          @click="pullOrgUnits"
+                        >start pulling</v-btn>
+                      </v-flex>
+                    </v-card>
+                  </v-card-text>
                 </v-card>
               </v-flex>
               <v-flex>
@@ -537,6 +564,22 @@ export default {
     }
   },
   methods: {
+    checkDatasetsAdditionWays (way) {
+      if (this.$store.state.config.generalConfig.datasetsAdditionWays.length === 0) {
+        this.$store.state.errorTitle = 'Cant disable both ways'
+        this.$store.state.errorDescription = 'There must be atleast one way of adding a dataset'
+        this.$store.state.dialogError = true
+        let additionWay
+        if (way === 'remote') {
+          additionWay = 'Remote Servers Sync'
+        } else if (way === 'upload') {
+          additionWay = 'CSV Upload'
+        }
+        this.$store.state.config.generalConfig.datasetsAdditionWays.push(additionWay)
+      } else {
+        this.saveConfiguration('generalConfig', 'datasetsAdditionWays')
+      }
+    },
     autoDisableSingleDatasource (confirmation) {
       if (confirmation === 'ok') {
         this.$store.state.config.generalConfig.reconciliation.singleDataSource = false
