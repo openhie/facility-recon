@@ -645,7 +645,17 @@ export default {
       if (!this.$store.state.config.generalConfig.authDisabled) {
         this.saveConfiguration('generalConfig', 'authDisabled')
       } else if (this.$store.state.config.generalConfig.authDisabled) {
-        this.setDHIS2Credentials()
+        let isSet = this.setDHIS2Credentials()
+        if (!isSet) {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorColor = 'error'
+          this.$store.state.errorDescription = 'App doesnt appear to be running inside DHIS2, cant disable authentication'
+          setTimeout(() => {
+            this.$store.state.config.generalConfig.authDisabled = false
+          })
+          return
+        }
         this.loadingDhis2Roles = true
         this.getDHIS2Roles(roles => {
           this.loadingDhis2Roles = false

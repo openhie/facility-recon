@@ -15,29 +15,29 @@ export default {
       if (auth.username === '') {
         auth = ''
       }
-      axios.get(this.$store.state.dhis.host + 'api/me', {auth}).then((userData) => {
+      axios.get(this.$store.state.dhis.host + 'api/me', { auth }).then((userData) => {
         var orgUnitsIDs = userData.data.organisationUnits
         if (orgUnitsIDs.length > 0) {
           this.$store.state.dhis.user.orgId = orgUnitsIDs.shift().id
-          axios.get(this.$store.state.dhis.host + 'api/organisationUnits/' + this.$store.state.dhis.user.orgId, {auth}).then((orgUnits) => {
+          axios.get(this.$store.state.dhis.host + 'api/organisationUnits/' + this.$store.state.dhis.user.orgId, { auth }).then((orgUnits) => {
             this.$store.state.dhis.user.orgName = orgUnits.data.displayName
             return callback(userData)
           })
         }
       })
-      .catch((err) => {
-        this.$store.state.dialogError = true
-        this.$store.state.errorTitle = 'Error'
-        if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
-          this.$store.state.errorDescription = 'Unauthorized, esnure that you DHIS2 login is active'
-          this.$router.push({ name: 'Logout' })
-        } else {
-          this.$store.state.errorDescription = 'Unauthorized, please reload the app'
-          // this.$store.state.config.generalConfig.authDisabled = false
-          // this.$store.state.initializingApp = false
-          // this.saveConfiguration('generalConfig', 'authDisabled')
-        }
-      })
+        .catch((err) => {
+          this.$store.state.dialogError = true
+          this.$store.state.errorTitle = 'Error'
+          if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
+            this.$store.state.errorDescription = 'Unauthorized, esnure that you DHIS2 login is active'
+            this.$router.push({ name: 'Logout' })
+          } else {
+            this.$store.state.errorDescription = 'Unauthorized, please reload the app'
+            // this.$store.state.config.generalConfig.authDisabled = false
+            // this.$store.state.initializingApp = false
+            // this.saveConfiguration('generalConfig', 'authDisabled')
+          }
+        })
     }
   },
   created () {

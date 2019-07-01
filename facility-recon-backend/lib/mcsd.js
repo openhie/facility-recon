@@ -528,6 +528,9 @@ module.exports = () => ({
         if (!isJSON(body)) {
           return callback(0);
         }
+        if (res.statusCode < 200 || res.statusCode > 299) {
+          return callback(totalLevels);
+        }
         body = JSON.parse(body);
         let entry;
         if (body.entry.length === 0 && prev_entry.length > 0) {

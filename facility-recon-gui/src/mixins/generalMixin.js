@@ -236,11 +236,17 @@ export const generalMixin = {
       }
       this.$store.state.auth.token = ''
       if (process.env.NODE_ENV === 'production') {
+        let href = location.href.split('api')
+        if (href.length < 2) {
+          return false
+        }
         this.$store.state.dhis.host = location.href.split('api').shift()
+        return true
       } else if (process.env.NODE_ENV === 'development') {
         this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
         this.$store.state.dhis.dev.auth.username = 'bombaliuser1'
         this.$store.state.dhis.dev.auth.password = 'Qv?B/*w6'
+        return true
       }
     }
   }
