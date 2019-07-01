@@ -49,6 +49,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../../facility-recon-backend/gui'),
     assetsSubDirectory: 'static',
+    configDirectory: 'config',
     assetsPublicPath: '',
     /**
      * Source Maps

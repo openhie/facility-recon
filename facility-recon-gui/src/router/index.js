@@ -16,7 +16,9 @@ import ViewDataSources from '@/components/DataSources/ViewDataSources'
 import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourcePair'
 import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import VueCookies from 'vue-cookies'
-import {store} from '../store/store.js'
+import {
+  store
+} from '../store/store.js'
 
 Vue.use(Router)
 

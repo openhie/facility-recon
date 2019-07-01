@@ -599,6 +599,8 @@ export default {
           this.$store.state.denyAccess = false
           this.getUserConfig()
         })
+      } else {
+        this.$router.push('login')
       }
     }
 
