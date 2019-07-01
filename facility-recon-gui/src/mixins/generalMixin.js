@@ -231,9 +231,6 @@ export const generalMixin = {
     },
     setDHIS2Credentials () {
       // tell the backend that auth is disabled
-      axios.defaults.params = {
-        authDisabled: true
-      }
       this.$store.state.auth.token = ''
       if (process.env.NODE_ENV === 'production') {
         let href = location.href.split('api')
@@ -241,11 +238,17 @@ export const generalMixin = {
           return false
         }
         this.$store.state.dhis.host = location.href.split('api').shift()
+        axios.defaults.params = {
+          authDisabled: true
+        }
         return true
       } else if (process.env.NODE_ENV === 'development') {
         this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
         this.$store.state.dhis.dev.auth.username = 'bombaliuser1'
         this.$store.state.dhis.dev.auth.password = 'Qv?B/*w6'
+        axios.defaults.params = {
+          authDisabled: true
+        }
         return true
       }
     }

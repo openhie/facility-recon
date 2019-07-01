@@ -7,13 +7,11 @@ import Vuetify from 'vuetify'
 import Vuelidate from 'vuelidate'
 import 'vuetify/dist/vuetify.min.css'
 import axios from 'axios'
-import jsonConfig from '../config/config.json'
+import guiConfig from '../config/config.json'
 import {
   store
 } from './store/store'
 import i18n from './i18n'
-
-axios.defaults.baseURL = process.env.BACKEND_SERVER || jsonConfig.BACKEND_SERVER
 
 Vue.use(Vuelidate)
 Vue.use(Vuetify, {
@@ -31,28 +29,53 @@ Vue.use(Vuetify, {
 Vue.config.productionTip = false
 
 export const eventBus = new Vue()
-/* eslint-disable no-new */
-// get general config of App and pass it to the App component as props
-let defaultGenerConfig = JSON.stringify(store.state.config.generalConfig)
-axios.get('/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig).then(genConfig => {
-  if (!genConfig) {
-    genConfig.data = {}
+
+// if running inside DHIS2 then get any config defined inside the datastore
+function getDHIS2StoreConfig (callback) {
+  let href = location.href.split('api')
+  if (href.length < 2) {
+    let dhis2URL = location.href.split('api').shift()
+    axios.get(dhis2URL + '/api/dataStore/GOFR/config').then((response) => {
+      return callback(response.data)
+    }).catch((err) => {
+      console.log(JSON.stringify(err))
+      let resp = false
+      return callback(resp)
+    })
+  } else {
+    let resp = false
+    return callback(resp)
   }
-  new Vue({
-    el: '#app',
-    router,
-    store,
+}
+/* eslint-disable no-new */
+getDHIS2StoreConfig((storeConfig) => {
+  if (storeConfig && storeConfig.BACKEND_SERVER) {
+    axios.defaults.baseURL = process.env.BACKEND_SERVER || storeConfig.BACKEND_SERVER
+  } else {
+    axios.defaults.baseURL = process.env.BACKEND_SERVER || guiConfig.BACKEND_SERVER
+  }
+  // get general config of App and pass it to the App component as props
+  let defaultGenerConfig = JSON.stringify(store.state.config.generalConfig)
+  axios.get('/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig).then(genConfig => {
+    if (!genConfig) {
+      genConfig.data = {}
+    }
+    new Vue({
+      el: '#app',
+      router,
+      store,
 
-    components: {
-      App
-    },
-    data () {
-      return {
-        config: genConfig.data
-      }
-    },
+      components: {
+        App
+      },
+      data () {
+        return {
+          config: genConfig.data
+        }
+      },
 
-    i18n,
-    template: '<App :generalConfig="config" />'
+      i18n,
+      template: '<App :generalConfig="config" />'
+    })
   })
 })
