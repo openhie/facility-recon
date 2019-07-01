@@ -262,7 +262,7 @@
                       style="white-space:nowrap;overflow: hidden;"
                       :key="header.value + 1"
                     >
-                      <template v-if="key === 0">
+                      <template v-if="key === 0 && isDataset1Owner">
                         <v-icon
                           @click="edit(props.item, 'source1')"
                           style="cursor: pointer"
@@ -326,7 +326,7 @@
                       style="white-space:nowrap;overflow: hidden;"
                       :key="header.value + 2"
                     >
-                      <template v-if="key === 0">
+                      <template v-if="key === 0 && isDataset2Owner">
                         <v-icon
                           @click="edit(props.item, 'source2')"
                           style="cursor: pointer"
@@ -674,13 +674,31 @@ export default {
     }
   },
   computed: {
+    isDataset1Owner () {
+      let source1Owner = this.getDatasourceOwner().source1Owner
+      let userID = this.$store.state.auth.userID
+      if (source1Owner !== userID) {
+        return false
+      }
+      return true
+    },
+    isDataset2Owner () {
+      let source2Owner = this.getDatasourceOwner().source2Owner
+      let userID = this.$store.state.auth.userID
+      if (source2Owner !== userID) {
+        return false
+      }
+      return true
+    },
     source2GridHeader () {
       let header = []
-      header.push({
-        text: '',
-        value: '',
-        sortable: false
-      })
+      if (this.isDataset2Owner) {
+        header.push({
+          text: '',
+          value: '',
+          sortable: false
+        })
+      }
       let gridWithAllHeaders = {}
       if (this.source2Grid && this.source2Grid.length > 0) {
         for (var grid in this.source2Grid) {
@@ -700,11 +718,13 @@ export default {
     },
     source1GridHeader () {
       let header = []
-      header.push({
-        text: '',
-        value: '',
-        sortable: false
-      })
+      if (this.isDataset1Owner) {
+        header.push({
+          text: '',
+          value: '',
+          sortable: false
+        })
+      }
       let gridWithAllHeaders = {}
       if (this.source1Grid && this.source1Grid.length > 0) {
         for (var grid in this.source1Grid) {

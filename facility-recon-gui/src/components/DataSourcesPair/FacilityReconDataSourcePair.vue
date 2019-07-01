@@ -689,6 +689,7 @@ export default {
         formData.append('sharePair', this.sharePair._id)
         formData.append('users', JSON.stringify(this.sharedUsers))
         formData.append('userID', this.$store.state.auth.userID)
+        formData.append('orgId', this.$store.state.dhis.user.orgId)
         this.$store.state.loadingServers = true
         this.shareDialog = false
         axios.post(backendServer + '/shareSourcePair', formData, {

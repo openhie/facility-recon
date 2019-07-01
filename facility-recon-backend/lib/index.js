@@ -521,7 +521,7 @@ if (cluster.isMaster) {
           res.status(500).send('An error occured while sharing data source pair');
         } else {
           winston.info('Data source pair shared successfully');
-          mongo.getDataSourcePair(fields.userID, (err, pairs) => {
+          mongo.getDataSourcePair(fields.userID, fields.orgId, (err, pairs) => {
             if (err) {
               winston.error(err);
               winston.error('An error has occured while getting data source pairs');
@@ -2913,7 +2913,7 @@ if (cluster.isMaster) {
   });
 
   app.delete('/deleteSourcePair/:id', (req, res) => {
-    winston.info(`Received a request to delete data source pair with id ${  req.params.id}`);
+    winston.info(`Received a request to delete data source pair with id ${req.params.id}`);
     const id = req.params.id;
     mongo.deleteSourcePair(id, (err, data) => {
       if (err) {
@@ -3120,6 +3120,10 @@ if (cluster.isMaster) {
               headerMapping[level] === undefined ||
               !headerMapping[level]) {
               return nxtLevel();
+            }
+            if (data[headerMapping.code] == '') {
+              populateData(headerMapping, data, 'Missing Facility ID', invalid);
+              rowMarkedInvalid = true;
             }
             if (index === 0) {
               index++;
