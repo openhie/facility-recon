@@ -33,19 +33,38 @@ export const eventBus = new Vue()
 // if running inside DHIS2 then get any config defined inside the datastore
 function getDHIS2StoreConfig (callback) {
   let href = location.href.split('api')
-  if (href.length < 2) {
+  if (href.length >= 2) {
     let dhis2URL = location.href.split('api').shift()
-    axios.get(dhis2URL + '/api/dataStore/GOFR/config').then((response) => {
-      return callback(response.data)
+    axios.get(dhis2URL + 'api/dataStore/GOFR/config').then((response) => {
+      callback(response.data)
+      // if BACKEND_URL is missing then set it
+      if (!response.data.BACKEND_SERVER) {
+        console.log('from then')
+        let url = process.env.BACKEND_SERVER || guiConfig.BACKEND_SERVER
+        let config = {
+          BACKEND_SERVER: url
+        }
+        addDHIS2StoreConfig(config)
+      }
     }).catch((err) => {
       console.log(JSON.stringify(err))
       let resp = false
+      let url = process.env.BACKEND_SERVER || guiConfig.BACKEND_SERVER
+      let config = {
+        BACKEND_SERVER: url
+      }
+      addDHIS2StoreConfig(config)
       return callback(resp)
     })
   } else {
     let resp = false
     return callback(resp)
   }
+}
+
+function addDHIS2StoreConfig (config) {
+  let dhis2URL = location.href.split('api').shift()
+  axios.post(dhis2URL + 'api/dataStore/GOFR/config', config)
 }
 /* eslint-disable no-new */
 getDHIS2StoreConfig((storeConfig) => {
