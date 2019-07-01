@@ -2792,18 +2792,35 @@ if (cluster.isMaster) {
       winston.info('Received a request to edit a data source');
       mongo.editDataSource(fields, (err, response) => {
         if (err) {
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(500).json({
             error: 'Unexpected error occured,please retry',
           });
           winston.error(err);
         } else {
           winston.info('Data source edited sucessfully');
-          res.set('Access-Control-Allow-Origin', '*');
           res.status(200).json({
             status: 'done',
             password: response,
           });
+        }
+      });
+    });
+  });
+
+  app.post('/updateDatasetAutosync', (req, res) => {
+    winston.info('Received a request to edit a data source auto sync');
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      fields.enabled = JSON.parse(fields.enabled);
+      mongo.updateDatasetAutosync(fields.id, fields.enabled, (err, resp) => {
+        if (err) {
+          res.status(500).json({
+            error: 'Unexpected error occured,please retry',
+          });
+          winston.error(err);
+        } else {
+          winston.info('Data source edited sucessfully');
+          res.status(200).send();
         }
       });
     });

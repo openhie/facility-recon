@@ -61,6 +61,9 @@ const DataSources = new mongoose.Schema({
     type: String,
     required: true,
   },
+  enableAutosync: {
+    type: Boolean,
+  },
   // share to specific users only
   shared: {
     users: [{
@@ -180,6 +183,9 @@ const MetaData = new mongoose.Schema({
         type: Boolean,
       },
       datasetsAdditionWays: [],
+      datasetsAutosyncTime: {
+        type: String,
+      },
       reconciliation: {
         parentConstraint: {
           enabled: {

@@ -41,6 +41,7 @@ export const store = new Vuex.Store({
         },
         selfRegistration: false,
         datasetsAdditionWays: ['CSV Upload', 'Remote Servers Sync'],
+        datasetsAutosyncTime: '*/15 * * * *',
         authDisabled: false,
         authMethod: 'dhis2',
         externalAuth: {

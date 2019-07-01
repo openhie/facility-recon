@@ -221,21 +221,6 @@
                     v-model="$store.state.config.generalConfig.reconciliation.parentConstraint.nameAutoMatch"
                   ></v-checkbox>
                 </v-card>
-                <v-switch
-                  @change="singleDatasource"
-                  color="primary"
-                  label="Single data source per user"
-                  v-model="$store.state.config.generalConfig.reconciliation.singleDataSource"
-                >
-                </v-switch>
-                <v-switch
-                  v-if="$store.state.dhis.user.orgId"
-                  @change="saveConfiguration('generalConfig', 'singlePair')"
-                  color="primary"
-                  label="Single data source pair per org unit"
-                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
-                >
-                </v-switch>
                 <v-card>
                   <v-card-title primary-title>
                     Choose ways datasets can be added
@@ -255,6 +240,21 @@
                     ></v-checkbox>
                   </v-card-text>
                 </v-card>
+                <v-switch
+                  @change="singleDatasource"
+                  color="primary"
+                  label="Single data source per user"
+                  v-model="$store.state.config.generalConfig.reconciliation.singleDataSource"
+                >
+                </v-switch>
+                <v-switch
+                  v-if="$store.state.dhis.user.orgId"
+                  @change="saveConfiguration('generalConfig', 'singlePair')"
+                  color="primary"
+                  label="Single data source pair per org unit"
+                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
+                >
+                </v-switch>
                 <v-tooltip top>
                   <v-switch
                     @change="displayDatasourceDialog"
@@ -441,6 +441,50 @@
                 </v-layout>
               </v-flex>
               <v-flex xs1>
+                <v-card>
+                  <v-card-title primary-title>
+                    Cron Jobs
+                  </v-card-title>
+                  <v-card-text>
+                    Autosync Below Remote Datasets
+                    <v-text-field
+                      style="width: 350px"
+                      outline
+                      @blur="saveConfiguration('generalConfig', 'datasetsAutosyncTime')"
+                      name="cron_time"
+                      label="Cron Time"
+                      v-model="$store.state.config.generalConfig.datasetsAutosyncTime"
+                    ></v-text-field>
+                    <v-data-table
+                      :headers="cronDataSourceHeaders"
+                      :items="remoteDatasets"
+                      hide-actions
+                      class="elevation-1"
+                      pagination.sync="pagination"
+                    >
+                      <template
+                        slot="items"
+                        slot-scope="props"
+                      >
+                        <td>{{props.item.name}}</td>
+                        <td>{{props.item.userID.userName}}</td>
+                        <td>
+                          {{props.item.createdTime}}
+                        </td>
+                        <td>
+                          <v-switch
+                            @change="controlDatasetsCronjobs(props.item)"
+                            color="primary"
+                            v-model="datasetsAutosyncState[props.item._id]"
+                          >
+                          </v-switch>
+                        </td>
+                      </template>
+                    </v-data-table>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+              <v-flex xs1>
                 <v-switch
                   @change="saveConfiguration('generalConfig', 'recoProgressNotification')"
                   color="primary"
@@ -547,6 +591,13 @@ export default {
         { text: 'Owner', value: 'owner', sortable: false },
         { text: 'Created Time', value: 'createdTime' }
       ],
+      cronDataSourceHeaders: [
+        { text: 'Source Name', align: 'left', value: 'name' },
+        { text: 'Owner', value: 'owner', sortable: false },
+        { text: 'Created Time', value: 'createdTime' },
+        { text: 'Enabled', value: 'enabled' }
+      ],
+      datasetsAutosyncState: {},
       useCSVHeader: false,
       moreFields: false,
       fieldLabel: '',
@@ -564,6 +615,15 @@ export default {
     }
   },
   methods: {
+    check () {
+      console.log('called')
+    },
+    controlDatasetsCronjobs (dataset) {
+      let formData = new FormData()
+      formData.append('id', dataset._id)
+      formData.append('enabled', this.datasetsAutosyncState[dataset._id])
+      axios.post(backendServer + '/updateDatasetAutosync', formData)
+    },
     checkDatasetsAdditionWays (way) {
       if (this.$store.state.config.generalConfig.datasetsAdditionWays.length === 0) {
         this.$store.state.errorTitle = 'Cant disable both ways'
@@ -854,6 +914,20 @@ export default {
         if (sources.shareToAll.activated) {
           servers.push(sources)
         } else {
+          servers.push(sources)
+        }
+      }
+      return servers
+    },
+    remoteDatasets () {
+      let servers = []
+      for (let sources of this.$store.state.dataSources) {
+        if (sources.source === 'syncServer') {
+          if (sources.enableAutosync) {
+            this.datasetsAutosyncState[sources._id] = true
+          } else {
+            this.datasetsAutosyncState[sources._id] = false
+          }
           servers.push(sources)
         }
       }

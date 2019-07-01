@@ -184,6 +184,21 @@ module.exports = function () {
       });
     },
 
+    updateDatasetAutosync(id, state, callback) {
+      const mongoose = require('mongoose');
+      mongoose.connect(uri, {}, () => {
+        models.DataSourcesModel.findByIdAndUpdate(id, {
+          enableAutosync: state,
+        }, (err, data) => {
+          if (err) {
+            winston.error(err);
+            return callback('Unexpected error occured,please retry');
+          }
+          return callback(false, data);
+        });
+      });
+    },
+
     getServer(userID, name, callback) {
       const mongoose = require('mongoose');
       mongoose.connect(uri, {}, () => {
