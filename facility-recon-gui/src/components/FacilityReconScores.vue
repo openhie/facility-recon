@@ -141,16 +141,17 @@
               color="info"
               @click='downloadMatched'
             >
-            <v-icon left>file_copy</v-icon>
-            Matched</v-btn>
+              <v-icon left>file_copy</v-icon>
+              Matched
+            </v-btn>
             <v-spacer></v-spacer>
             <v-btn
               round
               color="info"
               @click='downloadSource1Unmatched'
             >
-            <v-icon left>file_copy</v-icon>
-            Source1 Unmatched
+              <v-icon left>file_copy</v-icon>
+              Source1 Unmatched
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn
@@ -158,8 +159,9 @@
               color="info"
               @click='downloadSource2Unmatched'
             >
-            <v-icon left>file_copy</v-icon>
-            Source2 Unmatched</v-btn>
+              <v-icon left>file_copy</v-icon>
+              Source2 Unmatched
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -1466,18 +1468,18 @@ export default {
       axios
         .post(
           backendServer +
-            '/acceptFlag/' +
-            this.getSource1() +
-            '/' +
-            this.getSource2() +
-            '/' +
-            userID,
+          '/acceptFlag/' +
+          this.getSource1() +
+          '/' +
+          this.getSource2() +
+          '/' +
+          userID,
           formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
         )
         .then(() => {
           this.$store.state.dynamicProgress = false
@@ -1519,22 +1521,22 @@ export default {
       axios
         .post(
           backendServer +
-            '/breakMatch/' +
-            this.getSource1() +
-            '/' +
-            this.getSource2() +
-            '/' +
-            sourcesOwner.source1Owner +
-            '/' +
-            sourcesOwner.source2Owner +
-            '/' +
-            userID,
+          '/breakMatch/' +
+          this.getSource1() +
+          '/' +
+          this.getSource2() +
+          '/' +
+          sourcesOwner.source1Owner +
+          '/' +
+          sourcesOwner.source2Owner +
+          '/' +
+          userID,
           formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
         )
         .then(data => {
           this.$store.state.dynamicProgress = false
@@ -1580,22 +1582,22 @@ export default {
       axios
         .post(
           backendServer +
-            '/breakMatch/' +
-            this.getSource1() +
-            '/' +
-            this.getSource2() +
-            '/' +
-            sourcesOwner.source1Owner +
-            '/' +
-            sourcesOwner.source2Owner +
-            '/' +
-            userID,
+          '/breakMatch/' +
+          this.getSource1() +
+          '/' +
+          this.getSource2() +
+          '/' +
+          sourcesOwner.source1Owner +
+          '/' +
+          sourcesOwner.source2Owner +
+          '/' +
+          userID,
           formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
         )
         .then(data => {
           this.$store.state.dynamicProgress = false
@@ -1642,20 +1644,20 @@ export default {
       axios
         .post(
           backendServer +
-            '/breakNoMatch/' +
-            type +
-            '/' +
-            this.getSource1() +
-            '/' +
-            this.getSource2() +
-            '/' +
-            userID,
+          '/breakNoMatch/' +
+          type +
+          '/' +
+          this.getSource1() +
+          '/' +
+          this.getSource2() +
+          '/' +
+          userID,
           formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
         )
         .then(data => {
           this.$store.state.dynamicProgress = false
@@ -1715,11 +1717,11 @@ export default {
       axios
         .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
           formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
         )
         .then(() => {
           this.$store.state.dynamicProgress = false
@@ -1796,7 +1798,7 @@ export default {
         levelMapping1,
         levelMapping2
       }
-      return axios.get(backendServer + '/matchedLocations', {params})
+      return axios.get(backendServer + '/matchedLocations', { params })
     },
     unMatchedLocations (type) {
       let userID = this.$store.state.activePair.userID._id
@@ -1821,7 +1823,7 @@ export default {
         levelMapping1,
         levelMapping2
       }
-      return axios.get(backendServer + '/unmatchedLocations', {params})
+      return axios.get(backendServer + '/unmatchedLocations', { params })
     },
     csvExport () {
       this.loadingCSV = true
@@ -1926,7 +1928,7 @@ export default {
       get: function () {
         return this.translateDataHeader('source1', this.$store.state.recoLevel)
       },
-      set: function (newVal) {}
+      set: function (newVal) { }
     },
     currentLevelText: {
       get: function () {
@@ -1935,7 +1937,7 @@ export default {
           this.$store.state.recoLevel - 1
         )
       },
-      set: function (newVal) {}
+      set: function (newVal) { }
     },
     matchedHeaders () {
       let header = [
@@ -1991,7 +1993,7 @@ export default {
       if (
         this.$store.state.source2UnMatched !== null &&
         this.$store.state.source2UnMatched.length >
-          this.potentialMatches.length &&
+        this.potentialMatches.length &&
         this.showAllPotential === 'all'
       ) {
         let results = []
@@ -2270,6 +2272,9 @@ export default {
     } else {
       this.dialogWidth = '1190px'
     }
+  },
+  mounted () {
+    console.log('mounted');
   },
   components: {
     'liquor-tree': LiquorTree
