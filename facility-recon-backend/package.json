@@ -4,7 +4,7 @@
   "description": "GOFR",
   "main": "index.js",
   "scripts": {
-    "start": "node --max-old-space-size=6076 lib/index.js"
+    "start": "node --max-old-space-size=8192 lib/index.js"
   },
   "repository": {
     "type": "git",

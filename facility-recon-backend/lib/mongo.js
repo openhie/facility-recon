@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 require('./init');
 const winston = require('winston');
 const crypto = require('crypto');

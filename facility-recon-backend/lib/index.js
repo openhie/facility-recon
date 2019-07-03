@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable func-names */
 require('./init');
 const cluster = require('cluster');
 const express = require('express');
@@ -30,7 +32,6 @@ const models = require('./models');
 const mixin = require('./mixin')();
 const mongo = require('./mongo')();
 const config = require('./config');
-const upgrade = require('./upgrade');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();
@@ -55,6 +56,7 @@ const jwtValidator = function (req, res, next) {
     req.path == '/getSignupConf' ||
     req.path == '/getGeneralConfig' ||
     req.path == '/addUser/' ||
+    req.path.startsWith('/scoreProgress') ||
     req.path == '/' ||
     req.path.startsWith('/static/js') ||
     req.path.startsWith('/static/config.json') ||
@@ -120,10 +122,11 @@ const topOrgName = config.getConf('mCSD:fakeOrgName');
 if (cluster.isMaster) {
   const workers = {};
   const database = config.getConf('DB_NAME');
+  let uri;
   if (mongoUser && mongoPasswd) {
-    var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
   } else {
-    var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+    uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
   }
   mongoose.connect(uri);
   const db = mongoose.connection;
@@ -581,7 +584,7 @@ if (cluster.isMaster) {
           res.status(500).send('An error occured while sharing data source');
         } else {
           winston.info('Data source shared successfully');
-          mongo.getDataSources(fields.userID, null, (err, sources) => {
+          mongo.getDataSources(fields.userID, fields.role, fields.orgId, (err, sources) => {
             getLastUpdateTime(sources, (sources) => {
               if (err) {
                 winston.error(err);
@@ -1418,6 +1421,7 @@ if (cluster.isMaster) {
       async.parallel({
         locationChildren(callback) {
           mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
+            winston.error(sourceLimitOrgId);
             winston.info(`Done Fetching Locations For ${source}`);
             return callback(false, mcsdData);
           });
@@ -1549,6 +1553,7 @@ if (cluster.isMaster) {
         error: 'Missing source1 or source2 or reconciliation Level or userID',
       });
     } else {
+      res.status(200).send();
       winston.info('Getting scores');
       const orgid = req.query.orgid;
       let mcsdSource2All = null;
@@ -1607,17 +1612,12 @@ if (cluster.isMaster) {
             recoLevel,
             totalSource1Levels,
             clientId,
-            parentConstraint, (scoreResults) => {
+            parentConstraint, (scoreResults, source2Unmatched) => {
               recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
-                scoreResData = JSON.stringify({
-                  status: 'Done',
-                  error: null,
-                  percent: 100,
-                });
-                redisClient.set(scoreRequestId, scoreResData);
                 const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
-                res.status(200).json({
+                const responseData = {
                   scoreResults,
+                  source2Unmatched,
                   recoLevel,
                   source2TotalRecords: results.source2Locations.entry.length,
                   source2TotalAllRecords: mcsdSource2All.entry.length - 1,
@@ -1627,7 +1627,14 @@ if (cluster.isMaster) {
                   totalAllIgnored,
                   source1TotalAllNotMapped,
                   source1TotalAllRecords: mcsdSource1All.entry.length - 1,
+                };
+                const scoreResData = JSON.stringify({
+                  status: 'Done',
+                  error: null,
+                  percent: 100,
+                  responseData,
                 });
+                redisClient.set(scoreRequestId, scoreResData);
                 winston.info('Score results sent back');
               });
             },
@@ -1646,11 +1653,12 @@ if (cluster.isMaster) {
             totalSource1Levels,
             clientId,
             parentConstraint,
-            (scoreResults) => {
+            (scoreResults, source2Unmatched) => {
               recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
                 const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
-                res.status(200).json({
+                const responseData = {
                   scoreResults,
+                  source2Unmatched,
                   recoLevel,
                   source2TotalRecords: results.source2Locations.entry.length,
                   source2TotalAllRecords: mcsdSource2All.entry.length - 1,
@@ -1660,7 +1668,14 @@ if (cluster.isMaster) {
                   totalAllIgnored,
                   source1TotalAllNotMapped,
                   source1TotalAllRecords: mcsdSource1All.entry.length - 1,
+                };
+                const scoreResData = JSON.stringify({
+                  status: 'Done',
+                  error: null,
+                  percent: 100,
+                  responseData,
                 });
+                redisClient.set(scoreRequestId, scoreResData);
                 winston.info('Score results sent back');
               });
             },

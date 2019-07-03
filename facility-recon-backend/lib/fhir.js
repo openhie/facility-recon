@@ -28,12 +28,12 @@ module.exports = function () {
 
       const database = mixin.toTitleCase(name) + sourceOwner
       let saveBundle = {
-            id: uuid4(),
-            resourceType: 'Bundle',
-            type: 'batch',
-            entry: []
-          }
-      this.getLastUpdate(database,(lastUpdated) => {
+        id: uuid4(),
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: []
+      }
+      this.getLastUpdate(database, (lastUpdated) => {
         let url
         let baseURL = URI(host).segment('Location').segment('_history').toString()
         if (mode === 'update') {
@@ -76,7 +76,7 @@ module.exports = function () {
             let countSaved = 0;
             let totalRows = locations.entry.length
             let count = 0
-            
+
             //adding the fake orgid as the top orgid
             let fhir = {
               resourceType: 'Location',
@@ -160,7 +160,7 @@ module.exports = function () {
         )
       })
     },
-    getLastUpdate(database,callback) {
+    getLastUpdate(database, callback) {
       const mongoUser = config.getConf("DB_USER")
       const mongoPasswd = config.getConf("DB_PASSWORD")
       const mongoHost = config.getConf("DB_HOST")

@@ -725,6 +725,8 @@ export default {
         formData.append('shareSource', this.shareSource._id)
         formData.append('users', JSON.stringify(this.sharedUsers))
         formData.append('userID', this.$store.state.auth.userID)
+        formData.append('role', this.$store.state.auth.role)
+        formData.append('orgId', this.$store.state.dhis.user.orgId)
         formData.append('limitLocationId', this.limitLocationId)
         this.$store.state.loadingServers = true
         this.shareDialog = false
