@@ -58,6 +58,7 @@ export const store = new Vuex.Store({
     recoStatus: {
       'status': 'on-progress'
     },
+    recalculateScores: true,
     dialogError: false,
     errorTitle: '',
     errorDescription: '',

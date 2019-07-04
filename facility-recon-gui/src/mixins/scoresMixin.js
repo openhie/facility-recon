@@ -12,7 +12,6 @@ export const scoresMixin = {
   data () {
     return {
       scoreProgressTitle: 'Waiting for progress status',
-      scoreDialog: false,
       scoreProgressPercent: null,
       progressType: '',
       scoreProgressTimer: false,

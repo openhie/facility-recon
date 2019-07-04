@@ -20,7 +20,7 @@ export const dataSourcePairMixin = {
       }
 
       this.$store.state.dynamicProgress = true
-      this.$store.state.progressTitle = 'Saving Data Sources'
+      this.$store.state.progressTitle = 'Creating Data Source Pair'
       let activePairID = null
       if (this.$store.state.activePair.hasOwnProperty('shared') &&
         this.$store.state.activePair.shared.hasOwnProperty('activeUsers') &&

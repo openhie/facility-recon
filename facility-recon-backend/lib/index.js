@@ -2944,10 +2944,14 @@ if (cluster.isMaster) {
     });
   });
 
-  app.delete('/deleteSourcePair/:id', (req, res) => {
+  app.delete('/deleteSourcePair', (req, res) => {
     winston.info(`Received a request to delete data source pair with id ${req.params.id}`);
-    const id = req.params.id;
-    mongo.deleteSourcePair(id, (err, data) => {
+    const pairId = req.query.pairId;
+    const userID = req.query.userID;
+    const source1Name = mixin.toTitleCase(req.query.source1Name);
+    const source2Name = mixin.toTitleCase(req.query.source2Name);
+    const dbName = source1Name + userID + source2Name;
+    mongo.deleteSourcePair(pairId, dbName, (err, data) => {
       if (err) {
         winston.error(err);
         return res.send(500).send(err);

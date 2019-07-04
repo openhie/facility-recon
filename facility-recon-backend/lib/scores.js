@@ -58,7 +58,7 @@ module.exports = function () {
       winston.info('Populating parents');
 
       let totalRecords = mcsdSource2.entry.length;
-      for (entry of mcsdSource2.entry) {
+      for (const entry of mcsdSource2.entry) {
         if (entry.resource.hasOwnProperty('partOf')) {
           source2ParentNames[entry.resource.id] = [];
           source2MappedParentIds[entry.resource.id] = [];
@@ -83,7 +83,7 @@ module.exports = function () {
                 parentCallback();
               });
             }, () => {
-              count++;
+              count += 1;
               const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
               const scoreRequestId = `scoreResults${clientId}`;
               scoreResData = JSON.stringify({
@@ -132,25 +132,25 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let noMatch = null;
-              let ignore = null;
+              let ignorered = null;
               let matchCommentsTag = {};
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-                ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+                ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
                 matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
               }
               // in case this is marked as no match then process next Source1
-              if (noMatch || ignore) {
+              if (noMatch || ignorered) {
                 if (noMatch) {
                   thisRanking.source1.tag = 'noMatch';
                 }
-                if (ignore) {
+                if (ignorered) {
                   thisRanking.source1.tag = 'ignore';
                 }
                 scoreResults.push(thisRanking);
-                count++;
+                count += 1;
                 const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-                scoreResData = JSON.stringify({
+                const scoreResData = JSON.stringify({
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
@@ -190,9 +190,9 @@ module.exports = function () {
                 };
               }
               scoreResults.push(thisRanking);
-              count++;
+              count += 1;
               const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-              scoreResData = JSON.stringify({
+              const scoreResData = JSON.stringify({
                 status: '3/3 - Running Automatching',
                 error: null,
                 percent,
@@ -285,9 +285,9 @@ module.exports = function () {
                   // when parent constraint is On then automatch by name is also enabled by default
                   // when parent constraint is off then check if name automatch is also on
 
-                  if (lev == 0 &&
-                    !matchBroken &&
-                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0
+                    && !matchBroken
+                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     ignore.push(source2Entry.resource.id);
                     thisRanking.exactMatch = {
@@ -343,9 +343,9 @@ module.exports = function () {
                 });
               }, () => {
                 scoreResults.push(thisRanking);
-                count++;
+                count += 1;
                 const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-                scoreResData = JSON.stringify({
+                const scoreResData = JSON.stringify({
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
@@ -403,15 +403,14 @@ module.exports = function () {
         return callback();
       }
       const ignore = [];
-      var count = 0;
+      let count = 0;
       const source2ParentNames = {};
       const source2MappedParentIds = {};
       const source2LevelMappingStatus = {};
       const source2Unmatched = [];
       const source2MatchedIDs = [];
-      var count = 0;
       winston.info('Populating parents');
-      var totalRecords = mcsdSource2.entry.length;
+      const totalRecords = mcsdSource2.entry.length;
       for (entry of mcsdSource2.entry) {
         const source2Identifier = URI(config.getConf('mCSD:url'))
           .segment(source2DB)
@@ -451,7 +450,7 @@ module.exports = function () {
                 parentCallback();
               });
             }, () => {
-              count++;
+              count += 1;
               const scoreRequestId = `scoreResults${clientId}`;
               const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
               scoreResData = JSON.stringify({
@@ -471,7 +470,6 @@ module.exports = function () {
       mcsdSource2All = {};
       winston.info('Calculating scores now');
       count = 0;
-      var totalRecords = mcsdSource1.entry.length;
       async.eachSeries(mcsdSource1.entry, (source1Entry, source1Callback) => {
         // check if this Source1 Orgid is mapped
         const source1Id = source1Entry.resource.id;
@@ -492,12 +490,12 @@ module.exports = function () {
         }
         this.matchStatus(mcsdMapped, source1Id, (match) => {
           // if this Source1 Org is already mapped
-          const thisRanking = {};
+          let thisRanking = {};
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             const ignoreCode = config.getConf('mapping:ignoreCode');
             const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
-            var entityParent = null;
+            let entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
               entityParent = source1Entry.resource.partOf.reference;
             }
@@ -517,25 +515,25 @@ module.exports = function () {
               thisRanking.potentialMatches = {};
               thisRanking.exactMatch = {};
               let noMatch = null;
-              let ignore = null;
+              let ignorered = null;
               let matchCommentsTag = {};
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-                ignore = match.resource.tag.find(tag => tag.code == ignoreCode);
+                ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
                 matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
               }
               // in case this is marked as no match then process next Source1
-              if (noMatch || ignore) {
+              if (noMatch || ignorered) {
                 if (noMatch) {
                   thisRanking.source1.tag = 'noMatch';
                 }
-                if (ignore) {
+                if (ignorered) {
                   thisRanking.source1.tag = 'ignore';
                 }
                 scoreResults.push(thisRanking);
-                count++;
+                count += 1;
                 const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-                scoreResData = JSON.stringify({
+                const scoreResData = JSON.stringify({
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
@@ -575,9 +573,9 @@ module.exports = function () {
                 };
               }
               scoreResults.push(thisRanking);
-              count++;
+              count += 1;
               const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-              scoreResData = JSON.stringify({
+              const scoreResData = JSON.stringify({
                 status: '3/3 - Running Automatching',
                 error: null,
                 percent,
@@ -589,9 +587,11 @@ module.exports = function () {
             const source1Name = source1Entry.resource.name;
             const source1ParentNames = [];
             const source1ParentIds = [];
+            let source1Parents;
+            let source1ParentReceived;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
-              var entityParent = source1Entry.resource.partOf.reference;
-              var source1ParentReceived = new Promise((resolve, reject) => {
+              const entityParent = source1Entry.resource.partOf.reference;
+              source1ParentReceived = new Promise((resolve, reject) => {
                 mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'all', (parents) => {
                   source1Parents = parents;
                   async.eachSeries(parents, (parent, nxtParent) => {
@@ -608,10 +608,10 @@ module.exports = function () {
                 });
               });
             } else {
-              var source1ParentReceived = Promise.resolve([]);
+              source1ParentReceived = Promise.resolve([]);
             }
             source1ParentReceived.then(() => {
-              const thisRanking = {};
+              thisRanking = {};
               let source1BuildingId = null;
               const ident = source1Entry.resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
               if (ident) {
@@ -666,8 +666,9 @@ module.exports = function () {
                   source2Latitude = source2Entry.resource.position.latitude;
                   source2Longitude = source2Entry.resource.position.longitude;
                 }
+                let dist = '';
                 if (source2Latitude && source2Longitude) {
-                  const dist = geodist({
+                  dist = geodist({
                     source2Latitude,
                     source2Longitude,
                   }, {
@@ -727,8 +728,8 @@ module.exports = function () {
                   for (const abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr]);
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false ||
-                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      if (parentsDiffer == false
+                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
                       ) {
                         matchComments.push('Names differ');
                         ignore.push(source2Entry.resource.id);
@@ -762,10 +763,10 @@ module.exports = function () {
                   }
                 }
 
-                let lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+                const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
@@ -831,9 +832,9 @@ module.exports = function () {
                 return source2Callback();
               }, () => {
                 scoreResults.push(thisRanking);
-                count++;
+                count += 1;
                 const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
-                scoreResData = JSON.stringify({
+                const scoreResData = JSON.stringify({
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
@@ -867,8 +868,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
@@ -907,8 +908,11 @@ module.exports = function () {
               }
               mcsdUnmatched.entry.push(copiedEntry);
             }
-            const name = filteredEntry.resource.name;
-            const id = filteredEntry.resource.id;
+
+            const {
+              name,
+              id,
+            } = filteredEntry.resource;
             let entityParent = null;
             if (filteredEntry.resource.hasOwnProperty('partOf')) {
               entityParent = filteredEntry.resource.partOf.reference;
@@ -984,9 +988,9 @@ module.exports = function () {
               const matchedSource2Id = mixin.getIdFromIdentifiers(mapped.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
               return source2Entry.resource.id === matchedSource2Id;
             });
-            let nomatch,
-              ignore,
-              flagged;
+            let nomatch;
+            let ignore;
+            let flagged;
             if (mapped.resource.hasOwnProperty('tag')) {
               nomatch = mapped.resource.tag.find(tag => tag.code === noMatchCode);
               ignore = mapped.resource.tag.find(tag => tag.code === ignoreCode);
@@ -1017,10 +1021,10 @@ module.exports = function () {
                 source2Id: source2Entry.resource.id,
               });
             }
-            count++;
+            count += 1;
             const statusRequestId = `mappingStatus${clientId}`;
             const percent = parseFloat((count * 100 / source1Locations.entry.length).toFixed(2));
-            statusResData = JSON.stringify({
+            const statusResData = JSON.stringify({
               status: '2/2 - Loading Source2 and Source1 Data',
               error: null,
               percent,
@@ -1032,10 +1036,10 @@ module.exports = function () {
               source1Name: entry.resource.name,
               source1Id: source1UploadedId,
             });
-            count++;
+            count += 1;
             const statusRequestId = `mappingStatus${clientId}`;
             const percent = parseFloat((count * 100 / source1Locations.entry.length).toFixed(2));
-            statusResData = JSON.stringify({
+            const statusResData = JSON.stringify({
               status: '2/2 - Loading Source2 and Source1 Data',
               error: null,
               percent,
@@ -1046,7 +1050,7 @@ module.exports = function () {
         });
       }, () => {
         const statusRequestId = `mappingStatus${clientId}`;
-        statusResData = JSON.stringify({
+        const statusResData = JSON.stringify({
           status: 'Done',
           error: null,
           percent: 100,

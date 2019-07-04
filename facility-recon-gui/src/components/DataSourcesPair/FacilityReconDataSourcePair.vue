@@ -566,7 +566,8 @@ export default {
     },
     deletePair () {
       this.confirmPairDeleteDialog = false
-      axios.delete(backendServer + '/deleteSourcePair/' + this.activeDataSourcePair._id).then((resp) => {
+      let query = `pairId=${this.activeDataSourcePair._id}&userID=${this.activeDataSourcePair.owner.id}&source1Name=${this.activeDataSourcePair.source1.name}&source2Name=${this.activeDataSourcePair.source2.name}`
+      axios.delete(backendServer + '/deleteSourcePair?' + query).then((resp) => {
         this.$store.state.errorTitle = 'Pair Deletion'
         this.$store.state.errorDescription = 'Pair deleted successfully'
         this.$store.state.dialogError = true

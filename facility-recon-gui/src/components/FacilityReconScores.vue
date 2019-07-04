@@ -1211,6 +1211,7 @@ export default {
   mixins: [scoresMixin, generalMixin],
   data () {
     return {
+      scoreDialog: false,
       flagCommentDialog: false,
       flagComment: '',
       matchedDownloadData: '',
@@ -1466,21 +1467,7 @@ export default {
       formData.append('source1Id', source1Id)
       let userID = this.$store.state.activePair.userID._id
       axios
-        .post(
-          backendServer +
-          '/acceptFlag/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          userID,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-        )
+        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
         .then(() => {
           this.$store.state.dynamicProgress = false
           // Add from a list of Source 1 Matched and remove from list of Flagged
@@ -1531,8 +1518,7 @@ export default {
           sourcesOwner.source2Owner +
           '/' +
           userID,
-          formData,
-          {
+          formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -1592,8 +1578,7 @@ export default {
           sourcesOwner.source2Owner +
           '/' +
           userID,
-          formData,
-          {
+          formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -1652,8 +1637,7 @@ export default {
           this.getSource2() +
           '/' +
           userID,
-          formData,
-          {
+          formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -1716,8 +1700,7 @@ export default {
 
       axios
         .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
-          formData,
-          {
+          formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
@@ -2258,6 +2241,10 @@ export default {
     }
   },
   created () {
+    if (this.$store.state.recalculateScores) {
+      this.$store.state.recalculateScores = false
+      this.getScores()
+    }
     eventBus.$on('changeCSVHeaderNames', () => {
       let levelName = this.translateDataHeader(
         'source1',
@@ -2272,9 +2259,6 @@ export default {
     } else {
       this.dialogWidth = '1190px'
     }
-  },
-  mounted () {
-    console.log('mounted');
   },
   components: {
     'liquor-tree': LiquorTree

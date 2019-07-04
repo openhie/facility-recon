@@ -310,12 +310,18 @@ module.exports = function () {
       });
     },
 
-    deleteSourcePair(id, callback) {
+    deleteSourcePair(pairId, dbName, callback) {
       const mongoose = require('mongoose');
       mongoose.connect(uri, {}, () => {
         models.DataSourcePairModel.deleteOne({
-          _id: id,
-        }, (err, data) => callback(err, data));
+          _id: pairId,
+        }, (err, data) => {
+          if (data) {
+            this.deleteDB(dbName, (err) => {
+              callback(err, data);
+            });
+          }
+        });
       });
     },
 

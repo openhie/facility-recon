@@ -378,6 +378,7 @@ export default {
         )
         .then(results => {
           if (results.data.dataUploaded) {
+            this.$store.state.recalculateScores = true
             this.$router.push({ name: 'FacilityReconScores' })
           } else {
             this.$router.push({ name: 'FacilityReconDataSync' })
@@ -395,7 +396,8 @@ export default {
         this.$store.state.totalSource1Levels = 5
         this.$store.state.totalSource2Levels = 5
         this.$store.state.initializingApp = false
-        this.getScores()
+        this.$store.state.recalculateScores = true
+        this.$router.push({ name: 'FacilityReconScores' })
         this.$store.state.recoLevel = 2
         this.getRecoStatus()
         return
@@ -412,7 +414,8 @@ export default {
           this.$store.state.levelMapping.source2 = levels.data.levelMapping.levelMapping2
           this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
           this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
-          this.getScores()
+          this.$store.state.recalculateScores = true
+          this.$router.push({ name: 'FacilityReconScores' })
           this.$store.state.recoLevel = 2
           this.getRecoStatus()
         })
@@ -581,6 +584,7 @@ export default {
     }
   },
   created () {
+    this.$router.push({ name: 'AddDataSources' })
     this.$store.state.config.generalConfig = this.generalConfig
     if (VueCookies.get('token') && VueCookies.get('userID')) {
       this.$store.state.auth.token = VueCookies.get('token')
@@ -608,7 +612,8 @@ export default {
       this.getDataSources()
     })
     eventBus.$on('recalculateScores', () => {
-      this.getScores()
+      this.$store.state.recalculateScores = true
+      this.$router.push({ name: 'FacilityReconScores' })
     })
     eventBus.$on('getDataSources', () => {
       this.getDataSources()
