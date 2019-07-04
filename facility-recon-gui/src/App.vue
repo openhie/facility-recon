@@ -381,12 +381,12 @@ export default {
             this.$store.state.recalculateScores = true
             this.$router.push({ name: 'FacilityReconScores' })
           } else {
-            this.$router.push({ name: 'FacilityReconDataSync' })
+            this.$router.push({ name: 'AddDataSources' })
           }
         })
         .catch(err => {
           console.log(err)
-          this.$router.push({ name: 'FacilityReconDataSync' })
+          this.$router.push({ name: 'AddDataSources' })
         })
     },
     getTotalLevels () {
