@@ -50,19 +50,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/scoreProgress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/scoreProgress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -138,11 +138,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -184,7 +184,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -1619,31 +1619,29 @@ if (cluster.isMaster) {
             recoLevel,
             totalSource1Levels,
             clientId,
-            parentConstraint, (scoreResults, source2Unmatched) => {
-              recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
-                const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
-                const responseData = {
-                  scoreResults,
-                  source2Unmatched,
-                  recoLevel,
-                  source2TotalRecords: results.source2Locations.entry.length,
-                  source2TotalAllRecords: mcsdSource2All.entry.length - 1,
-                  totalAllMapped,
-                  totalAllFlagged,
-                  totalAllNoMatch,
-                  totalAllIgnored,
-                  source1TotalAllNotMapped,
-                  source1TotalAllRecords: mcsdSource1All.entry.length - 1,
-                };
-                scoreResData = JSON.stringify({
-                  status: 'Done',
-                  error: null,
-                  percent: 100,
-                  responseData,
-                });
-                redisClient.set(scoreRequestId, scoreResData);
-                winston.info('Score results sent back');
+            parentConstraint, (scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch) => {
+              const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
+              const responseData = {
+                scoreResults,
+                source2Unmatched,
+                recoLevel,
+                source2TotalRecords: results.source2Locations.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length - 1,
+                totalAllMapped,
+                totalAllFlagged,
+                totalAllNoMatch,
+                totalAllIgnored,
+                source1TotalAllNotMapped,
+                source1TotalAllRecords: mcsdSource1All.entry.length - 1,
+              };
+              scoreResData = JSON.stringify({
+                status: 'Done',
+                error: null,
+                percent: 100,
+                responseData,
               });
+              redisClient.set(scoreRequestId, scoreResData);
+              winston.info('Score results sent back');
             },
           );
         } else {
@@ -1660,79 +1658,33 @@ if (cluster.isMaster) {
             totalSource1Levels,
             clientId,
             parentConstraint,
-            (scoreResults, source2Unmatched) => {
-              recoStatus(source1, source2, userID, (totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged) => {
-                const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
-                const responseData = {
-                  scoreResults,
-                  source2Unmatched,
-                  recoLevel,
-                  source2TotalRecords: results.source2Locations.entry.length,
-                  source2TotalAllRecords: mcsdSource2All.entry.length - 1,
-                  totalAllMapped,
-                  totalAllFlagged,
-                  totalAllNoMatch,
-                  totalAllIgnored,
-                  source1TotalAllNotMapped,
-                  source1TotalAllRecords: mcsdSource1All.entry.length - 1,
-                };
-                const scoreResData = JSON.stringify({
-                  status: 'Done',
-                  error: null,
-                  percent: 100,
-                  responseData,
-                });
-                redisClient.set(scoreRequestId, scoreResData);
-                winston.info('Score results sent back');
+            (scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch) => {
+              const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
+              const responseData = {
+                scoreResults,
+                source2Unmatched,
+                recoLevel,
+                source2TotalRecords: results.source2Locations.entry.length,
+                source2TotalAllRecords: mcsdSource2All.entry.length - 1,
+                totalAllMapped,
+                totalAllFlagged,
+                totalAllNoMatch,
+                totalAllIgnored,
+                source1TotalAllNotMapped,
+                source1TotalAllRecords: mcsdSource1All.entry.length - 1,
+              };
+              scoreResData = JSON.stringify({
+                status: 'Done',
+                error: null,
+                percent: 100,
+                responseData,
               });
+              redisClient.set(scoreRequestId, scoreResData);
+              winston.info('Score results sent back');
             },
           );
         }
       });
-    }
-
-    function recoStatus(source1, source2, userID, callback) {
-      // getting total Mapped
-      const database = source1 + userID + source2;
-      let totalAllMapped = 0;
-      let totalAllNoMatch = 0;
-      let totalAllIgnored = 0;
-      let totalAllFlagged = 0;
-      const source1TotalAllNotMapped = 0;
-      const noMatchCode = config.getConf('mapping:noMatchCode');
-      const ignoreCode = config.getConf('mapping:ignoreCode');
-      const flagCode = config.getConf('mapping:flagCode');
-      setTimeout(() => {
-        mcsd.getLocations(database, (body) => {
-          if (!body.hasOwnProperty('entry') || body.length === 0) {
-            totalAllNoMatch = 0;
-            totalAllIgnored = 0;
-            totalAllMapped = 0;
-            return callback(totalAllMapped, source1TotalAllNotMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged);
-          }
-          async.each(body.entry, (entry, nxtEntry) => {
-            if (entry.resource.hasOwnProperty('tag')) {
-              const nomatch = entry.resource.tag.find(tag => tag.code === noMatchCode);
-              const ignore = entry.resource.tag.find(tag => tag.code === ignoreCode);
-              const flagged = entry.resource.tag.find(tag => tag.code === flagCode);
-              if (nomatch) {
-                totalAllNoMatch++;
-              }
-              if (ignore) {
-                totalAllIgnored++;
-              }
-              if (flagged) {
-                totalAllFlagged++;
-              }
-              return nxtEntry();
-            }
-            return nxtEntry();
-          }, () => {
-            totalAllMapped = body.entry.length - totalAllNoMatch - totalAllIgnored - totalAllFlagged;
-            return callback(totalAllMapped, totalAllNoMatch, totalAllIgnored, totalAllFlagged);
-          });
-        });
-      }, 1000);
     }
   });
   app.get('/matchedLocations', (req, res) => {
@@ -2642,11 +2594,11 @@ if (cluster.isMaster) {
             return callback(true, false);
           }
 
-          if (configData.hasOwnProperty('config')
-            && configData.config.hasOwnProperty('generalConfig')
-            && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-            && configData.config.generalConfig.recoProgressNotification.enabled
-            && configData.config.generalConfig.recoProgressNotification.url
+          if (configData.hasOwnProperty('config') &&
+            configData.config.hasOwnProperty('generalConfig') &&
+            configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+            configData.config.generalConfig.recoProgressNotification.enabled &&
+            configData.config.generalConfig.recoProgressNotification.url
           ) {
             const url = configData.config.generalConfig.recoProgressNotification.url;
             const username = configData.config.generalConfig.recoProgressNotification.username;
@@ -2710,6 +2662,7 @@ if (cluster.isMaster) {
     const type = req.params.type;
     const progressRequestId = `${type}${clientId}`;
     redisClient.get(progressRequestId, (error, results) => {
+      // try to respond with {"status":null,"error":null,"percent":null,"responseData":null} and see the reaction from app
       if (error) {
         winston.error(error);
         winston.error(`An error has occured while getting progress for ${type} and clientID ${clientId}`);
@@ -3119,10 +3072,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null
-              || headerMapping[level] === 'null'
-              || headerMapping[level] === undefined
-              || !headerMapping[level]) {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3145,13 +3098,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null
-                || data[headerMapping[level]] === undefined
-                || data[headerMapping[level]] === false
-                || !data[headerMapping[level]]
-                || data[headerMapping[level]] === ''
-                || !isNaN(headerMapping[level])
-                || data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
+                data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3159,11 +3112,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null
-              || data[headerMapping.facility] === undefined
-              || data[headerMapping.facility] === false
-              || data[headerMapping.facility] === ''
-              || data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

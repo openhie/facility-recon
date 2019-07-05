@@ -55,6 +55,12 @@ module.exports = function () {
       const source2MappedParentIds = {};
       const source2Unmatched = [];
       const source2MatchedIDs = [];
+
+      let totalAllMapped = mcsdMapped.entry.length;
+      let totalAllNoMatch = 0;
+      let totalAllIgnored = 0;
+      let totalAllFlagged = 0;
+
       winston.info('Populating parents');
 
       let totalRecords = mcsdSource2.entry.length;
@@ -117,6 +123,8 @@ module.exports = function () {
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             const ignoreCode = config.getConf('mapping:ignoreCode');
+            const flagCode = config.getConf('mapping:flagCode');
+            const flagCommentCode = config.getConf('mapping:flagCommentCode');
             const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
             let entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
@@ -133,18 +141,30 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               let noMatch = null;
               let ignorered = null;
+              let flagged = null;
               let matchCommentsTag = {};
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
                 ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
+                flagged = match.resource.tag.find(tag => tag.code == flagCode);
                 matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
+              }
+              if (flagged) {
+                totalAllFlagged += 1;
+                thisRanking.source1.tag = 'flagged';
+                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                if (flagComment) {
+                  thisRanking.source1.flagComment = flagComment.display;
+                }
               }
               // in case this is marked as no match then process next Source1
               if (noMatch || ignorered) {
                 if (noMatch) {
+                  totalAllNoMatch += 1;
                   thisRanking.source1.tag = 'noMatch';
                 }
                 if (ignorered) {
+                  totalAllIgnored += 1;
                   thisRanking.source1.tag = 'ignore';
                 }
                 scoreResults.push(thisRanking);
@@ -157,20 +177,6 @@ module.exports = function () {
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();
-              }
-              // if no macth then this is already marked as a match
-              const flagCode = config.getConf('mapping:flagCode');
-              const flagCommentCode = config.getConf('mapping:flagCommentCode');
-              if (match.resource.hasOwnProperty('tag')) {
-                const flag = match.resource.tag.find(tag => tag.code == flagCode);
-                if (flag) {
-                  thisRanking.source1.tag = 'flagged';
-                }
-
-                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
-                if (flagComment) {
-                  thisRanking.source1.flagComment = flagComment.display;
-                }
               }
 
               const matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
@@ -285,9 +291,9 @@ module.exports = function () {
                   // when parent constraint is On then automatch by name is also enabled by default
                   // when parent constraint is off then check if name automatch is also on
 
-                  if (lev == 0
-                    && !matchBroken
-                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0 &&
+                    !matchBroken &&
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     ignore.push(source2Entry.resource.id);
                     thisRanking.exactMatch = {
@@ -300,6 +306,7 @@ module.exports = function () {
                     mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                     });
+                    totalAllMapped += 1;
                     source2MatchedIDs.push(source2Entry.resource.id);
                     // we will need to break here and start processing nxt Source1
                     return source2Callback();
@@ -370,7 +377,7 @@ module.exports = function () {
           return nxtEntry();
         }, () => {
           mcsdSource2All = {};
-          callback(scoreResults, source2Unmatched);
+          callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
         });
       });
     },
@@ -409,6 +416,11 @@ module.exports = function () {
       const source2LevelMappingStatus = {};
       const source2Unmatched = [];
       const source2MatchedIDs = [];
+
+      let totalAllMapped = mcsdMapped.entry.length;
+      let totalAllNoMatch = 0;
+      let totalAllIgnored = 0;
+      let totalAllFlagged = 0;
       winston.info('Populating parents');
       const totalRecords = mcsdSource2.entry.length;
       for (entry of mcsdSource2.entry) {
@@ -494,6 +506,8 @@ module.exports = function () {
           if (match) {
             const noMatchCode = config.getConf('mapping:noMatchCode');
             const ignoreCode = config.getConf('mapping:ignoreCode');
+            const flagCode = config.getConf('mapping:flagCode');
+            const flagCommentCode = config.getConf('mapping:flagCommentCode');
             const matchCommentsCode = config.getConf('mapping:matchCommentsCode');
             let entityParent = null;
             if (source1Entry.resource.hasOwnProperty('partOf')) {
@@ -516,18 +530,30 @@ module.exports = function () {
               thisRanking.exactMatch = {};
               let noMatch = null;
               let ignorered = null;
+              let flagged = null;
               let matchCommentsTag = {};
               if (match.resource.hasOwnProperty('tag')) {
                 noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
                 ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
+                flagged = match.resource.tag.find(tag => tag.code == flagCode);
                 matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
+              }
+              if (flagged) {
+                totalAllFlagged += 1;
+                thisRanking.source1.tag = 'flagged';
+                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                if (flagComment) {
+                  thisRanking.source1.flagComment = flagComment.display;
+                }
               }
               // in case this is marked as no match then process next Source1
               if (noMatch || ignorered) {
                 if (noMatch) {
+                  totalAllNoMatch += 1;
                   thisRanking.source1.tag = 'noMatch';
                 }
                 if (ignorered) {
+                  totalAllIgnored += 1;
                   thisRanking.source1.tag = 'ignore';
                 }
                 scoreResults.push(thisRanking);
@@ -540,21 +566,6 @@ module.exports = function () {
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();
-              }
-
-              // if this is flagged then process next Source1
-              const flagCode = config.getConf('mapping:flagCode');
-              const flagCommentCode = config.getConf('mapping:flagCommentCode');
-              if (match.resource.hasOwnProperty('tag')) {
-                const flag = match.resource.tag.find(tag => tag.code == flagCode);
-                if (flag) {
-                  thisRanking.source1.tag = 'flagged';
-                }
-
-                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
-                if (flagComment) {
-                  thisRanking.source1.flagComment = flagComment.display;
-                }
               }
 
               const matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
@@ -705,6 +716,7 @@ module.exports = function () {
                   mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                   });
+                  totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
                   return source2Callback();
                 }
@@ -728,8 +740,8 @@ module.exports = function () {
                   for (const abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr]);
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false
-                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      if (parentsDiffer == false ||
+                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
                       ) {
                         matchComments.push('Names differ');
                         ignore.push(source2Entry.resource.id);
@@ -744,6 +756,7 @@ module.exports = function () {
                         };
                         thisRanking.potentialMatches = {};
                         mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {});
+                        totalAllMapped += 1;
                         source2MatchedIDs.push(source2Entry.resource.id);
                       } else {
                         if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
@@ -765,8 +778,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken
-                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken &&
+                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
@@ -782,6 +795,7 @@ module.exports = function () {
                   mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
 
                   });
+                  totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
                   return source2Callback();
                 }
@@ -859,7 +873,7 @@ module.exports = function () {
           return nxtEntry();
         }, () => {
           mcsdSource2All = {};
-          callback(scoreResults, source2Unmatched);
+          callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
         });
       });
     },
@@ -868,8 +882,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id
-        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id ||
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

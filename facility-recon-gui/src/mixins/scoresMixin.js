@@ -24,8 +24,8 @@ export const scoresMixin = {
     checkScoreProgress () {
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/progress/scoreResults/' + clientId).then((scoreProgress) => {
-        if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false ||
-          (scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null)) {
+        if (!scoreProgress.data ||
+          (scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length === 0)) {
           clearInterval(this.scoreProgressTimer)
           this.scoreDialog = false
           this.scoreProgressTitle = 'Waiting for progress status'
@@ -42,7 +42,7 @@ export const scoresMixin = {
           }
           this.scoreProgressPercent = scoreProgress.data.percent
         }
-        if (scoreProgress.data.status === 'Done') {
+        if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
           this.clearProgress('scoreResults')
           this.loadingSource1Unmatched = false
           this.loadingSource2Unmatched = false
