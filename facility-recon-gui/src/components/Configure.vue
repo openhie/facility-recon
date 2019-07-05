@@ -177,7 +177,7 @@
                 <v-switch
                   @change="saveConfiguration('userConfig', 'useCSVHeader')"
                   color="primary"
-                  label="Use CSV header for display"
+                  label="Apply user defined headers when reconciling"
                   v-model="$store.state.config.userConfig.reconciliation.useCSVHeader"
                 >
                 </v-switch>
@@ -190,7 +190,7 @@
         <v-divider></v-divider>
         <v-card v-if='$store.state.auth.role == "Admin"'>
           <v-card-title>
-            General Configurations
+            Admin Configurations
           </v-card-title>
           <v-card-text>
             <v-layout column>
@@ -240,31 +240,16 @@
                     ></v-checkbox>
                   </v-card-text>
                 </v-card>
-                <v-switch
-                  @change="singleDatasource"
-                  color="primary"
-                  label="Single data source per user"
-                  v-model="$store.state.config.generalConfig.reconciliation.singleDataSource"
-                >
-                </v-switch>
-                <v-switch
-                  v-if="$store.state.dhis.user.orgId"
-                  @change="saveConfiguration('generalConfig', 'singlePair')"
-                  color="primary"
-                  label="Single data source pair per org unit"
-                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
-                >
-                </v-switch>
                 <v-tooltip top>
                   <v-switch
                     @change="displayDatasourceDialog"
                     color="primary"
-                    label="Limit all reconciliation to be done against one choosen data source"
+                    label="Select a data source to serve as Source 2 for all reconciliation"
                     v-model="$store.state.config.generalConfig.reconciliation.fixSource2"
                     slot="activator"
                   >
                   </v-switch>
-                  <span>This will limit users to perform reconciliations against the selected data source</span>
+                  <span>This will limit users to perform reconciliations against the chosen data source</span>
                 </v-tooltip>
                 <template v-if='$store.state.config.generalConfig.reconciliation.fixSource2'>
                   Source2 Limited To: <v-chip>{{fixedSource2To}}</v-chip>
@@ -282,6 +267,21 @@
                     <span>Change dataset</span>
                   </v-tooltip>
                 </template>
+                <v-switch
+                  @change="singleDatasource"
+                  color="primary"
+                  label="Single data source per user"
+                  v-model="$store.state.config.generalConfig.reconciliation.singleDataSource"
+                >
+                </v-switch>
+                <v-switch
+                  v-if="$store.state.dhis.user.orgId"
+                  @change="saveConfiguration('generalConfig', 'singlePair')"
+                  color="primary"
+                  label="Single data source pair per org unit"
+                  v-model="$store.state.config.generalConfig.reconciliation.singlePair"
+                >
+                </v-switch>
               </v-flex>
               <v-flex>
                 <v-card>
@@ -662,7 +662,7 @@ export default {
           this.$store.state.errorTitle = 'Error'
           this.$store.state.errorColor = 'error'
           this.$store.state.errorDescription =
-            'This feature can only be enabled if there is a defined fixed source 2 and enabled'
+            'This feature can only be enabled if there is a defined datasource to serve as Source 2 for all reconciliation'
           setTimeout(() => {
             this.$store.state.config.generalConfig.reconciliation.singleDataSource = false
           })

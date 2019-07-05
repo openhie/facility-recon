@@ -33,6 +33,9 @@ export const generalMixin = {
     }
   },
   methods: {
+    clearProgress (type) {
+      axios.get(backendServer + '/clearProgress/' + type + '/' + this.$store.state.clientId)
+    },
     getGeneralConfig (callback) {
       let defaultGenerConfig = JSON.stringify(this.$store.state.config.generalConfig)
       axios

@@ -377,6 +377,7 @@ export default {
           sourcesOwner.source2Owner
         )
         .then(results => {
+          this.$store.state.initializingApp = false
           if (results.data.dataUploaded) {
             this.$store.state.recalculateScores = true
             this.$router.push({ name: 'FacilityReconScores' })
@@ -409,14 +410,17 @@ export default {
       axios
         .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
-          this.$store.state.initializingApp = false
           this.$store.state.levelMapping.source1 = levels.data.levelMapping.levelMapping1
           this.$store.state.levelMapping.source2 = levels.data.levelMapping.levelMapping2
           this.$store.state.totalSource1Levels = levels.data.totalSource1Levels
           this.$store.state.totalSource2Levels = levels.data.totalSource2Levels
-          this.$store.state.recalculateScores = true
-          this.$router.push({ name: 'FacilityReconScores' })
           this.$store.state.recoLevel = 2
+          this.renderInitialPage()
+          this.getRecoStatus()
+        }).catch((err) => {
+          console.log(err)
+          this.$store.state.recoLevel = 2
+          this.renderInitialPage()
           this.getRecoStatus()
         })
     },
@@ -529,7 +533,6 @@ export default {
               this.autoCreateDatasourcePair()
             }
           })
-          this.renderInitialPage()
           this.getTotalLevels()
         })
         .catch(err => {
@@ -537,7 +540,6 @@ export default {
           this.$store.state.dialogError = true
           this.$store.state.errorTitle = 'Error'
           this.$store.state.errorDescription = 'An error occured while getting data source pairs, reload the app to retry'
-          this.renderInitialPage()
           this.getTotalLevels()
         })
     },

@@ -50,19 +50,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS' ||
-    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
-    req.path == '/authenticate/' ||
-    req.path == '/getSignupConf' ||
-    req.path == '/getGeneralConfig' ||
-    req.path == '/addUser/' ||
-    req.path.startsWith('/scoreProgress') ||
-    req.path == '/' ||
-    req.path.startsWith('/static/js') ||
-    req.path.startsWith('/static/config.json') ||
-    req.path.startsWith('/static/css') ||
-    req.path.startsWith('/static/img') ||
-    req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS'
+    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
+    || req.path == '/authenticate/'
+    || req.path == '/getSignupConf'
+    || req.path == '/getGeneralConfig'
+    || req.path == '/addUser/'
+    || req.path.startsWith('/scoreProgress')
+    || req.path == '/'
+    || req.path.startsWith('/static/js')
+    || req.path.startsWith('/static/config.json')
+    || req.path.startsWith('/static/css')
+    || req.path.startsWith('/static/img')
+    || req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -138,11 +138,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-            name: 'Admin',
-          },
-          {
-            name: 'Data Manager',
-          },
+          name: 'Admin',
+        },
+        {
+          name: 'Data Manager',
+        },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -184,7 +184,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete(workers[worker.process.pid]);
+    delete (workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -370,7 +370,6 @@ if (cluster.isMaster) {
                 schemaData.status = 'Active';
                 const Users = new models.UsersModel(schemaData);
                 Users.save((err, data) => {
-                  winston.error(JSON.stringify(data._id));
                   if (err) {
                     winston.error(err);
                     res.status(500).json({
@@ -1421,7 +1420,6 @@ if (cluster.isMaster) {
       async.parallel({
         locationChildren(callback) {
           mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
-            winston.error(sourceLimitOrgId);
             winston.info(`Done Fetching Locations For ${source}`);
             return callback(false, mcsdData);
           });
@@ -1518,28 +1516,35 @@ if (cluster.isMaster) {
   });
 
   app.get('/reconcile', (req, res) => {
-    const totalSource1Levels = req.query.totalSource1Levels;
-    const totalSource2Levels = req.query.totalSource2Levels;
-    const recoLevel = req.query.recoLevel;
-    const clientId = req.query.clientId;
-    const userID = req.query.userID;
-    const source1 = req.query.source1;
-    const source2 = req.query.source2;
-    const source1Owner = req.query.source1Owner;
-    const source2Owner = req.query.source2Owner;
-    let source1LimitOrgId = req.query.source1LimitOrgId;
-    let source2LimitOrgId = req.query.source2LimitOrgId;
+    const {
+      totalSource1Levels,
+      totalSource2Levels,
+      recoLevel,
+      clientId,
+      userID,
+      source1,
+      source2,
+      source1Owner,
+      source2Owner,
+    } = req.query;
+    let {
+      source1LimitOrgId,
+      source2LimitOrgId,
+    } = req.query;
+
     if (!source1LimitOrgId) {
       source1LimitOrgId = topOrgId;
     }
     if (!source2LimitOrgId) {
       source2LimitOrgId = topOrgId;
     }
-    let parentConstraint;
+    let {
+      parentConstraint,
+    } = req.query;
     try {
-      parentConstraint = JSON.parse(req.query.parentConstraint);
+      parentConstraint = JSON.parse(parentConstraint);
     } catch (error) {
-      parentConstraint = req.query.parentConstraint;
+      winston.error(error);
     }
     // remove parent contraint for the first level
     if (recoLevel == 2) {
@@ -1555,12 +1560,14 @@ if (cluster.isMaster) {
     } else {
       res.status(200).send();
       winston.info('Getting scores');
-      const orgid = req.query.orgid;
+      const {
+        orgid,
+      } = req.query;
       let mcsdSource2All = null;
       let mcsdSource1All = null;
 
       const scoreRequestId = `scoreResults${clientId}`;
-      scoreResData = JSON.stringify({
+      let scoreResData = JSON.stringify({
         status: '1/3 - Loading Source2 and Source1 Data',
         error: null,
         percent: null,
@@ -1628,7 +1635,7 @@ if (cluster.isMaster) {
                   source1TotalAllNotMapped,
                   source1TotalAllRecords: mcsdSource1All.entry.length - 1,
                 };
-                const scoreResData = JSON.stringify({
+                scoreResData = JSON.stringify({
                   status: 'Done',
                   error: null,
                   percent: 100,
@@ -2635,11 +2642,11 @@ if (cluster.isMaster) {
             return callback(true, false);
           }
 
-          if (configData.hasOwnProperty('config') &&
-            configData.config.hasOwnProperty('generalConfig') &&
-            configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-            configData.config.generalConfig.recoProgressNotification.enabled &&
-            configData.config.generalConfig.recoProgressNotification.url
+          if (configData.hasOwnProperty('config')
+            && configData.config.hasOwnProperty('generalConfig')
+            && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
+            && configData.config.generalConfig.recoProgressNotification.enabled
+            && configData.config.generalConfig.recoProgressNotification.url
           ) {
             const url = configData.config.generalConfig.recoProgressNotification.url;
             const username = configData.config.generalConfig.recoProgressNotification.username;
@@ -2703,72 +2710,33 @@ if (cluster.isMaster) {
     const type = req.params.type;
     const progressRequestId = `${type}${clientId}`;
     redisClient.get(progressRequestId, (error, results) => {
-      results = JSON.parse(results);
-      // reset progress
-      if (results && (results.error !== null || results.status === 'Done')) {
-        const uploadReqRes = JSON.stringify({
-          status: null,
-          error: null,
-          percent: null,
-        });
-        redisClient.set(progressRequestId, uploadReqRes);
+      if (error) {
+        winston.error(error);
+        winston.error(`An error has occured while getting progress for ${type} and clientID ${clientId}`);
       }
+      results = JSON.parse(results);
       res.status(200).json(results);
     });
   });
 
-  app.get('/uploadProgress/:clientId', (req, res) => {
+  app.get('/clearProgress/:type/:clientId', (req, res) => {
     const clientId = req.params.clientId;
-    redisClient.get(`uploadProgress${clientId}`, (error, results) => {
-      results = JSON.parse(results);
-      res.status(200).json(results);
-      // reset progress
-      if (results && (results.error !== null || results.status === 'Done')) {
-        const uploadRequestId = `uploadProgress${clientId}`;
-        const uploadReqPro = JSON.stringify({
-          status: null,
-          error: null,
-          percent: null,
-        });
-        redisClient.set(uploadRequestId, uploadReqPro);
+    const type = req.params.type;
+    winston.info(`Clearing progress data for ${type} and clientID ${clientId}`);
+    const progressRequestId = `${type}${clientId}`;
+    const data = JSON.stringify({
+      status: null,
+      error: null,
+      percent: null,
+      responseData: null,
+    });
+    redisClient.set(progressRequestId, data, (err, reply) => {
+      if (err) {
+        winston.error(err);
+        winston.error(`An error has occured while clearing progress data for ${type} and clientID ${clientId}`);
       }
     });
-  });
-
-  app.get('/mappingStatusProgress/:clientId', (req, res) => {
-    const clientId = req.params.clientId;
-    redisClient.get(`mappingStatus${clientId}`, (error, results) => {
-      results = JSON.parse(results);
-      res.status(200).json(results);
-      // reset progress
-      if (results && (results.error !== null || results.status === 'Done')) {
-        const statusRequestId = `mappingStatus${clientId}`;
-        const statusResData = JSON.stringify({
-          status: null,
-          error: null,
-          percent: null,
-        });
-        redisClient.set(statusRequestId, statusResData);
-      }
-    });
-  });
-
-  app.get('/scoreProgress/:clientId', (req, res) => {
-    const clientId = req.params.clientId;
-    redisClient.get(`scoreResults${clientId}`, (error, results) => {
-      results = JSON.parse(results);
-      res.status(200).json(results);
-      // reset progress
-      if (results && (results.error !== null || results.status === 'Done')) {
-        const scoreRequestId = `scoreResults${clientId}`;
-        const uploadReqPro = JSON.stringify({
-          status: null,
-          error: null,
-          percent: null,
-        });
-        redisClient.set(scoreRequestId, uploadReqPro);
-      }
-    });
+    res.status(200).send();
   });
 
   app.post('/addDataSource', (req, res) => {
@@ -3151,10 +3119,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null ||
-              headerMapping[level] === 'null' ||
-              headerMapping[level] === undefined ||
-              !headerMapping[level]) {
+            if (headerMapping[level] === null
+              || headerMapping[level] === 'null'
+              || headerMapping[level] === undefined
+              || !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3177,13 +3145,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null ||
-                data[headerMapping[level]] === undefined ||
-                data[headerMapping[level]] === false ||
-                !data[headerMapping[level]] ||
-                data[headerMapping[level]] === '' ||
-                !isNaN(headerMapping[level]) ||
-                data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null
+                || data[headerMapping[level]] === undefined
+                || data[headerMapping[level]] === false
+                || !data[headerMapping[level]]
+                || data[headerMapping[level]] === ''
+                || !isNaN(headerMapping[level])
+                || data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3191,11 +3159,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null ||
-              data[headerMapping.facility] === undefined ||
-              data[headerMapping.facility] === false ||
-              data[headerMapping.facility] === '' ||
-              data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null
+              || data[headerMapping.facility] === undefined
+              || data[headerMapping.facility] === false
+              || data[headerMapping.facility] === ''
+              || data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

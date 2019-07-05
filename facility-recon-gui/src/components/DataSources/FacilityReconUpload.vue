@@ -614,11 +614,16 @@ export default {
     },
     checkUploadProgress () {
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/uploadProgress/' + clientId).then((uploadProgress) => {
-        if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false) {
+      axios.get(backendServer + '/progress/uploadProgress/' + clientId).then((uploadProgress) => {
+        if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false ||
+          (uploadProgress.data.status === null && uploadProgress.data.percent === null && uploadProgress.data.error === null)) {
           this.$store.state.uploadRunning = false
           this.uploadPrepaProgr = false
           this.percentDialog = false
+          this.$store.state.errorTitle = 'An error has occured'
+          this.$store.state.errorDescription = 'You should delete this data source from view data source page then re-upload'
+          this.$store.state.errorColor = 'error'
+          this.$store.state.dialogError = true
           clearInterval(this.UploadProgressTimer)
           return
         } else if (uploadProgress.data.error !== null) {
@@ -630,11 +635,7 @@ export default {
           this.$store.state.errorDescription = uploadProgress.data.error
           clearInterval(this.UploadProgressTimer)
           console.log(uploadProgress.data.error)
-        } else if (uploadProgress.data.status === null) {
-          this.$store.state.uploadRunning = false
-          this.uploadPrepaProgr = false
-          this.percentDialog = false
-          clearInterval(this.UploadProgressTimer)
+          return
         }
         this.uploadStatus = uploadProgress.data.status
         if (uploadProgress.data.percent) {
@@ -645,6 +646,7 @@ export default {
           this.uploadPercent = uploadProgress.data.percent
         }
         if (uploadProgress.data.status === 'Done' || uploadProgress.data.status >= 100) {
+          this.clearProgress('uploadProgress')
           this.addDataSource('upload')
           clearInterval(this.UploadProgressTimer)
           // resetting reco level

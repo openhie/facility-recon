@@ -1,5 +1,5 @@
 {
-    "version": "3.0",
+    "version": "3.1",
     "appType": "APP",
     "name": "Facility Reconciliation",
     "description": "Facility Reconciliation",
@@ -11,7 +11,7 @@
     },
     "developer": {
         "name": "Intrahealth - Digital Health Team",
-        "url": "http://ihris.intrahealth.org/dhis"
+        "url": "http://digitalhealth.intrahealth.org"
     },
     "default_locale": "en",
     "activities": {

@@ -23,10 +23,16 @@ export const scoresMixin = {
   methods: {
     checkScoreProgress () {
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/scoreProgress/' + clientId).then((scoreProgress) => {
+      axios.get(backendServer + '/progress/scoreResults/' + clientId).then((scoreProgress) => {
         if (scoreProgress.data === null || scoreProgress.data === undefined || scoreProgress.data === false ||
           (scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null)) {
           clearInterval(this.scoreProgressTimer)
+          this.scoreDialog = false
+          this.scoreProgressTitle = 'Waiting for progress status'
+          this.$store.state.errorTitle = 'An error has occured'
+          this.$store.state.errorDescription = 'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
+          this.$store.state.errorColor = 'error'
+          this.$store.state.dialogError = true
           return
         }
         this.scoreProgressTitle = scoreProgress.data.status
@@ -37,9 +43,9 @@ export const scoresMixin = {
           this.scoreProgressPercent = scoreProgress.data.percent
         }
         if (scoreProgress.data.status === 'Done') {
+          this.clearProgress('scoreResults')
           this.loadingSource1Unmatched = false
           this.loadingSource2Unmatched = false
-          // this.getSource2Unmached()
           let scoresData = scoreProgress.data.responseData
           this.$store.state.source2UnMatched = scoresData.source2Unmatched
           this.$store.state.source1UnMatched = []
@@ -168,7 +174,7 @@ export const scoresMixin = {
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
       axios.get(backendServer + '/reconcile/?' + path)
-      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
+      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
     },
     getSource2Unmached () {
       let source1 = this.getSource1()
