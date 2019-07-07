@@ -606,12 +606,10 @@ export default {
       let source2 = this.source2.name
       source1 = this.toTitleCase(source1)
       source2 = this.toTitleCase(source2)
-
       let sourcesLimitOrgId = JSON.stringify({
         source1LimitOrgId: this.getLimitOrgIdOnDataSource(this.source1),
         source2LimitOrgId: this.getLimitOrgIdOnDataSource(this.source2)
       })
-
       let sourcesOwner = JSON.stringify({
         source1Owner: this.source1.userID._id,
         source2Owner: this.source2.userID._id

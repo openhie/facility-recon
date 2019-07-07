@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 require('./init');
 const winston = require('winston');
@@ -241,31 +242,39 @@ module.exports = function () {
       });
     },
 
-    getMappingDBs(name, userID, callback) {
+    getMappingDBsOld(name, userID, callback) {
       const mongoose = require('mongoose');
       mongoose.connect(uri);
-      const db = mongoose.connection;
+      const dbConn = mongoose.connection;
       const mappingDBs = [];
-      db.on('error', console.error.bind(console, 'connection error:'));
-      db.once('open', () => {
+      dbConn.on('error', console.error.bind(console, 'connection error:'));
+      dbConn.once('open', () => {
         mongoose.connection.db.admin().command({
           listDatabases: 1,
         }, (error, results) => {
           async.eachSeries(results.databases, (database, nxtDB) => {
             let dbName1 = database.name;
-            if (dbName1.includes(name) && dbName1.includes(userID)) {
+            if (dbName1.startsWith(name + userID) || dbName1.endsWith(userID + name)) {
               dbName1 = dbName1.replace(name, '');
               const splitedDB = dbName1.split(userID);
               if (!splitedDB[0] == '' && !splitedDB[1] == '') {
                 return nxtDB();
               }
               dbName1 = dbName1.replace(userID, '');
-              const db = results.databases.find(db => db.name === dbName1 + userID);
-              if (dbName1 && db) {
+              // const db = results.databases.find(db => db.name === dbName1 + userID);
+              if (dbName1) {
                 mappingDBs.push(database.name);
                 return nxtDB();
               }
               return nxtDB();
+            }
+            if (dbName1.includes(name)) {
+              // this checks data source pair created from shared data sources
+              // check the posistion of 'name'
+              let checkingDB;
+              if (dbName1.startsWith(name)) {
+                checkingDB = dbName1.replace(name, '');
+              }
             }
             return nxtDB();
           }, () => callback(mappingDBs));
@@ -273,15 +282,61 @@ module.exports = function () {
       });
     },
 
-    deleteDataSource(id, name, sourceOwner, userID, callback) {
-      const requestedDB = name + sourceOwner;
-      let deleteDB = [];
-      deleteDB.push(requestedDB);
+    getMappingDBs(dataSourceID, callback) {
+      const mappingDBs = [];
       const mongoose = require('mongoose');
-      this.getMappingDBs(name, userID, (mappingDBs) => {
-        deleteDB = deleteDB.concat(mappingDBs);
-        async.eachSeries(deleteDB, (db, nxtDB) => {
-          this.deleteDB(db, error => nxtDB());
+      mongoose.connect(uri, {}, (error) => {
+        models.DataSourcePairModel.find({
+          $or: [{
+            source1: dataSourceID,
+          },
+          {
+            source2: dataSourceID,
+          },
+          ],
+        }).populate('source1', 'name').populate('source2', 'name').populate('userID', 'userName')
+          .lean()
+          .exec({}, (err, pairs) => {
+            if (err) {
+              winston.error(err);
+              winston.error('An error has occured while getting data source pairs for mapping DB deletetion');
+              return callback(mappingDBs);
+            }
+            if (pairs) {
+              pairs = JSON.parse(JSON.stringify(pairs));
+              async.eachSeries(pairs, (pair, nxtPair) => {
+                const db = pair.source1.name + pair.userID._id + pair.source2.name;
+                mappingDBs.push({
+                  source1Name: pair.source1.name,
+                  source2Name: pair.source2.name,
+                  db,
+                  owner: pair.userID.userName,
+                });
+                return nxtPair();
+              }, () => callback(mappingDBs));
+            }
+          });
+      });
+    },
+
+    deleteDataSource(id, name, sourceOwner, userID, callback) {
+      const datasourceDB = name + sourceOwner;
+      const mongoose = require('mongoose');
+      this.deleteDB(datasourceDB, (err) => {
+        if (err) {
+          winston.error(err);
+          winston.error(`An error has occured while deleting datasource db ${datasourceDB}`);
+        }
+      });
+      this.getMappingDBs(id, (mappingDBs) => {
+        async.eachSeries(mappingDBs, (mappingDB, nxtDB) => {
+          this.deleteDB(mappingDB.db, (error) => {
+            if (error) {
+              winston.error(error);
+              winston.error(`An error has occured while deleting datasource db ${mappingDB.db}`);
+            }
+            return nxtDB();
+          });
         }, () => {
           mongoose.connect(uri, {}, () => {
             models.DataSourcesModel.deleteOne({
@@ -636,18 +691,27 @@ module.exports = function () {
     },
     deleteDB(db, callback) {
       const mongoose = require('mongoose');
-      mongoose.connect(`mongodb://localhost/${db}`);
-      mongoose.connection.once('open', () => {
-        mongoose.connection.db.dropDatabase((err) => {
-          mongoose.connection.close();
+      let uri;
+      if (mongoUser && mongoPasswd) {
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
+      } else {
+        uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
+      }
+      const conn = mongoose.createConnection(uri);
+      conn.on('error', (err) => {
+        winston.error(err);
+        winston.error(`An error has occured while connecting to db ${db}`);
+      });
+      conn.on('connected', () => {
+        conn.db.dropDatabase((err) => {
+          conn.close();
           if (err) {
             winston.error(err);
-            error = err;
             throw err;
           } else {
             winston.info(`${db} Dropped`);
           }
-          return callback();
+          return callback(err);
         });
       });
     },

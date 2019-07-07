@@ -615,9 +615,6 @@ export default {
     }
   },
   methods: {
-    check () {
-      console.log('called')
-    },
     controlDatasetsCronjobs (dataset) {
       let formData = new FormData()
       formData.append('id', dataset._id)

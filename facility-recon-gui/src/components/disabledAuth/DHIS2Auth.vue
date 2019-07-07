@@ -24,20 +24,16 @@ export default {
             return callback(userData)
           })
         }
+      }).catch((err) => {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Error'
+        if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
+          this.$store.state.errorDescription = 'Unauthorized, ensure that your DHIS2 login is active'
+          this.$router.push({ name: 'Logout' })
+        } else {
+          this.$store.state.errorDescription = 'Unauthorized, please reload the app'
+        }
       })
-        .catch((err) => {
-          this.$store.state.dialogError = true
-          this.$store.state.errorTitle = 'Error'
-          if (err.response && err.response.data && err.response.data.httpStatusCode === 401) {
-            this.$store.state.errorDescription = 'Unauthorized, esnure that you DHIS2 login is active'
-            this.$router.push({ name: 'Logout' })
-          } else {
-            this.$store.state.errorDescription = 'Unauthorized, please reload the app'
-            // this.$store.state.config.generalConfig.authDisabled = false
-            // this.$store.state.initializingApp = false
-            // this.saveConfiguration('generalConfig', 'authDisabled')
-          }
-        })
     }
   },
   created () {
@@ -47,23 +43,25 @@ export default {
       let isAdmin = dhis2User.data.userCredentials.userRoles.find((role) => {
         return role.id === this.$store.state.config.generalConfig.externalAuth.adminRole
       })
-      let role
+      let roleID, roleText
       if (isAdmin) {
-        role = this.roles.find((role) => {
+        let role = this.roles.find((role) => {
           return role.text === 'Admin'
         })
-        role = role.value
+        roleID = role.value
+        roleText = role.text
       } else {
-        role = this.roles.find((role) => {
+        let role = this.roles.find((role) => {
           return role.text === 'Data Manager'
         })
-        role = role.value
+        roleID = role.value
+        roleText = role.text
       }
       axios.get(backendServer + '/getUser/' + dhis2User.data.userCredentials.username).then((user) => {
         if (user.data.userID) {
           this.$store.state.auth.username = dhis2User.data.userCredentials.username
           this.$store.state.auth.userID = user.data.userID
-          this.$store.state.auth.role = user.data.role
+          this.$store.state.auth.role = roleText
           this.$store.state.initializingApp = true
           this.$store.state.denyAccess = false
           eventBus.$emit('getConfig')
@@ -74,7 +72,7 @@ export default {
           formData.append('password', dhis2User.data.surname)
           formData.append('userName', dhis2User.data.userCredentials.username)
           formData.append('surname', dhis2User.data.surname)
-          formData.append('role', role)
+          formData.append('role', roleID)
           axios.post(backendServer + '/addUser', formData, {
             headers: {
               'Content-Type': 'multipart/form-data'

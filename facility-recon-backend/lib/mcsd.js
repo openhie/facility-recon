@@ -56,6 +56,11 @@ module.exports = () => ({
             return callback(false, false);
           }
           body = JSON.parse(body);
+          if (!body.hasOwnProperty('entry')) {
+            winston.error('Non mCSD data returned');
+            cache.del(`started_${baseUrl}`);
+            return callback(false, false);
+          }
           const next = body.link.find(link => link.relation == 'next');
           if (next) {
             url = next.url;

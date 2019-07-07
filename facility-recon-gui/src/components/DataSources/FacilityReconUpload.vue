@@ -615,8 +615,7 @@ export default {
     checkUploadProgress () {
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/progress/uploadProgress/' + clientId).then((uploadProgress) => {
-        if (uploadProgress.data === null || uploadProgress.data === undefined || uploadProgress.data === false ||
-          (uploadProgress.data.status === null && uploadProgress.data.percent === null && uploadProgress.data.error === null)) {
+        if (!uploadProgress.data || (!uploadProgress.data.status && !uploadProgress.data.percent && !uploadProgress.data.error)) {
           this.$store.state.uploadRunning = false
           this.uploadPrepaProgr = false
           this.percentDialog = false

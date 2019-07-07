@@ -397,8 +397,7 @@ export default {
         this.$store.state.totalSource1Levels = 5
         this.$store.state.totalSource2Levels = 5
         this.$store.state.initializingApp = false
-        this.$store.state.recalculateScores = true
-        this.$router.push({ name: 'FacilityReconScores' })
+        this.renderInitialPage()
         this.$store.state.recoLevel = 2
         this.getRecoStatus()
         return

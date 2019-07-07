@@ -23,16 +23,24 @@ export const scoresMixin = {
   methods: {
     checkScoreProgress () {
       const clientId = this.$store.state.clientId
-      axios.get(backendServer + '/progress/scoreResults/' + clientId).then((scoreProgress) => {
+      axios({
+        method: 'get',
+        url: backendServer + '/progress/scoreResults/' + clientId
+      }).then((scoreProgress) => {
+        console.log(typeof scoreProgress.data + ' ' + JSON.stringify(scoreProgress.data.status))
         if (!scoreProgress.data ||
-          (scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length === 0)) {
-          clearInterval(this.scoreProgressTimer)
+          (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {
+          // clearInterval(this.scoreProgressTimer)
           this.scoreDialog = false
           this.scoreProgressTitle = 'Waiting for progress status'
           this.$store.state.errorTitle = 'An error has occured'
           this.$store.state.errorDescription = 'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
+          return
+        } else if ((scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length > 0)) {
+          this.scoreDialog = false
+          this.scoreProgressTitle = 'Waiting for progress status'
           return
         }
         this.scoreProgressTitle = scoreProgress.data.status
@@ -113,12 +121,15 @@ export const scoresMixin = {
             }
           }
           this.$store.state.source1Parents = this.topTree
-          clearInterval(this.scoreProgressTimer)
+          // clearInterval(this.scoreProgressTimer)
           this.scoreDialog = false
           this.scoreProgressTitle = 'Waiting for progress status'
+        } else {
+          this.checkScoreProgress()
         }
       }).catch((err) => {
-        console.log(err)
+        console.log('Error ' + err)
+        this.checkScoreProgress()
       })
     },
     getScores () {
@@ -173,8 +184,10 @@ export const scoresMixin = {
       let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
-      axios.get(backendServer + '/reconcile/?' + path)
-      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
+      axios.get(backendServer + '/reconcile/?' + path).then(() => {
+        this.checkScoreProgress()
+      })
+      // this.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
     },
     getSource2Unmached () {
       let source1 = this.getSource1()
