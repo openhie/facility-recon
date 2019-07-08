@@ -7,7 +7,7 @@ After=network.target
 Type=simple
 User={{ user }}
 WorkingDirectory=/home/{{ user }}/facility-recon/facility-recon-backend
-ExecStart={{ executable }} lib/index.js
+ExecStart={{ executable }} start
 Restart=on-failure
 
 [Install]
