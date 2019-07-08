@@ -41,7 +41,6 @@ const mongoUser = config.getConf('DB_USER');
 const mongoPasswd = config.getConf('DB_PASSWORD');
 const mongoHost = config.getConf('DB_HOST');
 const mongoPort = config.getConf('DB_PORT');
-
 const app = express();
 const server = require('http').createServer(app);
 
@@ -120,6 +119,7 @@ const topOrgId = config.getConf('mCSD:fakeOrgId');
 const topOrgName = config.getConf('mCSD:fakeOrgName');
 
 if (cluster.isMaster) {
+  require('./cronjobs');
   const workers = {};
   const database = config.getConf('DB_NAME');
   let uri;
@@ -2661,7 +2661,6 @@ if (cluster.isMaster) {
     const type = req.params.type;
     const progressRequestId = `${type}${clientId}`;
     redisClient.get(progressRequestId, (error, results) => {
-      // try to respond with {"status":null,"error":null,"percent":null,"responseData":null} and see the reaction from app
       if (error) {
         winston.error(error);
         winston.error(`An error has occured while getting progress for ${type} and clientID ${clientId}`);
