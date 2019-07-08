@@ -289,7 +289,7 @@
             {{ $t('App.source') }} 1: <b>{{$store.state.activePair.source1.name}}</b>, &nbsp; &nbsp; {{ $t('App.source') }} 2: <b>{{$store.state.activePair.source2.name}}</b>,
             &nbsp; &nbsp; Recon Status: <v-icon
               small
-              v-if="$store.state.recoStatus === 'on-progress'"
+              v-if="$store.state.recoStatus === 'in-progress'"
             >lock_open</v-icon>
             <v-icon
               small

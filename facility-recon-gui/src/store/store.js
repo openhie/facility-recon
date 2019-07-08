@@ -56,7 +56,7 @@ export const store = new Vuex.Store({
     signupFields: {},
     customSignupFields: {},
     recoStatus: {
-      'status': 'on-progress'
+      'status': 'in-progress'
     },
     recalculateScores: false,
     dialogError: false,
