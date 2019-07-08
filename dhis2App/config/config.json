@@ -1,3 +1,5 @@
 {
-  "BACKEND_SERVER": "http://localhost:3000"
+  "BACKEND_HOST": ".",
+  "BACKEND_PORT": "3000",
+  "BACKEND_PROTOCAL": "http"
 }

@@ -444,7 +444,7 @@
                 @click='markRecoDone'
                 v-if="$store.state.recoStatus !== 'Done'"
               >
-                <v-icon>lock</v-icon>Mark Reconciliation Done
+                <v-icon>lock</v-icon>Mark Reconciliation As Done
               </v-btn>
               <v-btn
                 color="success"
@@ -452,7 +452,7 @@
                 @click='markRecoUnDone'
                 v-if="$store.state.recoStatus === 'Done' && $store.state.auth.role == 'Admin'"
               >
-                <v-icon>lock_open</v-icon>Mark Reconciliation UnDone
+                <v-icon>lock_open</v-icon>Mark Reconciliation As UnDone
               </v-btn>
             </template>
           </v-flex>

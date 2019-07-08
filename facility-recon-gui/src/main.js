@@ -39,7 +39,6 @@ function getDHIS2StoreConfig (callback) {
       callback(response.data)
       // if BACKEND_URL is missing then set it
       if (!response.data.BACKEND_SERVER) {
-        console.log('from then')
         let url = process.env.BACKEND_SERVER || guiConfig.BACKEND_SERVER
         let config = {
           BACKEND_SERVER: url
@@ -70,8 +69,13 @@ function addDHIS2StoreConfig (config) {
 getDHIS2StoreConfig((storeConfig) => {
   if (storeConfig && storeConfig.BACKEND_SERVER) {
     axios.defaults.baseURL = process.env.BACKEND_SERVER || storeConfig.BACKEND_SERVER
+  } else if (process.env.BACKEND_SERVER) {
+    axios.defaults.baseURL = process.env.BACKEND_SERVER
   } else {
-    axios.defaults.baseURL = process.env.BACKEND_SERVER || guiConfig.BACKEND_SERVER
+    if (guiConfig.BACKEND_HOST === '.') {
+      guiConfig.BACKEND_HOST = window.location.hostname
+    }
+    axios.defaults.baseURL = guiConfig.BACKEND_PROTOCAL + '://' + guiConfig.BACKEND_HOST + ':' + guiConfig.BACKEND_PORT
   }
   // get general config of App and pass it to the App component as props
   let defaultGenerConfig = JSON.stringify(store.state.config.generalConfig)
