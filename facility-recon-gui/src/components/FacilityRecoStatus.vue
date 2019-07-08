@@ -85,18 +85,28 @@
         xs1
         text-xs-right
       >
-        <v-tooltip top>
-          <v-btn
-            flat
-            icon
-            color="primary"
-            @click="helpDialog = true"
-            slot="activator"
-          >
-            <v-icon>help</v-icon>
-          </v-btn>
-          <span>Help</span>
-        </v-tooltip>
+        <v-layout
+          row
+          wrap
+        >
+          <v-flex xs3>
+            <appRecoExport></appRecoExport>
+          </v-flex>
+          <v-flex xs9>
+            <v-tooltip top>
+              <v-btn
+                flat
+                icon
+                color="primary"
+                @click="helpDialog = true"
+                slot="activator"
+              >
+                <v-icon>help</v-icon>
+              </v-btn>
+              <span>Help</span>
+            </v-tooltip>
+          </v-flex>
+        </v-layout>
       </v-flex>
     </v-layout>
     <v-layout column>
@@ -607,6 +617,7 @@
 <script>
 import { scoresMixin } from '../mixins/scoresMixin'
 import axios from 'axios'
+import ReconciliationExport from './ReconciliationExport'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   mixins: [scoresMixin],
@@ -716,6 +727,10 @@ export default {
         if (status.data.status) {
           this.$store.state.recoStatus = status.data.status
         }
+        this.$store.state.errorTitle = 'Reconciliation Done'
+        this.$store.state.errorDescription = 'Reconciliation is complete, more changes can be done now'
+        this.$store.state.errorColor = 'primary'
+        this.$store.state.dialogError = true
       }).catch((err) => {
         this.$store.state.dynamicProgress = false
         console.log(err.response.data.error)
@@ -730,6 +745,10 @@ export default {
         if (status.data.status) {
           this.$store.state.recoStatus = status.data.status
         }
+        this.$store.state.errorTitle = 'Reconciliation on progress'
+        this.$store.state.errorDescription = 'You may continue doing reconciliation now'
+        this.$store.state.errorColor = 'primary'
+        this.$store.state.dialogError = true
       }).catch((err) => {
         this.$store.state.dynamicProgress = false
         console.log(err.response.data.error)
@@ -876,6 +895,9 @@ export default {
     totalRecords () {
       return this.totalMapped + this.totalNotMapped + this.totalNoMatch + this.totalIgnore + this.totalFlagged
     }
+  },
+  components: {
+    'appRecoExport': ReconciliationExport
   },
   created () {
     this.mappingStatus()

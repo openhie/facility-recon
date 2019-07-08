@@ -27,7 +27,6 @@ export const scoresMixin = {
         method: 'get',
         url: backendServer + '/progress/scoreResults/' + clientId
       }).then((scoreProgress) => {
-        console.log(typeof scoreProgress.data + ' ' + JSON.stringify(scoreProgress.data.status))
         if (!scoreProgress.data ||
           (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {
           // clearInterval(this.scoreProgressTimer)

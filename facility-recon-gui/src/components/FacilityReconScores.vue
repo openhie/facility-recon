@@ -118,55 +118,6 @@
       </v-dialog>
       <v-dialog
         persistent
-        v-model="downloadDialog"
-        width="620px"
-      >
-        <v-card>
-          <v-toolbar
-            color="primary"
-            dark
-          >
-            <v-toolbar-title>
-              Select file type to download
-            </v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-icon @click='closeDownloadDialog'>close</v-icon>
-          </v-toolbar>
-          <v-card-text>
-
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-              round
-              color="info"
-              @click='downloadMatched'
-            >
-              <v-icon left>file_copy</v-icon>
-              Matched
-            </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn
-              round
-              color="info"
-              @click='downloadSource1Unmatched'
-            >
-              <v-icon left>file_copy</v-icon>
-              Source1 Unmatched
-            </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn
-              round
-              color="info"
-              @click='downloadSource2Unmatched'
-            >
-              <v-icon left>file_copy</v-icon>
-              Source2 Unmatched
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-dialog
-        persistent
         transition="scale-transition"
         v-model="dialog"
         :width="dialogWidth"
@@ -380,34 +331,13 @@
         row
         wrap
       >
-        <v-btn
-          color="success"
-          round
-          @click='csvExport'
-        >
-          <v-icon left>file_copy</v-icon>
-          <v-progress-circular
-            v-if='loadingCSV'
-            indeterminate
-            color="red"
-          ></v-progress-circular>
-          CSV Export
-        </v-btn>
-        <v-btn
-          color="success"
-          round
-          @click='fhirExport'
-        >
-          <v-icon left>file_copy</v-icon>
-          <v-progress-circular
-            v-if='loadingFHIR'
-            indeterminate
-            color="red"
-          ></v-progress-circular>
-          FHIR Export
-        </v-btn>
+        <v-flex xs3>
+          <appRecoExport></appRecoExport>
+        </v-flex>
         <v-spacer></v-spacer>
-        <b>Reconciling {{currentLevelText}}</b>
+        <v-flex xs2>
+          <b>Reconciling {{currentLevelText}}</b>
+        </v-flex>
         <v-spacer></v-spacer>
         <v-flex
           xs1
@@ -1204,6 +1134,7 @@ import LiquorTree from 'liquor-tree'
 import { scoresMixin } from '../mixins/scoresMixin'
 import { generalMixin } from '../mixins/generalMixin'
 import { eventBus } from '../main'
+import ReconciliationExport from './ReconciliationExport'
 
 const backendServer = process.env.BACKEND_SERVER
 
@@ -1214,11 +1145,6 @@ export default {
       scoreDialog: false,
       flagCommentDialog: false,
       flagComment: '',
-      matchedDownloadData: '',
-      unmatchedSource1DownloadData: '',
-      unmatchedSource2DownloadData: '',
-      downloadType: '',
-      downloadDialog: false,
       helpDialog: false,
       type: '',
       source2Id: '',
@@ -1260,9 +1186,7 @@ export default {
         { text: 'Source 2 Location', value: 'source2Name' },
         { text: 'Source 2 ID', value: 'source2Id' },
         { text: 'Comment', value: 'flagComment' }
-      ],
-      loadingCSV: false,
-      loadingFHIR: false
+      ]
     }
   },
   filters: {
@@ -1757,153 +1681,6 @@ export default {
     back () {
       this.searchPotential = ''
       this.dialog = false
-    },
-    matchedLocations (type) {
-      let userID = this.$store.state.activePair.userID._id
-      let source1 = this.getSource1()
-      let source2 = this.getSource2()
-      let sourcesOwner = this.getDatasourceOwner()
-      let source1Owner = sourcesOwner.source1Owner
-      let source2Owner = sourcesOwner.source2Owner
-      let levelMapping1 = JSON.stringify(this.$store.state.levelMapping.source1)
-      let levelMapping2 = JSON.stringify(this.$store.state.levelMapping.source2)
-      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
-      let params = {
-        source1,
-        source2,
-        source1Owner,
-        source2Owner,
-        type,
-        userID,
-        source1LimitOrgId,
-        source2LimitOrgId,
-        levelMapping1,
-        levelMapping2
-      }
-      return axios.get(backendServer + '/matchedLocations', { params })
-    },
-    unMatchedLocations (type) {
-      let userID = this.$store.state.activePair.userID._id
-      let sourcesOwner = this.getDatasourceOwner()
-      let source1Owner = sourcesOwner.source1Owner
-      let source2Owner = sourcesOwner.source2Owner
-      let levelMapping1 = this.$store.state.levelMapping.source1
-      let levelMapping2 = this.$store.state.levelMapping.source2
-      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
-      let source1 = this.getSource1()
-      let source2 = this.getSource2()
-      let params = {
-        source1,
-        source2,
-        source1Owner,
-        source2Owner,
-        type,
-        userID,
-        source1LimitOrgId,
-        source2LimitOrgId,
-        levelMapping1,
-        levelMapping2
-      }
-      return axios.get(backendServer + '/unmatchedLocations', { params })
-    },
-    csvExport () {
-      this.loadingCSV = true
-      let me = this
-      axios
-        .all([this.matchedLocations('CSV'), this.unMatchedLocations('CSV')])
-        .then(
-          axios.spread(function (matchResponse, unmatchResponse) {
-            me.loadingCSV = false
-            me.downloadDialog = true
-            me.downloadType = 'csv'
-            // matched CSV
-            me.matchedDownloadData = matchResponse.data
-            me.unmatchedSource1DownloadData = unmatchResponse.data.unmatchedSource1CSV
-            me.unmatchedSource2DownloadData = unmatchResponse.data.unmatchedSource2CSV
-          })
-        )
-    },
-    fhirExport () {
-      this.loadingFHIR = true
-      let me = this
-      axios
-        .all([this.matchedLocations('FHIR'), this.unMatchedLocations('FHIR')])
-        .then(
-          axios.spread(function (matchResponse, unmatchResponse) {
-            me.loadingFHIR = false
-            me.downloadDialog = true
-            me.downloadType = 'fhir'
-            // matched CSV
-            me.matchedDownloadData = matchResponse.data
-            me.unmatchedSource1DownloadData = unmatchResponse.data.unmatchedSource1mCSD
-            me.unmatchedSource2DownloadData = unmatchResponse.data.unmatchedSource2mCSD
-          })
-        )
-    },
-    downloadMatched () {
-      let extension, encoding
-      if (this.downloadType === 'fhir') {
-        extension = 'json'
-        encoding = 'data:text/json;charset=utf-8,'
-        this.matchedDownloadData = JSON.stringify(this.matchedDownloadData)
-      } else {
-        extension = 'csv'
-        encoding = 'data:text/csv;charset=utf-8,'
-      }
-      const matchedData = encodeURI(
-        encoding + this.matchedDownloadData
-      )
-      const link = document.createElement('a')
-      link.setAttribute('href', matchedData)
-      link.setAttribute(
-        'download',
-        `matched${this.getSource1()}${this.getSource2()}.${extension}`
-      )
-      link.click()
-    },
-    downloadSource1Unmatched () {
-      let extension, encoding
-      if (this.downloadType === 'fhir') {
-        extension = 'json'
-        encoding = 'data:text/json;charset=utf-8,'
-        this.unmatchedSource1DownloadData = JSON.stringify(this.unmatchedSource1DownloadData)
-      } else {
-        extension = 'csv'
-        encoding = 'data:text/csv;charset=utf-8,'
-      }
-      const unmatchedSource1Data = encodeURI(
-        encoding + this.unmatchedSource1DownloadData
-      )
-      const link = document.createElement('a')
-      link.setAttribute('href', unmatchedSource1Data)
-      link.setAttribute('download', `unmatched${this.getSource1()}.${extension}`)
-      link.click()
-    },
-    downloadSource2Unmatched () {
-      let extension, encoding
-      if (this.downloadType === 'fhir') {
-        extension = 'json'
-        encoding = 'data:text/json;charset=utf-8,'
-        this.unmatchedSource2DownloadData = JSON.stringify(this.unmatchedSource2DownloadData)
-      } else {
-        extension = 'csv'
-        encoding = 'data:text/csv;charset=utf-8,'
-      }
-      const unmatchedSource2Data = encodeURI(
-        encoding + this.unmatchedSource2DownloadData
-      )
-      const link = document.createElement('a')
-      link.setAttribute('href', unmatchedSource2Data)
-      link.setAttribute('download', `unmatched${this.getSource2()}.${extension}`)
-      link.click()
-    },
-    closeDownloadDialog () {
-      this.downloadDialog = false
-      this.matchedDownloadData = ''
-      this.unmatchedSource1DownloadData = ''
-      this.unmatchedSource2DownloadData = ''
     }
   },
   computed: {
@@ -2261,7 +2038,8 @@ export default {
     }
   },
   components: {
-    'liquor-tree': LiquorTree
+    'liquor-tree': LiquorTree,
+    'appRecoExport': ReconciliationExport
   }
 }
 </script>
