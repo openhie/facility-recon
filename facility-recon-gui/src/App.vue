@@ -8,6 +8,13 @@
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items v-if="$store.state.auth.token || $store.state.config.generalConfig.authDisabled">
+        <v-btn
+          flat
+          :href="dhisLink"
+          v-if='dhisLink'
+        >
+          <img src="./assets/dhis2.png" />
+        </v-btn>
         <v-menu
           open-on-hover
           bottom
@@ -581,6 +588,15 @@ export default {
         let val = true
         callback(val)
         this.activatePair()
+      }
+    }
+  },
+  computed: {
+    dhisLink () {
+      if (this.$store.state.dhis.user.orgId) {
+        return window.location.protocol + '//' + window.location.hostname
+      } else {
+        return false
       }
     }
   },
