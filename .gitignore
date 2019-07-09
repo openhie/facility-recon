@@ -23,3 +23,7 @@ build
 _static
 _templates
 *.mo
+
+# tests
+tests/node_modules
+tests/screenshot*

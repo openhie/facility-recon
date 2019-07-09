@@ -1,0 +1,19 @@
+{
+  "name": "facility-recon-tests",
+  "version": "1.0.0",
+  "description": "e2e tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "faker": "^4.1.0",
+    "jest": "^24.8.0",
+    "puppeteer": "^1.18.1"
+  },
+  "dependencies": {
+    "jest-puppeteer": "^4.2.0"
+  }
+}
