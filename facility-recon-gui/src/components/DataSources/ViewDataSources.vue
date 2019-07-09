@@ -14,7 +14,7 @@
           </v-toolbar-title>
         </v-toolbar>
         <v-card-text>
-          Are you sure you want to delete {{server.name}} {{server.host}} <br> This will also delete the Database
+          This will delete the dataset from the database. Are you sure you want to delete {{server.name}} {{server.host}}
         </v-card-text>
         <v-card-actions>
           <v-btn

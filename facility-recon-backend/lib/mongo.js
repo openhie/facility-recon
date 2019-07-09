@@ -242,46 +242,6 @@ module.exports = function () {
       });
     },
 
-    getMappingDBsOld(name, userID, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri);
-      const dbConn = mongoose.connection;
-      const mappingDBs = [];
-      dbConn.on('error', console.error.bind(console, 'connection error:'));
-      dbConn.once('open', () => {
-        mongoose.connection.db.admin().command({
-          listDatabases: 1,
-        }, (error, results) => {
-          async.eachSeries(results.databases, (database, nxtDB) => {
-            let dbName1 = database.name;
-            if (dbName1.startsWith(name + userID) || dbName1.endsWith(userID + name)) {
-              dbName1 = dbName1.replace(name, '');
-              const splitedDB = dbName1.split(userID);
-              if (!splitedDB[0] == '' && !splitedDB[1] == '') {
-                return nxtDB();
-              }
-              dbName1 = dbName1.replace(userID, '');
-              // const db = results.databases.find(db => db.name === dbName1 + userID);
-              if (dbName1) {
-                mappingDBs.push(database.name);
-                return nxtDB();
-              }
-              return nxtDB();
-            }
-            if (dbName1.includes(name)) {
-              // this checks data source pair created from shared data sources
-              // check the posistion of 'name'
-              let checkingDB;
-              if (dbName1.startsWith(name)) {
-                checkingDB = dbName1.replace(name, '');
-              }
-            }
-            return nxtDB();
-          }, () => callback(mappingDBs));
-        });
-      });
-    },
-
     getMappingDBs(dataSourceID, callback) {
       const mappingDBs = [];
       const mongoose = require('mongoose');
@@ -305,7 +265,7 @@ module.exports = function () {
             if (pairs) {
               pairs = JSON.parse(JSON.stringify(pairs));
               async.eachSeries(pairs, (pair, nxtPair) => {
-                const db = pair.source1.name + pair.userID._id + pair.source2.name;
+                const db = mixin.toTitleCase(pair.source1.name) + pair.userID._id + mixin.toTitleCase(pair.source2.name);
                 mappingDBs.push({
                   source1Name: pair.source1.name,
                   source2Name: pair.source2.name,

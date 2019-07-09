@@ -46,6 +46,9 @@
               v-model="name"
               box
               required
+              @blur="ensureNameUnique"
+              @input="ensureNameUnique"
+              :error-messages="nameErrors"
               color="deep-purple"
               label="Source Name"
             ></v-text-field>
@@ -145,7 +148,8 @@ export default {
   },
   data () {
     return {
-      datasetLimitWarn: false
+      datasetLimitWarn: false,
+      nameErrors: []
     }
   },
   methods: {
@@ -165,6 +169,26 @@ export default {
           this.datasetLimitWarn = true
         }
       })
+    },
+    ensureNameUnique () {
+      this.nameErrors = []
+      if (this.name === '') {
+        return this.nameErrors.push('Name is required')
+      }
+      if (this.name.length > 35) {
+        return this.nameErrors.push('Name must not exceed 35 characters')
+      }
+      for (let invalidChar of this.invalidCharacters) {
+        if (this.name.indexOf(invalidChar) !== -1) {
+          return this.nameErrors.push('Name is invalid')
+        }
+      }
+      for (let dtSrc of this.$store.state.dataSources) {
+        if (dtSrc.name === this.name) {
+          this.nameErrors.push('This Name Exists')
+          return false
+        }
+      }
     }
   }
 }

@@ -602,6 +602,14 @@ export default {
       if (this.uploadName === '') {
         return this.uploadNameErrors.push('Upload name is required')
       }
+      if (this.uploadName.length > 35) {
+        return this.uploadNameErrors.push('Name must not exceed 35 characters')
+      }
+      for (let invalidChar of this.invalidCharacters) {
+        if (this.uploadName.indexOf(invalidChar) !== -1) {
+          return this.uploadNameErrors.push('Name is invalid')
+        }
+      }
       for (let dtSrc of this.$store.state.dataSources) {
         if (dtSrc.name === this.uploadName) {
           this.uploadNameErrors.push('This Name Exists')

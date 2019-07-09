@@ -2208,10 +2208,10 @@ if (cluster.isMaster) {
       const mappingDB = fields.source1DB + userID + fields.source2DB;
       if (!source1Id || !source2Id) {
         winston.error({
-          error: 'Missing either Source1ID or Source2ID or both',
+          error: 'Missing either Source1 ID or Source2 ID or both',
         });
         res.status(400).json({
-          error: 'Missing either Source1ID or Source2ID or both',
+          error: 'Missing either Source1 ID or Source2 ID or both',
         });
         return;
       }
@@ -2327,11 +2327,11 @@ if (cluster.isMaster) {
       const totalLevels = fields.totalLevels;
       if (!source1Id) {
         winston.error({
-          error: 'Missing either Source1ID',
+          error: 'Missing either Source1 ID',
         });
         res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
-          error: 'Missing either Source1ID',
+          error: 'Missing either Source1 ID',
         });
         return;
       }

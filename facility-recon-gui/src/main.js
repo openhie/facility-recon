@@ -74,8 +74,9 @@ getDHIS2StoreConfig((storeConfig) => {
   } else {
     if (guiConfig.BACKEND_HOST === '.') {
       guiConfig.BACKEND_HOST = window.location.hostname
+      guiConfig.BACKEND_PROTOCOL = window.location.protocol.replace(':', '')
     }
-    axios.defaults.baseURL = guiConfig.BACKEND_PROTOCAL + '://' + guiConfig.BACKEND_HOST + ':' + guiConfig.BACKEND_PORT
+    axios.defaults.baseURL = guiConfig.BACKEND_PROTOCOL + '://' + guiConfig.BACKEND_HOST + ':' + guiConfig.BACKEND_PORT
   }
   // get general config of App and pass it to the App component as props
   let defaultGenerConfig = JSON.stringify(store.state.config.generalConfig)

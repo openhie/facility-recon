@@ -267,7 +267,7 @@
                   >
                     <v-icon left>thumb_down</v-icon>No Match
                   </v-btn>
-                  <span>Save this Source 1 location as having no match</span>
+                  <span>Mark this source 1 location as being ignored</span>
                 </v-tooltip>
               </v-flex>
               <v-flex xs2>
@@ -291,7 +291,7 @@
                     slot="activator"
                   >
                     <v-btn
-                      color="teal darken-2"
+                      color="teal darken-6"
                       round
                       style="color: white;"
                       value="all"

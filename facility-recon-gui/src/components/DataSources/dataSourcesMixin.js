@@ -1,4 +1,6 @@
-import {eventBus} from '../../main'
+import {
+  eventBus
+} from '../../main'
 import axios from 'axios'
 const backendServer = process.env.BACKEND_SERVER
 export const dataSourcesMixin = {
@@ -11,7 +13,8 @@ export const dataSourcesMixin = {
       sourceType: '',
       limitShareByOrgId: false,
       shareWithAll: false,
-      shareToSameOrgid: true
+      shareToSameOrgid: true,
+      invalidCharacters: ['"', '/', '\\', '.']
     }
   },
   methods: {
