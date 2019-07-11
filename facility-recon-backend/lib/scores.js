@@ -291,9 +291,9 @@ module.exports = function () {
                   // when parent constraint is On then automatch by name is also enabled by default
                   // when parent constraint is off then check if name automatch is also on
 
-                  if (lev == 0 &&
-                    !matchBroken &&
-                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0
+                    && !matchBroken
+                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     ignore.push(source2Entry.resource.id);
                     thisRanking.exactMatch = {
@@ -740,8 +740,8 @@ module.exports = function () {
                   for (const abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr]);
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false ||
-                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      if (parentsDiffer == false
+                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
                       ) {
                         matchComments.push('Names differ');
                         ignore.push(source2Entry.resource.id);
@@ -778,8 +778,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
@@ -882,8 +882,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

@@ -518,6 +518,9 @@ export default {
       this.$store.state.activePair.source1 = {}
       this.$store.state.activePair.source2 = {}
       let userID = this.$store.state.auth.userID
+      if (!this.$store.state.initializingApp) {
+        this.$store.state.initializingApp = true
+      }
       axios
         .get(backendServer + '/getDataSourcePair/' + userID + '/' + this.$store.state.dhis.user.orgId)
         .then(response => {

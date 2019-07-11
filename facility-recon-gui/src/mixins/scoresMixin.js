@@ -17,14 +17,19 @@ export const scoresMixin = {
     }
   },
   methods: {
+    progressCheckTimeout () {
+      this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
+      clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
+    },
     checkScoreProgress () {
+      // if the req takes one minute without responding then display a message to user
+      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.progressCheckTimeout, 60000)
       const clientId = this.$store.state.clientId
-      console.log('sending progress request')
       axios({
         method: 'get',
         url: backendServer + '/progress/scoreResults/' + clientId
       }).then((scoreProgress) => {
-        console.log('progress responded')
+        clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
         if (!scoreProgress.data ||
           (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {
           // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
@@ -126,6 +131,7 @@ export const scoresMixin = {
         }
       }).catch((err) => {
         console.log('Error ' + err)
+        clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
         this.checkScoreProgress()
       })
     },
@@ -182,7 +188,6 @@ export const scoresMixin = {
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then(() => {
-        console.log('responded calc score res')
         this.checkScoreProgress()
       })
       // this.$store.state.scoresProgressData.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)

@@ -111,7 +111,8 @@ export const store = new Vuex.Store({
       scoreProgressTitle: 'Waiting for progress status',
       scoreProgressPercent: null,
       progressType: '',
-      scoreProgressTimer: false
+      scoreProgressTimer: false,
+      progressReqTimer: ''
     },
     uploadProgressData: {},
     dataSources: [],
