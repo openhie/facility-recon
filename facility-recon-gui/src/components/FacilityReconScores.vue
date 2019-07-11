@@ -19,7 +19,7 @@
       v-if='!$store.state.denyAccess & !$store.state.uploadRunning'
     >
       <v-dialog
-        v-model="scoreDialog"
+        v-model="$store.state.scoresProgressData.scoreDialog"
         hide-overlay
         persistent
         width="350"
@@ -30,21 +30,21 @@
         >
           <v-card-text>
             <center>
-              <font style="color:blue">{{scoreProgressTitle}}</font><br>
+              <font style="color:blue">{{$store.state.scoresProgressData.scoreProgressTitle}}</font><br>
               <v-progress-circular
                 :rotate="-90"
                 :size="100"
                 :width="15"
-                :value="scoreProgressPercent"
+                :value="$store.state.scoresProgressData.scoreProgressPercent"
                 color="primary"
-                v-if="progressType == 'percent'"
+                v-if="$store.state.scoresProgressData.progressType == 'percent'"
               >
                 <v-avatar
                   color="indigo"
                   size="50px"
                 >
                   <span class="white--text">
-                    <b>{{ scoreProgressPercent }}%</b>
+                    <b>{{ $store.state.scoresProgressData.scoreProgressPercent }}%</b>
                   </span>
                 </v-avatar>
               </v-progress-circular>
@@ -52,7 +52,7 @@
                 indeterminate
                 color="red"
                 class="mb-0"
-                v-if="progressType == 'indeterminate'"
+                v-if="$store.state.scoresProgressData.progressType == 'indeterminate'"
               ></v-progress-linear>
             </center>
           </v-card-text>
@@ -1142,7 +1142,6 @@ export default {
   mixins: [scoresMixin, generalMixin],
   data () {
     return {
-      scoreDialog: false,
       flagCommentDialog: false,
       flagComment: '',
       helpDialog: false,

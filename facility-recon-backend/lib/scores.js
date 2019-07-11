@@ -260,7 +260,7 @@ module.exports = function () {
               } else {
                 source2Filtered = mcsdSource2.entry;
               }
-              async.each(source2Filtered, (source2Entry, source2Callback) => {
+              async.eachSeries(source2Filtered, (source2Entry, source2Callback) => {
                 const matchComments = [];
                 const id = source2Entry.resource.id;
                 const source2Identifier = URI(config.getConf('mCSD:url'))

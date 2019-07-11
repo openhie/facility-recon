@@ -745,6 +745,10 @@ module.exports = () => ({
       }
 
       this.getLocationByID(mappingDB, res.source1Parents[0], false, (mapped1) => {
+        if (!isJSON(mapped1)) {
+          winston.error(`Non JSON results returned ${JSON.stringify(mapped1)}`);
+          return callback(true, false);
+        }
         if (mapped1.entry.length > 0) {
           res.source1Parents[0] = mixin.getIdFromIdentifiers(mapped1.entry[0].resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
         }
@@ -755,7 +759,7 @@ module.exports = () => ({
         }
         const source1Name = res.source2mCSD.entry[0].resource.name;
         const source2Name = res.source1mCSD.entry[0].resource.name;
-        lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+        const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
         if (lev !== 0) {
           matchComments.push('Names differ');
         }

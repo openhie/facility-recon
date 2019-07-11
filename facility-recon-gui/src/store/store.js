@@ -106,7 +106,13 @@ export const store = new Vuex.Store({
     source1UnMatched: [],
     scoreResults: [],
     levelArray: [],
-    scoresProgressData: {},
+    scoresProgressData: {
+      scoreDialog: false,
+      scoreProgressTitle: 'Waiting for progress status',
+      scoreProgressPercent: null,
+      progressType: '',
+      scoreProgressTimer: false
+    },
     uploadProgressData: {},
     dataSources: [],
     remoteDataSources: ['DHIS2', 'FHIR'],

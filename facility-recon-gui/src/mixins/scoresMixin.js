@@ -11,10 +11,6 @@ export const scoresMixin = {
   mixins: [generalMixin],
   data () {
     return {
-      scoreProgressTitle: 'Waiting for progress status',
-      scoreProgressPercent: null,
-      progressType: '',
-      scoreProgressTimer: false,
       loadingSource2Unmatched: false,
       loadingSource1Unmatched: false,
       topTree: ''
@@ -23,31 +19,33 @@ export const scoresMixin = {
   methods: {
     checkScoreProgress () {
       const clientId = this.$store.state.clientId
+      console.log('sending progress request')
       axios({
         method: 'get',
         url: backendServer + '/progress/scoreResults/' + clientId
       }).then((scoreProgress) => {
+        console.log('progress responded')
         if (!scoreProgress.data ||
           (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {
-          // clearInterval(this.scoreProgressTimer)
-          this.scoreDialog = false
-          this.scoreProgressTitle = 'Waiting for progress status'
+          // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
+          this.$store.state.scoresProgressData.scoreDialog = false
+          this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
           this.$store.state.errorTitle = 'An error has occured'
           this.$store.state.errorDescription = 'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
           return
         } else if ((scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length > 0)) {
-          this.scoreDialog = false
-          this.scoreProgressTitle = 'Waiting for progress status'
+          this.$store.state.scoresProgressData.scoreDialog = false
+          this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
           return
         }
-        this.scoreProgressTitle = scoreProgress.data.status
+        this.$store.state.scoresProgressData.scoreProgressTitle = scoreProgress.data.status
         if (scoreProgress.data.percent) {
-          if (this.progressType !== 'percent') {
-            this.progressType = 'percent'
+          if (this.$store.state.scoresProgressData.progressType !== 'percent') {
+            this.$store.state.scoresProgressData.progressType = 'percent'
           }
-          this.scoreProgressPercent = scoreProgress.data.percent
+          this.$store.state.scoresProgressData.scoreProgressPercent = scoreProgress.data.percent
         }
         if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
           this.clearProgress('scoreResults')
@@ -120,9 +118,9 @@ export const scoresMixin = {
             }
           }
           this.$store.state.source1Parents = this.topTree
-          // clearInterval(this.scoreProgressTimer)
-          this.scoreDialog = false
-          this.scoreProgressTitle = 'Waiting for progress status'
+          // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
+          this.$store.state.scoresProgressData.scoreDialog = false
+          this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
         } else {
           this.checkScoreProgress()
         }
@@ -153,9 +151,9 @@ export const scoresMixin = {
       }
       this.loadingSource1Unmatched = true
       this.loadingSource2Unmatched = true
-      this.scoreDialog = true
-      this.scoreProgressTitle = 'Waiting for progress status'
-      this.progressType = 'indeterminate'
+      this.$store.state.scoresProgressData.scoreDialog = true
+      this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
+      this.$store.state.scoresProgressData.progressType = 'indeterminate'
       let recoLevel = this.$store.state.recoLevel
       let totalSource1Levels = this.$store.state.totalSource1Levels
       let totalSource2Levels = this.$store.state.totalSource2Levels
@@ -184,9 +182,10 @@ export const scoresMixin = {
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
       path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint
       axios.get(backendServer + '/reconcile/?' + path).then(() => {
+        console.log('responded calc score res')
         this.checkScoreProgress()
       })
-      // this.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
+      // this.$store.state.scoresProgressData.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
     },
     getSource2Unmached () {
       let source1 = this.getSource1()
@@ -248,25 +247,25 @@ export const scoresMixin = {
         })
       }
     })
-    this.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
-    this.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
-    if (this.$store.state.scoresProgressData.scoreDialog) {
-      this.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
-    } else {
-      this.scoreDialog = false
-    }
-    this.progressType = this.$store.state.scoresProgressData.progressType
-    this.scoreProgressTimer = this.$store.state.scoresProgressData.scoreProgressTimer
-    if (this.scoreDialog) {
-      this.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
-    }
-  },
-  destroyed () {
-    this.$store.state.scoresProgressData.scoreProgressTitle = this.scoreProgressTitle
-    this.$store.state.scoresProgressData.scoreProgressPercent = this.scoreProgressPercent
-    this.$store.state.scoresProgressData.scoreDialog = this.scoreDialog
-    this.$store.state.scoresProgressData.progressType = this.progressType
-    this.$store.state.scoresProgressData.scoreProgressTimer = this.scoreProgressTimer
-    clearInterval(this.scoreProgressTimer)
+    // this.$store.state.scoresProgressData.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
+    // this.$store.state.scoresProgressData.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
+    // if (this.$store.state.scoresProgressData.scoreDialog) {
+    //   this.$store.state.scoresProgressData.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
+    // } else {
+    //   this.$store.state.scoresProgressData.scoreDialog = false
+    // }
+    // this.$store.state.scoresProgressData.progressType = this.$store.state.scoresProgressData.progressType
+    // this.$store.state.scoresProgressData.scoreProgressTimer = this.$store.state.scoresProgressData.scoreProgressTimer
+    // if (this.$store.state.scoresProgressData.scoreDialog) {
+    //   this.$store.state.scoresProgressData.scoreProgressTimer = setInterval(this.checkScoreProgress, 1000)
+    // }
   }
+  // destroyed () {
+  //   this.$store.state.scoresProgressData.scoreProgressTitle = this.$store.state.scoresProgressData.scoreProgressTitle
+  //   this.$store.state.scoresProgressData.scoreProgressPercent = this.$store.state.scoresProgressData.scoreProgressPercent
+  //   this.$store.state.scoresProgressData.scoreDialog = this.$store.state.scoresProgressData.scoreDialog
+  //   this.$store.state.scoresProgressData.progressType = this.$store.state.scoresProgressData.progressType
+  //   this.$store.state.scoresProgressData.scoreProgressTimer = this.$store.state.scoresProgressData.scoreProgressTimer
+  //   // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
+  // }
 }

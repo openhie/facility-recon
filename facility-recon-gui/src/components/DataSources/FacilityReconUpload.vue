@@ -631,7 +631,7 @@ export default {
           this.$store.state.errorDescription = 'You should delete this data source from view data source page then re-upload'
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
-          clearInterval(this.UploadProgressTimer)
+          // clearInterval(this.UploadProgressTimer)
           return
         } else if (uploadProgress.data.error !== null) {
           this.$store.state.uploadRunning = false
@@ -640,7 +640,7 @@ export default {
           this.$store.state.dialogError = true
           this.$store.state.errorTitle = 'Error'
           this.$store.state.errorDescription = uploadProgress.data.error
-          clearInterval(this.UploadProgressTimer)
+          // clearInterval(this.UploadProgressTimer)
           console.log(uploadProgress.data.error)
           return
         }
@@ -661,9 +661,12 @@ export default {
           this.percentDialog = false
           this.dialog = true
           this.$store.state.uploadRunning = false
+        } else {
+          this.checkUploadProgress()
         }
       }).catch((err) => {
         console.log(err)
+        this.checkUploadProgress()
       })
     },
     performExtraCheck () {
@@ -724,7 +727,8 @@ export default {
           }.bind(this)
         }
       ).then((data) => {
-        this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
+        // this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
+        this.checkUploadProgress()
       }).catch((err) => {
         if (Array.isArray(err.response.data.error)) {
           this.invalidRows = true
@@ -879,9 +883,9 @@ export default {
     if (this.$store.state.uploadProgressData.uploadPercent) {
       this.uploadPercent = this.$store.state.uploadProgressData.uploadPercent
     }
-    if (this.percentDialog || this.uploadPrepaProgr) {
-      this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
-    }
+    // if (this.percentDialog || this.uploadPrepaProgr) {
+    //   this.UploadProgressTimer = setInterval(this.checkUploadProgress, 1000)
+    // }
   },
   destroyed () {
     this.$store.state.uploadProgressData.dialog = this.dialog
@@ -890,7 +894,7 @@ export default {
     this.$store.state.uploadProgressData.UploadProgressTimer = this.UploadProgressTimer
     this.$store.state.uploadProgressData.uploadStatus = this.uploadStatus
     this.$store.state.uploadProgressData.uploadPercent = this.uploadPercent
-    clearInterval(this.checkUploadProgress)
+    // clearInterval(this.checkUploadProgress)
   }
 }
 </script>
