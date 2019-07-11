@@ -96,6 +96,7 @@ module.exports = function () {
                 status: '2/3 - Scanning Source2 Location Parents',
                 error: null,
                 percent,
+                stage: 'not last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               if (count === mcsdSource2.entry.length) {
@@ -174,6 +175,7 @@ module.exports = function () {
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
+                  stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();
@@ -202,6 +204,7 @@ module.exports = function () {
                 status: '3/3 - Running Automatching',
                 error: null,
                 percent,
+                stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               return source1Callback();
@@ -356,6 +359,7 @@ module.exports = function () {
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
+                  stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();
@@ -469,6 +473,7 @@ module.exports = function () {
                 status: '2/3 - Scanning Source2 Location Parents',
                 error: null,
                 percent,
+                stage: 'not last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               if (count === mcsdSource2.entry.length) {
@@ -563,6 +568,7 @@ module.exports = function () {
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
+                  stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();
@@ -590,6 +596,7 @@ module.exports = function () {
                 status: '3/3 - Running Automatching',
                 error: null,
                 percent,
+                stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               return source1Callback();
@@ -852,6 +859,7 @@ module.exports = function () {
                   status: '3/3 - Running Automatching',
                   error: null,
                   percent,
+                  stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
                 return source1Callback();

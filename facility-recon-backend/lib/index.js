@@ -55,7 +55,7 @@ const jwtValidator = function (req, res, next) {
     req.path == '/getSignupConf' ||
     req.path == '/getGeneralConfig' ||
     req.path == '/addUser/' ||
-    req.path.startsWith('/scoreProgress') ||
+    req.path.startsWith('/progress') ||
     req.path == '/' ||
     req.path.startsWith('/static/js') ||
     req.path.startsWith('/static/config.json') ||
@@ -1638,6 +1638,7 @@ if (cluster.isMaster) {
                 error: null,
                 percent: 100,
                 responseData,
+                stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               winston.info('Score results sent back');
@@ -1677,6 +1678,7 @@ if (cluster.isMaster) {
                 error: null,
                 percent: 100,
                 responseData,
+                stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
               winston.info('Score results sent back');

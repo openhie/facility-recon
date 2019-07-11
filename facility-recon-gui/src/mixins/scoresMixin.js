@@ -6,6 +6,7 @@ import {
   eventBus
 } from '../main'
 
+const CancelToken = axios.CancelToken
 const backendServer = process.env.BACKEND_SERVER
 export const scoresMixin = {
   mixins: [generalMixin],
@@ -20,15 +21,23 @@ export const scoresMixin = {
     progressCheckTimeout () {
       this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
       clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
+      let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
+      if (percent !== 100 || (percent === 100 && this.$store.state.scoresProgressData.stage !== 'final')) {
+        this.$store.state.scoresProgressData.requestCancelled = true
+        this.$store.state.scoresProgressData.cancelTokenSource.cancel('Cancelling request.')
+        this.checkScoreProgress()
+      }
     },
     checkScoreProgress () {
       // if the req takes one minute without responding then display a message to user
-      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.progressCheckTimeout, 60000)
+      console.log('send request')
+      this.$store.state.scoresProgressData.cancelTokenSource = CancelToken.source()
+      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.progressCheckTimeout, 10000)
       const clientId = this.$store.state.clientId
-      axios({
-        method: 'get',
-        url: backendServer + '/progress/scoreResults/' + clientId
+      axios.get(backendServer + '/progress/scoreResults/' + clientId, {
+        cancelToken: this.$store.state.scoresProgressData.cancelTokenSource.token
       }).then((scoreProgress) => {
+        console.log('responded')
         clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
         if (!scoreProgress.data ||
           (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {
@@ -51,6 +60,7 @@ export const scoresMixin = {
             this.$store.state.scoresProgressData.progressType = 'percent'
           }
           this.$store.state.scoresProgressData.scoreProgressPercent = scoreProgress.data.percent
+          this.$store.state.scoresProgressData.stage = scoreProgress.data.stage
         }
         if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
           this.clearProgress('scoreResults')
@@ -123,16 +133,18 @@ export const scoresMixin = {
             }
           }
           this.$store.state.source1Parents = this.topTree
-          // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
           this.$store.state.scoresProgressData.scoreDialog = false
           this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
         } else {
           this.checkScoreProgress()
         }
-      }).catch((err) => {
-        console.log('Error ' + err)
-        clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
-        this.checkScoreProgress()
+      }).catch((thrown) => {
+        if (this.$store.state.scoresProgressData.requestCancelled) {
+          this.$store.state.scoresProgressData.requestCancelled = false
+        } else {
+          clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
+          this.checkScoreProgress()
+        }
       })
     },
     getScores () {
