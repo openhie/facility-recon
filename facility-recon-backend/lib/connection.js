@@ -1,18 +1,25 @@
 const mongoose = require('mongoose');
 const config = require('./config');
 
-const database = config.getConf('mCSD:database');
-const mongoUser = config.getConf('mCSD:databaseUser');
-const mongoPasswd = config.getConf('mCSD:databasePassword');
-const mongoHost = config.getConf('mCSD:databaseHost');
-const mongoPort = config.getConf('mCSD:databasePort');
+const mongoUser = config.getConf('DB_USER');
+const mongoPasswd = config.getConf('DB_PASSWORD');
+const mongoHost = config.getConf('DB_HOST');
+const mongoPort = config.getConf('DB_PORT');
+const database = config.getConf('DB_NAME');
+
+const options = {
+  useNewUrlParser: true,
+  keepAlive: true,
+  autoReconnect: true,
+  reconnectTries: Number.MAX_VALUE,
+  poolSize: 10,
+};
+let uri;
 if (mongoUser && mongoPasswd) {
-  var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+  uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
 } else {
-  var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+  uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
 }
-mongoose.connect(uri);
-/* mongoose.connect(uri, {
-  useNewUrlParser: true
-});
-*/
+mongoose.connect(uri, options);
+mongoose.set('useCreateIndex', true);
+mongoose.set('useFindAndModify', false);

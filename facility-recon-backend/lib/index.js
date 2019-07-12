@@ -29,6 +29,7 @@ const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
 const models = require('./models');
+const schemas = require('./schemas');
 const mixin = require('./mixin')();
 const mongo = require('./mongo')();
 const config = require('./config');
@@ -120,15 +121,8 @@ const topOrgName = config.getConf('mCSD:fakeOrgName');
 
 if (cluster.isMaster) {
   require('./cronjobs');
+  require('./connection');
   const workers = {};
-  const database = config.getConf('DB_NAME');
-  let uri;
-  if (mongoUser && mongoPasswd) {
-    uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-  } else {
-    uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-  }
-  mongoose.connect(uri);
   const db = mongoose.connection;
   db.on('error', console.error.bind(console, 'connection error:'));
   db.once('open', () => {
@@ -259,65 +253,42 @@ if (cluster.isMaster) {
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       winston.info(`Authenticating user ${fields.username}`);
-      const database = config.getConf('DB_NAME');
-      const mongoUser = config.getConf('DB_USER');
-      const mongoPasswd = config.getConf('DB_PASSWORD');
-      const mongoHost = config.getConf('DB_HOST');
-      const mongoPort = config.getConf('DB_PORT');
-
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri);
-      const db = mongoose.connection;
-      db.on('error', console.error.bind(console, 'connection error:'));
-      db.once('open', () => {
-        models.UsersModel.find({
-          userName: fields.username,
-          $or: [{
-            status: 'Active',
-          }, {
-            status: '',
-          }, {
-            status: undefined,
-          }],
-        }).lean().exec((err, data) => {
-          if (data.length === 1) {
-            const userID = data[0]._id.toString();
-            const passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
-            if (passwordMatch) {
-              const tokenDuration = config.getConf('auth:tokenDuration');
-              const secret = config.getConf('auth:secret');
-              const token = jwt.sign({
-                id: data[0]._id.toString(),
-              }, secret, {
-                expiresIn: tokenDuration,
-              });
-              // get role name
-              models.RolesModel.find({
-                _id: data[0].role,
-              }).lean().exec((err, roles) => {
-                let role = null;
-                if (roles.length === 1) {
-                  role = roles[0].name;
-                }
-                winston.info(`Successfully Authenticated user ${fields.username}`);
-                res.status(200).json({
-                  token,
-                  role,
-                  userID,
-                });
-              });
-            } else {
-              winston.info(`Failed Authenticating user ${fields.username}`);
+      models.UsersModel.find({
+        userName: fields.username,
+        $or: [{
+          status: 'Active',
+        }, {
+          status: '',
+        }, {
+          status: undefined,
+        }],
+      }).lean().exec((err, data) => {
+        if (data.length === 1) {
+          const userID = data[0]._id.toString();
+          const passwordMatch = bcrypt.compareSync(fields.password, data[0].password);
+          if (passwordMatch) {
+            const tokenDuration = config.getConf('auth:tokenDuration');
+            const secret = config.getConf('auth:secret');
+            const token = jwt.sign({
+              id: data[0]._id.toString(),
+            }, secret, {
+              expiresIn: tokenDuration,
+            });
+            // get role name
+            models.RolesModel.find({
+              _id: data[0].role,
+            }).lean().exec((err, roles) => {
+              let role = null;
+              if (roles.length === 1) {
+                role = roles[0].name;
+              }
+              winston.info(`Successfully Authenticated user ${fields.username}`);
               res.status(200).json({
-                token: null,
-                role: null,
-                userID: null,
+                token,
+                role,
+                userID,
               });
-            }
+            });
           } else {
             winston.info(`Failed Authenticating user ${fields.username}`);
             res.status(200).json({
@@ -326,122 +297,10 @@ if (cluster.isMaster) {
               userID: null,
             });
           }
-        });
-      });
-    });
-  });
-
-  app.post('/addUser', (req, res) => {
-    winston.info('Received a signup request');
-    const form = new formidable.IncomingForm();
-    form.parse(req, (err, fields, files) => {
-      const database = config.getConf('DB_NAME');
-
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.find({
-          'forms.name': 'signup',
-        }, (err, data) => {
-          if (data) {
-            let signupFields = {};
-            if (data.length > 0) {
-              signupFields = Object.assign({}, data[0].forms[0].fields);
-            }
-            signupFields = Object.assign(signupFields, models.usersFields);
-
-            models.RolesModel.find({
-              name: 'Data Manager',
-            }, (err, data) => {
-              if (data) {
-                const schemaData = {};
-                for (const field in signupFields) {
-                  if (field === 'password') {
-                    fields[field] = bcrypt.hashSync(fields.password, 8);
-                  }
-                  schemaData[field] = fields[field];
-                }
-                if (!schemaData.hasOwnProperty('role') || !schemaData.role) {
-                  schemaData.role = data[0]._id;
-                }
-                schemaData.status = 'Active';
-                const Users = new models.UsersModel(schemaData);
-                Users.save((err, data) => {
-                  if (err) {
-                    winston.error(err);
-                    res.status(500).json({
-                      error: 'Internal error occured',
-                    });
-                  } else {
-                    winston.info('User created successfully');
-                    res.status(200).json({
-                      id: data._id,
-                    });
-                  }
-                });
-              } else {
-                if (err) {
-                  winston.error(err);
-                }
-                res.status(500).json({
-                  error: 'Internal error occured',
-                });
-              }
-            });
-          } else {
-            if (err) {
-              winston.error(err);
-            }
-            res.status(500).json({
-              error: 'Internal error occured',
-            });
-          }
-        });
-      });
-    });
-  });
-
-  app.get('/getUser/:userName', (req, res) => {
-    winston.info(`Getting user ${req.params.userName}`);
-    const database = config.getConf('DB_NAME');
-    const mongoUser = config.getConf('DB_USER');
-    const mongoPasswd = config.getConf('DB_PASSWORD');
-    const mongoHost = config.getConf('DB_HOST');
-    const mongoPort = config.getConf('DB_PORT');
-
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri);
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', () => {
-      models.UsersModel.find({
-        userName: req.params.userName,
-      }).lean().exec((err, data) => {
-        if (data.length > 0) {
-          const userID = data[0]._id.toString();
-          // get role name
-          models.RolesModel.find({
-            _id: data[0].role,
-          }).lean().exec((err, roles) => {
-            let role = null;
-            if (roles.length === 1) {
-              role = roles[0].name;
-            }
-            res.status(200).json({
-              role,
-              userID,
-            });
-          });
         } else {
-          winston.info(`User ${req.params.userName} not found`);
+          winston.info(`Failed Authenticating user ${fields.username}`);
           res.status(200).json({
+            token: null,
             role: null,
             userID: null,
           });
@@ -450,22 +309,105 @@ if (cluster.isMaster) {
     });
   });
 
+  app.post('/addUser', (req, res) => {
+    winston.info('Received a signup request');
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      models.MetaDataModel.find({
+        'forms.name': 'signup',
+      }, (err, data) => {
+        if (data) {
+          let signupFields = {};
+          if (data.length > 0) {
+            signupFields = Object.assign({}, data[0].forms[0].fields);
+          }
+          signupFields = Object.assign(signupFields, schemas.usersFields);
+
+          models.RolesModel.find({
+            name: 'Data Manager',
+          }, (err, data) => {
+            if (data) {
+              const schemaData = {};
+              for (const field in signupFields) {
+                if (field === 'password') {
+                  fields[field] = bcrypt.hashSync(fields.password, 8);
+                }
+                schemaData[field] = fields[field];
+              }
+              if (!schemaData.hasOwnProperty('role') || !schemaData.role) {
+                schemaData.role = data[0]._id;
+              }
+              schemaData.status = 'Active';
+              const Users = new models.UsersModel(schemaData);
+              Users.save((err, data) => {
+                if (err) {
+                  winston.error(err);
+                  res.status(500).json({
+                    error: 'Internal error occured',
+                  });
+                } else {
+                  winston.info('User created successfully');
+                  res.status(200).json({
+                    id: data._id,
+                  });
+                }
+              });
+            } else {
+              if (err) {
+                winston.error(err);
+              }
+              res.status(500).json({
+                error: 'Internal error occured',
+              });
+            }
+          });
+        } else {
+          if (err) {
+            winston.error(err);
+          }
+          res.status(500).json({
+            error: 'Internal error occured',
+          });
+        }
+      });
+    });
+  });
+
+  app.get('/getUser/:userName', (req, res) => {
+    winston.info(`Getting user ${req.params.userName}`);
+    models.UsersModel.find({
+      userName: req.params.userName,
+    }).lean().exec((err, data) => {
+      if (data.length > 0) {
+        const userID = data[0]._id.toString();
+        // get role name
+        models.RolesModel.find({
+          _id: data[0].role,
+        }).lean().exec((err, roles) => {
+          let role = null;
+          if (roles.length === 1) {
+            role = roles[0].name;
+          }
+          res.status(200).json({
+            role,
+            userID,
+          });
+        });
+      } else {
+        winston.info(`User ${req.params.userName} not found`);
+        res.status(200).json({
+          role: null,
+          userID: null,
+        });
+      }
+    });
+  });
+
   app.get('/getUsers', (req, res) => {
     winston.info('received a request to get users lists');
-    const database = config.getConf('DB_NAME');
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri);
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', () => {
-      models.UsersModel.find({}).populate('role').lean().exec((err, users) => {
-        winston.info(`sending back a list of ${users.length} users`);
-        res.status(200).json(users);
-      });
+    models.UsersModel.find({}).populate('role').lean().exec((err, users) => {
+      winston.info(`sending back a list of ${users.length} users`);
+      res.status(200).json(users);
     });
   });
 
@@ -602,15 +544,8 @@ if (cluster.isMaster) {
 
   app.post('/updateUserConfig', (req, res) => {
     winston.info('Received updated user configurations');
-    const database = config.getConf('DB_NAME');
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const mongoose = require('mongoose');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
       let appConfig;
       try {
         appConfig = JSON.parse(fields.config);
@@ -618,187 +553,167 @@ if (cluster.isMaster) {
         appConfig = fields.config;
       }
       appConfig.userConfig.userID = fields.userID;
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({
-          'config.userConfig.userID': fields.userID,
-        }, (err, data) => {
-          if (!data) {
-            models.MetaDataModel.findOne({}, {
-              _id: 1,
-            }, (err, data) => {
-              if (data) {
-                models.MetaDataModel.findByIdAndUpdate(data._id, {
-                  $push: {
-                    'config.userConfig': appConfig.userConfig,
-                  },
-                }, (err, data) => {
-                  if (err) {
-                    winston.error(err);
-                    winston.error('Failed to save new config');
-                    res.status(500).json({
-                      error: 'Unexpected error occured,please retry',
-                    });
-                  } else {
-                    winston.info('New config saved successfully');
-                    res.status(200).json({
-                      status: 'Done',
-                    });
-                  }
-                });
-              } else {
-                const MetaData = new models.MetaDataModel({
+      models.MetaDataModel.findOne({
+        'config.userConfig.userID': fields.userID,
+      }, (err, data) => {
+        if (!data) {
+          models.MetaDataModel.findOne({}, {
+            _id: 1,
+          }, (err, data) => {
+            if (data) {
+              models.MetaDataModel.findByIdAndUpdate(data._id, {
+                $push: {
                   'config.userConfig': appConfig.userConfig,
-                });
-                MetaData.save((err, data) => {
-                  if (err) {
-                    winston.error(err);
-                    winston.error('Failed to save new config');
-                    res.status(500).json({
-                      error: 'Unexpected error occured,please retry',
-                    });
-                  } else {
-                    winston.info('New config saved successfully');
-                    res.status(200).json({
-                      status: 'Done',
-                    });
-                  }
-                });
-              }
-            });
-          } else {
-            models.MetaDataModel.findOneAndUpdate({
-              _id: data.id,
-              'config.userConfig._id': appConfig.userConfig._id,
-            }, {
-              $set: {
+                },
+              }, (err, data) => {
+                if (err) {
+                  winston.error(err);
+                  winston.error('Failed to save new config');
+                  res.status(500).json({
+                    error: 'Unexpected error occured,please retry',
+                  });
+                } else {
+                  winston.info('New config saved successfully');
+                  res.status(200).json({
+                    status: 'Done',
+                  });
+                }
+              });
+            } else {
+              const MetaData = new models.MetaDataModel({
                 'config.userConfig': appConfig.userConfig,
-              },
-            }, (err, data) => {
-              if (err) {
-                winston.error(err);
-                winston.error('Failed to save new config');
-                res.status(500).json({
-                  error: 'Unexpected error occured,please retry',
-                });
-              } else {
-                winston.info('New config saved successfully');
-                res.status(200).json({
-                  status: 'Done',
-                });
-              }
-            });
-          }
-        });
+              });
+              MetaData.save((err, data) => {
+                if (err) {
+                  winston.error(err);
+                  winston.error('Failed to save new config');
+                  res.status(500).json({
+                    error: 'Unexpected error occured,please retry',
+                  });
+                } else {
+                  winston.info('New config saved successfully');
+                  res.status(200).json({
+                    status: 'Done',
+                  });
+                }
+              });
+            }
+          });
+        } else {
+          models.MetaDataModel.findOneAndUpdate({
+            _id: data.id,
+            'config.userConfig._id': appConfig.userConfig._id,
+          }, {
+            $set: {
+              'config.userConfig': appConfig.userConfig,
+            },
+          }, (err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('Failed to save new config');
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry',
+              });
+            } else {
+              winston.info('New config saved successfully');
+              res.status(200).json({
+                status: 'Done',
+              });
+            }
+          });
+        }
       });
     });
   });
 
   app.post('/updateGeneralConfig', (req, res) => {
     winston.info('Received updated general configurations');
-    const database = config.getConf('DB_NAME');
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const mongoose = require('mongoose');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
       let appConfig;
       try {
         appConfig = JSON.parse(fields.config);
       } catch (error) {
         appConfig = fields.config;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
-          if (!data) {
-            if (appConfig.generalConfig.externalAuth.password) {
-              appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password);
-            }
-            const MetaData = new models.MetaDataModel({
-              'config.generalConfig': appConfig.generalConfig,
-            });
-            MetaData.save((err, data) => {
-              if (err) {
-                winston.error(err);
-                winston.error('Failed to save new config');
-                res.status(500).json({
-                  error: 'Unexpected error occured,please retry',
-                });
-              } else {
-                winston.info('New config saved successfully');
-                res.status(200).json({
-                  status: 'Done',
-                });
-              }
-            });
-          } else {
-            if (appConfig.generalConfig.externalAuth.password != data.config.generalConfig.externalAuth.password) {
-              appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password);
-            } else {
-              appConfig.generalConfig.externalAuth.password = data.config.generalConfig.externalAuth.password;
-            }
-            models.MetaDataModel.findByIdAndUpdate(data.id, {
-              'config.generalConfig': appConfig.generalConfig,
-            }, (err, data) => {
-              if (err) {
-                winston.error(err);
-                winston.error('Failed to save new general config');
-                res.status(500).json({
-                  error: 'Unexpected error occured,please retry',
-                });
-              } else {
-                winston.info('New general config saved successfully');
-                res.status(200).json({
-                  status: 'Done',
-                });
-              }
-            });
+      models.MetaDataModel.findOne({}, (err, data) => {
+        if (!data) {
+          if (appConfig.generalConfig.externalAuth.password) {
+            appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password);
           }
-        });
+          const MetaData = new models.MetaDataModel({
+            'config.generalConfig': appConfig.generalConfig,
+          });
+          MetaData.save((err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('Failed to save new config');
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry',
+              });
+            } else {
+              winston.info('New config saved successfully');
+              res.status(200).json({
+                status: 'Done',
+              });
+            }
+          });
+        } else {
+          if (appConfig.generalConfig.externalAuth.password != data.config.generalConfig.externalAuth.password) {
+            appConfig.generalConfig.externalAuth.password = mongo.encrypt(appConfig.generalConfig.externalAuth.password);
+          } else {
+            appConfig.generalConfig.externalAuth.password = data.config.generalConfig.externalAuth.password;
+          }
+          models.MetaDataModel.findByIdAndUpdate(data.id, {
+            'config.generalConfig': appConfig.generalConfig,
+          }, (err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('Failed to save new general config');
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry',
+              });
+            } else {
+              winston.info('New general config saved successfully');
+              res.status(200).json({
+                status: 'Done',
+              });
+            }
+          });
+        }
       });
     });
   });
 
   app.get('/getUserConfig/:userID', (req, res) => {
-    const database = config.getConf('DB_NAME');
     const userID = req.params.userID;
-    const mongoose = require('mongoose');
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, {
-        'config.userConfig': 1,
-      }, (err, data) => {
-        if (!data) {
-          return res.status(200).send();
+    models.MetaDataModel.findOne({}, {
+      'config.userConfig': 1,
+    }, (err, data) => {
+      if (!data) {
+        return res.status(200).send();
+      }
+      const userConfig = data.config.userConfig.find((userConfigData) => {
+        let userConfig = {};
+        try {
+          userConfig = JSON.parse(JSON.stringify(userConfigData));
+        } catch (error) {
+          winston.error(error);
         }
-        const userConfig = data.config.userConfig.find((userConfigData) => {
-          let userConfig = {};
-          try {
-            userConfig = JSON.parse(JSON.stringify(userConfigData));
-          } catch (error) {
-            winston.error(error);
-          }
-          return userConfig.userID === userID;
-        });
-        if (err) {
-          winston.error(err);
-          res.status(500).json({
-            error: 'internal error occured while getting configurations',
-          });
-        } else {
-          if (data) {
-            delete data._id;
-            delete data.config.userConfig.userID;
-          }
-          res.status(200).json(userConfig);
-        }
+        return userConfig.userID === userID;
       });
+      if (err) {
+        winston.error(err);
+        res.status(500).json({
+          error: 'internal error occured while getting configurations',
+        });
+      } else {
+        if (data) {
+          delete data._id;
+          delete data.config.userConfig.userID;
+        }
+        res.status(200).json(userConfig);
+      }
     });
   });
 
@@ -829,20 +744,13 @@ if (cluster.isMaster) {
   });
 
   app.post('/addFormField', (req, res) => {
-    const database = config.getConf('DB_NAME');
     const form = new formidable.IncomingForm();
 
     form.parse(req, (err, fields, files) => {
-      const mongoose = require('mongoose');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-
-      const fieldName = fields.fieldName;
-      const fieldLabel = fields.fieldLabel;
-
+      const {
+        fieldName,
+        fieldLabel,
+      } = fields;
       let required;
       try {
         required = JSON.parse(fields.fieldRequired);
@@ -851,56 +759,41 @@ if (cluster.isMaster) {
         required = false;
       }
       const formName = fields.form;
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({
-          'forms.name': formName,
-        }, (err, form) => {
-          if (err) {
-            winston.error(err);
-            res.status(500).json({
-              error: 'internal error occured while getting form fields',
-            });
-          } else {
-            let customFields = {};
-            if (form) {
-              customFields = form.forms[0].fields;
-            }
-            customFields[fieldName] = {
-              type: 'String',
-              required,
-              display: fieldLabel,
-            };
-            const promises = [];
+      models.MetaDataModel.findOne({
+        'forms.name': formName,
+      }, (err, form) => {
+        if (err) {
+          winston.error(err);
+          res.status(500).json({
+            error: 'internal error occured while getting form fields',
+          });
+        } else {
+          let customFields = {};
+          if (form) {
+            customFields = form.forms[0].fields;
+          }
+          customFields[fieldName] = {
+            type: 'String',
+            required,
+            display: fieldLabel,
+          };
+          const promises = [];
 
-            promises.push(new Promise((resolve, reject) => {
-              if (!form) {
-                models.MetaDataModel.find({}, {
-                  _id: 1,
-                }).lean().exec((err, mtDt) => {
-                  const form = {
-                    name: formName,
-                    fields: customFields,
-                  };
-                  if (err) {
-                    return resolve(err, null);
-                  }
-                  models.MetaDataModel.findByIdAndUpdate(mtDt[0]._id, {
-                    $push: {
-                      forms: form,
-                    },
-                  }, (err, data) => {
-                    if (err) {
-                      return resolve(err, null);
-                    }
-                    return resolve(null, data);
-                  });
-                });
-              } else {
-                models.MetaDataModel.update({
-                  'forms.name': formName,
-                }, {
-                  $set: {
-                    'forms.$.fields': customFields,
+          promises.push(new Promise((resolve, reject) => {
+            if (!form) {
+              models.MetaDataModel.find({}, {
+                _id: 1,
+              }).lean().exec((err, mtDt) => {
+                const form = {
+                  name: formName,
+                  fields: customFields,
+                };
+                if (err) {
+                  return resolve(err, null);
+                }
+                models.MetaDataModel.findByIdAndUpdate(mtDt[0]._id, {
+                  $push: {
+                    forms: form,
                   },
                 }, (err, data) => {
                   if (err) {
@@ -908,94 +801,87 @@ if (cluster.isMaster) {
                   }
                   return resolve(null, data);
                 });
-              }
-            }));
+              });
+            } else {
+              models.MetaDataModel.update({
+                'forms.name': formName,
+              }, {
+                $set: {
+                  'forms.$.fields': customFields,
+                },
+              }, (err, data) => {
+                if (err) {
+                  return resolve(err, null);
+                }
+                return resolve(null, data);
+              });
+            }
+          }));
 
-            Promise.all(promises).then((results) => {
-              if (results[0]) {
-                winston.error(results[0]);
-                winston.error('Failed to save new field');
-                res.status(500).json({
-                  error: 'Unexpected error occured,please retry',
-                });
-              } else {
-                delete mongoose.connection.models.Users;
-                let usersFields = Object.assign({}, customFields);
-                usersFields = Object.assign(usersFields, models.usersFields);
-                Users = new mongoose.Schema(usersFields);
-                models.UsersModel = mongoose.model('Users', Users);
-                winston.info('Field added successfully');
-                res.status(200).json({
-                  status: 'Done',
-                });
-              }
-            }).catch((err) => {
-              winston.error(err);
-            });
-          }
-        });
-      });
-    });
-  });
-
-  app.get('/getSignupConf', (req, res) => {
-    const database = config.getConf('DB_NAME');
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-    } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-    }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({
-        'forms.name': 'signup',
-      }, (err, form) => {
-        if (err) {
-          winston.error(err);
-          res.status(500).json({
-            error: 'internal error occured while getting configurations',
-          });
-        } else {
-          let customFields = {};
-          if (form) {
-            customFields = form.forms[0].fields;
-          }
-          let allFields = Object.assign({}, models.usersFields);
-          allFields = Object.assign(allFields, customFields);
-          res.status(200).json({
-            customSignupFields: customFields,
-            originalSignupFields: models.usersFields,
-            allSignupFields: allFields,
+          Promise.all(promises).then((results) => {
+            if (results[0]) {
+              winston.error(results[0]);
+              winston.error('Failed to save new field');
+              res.status(500).json({
+                error: 'Unexpected error occured,please retry',
+              });
+            } else {
+              delete mongoose.connection.models.Users;
+              let usersFields = Object.assign({}, customFields);
+              usersFields = Object.assign(usersFields, schemas.usersFields);
+              Users = new mongoose.Schema(usersFields);
+              models.UsersModel = mongoose.model('Users', Users);
+              winston.info('Field added successfully');
+              res.status(200).json({
+                status: 'Done',
+              });
+            }
+          }).catch((err) => {
+            winston.error(err);
           });
         }
       });
     });
   });
 
+  app.get('/getSignupConf', (req, res) => {
+    models.MetaDataModel.findOne({
+      'forms.name': 'signup',
+    }, (err, form) => {
+      if (err) {
+        winston.error(err);
+        res.status(500).json({
+          error: 'internal error occured while getting configurations',
+        });
+      } else {
+        let customFields = {};
+        if (form) {
+          customFields = form.forms[0].fields;
+        }
+        let allFields = Object.assign({}, schemas.usersFields);
+        allFields = Object.assign(allFields, customFields);
+        res.status(200).json({
+          customSignupFields: customFields,
+          originalSignupFields: schemas.usersFields,
+          allSignupFields: allFields,
+        });
+      }
+    });
+  });
+
   app.get('/getRoles/:id?', (req, res) => {
     winston.info('Received a request to get roles');
-    const database = config.getConf('DB_NAME');
-
-    if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+    let idFilter;
+    if (req.params.id) {
+      idFilter = {
+        _id: req.params.id,
+      };
     } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      idFilter = {};
     }
-    mongoose.connect(uri);
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', () => {
-      let idFilter;
-      if (req.params.id) {
-        idFilter = {
-          _id: req.params.id,
-        };
-      } else {
-        idFilter = {};
-      }
-      models.RolesModel.find(idFilter).lean().exec((err, roles) => {
-        winston.info(`sending back a list of ${roles.length} roles`);
-        res.status(200).json(roles);
-      });
+    models.RolesModel.find(idFilter).lean().exec((err, roles) => {
+      winston.info(`sending back a list of ${roles.length} roles`);
+      res.status(200).json(roles);
     });
   });
 
@@ -1319,12 +1205,16 @@ if (cluster.isMaster) {
   });
 
   app.get('/hierarchy', (req, res) => {
-    const source = req.query.source;
-    const sourceOwner = req.query.sourceOwner;
-    let sourceLimitOrgId = req.query.sourceLimitOrgId;
-    const start = req.query.start;
-    const count = req.query.count;
-    let id = req.query.id;
+    const {
+      source,
+      sourceOwner,
+      start,
+      count,
+    } = req.query;
+    let {
+      sourceLimitOrgId,
+      id,
+    } = req.query;
     if (!sourceLimitOrgId) {
       sourceLimitOrgId = topOrgId;
     }
@@ -1369,9 +1259,13 @@ if (cluster.isMaster) {
   });
 
   app.get('/getImmediateChildren/:source/:sourceOwner/:parentID?', (req, res) => {
-    const source = req.params.source;
-    const sourceOwner = req.params.sourceOwner;
-    let parentID = req.params.parentID;
+    const {
+      source,
+      sourceOwner,
+    } = req.params;
+    let {
+      parentID,
+    } = req.params;
     const db = source + sourceOwner;
     if (!parentID) {
       parentID = topOrgId;
@@ -1409,9 +1303,13 @@ if (cluster.isMaster) {
         error: 'Missing Data Source',
       });
     } else {
-      const source = req.params.source;
-      const sourceOwner = req.params.sourceOwner;
-      let sourceLimitOrgId = req.params.sourceLimitOrgId;
+      const {
+        source,
+        sourceOwner,
+      } = req.params;
+      let {
+        sourceLimitOrgId,
+      } = req.params;
       const db = source + sourceOwner;
       if (!sourceLimitOrgId) {
         sourceLimitOrgId = topOrgId;
@@ -1449,11 +1347,18 @@ if (cluster.isMaster) {
 
   app.get('/mappingStatus/:source1/:source2/:source1Owner/:source2Owner/:level/:totalSource2Levels/:totalSource1Levels/:clientId/:userID', (req, res) => {
     winston.info('Getting mapping status');
-    const userID = req.params.userID;
-    const source1Owner = req.params.source1Owner;
-    const source2Owner = req.params.source2Owner;
-    let source1LimitOrgId = req.query.source1LimitOrgId;
-    let source2LimitOrgId = req.query.source2LimitOrgId;
+    const {
+      userID,
+      source1Owner,
+      source2Owner,
+      totalSource2Levels,
+      totalSource1Levels,
+      clientId,
+    } = req.params;
+    let {
+      source1LimitOrgId,
+      source2LimitOrgId,
+    } = req.query;
     if (!source1LimitOrgId) {
       source1LimitOrgId = topOrgId;
     }
@@ -1463,10 +1368,6 @@ if (cluster.isMaster) {
     const source1DB = req.params.source1 + source1Owner;
     const source2DB = req.params.source2 + source2Owner;
     const recoLevel = req.params.level;
-    const totalSource2Levels = req.params.totalSource2Levels;
-    const totalSource1Levels = req.params.totalSource1Levels;
-    const clientId = req.params.clientId;
-
     const statusRequestId = `mappingStatus${clientId}`;
     statusResData = JSON.stringify({
       status: '1/2 - Loading Source2 and Source1 Data',
@@ -1491,6 +1392,8 @@ if (cluster.isMaster) {
           resolve(mcsdSource2Level);
         });
       });
+    }).catch((err) => {
+      winston.error(err);
     });
     const source1LocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(source1DB, source1LimitOrgId, (mcsdSource1) => {
@@ -1690,15 +1593,19 @@ if (cluster.isMaster) {
   });
   app.get('/matchedLocations', (req, res) => {
     winston.info(`Received a request to return matched Locations in ${req.query.type} format for ${req.query.source1}${req.query.source2}`);
-    const userID = req.query.userID;
-    const source1Owner = req.query.source1Owner;
-    const source2Owner = req.query.source2Owner;
+    const {
+      userID,
+      source1Owner,
+      source2Owner,
+      type,
+    } = req.query;
+    let {
+      source1LimitOrgId,
+      source2LimitOrgId,
+    } = req.query;
     const source1DB = req.query.source1 + source1Owner;
     const source2DB = req.query.source2 + source2Owner;
     const mappingDB = req.query.source1 + userID + req.query.source2;
-    const type = req.query.type;
-    let source1LimitOrgId = req.query.source1LimitOrgId;
-    let source2LimitOrgId = req.query.source2LimitOrgId;
     if (!source1LimitOrgId) {
       source1LimitOrgId = topOrgId;
     }
@@ -1725,8 +1632,8 @@ if (cluster.isMaster) {
         };
         async.eachOf(mapped.entry, (entry, key, nxtEntry) => {
           if (entry.resource.hasOwnProperty('tag')) {
-            noMatch = entry.resource.tag.find(tag => tag.code == noMatchCode);
-            ignore = entry.resource.tag.find(tag => tag.code == ignoreCode);
+            const noMatch = entry.resource.tag.find(tag => tag.code == noMatchCode);
+            const ignore = entry.resource.tag.find(tag => tag.code == ignoreCode);
             if (noMatch || ignore) {
               delete mapped.entry[key];
             }
@@ -1956,23 +1863,26 @@ if (cluster.isMaster) {
   });
 
   app.get('/unmatchedLocations', (req, res) => {
-    const userID = req.query.userID;
-    const source1Owner = req.query.source1Owner;
-    const source2Owner = req.query.source2Owner;
+    const {
+      userID,
+      source1Owner,
+      source2Owner,
+      type,
+    } = req.query;
+    let {
+      source1LimitOrgId,
+      source2LimitOrgId,
+    } = req.query;
     const source1DB = req.query.source1 + source1Owner;
     const source2DB = req.query.source2 + source2Owner;
     const levelMapping1 = JSON.parse(req.query.levelMapping1);
     const levelMapping2 = JSON.parse(req.query.levelMapping2);
-    let source1LimitOrgId = req.query.source1LimitOrgId;
-    let source2LimitOrgId = req.query.source2LimitOrgId;
     if (!source1LimitOrgId) {
       source1LimitOrgId = topOrgId;
     }
     if (!source2LimitOrgId) {
       source2LimitOrgId = topOrgId;
     }
-
-    const type = req.query.type;
 
     if (type == 'FHIR') {
       async.series({
@@ -2054,13 +1964,13 @@ if (cluster.isMaster) {
         levelsArr2.push(source2FacilityLevel);
         // end of getting level of a facility
 
-        let unmatchedSource1CSV,
-          unmatchedSource2CSV;
+        let unmatchedSource1CSV;
+        let unmatchedSource2CSV;
         async.parallel({
           source1(callback) {
             async.each(levelsArr1, (srcLevel, nxtLevel) => {
               // increment level by one, because level 1 is a fake country/location
-              level = srcLevel + 1;
+              const level = srcLevel + 1;
               let thisFields = [];
               const parentsFields = [];
               thisFields = thisFields.concat(fields);
@@ -2102,7 +2012,7 @@ if (cluster.isMaster) {
           source2(callback) {
             async.each(levelsArr2, (srcLevel, nxtLevel) => {
               // increment level by one, because level 1 is a fake country/location
-              level = srcLevel + 1;
+              const level = srcLevel + 1;
               let thisFields = [];
               const parentsFields = [];
               thisFields = thisFields.concat(fields);
@@ -2160,17 +2070,23 @@ if (cluster.isMaster) {
       });
       return;
     }
-    const userID = req.params.userID;
-    const source1Owner = req.params.source1Owner;
-    const source2Owner = req.params.source2Owner;
-    let source2LimitOrgId = req.query.source2LimitOrgId;
+    const {
+      userID,
+      source1Owner,
+      source2Owner,
+    } = req.params;
+    let {
+      recoLevel,
+    } = req.params;
+    let {
+      source2LimitOrgId,
+    } = req.query;
     if (!source2LimitOrgId) {
       source2LimitOrgId = topOrgId;
     }
     const source2DB = req.params.source2 + source2Owner;
     const mappingDB = req.params.source1 + userID + req.params.source2;
-    let recoLevel = req.params.recoLevel;
-    if (levelMaps[source2DB] && levelMaps[source2D][recoLevel]) {
+    if (levelMaps[source2DB] && levelMaps[source2DB][recoLevel]) {
       recoLevel = levelMaps[orgid][recoLevel];
     }
     mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdAll) => {
@@ -2185,7 +2101,9 @@ if (cluster.isMaster) {
 
   app.post('/match/:type', (req, res) => {
     winston.info('Received data for matching');
-    const type = req.params.type;
+    const {
+      type,
+    } = req.params;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       if (!fields.source1DB || !fields.source2DB) {
@@ -2197,14 +2115,16 @@ if (cluster.isMaster) {
         });
         return;
       }
-      const source1Id = fields.source1Id;
-      const source2Id = fields.source2Id;
-      const recoLevel = fields.recoLevel;
-      const totalLevels = fields.totalLevels;
-      const userID = fields.userID;
-      const source1Owner = fields.source1Owner;
-      const source2Owner = fields.source2Owner;
-      const flagComment = fields.flagComment;
+      const {
+        source1Id,
+        source2Id,
+        recoLevel,
+        totalLevels,
+        userID,
+        source1Owner,
+        source2Owner,
+        flagComment,
+      } = fields;
       const source1DB = fields.source1DB + source1Owner;
       const source2DB = fields.source2DB + source2Owner;
       const mappingDB = fields.source1DB + userID + fields.source2DB;
@@ -2217,14 +2137,21 @@ if (cluster.isMaster) {
         });
         return;
       }
-
+      let uri;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${mappingDB}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data && data.recoStatus === 'in-progress') {
             mcsd.saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, false, flagComment, (err, matchComments) => {
               winston.info('Done matching');
@@ -2255,35 +2182,46 @@ if (cluster.isMaster) {
       winston.error({
         error: 'Missing Source1 or Source2',
       });
-      res.set('Access-Control-Allow-Origin', '*');
       res.status(400).json({
         error: 'Missing Source1 or Source2',
       });
       return;
     }
-    const userID = req.params.userID;
+    const {
+      userID,
+    } = req.params;
     const mappingDB = req.params.source1 + userID + req.params.source2;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const source1Id = fields.source1Id;
+      const {
+        source1Id,
+      } = fields;
       if (!source1Id) {
         winston.error({
           error: 'Missing source1Id',
         });
-        res.set('Access-Control-Allow-Origin', '*');
         res.status(400).json({
           error: 'Missing source1Id',
         });
         return;
       }
 
+      let uri;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${mappingDB}`);
+      });
+
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data.recoStatus === 'in-progress') {
             mcsd.acceptFlag(source1Id, mappingDB, (err) => {
               winston.info('Done marking flag as a match');
@@ -2315,18 +2253,22 @@ if (cluster.isMaster) {
       });
       return;
     }
-    const userID = req.params.userID;
-    const source1Owner = req.params.source1Owner;
-    const source2Owner = req.params.source2Owner;
-    const type = req.params.type;
+    const {
+      userID,
+      source1Owner,
+      source2Owner,
+      type,
+    } = req.params;
     const source1DB = req.params.source1 + source1Owner;
     const source2DB = req.params.source2 + source2Owner;
     const mappingDB = req.params.source1 + userID + req.params.source2;
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
-      const source1Id = fields.source1Id;
-      const recoLevel = fields.recoLevel;
-      const totalLevels = fields.totalLevels;
+      const {
+        source1Id,
+        recoLevel,
+        totalLevels,
+      } = fields;
       if (!source1Id) {
         winston.error({
           error: 'Missing either Source1 ID',
@@ -2338,13 +2280,21 @@ if (cluster.isMaster) {
         return;
       }
 
+      let uri;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${mappingDB}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data.recoStatus === 'in-progress') {
             mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, (err) => {
               winston.info('Done matching');
@@ -2383,13 +2333,21 @@ if (cluster.isMaster) {
       winston.info(`Received break match request for ${fields.source1Id}`);
       const source1Id = fields.source1Id;
 
+      let uri;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${mappingDB}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data.recoStatus === 'in-progress') {
             mcsd.breakMatch(source1Id, mappingDB, source1DB, (err, results) => {
               winston.info(`break match done for ${fields.source1Id}`);
@@ -2428,17 +2386,27 @@ if (cluster.isMaster) {
         });
         return;
       }
-      const userID = req.params.userID;
-      const type = req.params.type;
+      const {
+        userID,
+        type,
+      } = req.params;
       const mappingDB = req.params.source1 + userID + req.params.source2;
 
+      let uri;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
+        uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${mappingDB}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data.recoStatus === 'in-progress') {
             mcsd.breakNoMatch(source1Id, mappingDB, (err) => {
               winston.info(`break no match done for ${fields.source1Id}`);
@@ -2456,24 +2424,34 @@ if (cluster.isMaster) {
 
   app.get('/markRecoUnDone/:source1/:source2/:userID', (req, res) => {
     winston.info(`received a request to mark reconciliation for ${req.params.userID} as undone`);
+    const {
+      source1,
+      source2,
+      userID,
+    } = req.params;
+    const mappingDB = source1 + userID + source2;
 
-    const source1 = req.params.source1;
-    const source2 = req.params.source2;
-    const userID = req.params.userID;
-    const database = source1 + userID + source2;
-
+    let uri;
     if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
     } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
     }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, (err, data) => {
+    const connection = mongoose.createConnection(uri, {
+      useNewUrlParser: true,
+    });
+    connection.on('error', () => {
+      winston.error(`An error occured while connecting to DB ${mappingDB}`);
+    });
+    connection.once('open', () => {
+      connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
         if (!data) {
-          const MetaData = new models.MetaDataModel({
+          const MetaDataModel = connection.model('MetaData', schemas.MetaData);
+          const MetaData = new MetaDataModel({
             recoStatus: 'in-progress',
           });
           MetaData.save((err, data) => {
+            connection.close();
             if (err) {
               winston.error(err);
               winston.error('Failed to save reco status');
@@ -2488,9 +2466,10 @@ if (cluster.isMaster) {
             }
           });
         } else {
-          models.MetaDataModel.findByIdAndUpdate(data.id, {
+          connection.model('MetaData', schemas.MetaData).findByIdAndUpdate(data.id, {
             recoStatus: 'in-progress',
           }, (err, data) => {
+            connection.close();
             if (err) {
               winston.error(err);
               winston.error('Failed to save reco status');
@@ -2511,25 +2490,34 @@ if (cluster.isMaster) {
 
   app.get('/markRecoDone/:source1/:source2/:userID', (req, res) => {
     winston.info(`received a request to mark reconciliation for ${req.params.source1}${req.params.source2} as done`);
+    const {
+      source1,
+      source2,
+      userID,
+    } = req.params;
+    const mappingDB = source1 + userID + source2;
 
-    const source1 = req.params.source1;
-    const source2 = req.params.source2;
-    const userID = req.params.userID;
-    const database = source1 + userID + source2;
-
-    const mongoose = require('mongoose');
+    let uri;
     if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
     } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
     }
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, (err, data) => {
+    const connection = mongoose.createConnection(uri, {
+      useNewUrlParser: true,
+    });
+    connection.on('error', () => {
+      winston.error(`An error occured while connecting to DB ${mappingDB}`);
+    });
+    connection.once('open', () => {
+      connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
         if (!data) {
-          const MetaData = new models.MetaDataModel({
+          const MetaDataModel = connection.model('MetaData', schemas.MetaData);
+          const MetaData = new MetaDataModel({
             recoStatus: 'Done',
           });
           MetaData.save((err, data) => {
+            connection.close();
             if (err) {
               winston.error(err);
               winston.error('Failed to save reco status');
@@ -2546,9 +2534,10 @@ if (cluster.isMaster) {
             }
           });
         } else {
-          models.MetaDataModel.findByIdAndUpdate(data.id, {
+          connection.model('MetaData', schemas.MetaData).findByIdAndUpdate(data.id, {
             recoStatus: 'Done',
           }, (err, data) => {
+            connection.close();
             if (err) {
               winston.error(err);
               winston.error('Failed to save reco status');
@@ -2570,81 +2559,84 @@ if (cluster.isMaster) {
 
     function sendNotification(callback) {
       winston.info('received a request to send notification to endpoint regarding completion of reconciliation');
-      const database = config.getConf('DB_NAME');
-      if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, {
-          'config.generalConfig': 1,
-        }, (err, data) => {
-          if (err) {
-            winston.error(err);
-            return callback(true, false);
-          }
-          if (!data) {
-            return callback(false, false);
-          }
-          let configData = {};
-          try {
-            configData = JSON.parse(JSON.stringify(data));
-          } catch (error) {
-            winston.error(error);
-            return callback(true, false);
-          }
+      models.MetaDataModel.findOne({}, {
+        'config.generalConfig': 1,
+      }, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return callback(true, false);
+        }
+        if (!data) {
+          return callback(false, false);
+        }
+        let configData = {};
+        try {
+          configData = JSON.parse(JSON.stringify(data));
+        } catch (error) {
+          winston.error(error);
+          return callback(true, false);
+        }
 
-          if (configData.hasOwnProperty('config') &&
-            configData.config.hasOwnProperty('generalConfig') &&
-            configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-            configData.config.generalConfig.recoProgressNotification.enabled &&
-            configData.config.generalConfig.recoProgressNotification.url
-          ) {
-            const url = configData.config.generalConfig.recoProgressNotification.url;
-            const username = configData.config.generalConfig.recoProgressNotification.username;
-            const password = configData.config.generalConfig.recoProgressNotification.password;
-            const auth = `Basic ${new Buffer(`${username}:${password}`).toString('base64')}`;
-            const options = {
-              url,
-              headers: {
-                Authorization: auth,
-                'Content-Type': 'application/json',
-              },
-              json: {
-                source1,
-                source2,
-                status: 'Done',
-              },
-            };
-            request.post(options, (err, res, body) => {
-              if (err) {
-                winston.error(err);
-                return callback(true, false);
-              }
-              return callback(false, body);
-            });
-          } else {
-            return callback(false, false);
-          }
-        });
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
+        ) {
+          const {
+            url,
+            username,
+            password,
+          } = configData.config.generalConfig.recoProgressNotification;
+          const auth = `Basic ${new Buffer(`${username}:${password}`).toString('base64')}`;
+          const options = {
+            url,
+            headers: {
+              Authorization: auth,
+              'Content-Type': 'application/json',
+            },
+            json: {
+              source1,
+              source2,
+              status: 'Done',
+            },
+          };
+          request.post(options, (err, res, body) => {
+            if (err) {
+              winston.error(err);
+              return callback(true, false);
+            }
+            return callback(false, body);
+          });
+        } else {
+          return callback(false, false);
+        }
       });
     }
   });
 
   app.get('/recoStatus/:source1/:source2/:userID', (req, res) => {
-    const source1 = req.params.source1;
-    const source2 = req.params.source2;
-    const userID = req.params.userID;
-    const database = source1 + userID + source2;
+    const {
+      source1,
+      source2,
+      userID,
+    } = req.params;
+    const mappingDB = source1 + userID + source2;
+    let uri;
     if (mongoUser && mongoPasswd) {
-      var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${mappingDB}`;
     } else {
-      var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+      uri = `mongodb://${mongoHost}:${mongoPort}/${mappingDB}`;
     }
-
-    mongoose.connect(uri, {}, () => {
-      models.MetaDataModel.findOne({}, (err, data) => {
+    const connection = mongoose.createConnection(uri, {
+      useNewUrlParser: true,
+    });
+    connection.on('error', () => {
+      winston.error(`An error occured while connecting to DB ${mappingDB}`);
+    });
+    connection.once('open', () => {
+      connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+        connection.close();
         if (data && data.recoStatus) {
           res.status(200).json({
             status: data.recoStatus,
@@ -2659,8 +2651,10 @@ if (cluster.isMaster) {
   });
 
   app.get('/progress/:type/:clientId', (req, res) => {
-    const clientId = req.params.clientId;
-    const type = req.params.type;
+    const {
+      clientId,
+      type,
+    } = req.params;
     const progressRequestId = `${type}${clientId}`;
     redisClient.get(progressRequestId, (error, results) => {
       if (error) {
@@ -2673,8 +2667,10 @@ if (cluster.isMaster) {
   });
 
   app.get('/clearProgress/:type/:clientId', (req, res) => {
-    const clientId = req.params.clientId;
-    const type = req.params.type;
+    const {
+      clientId,
+      type,
+    } = req.params;
     winston.info(`Clearing progress data for ${type} and clientID ${clientId}`);
     const progressRequestId = `${type}${clientId}`;
     const data = JSON.stringify({
@@ -2764,8 +2760,10 @@ if (cluster.isMaster) {
 
   app.get('/deleteDataSource/:_id/:name/:sourceOwner/:userID', (req, res) => {
     const id = req.params._id;
-    const sourceOwner = req.params.sourceOwner;
-    const userID = req.params.userID;
+    const {
+      sourceOwner,
+      userID,
+    } = req.params;
     const name = mixin.toTitleCase(req.params.name);
     winston.info(`Received request to delete data source with id ${id}`);
     mongo.deleteDataSource(id, name, sourceOwner, userID, (err, response) => {
@@ -2867,8 +2865,10 @@ if (cluster.isMaster) {
 
   app.delete('/deleteSourcePair', (req, res) => {
     winston.info(`Received a request to delete data source pair with id ${req.params.id}`);
-    const pairId = req.query.pairId;
-    const userID = req.query.userID;
+    const {
+      pairId,
+      userID,
+    } = req.query;
     const source1Name = mixin.toTitleCase(req.query.source1Name);
     const source2Name = mixin.toTitleCase(req.query.source2Name);
     const dbName = source1Name + userID + source2Name;
@@ -2932,7 +2932,9 @@ if (cluster.isMaster) {
 
   app.get('/getUploadedCSV/:sourceOwner/:name', (req, res) => {
     winston.info('Received a request to export CSV file');
-    const sourceOwner = req.params.sourceOwner;
+    const {
+      sourceOwner,
+    } = req.params;
     const name = mixin.toTitleCase(req.params.name);
     const filter = function (stat, path) {
       if (path.includes(`${sourceOwner}+${name}+`)) {
@@ -2940,11 +2942,11 @@ if (cluster.isMaster) {
       }
       return false;
     };
-    let filePath,
-      timeStamp0;
+    let filePath;
+    let timeStamp0;
     const files = fsFinder.from(`${__dirname}/csvUploads/`).filter(filter).findFiles((files) => {
       async.eachSeries(files, (file, nxtFile) => {
-        timeStamp1 = file.split('/').pop().replace('.csv', '').replace(`${sourceOwner}_${name}_`, '');
+        const timeStamp1 = file.split('/').pop().replace('.csv', '').replace(`${sourceOwner}_${name}_`, '');
         if (!timeStamp0) {
           timeStamp0 = timeStamp1;
           filePath = file;
@@ -2979,7 +2981,9 @@ if (cluster.isMaster) {
       }
       const database = mixin.toTitleCase(fields.csvName) + fields.userID;
       const expectedLevels = config.getConf('levels');
-      const clientId = fields.clientId;
+      const {
+        clientId,
+      } = fields;
       const uploadRequestId = `uploadProgress${clientId}`;
       let uploadReqPro = JSON.stringify({
         status: 'Request received by server',
@@ -3146,27 +3150,19 @@ if (cluster.isMaster) {
   });
 
   // merging signup custom fields into Users model
-  const database = config.getConf('DB_NAME');
-  if (mongoUser && mongoPasswd) {
-    var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-  } else {
-    var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-  }
-  mongoose.connect(uri, {}, () => {
-    models.MetaDataModel.find({
-      'forms.name': 'signup',
-    }, (err, data) => {
-      let Users;
-      if (data && data.length > 0) {
-        let signupFields = Object.assign({}, data[0].forms[0].fields);
-        signupFields = Object.assign(signupFields, models.usersFields);
-        Users = new mongoose.Schema(signupFields);
-      } else {
-        Users = new mongoose.Schema(models.usersFields);
-      }
-      delete mongoose.connection.models.Users;
-      models.UsersModel = mongoose.model('Users', Users);
-    });
+  models.MetaDataModel.find({
+    'forms.name': 'signup',
+  }, (err, data) => {
+    let Users;
+    if (data && data.length > 0) {
+      let signupFields = Object.assign({}, data[0].forms[0].fields);
+      signupFields = Object.assign(signupFields, schemas.usersFields);
+      Users = new mongoose.Schema(signupFields);
+    } else {
+      Users = new mongoose.Schema(schemas.usersFields);
+    }
+    delete mongoose.connection.models.Users;
+    models.UsersModel = mongoose.model('Users', Users);
   });
 
   app.get('/', (req, res) => {

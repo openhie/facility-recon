@@ -30,14 +30,12 @@ export const scoresMixin = {
     },
     checkScoreProgress () {
       // if the req takes one minute without responding then display a message to user
-      console.log('send request')
       this.$store.state.scoresProgressData.cancelTokenSource = CancelToken.source()
       this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.progressCheckTimeout, 10000)
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/progress/scoreResults/' + clientId, {
         cancelToken: this.$store.state.scoresProgressData.cancelTokenSource.token
       }).then((scoreProgress) => {
-        console.log('responded')
         clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
         if (!scoreProgress.data ||
           (!scoreProgress.data.status && !scoreProgress.data.percent && !scoreProgress.data.error && this.$store.state.scoreResults.length === 0)) {

@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 require('./init');
+require('./connection');
 const winston = require('winston');
 const crypto = require('crypto');
 const fsFinder = require('fs-finder');
@@ -10,22 +11,17 @@ const tmp = require('tmp');
 const exec = require('child_process');
 const moment = require('moment');
 const async = require('async');
-
+const mongoose = require('mongoose');
 const models = require('./models');
+const schemas = require('./schemas');
 const mixin = require('./mixin')();
 const config = require('./config');
 
-const database = config.getConf('DB_NAME');
 const mongoUser = config.getConf('DB_USER');
 const mongoPasswd = config.getConf('DB_PASSWORD');
 const mongoHost = config.getConf('DB_HOST');
 const mongoPort = config.getConf('DB_PORT');
 
-if (mongoUser && mongoPasswd) {
-  var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-} else {
-  var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-}
 
 module.exports = function () {
   return {
@@ -42,19 +38,26 @@ module.exports = function () {
       });
       dbLevel.code = levelData.code;
       dbLevel.facility = levelData.facility;
-      const mongoose = require('mongoose');
+      let mongoURI;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+        mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+        mongoURI = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(mongoURI, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${database}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
           if (!data) {
             const MetaData = new models.MetaDataModel({
               levelMapping: dbLevel,
             });
             MetaData.save((err, data) => {
+              connection.close();
               if (err) {
                 winston.error(err);
                 winston.error('Failed to save level data');
@@ -67,6 +70,7 @@ module.exports = function () {
             models.MetaDataModel.findByIdAndUpdate(data.id, {
               levelMapping: dbLevel,
             }, (err, data) => {
+              connection.close();
               if (err) {
                 winston.error(err);
                 winston.error('Failed to save level data');
@@ -80,14 +84,21 @@ module.exports = function () {
       });
     },
     getLevelMapping(database, callback) {
-      const mongoose = require('mongoose');
+      let mongoURI;
       if (mongoUser && mongoPasswd) {
-        var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
+        mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
       } else {
-        var uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
+        mongoURI = `mongodb://${mongoHost}:${mongoPort}/${database}`;
       }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, (err, data) => {
+      const connection = mongoose.createConnection(mongoURI, {
+        useNewUrlParser: true,
+      });
+      connection.on('error', () => {
+        winston.error(`An error occured while connecting to DB ${database}`);
+      });
+      connection.once('open', () => {
+        connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
+          connection.close();
           if (data && data.levelMapping) {
             return callback(data.levelMapping);
           }
@@ -97,191 +108,169 @@ module.exports = function () {
       });
     },
     addDataSource(fields, callback) {
-      const mongoose = require('mongoose');
       let password = '';
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.findOne({
-          $and: [{
+      models.DataSourcesModel.findOne({
+        $and: [{
+          name: fields.name,
+        }, {
+          userID: fields.userID,
+        }],
+      }, (err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('Unexpected error occured,please retry');
+          return callback('Unexpected error occured,please retry', null);
+        }
+        if (!data) {
+          if (fields.password) {
+            password = this.encrypt(fields.password);
+          }
+          const syncServer = new models.DataSourcesModel({
             name: fields.name,
-          }, {
+            host: fields.host,
+            sourceType: fields.sourceType,
+            source: fields.source,
+            username: fields.username,
+            password,
             userID: fields.userID,
-          }],
-        }, (err, data) => {
-          if (err) {
-            winston.error(err);
-            winston.error('Unexpected error occured,please retry');
-            return callback('Unexpected error occured,please retry', null);
-          }
-          if (!data) {
-            if (fields.password) {
-              password = this.encrypt(fields.password);
+            'owner.id': fields.userID,
+            'owner.orgId': fields.orgId,
+            shareToSameOrgid: fields.shareToSameOrgid,
+            'shareToAll.activated': fields.shareToAll,
+            'shareToAll.limitByUserLocation': fields.limitByUserLocation,
+          });
+          syncServer.save((err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('Unexpected error occured,please retry');
+              return callback('Unexpected error occured,please retry', null);
             }
-            const syncServer = new models.DataSourcesModel({
-              name: fields.name,
-              host: fields.host,
-              sourceType: fields.sourceType,
-              source: fields.source,
-              username: fields.username,
-              password,
-              userID: fields.userID,
-              'owner.id': fields.userID,
-              'owner.orgId': fields.orgId,
-              shareToSameOrgid: fields.shareToSameOrgid,
-              'shareToAll.activated': fields.shareToAll,
-              'shareToAll.limitByUserLocation': fields.limitByUserLocation,
-            });
-            syncServer.save((err, data) => {
-              if (err) {
-                winston.error(err);
-                winston.error('Unexpected error occured,please retry');
-                return callback('Unexpected error occured,please retry', null);
-              }
-              return callback(false, password);
-            });
+            return callback(false, password);
+          });
+        } else {
+          if (fields.password != data.password) {
+            password = this.encrypt(fields.password);
           } else {
-            if (fields.password != data.password) {
-              password = this.encrypt(fields.password);
-            } else {
-              password = data.password;
-            }
-            models.DataSourcesModel.findByIdAndUpdate(data.id, {
-              name: fields.name,
-              host: fields.host,
-              sourceType: fields.sourceType,
-              source: fields.source,
-              username: fields.username,
-              password,
-              'shareToAll.activated': fields.shareToAll,
-              'shareToAll.limitByUserLocation': fields.limitByUserLocation,
-            }, (err, data) => {
-              if (err) {
-                winston.error(err);
-                winston.error('Unexpected error occured,please retry');
-                return callback('Unexpected error occured,please retry');
-              }
-              return callback(false, password);
-            });
+            password = data.password;
           }
-        });
+          models.DataSourcesModel.findByIdAndUpdate(data.id, {
+            name: fields.name,
+            host: fields.host,
+            sourceType: fields.sourceType,
+            source: fields.source,
+            username: fields.username,
+            password,
+            'shareToAll.activated': fields.shareToAll,
+            'shareToAll.limitByUserLocation': fields.limitByUserLocation,
+          }, (err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('Unexpected error occured,please retry');
+              return callback('Unexpected error occured,please retry');
+            }
+            return callback(false, password);
+          });
+        }
       });
     },
     editDataSource(fields, callback) {
-      const mongoose = require('mongoose');
       const password = this.encrypt(fields.password);
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.findByIdAndUpdate(fields.id, {
-          name: fields.name,
-          host: fields.host,
-          sourceType: fields.sourceType,
-          source: fields.source,
-          username: fields.username,
-          password,
-        }, (err, data) => {
-          if (err) {
-            winston.error(err);
-            return callback('Unexpected error occured,please retry');
-          }
-          return callback(false, password);
-        });
+      models.DataSourcesModel.findByIdAndUpdate(fields.id, {
+        name: fields.name,
+        host: fields.host,
+        sourceType: fields.sourceType,
+        source: fields.source,
+        username: fields.username,
+        password,
+      }, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return callback('Unexpected error occured,please retry');
+        }
+        return callback(false, password);
       });
     },
 
     updateDatasetAutosync(id, state, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.findByIdAndUpdate(id, {
-          enableAutosync: state,
-        }, (err, data) => {
-          if (err) {
-            winston.error(err);
-            return callback('Unexpected error occured,please retry');
-          }
-          return callback(false, data);
-        });
+      models.DataSourcesModel.findByIdAndUpdate(id, {
+        enableAutosync: state,
+      }, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return callback('Unexpected error occured,please retry');
+        }
+        return callback(false, data);
       });
     },
 
     getServer(userID, name, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.findOne({
-          $and: [{
-            name,
-          }, {
-            userID,
-          }],
-        }, (err, data) => callback(err, data));
-      });
+      models.DataSourcesModel.findOne({
+        $and: [{
+          name,
+        }, {
+          userID,
+        }],
+      }, (err, data) => callback(err, data));
     },
 
     changeAccountStatus(status, id, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.UsersModel.findByIdAndUpdate(id, {
-          status,
-        }, (err, data) => {
-          if (err) {
-            return callback(err);
-          }
-          return callback(false, data);
-        });
+      models.UsersModel.findByIdAndUpdate(id, {
+        status,
+      }, (err, data) => {
+        if (err) {
+          return callback(err);
+        }
+        return callback(false, data);
       });
     },
 
     resetPassword(id, password, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.UsersModel.findByIdAndUpdate(id, {
-          password,
-        }, (err, data) => {
-          if (err) {
-            return callback(err);
-          }
-          return callback(false, data);
-        });
+      models.UsersModel.findByIdAndUpdate(id, {
+        password,
+      }, (err, data) => {
+        if (err) {
+          return callback(err);
+        }
+        return callback(false, data);
       });
     },
 
     getMappingDBs(dataSourceID, callback) {
       const mappingDBs = [];
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, (error) => {
-        models.DataSourcePairModel.find({
+      models.DataSourcePairModel.find({
           $or: [{
-            source1: dataSourceID,
-          },
-          {
-            source2: dataSourceID,
-          },
+              source1: dataSourceID,
+            },
+            {
+              source2: dataSourceID,
+            },
           ],
         }).populate('source1', 'name').populate('source2', 'name').populate('userID', 'userName')
-          .lean()
-          .exec({}, (err, pairs) => {
-            if (err) {
-              winston.error(err);
-              winston.error('An error has occured while getting data source pairs for mapping DB deletetion');
-              return callback(mappingDBs);
-            }
-            if (pairs) {
-              pairs = JSON.parse(JSON.stringify(pairs));
-              async.eachSeries(pairs, (pair, nxtPair) => {
-                const db = mixin.toTitleCase(pair.source1.name) + pair.userID._id + mixin.toTitleCase(pair.source2.name);
-                mappingDBs.push({
-                  source1Name: pair.source1.name,
-                  source2Name: pair.source2.name,
-                  db,
-                  owner: pair.userID.userName,
-                });
-                return nxtPair();
-              }, () => callback(mappingDBs));
-            }
-          });
-      });
+        .lean()
+        .exec({}, (err, pairs) => {
+          if (err) {
+            winston.error(err);
+            winston.error('An error has occured while getting data source pairs for mapping DB deletetion');
+            return callback(mappingDBs);
+          }
+          if (pairs) {
+            pairs = JSON.parse(JSON.stringify(pairs));
+            async.eachSeries(pairs, (pair, nxtPair) => {
+              const db = mixin.toTitleCase(pair.source1.name) + pair.userID._id + mixin.toTitleCase(pair.source2.name);
+              mappingDBs.push({
+                source1Name: pair.source1.name,
+                source2Name: pair.source2.name,
+                db,
+                owner: pair.userID.userName,
+              });
+              return nxtPair();
+            }, () => callback(mappingDBs));
+          }
+        });
     },
 
     deleteDataSource(id, name, sourceOwner, userID, callback) {
       const datasourceDB = name + sourceOwner;
-      const mongoose = require('mongoose');
       this.deleteDB(datasourceDB, (err) => {
         if (err) {
           winston.error(err);
@@ -298,26 +287,24 @@ module.exports = function () {
             return nxtDB();
           });
         }, () => {
-          mongoose.connect(uri, {}, () => {
-            models.DataSourcesModel.deleteOne({
-              _id: id,
+          models.DataSourcesModel.deleteOne({
+            _id: id,
+          }, (err, data) => {
+            models.DataSourcePairModel.deleteMany({
+              $or: [{
+                source1: id,
+              }, {
+                source2: id,
+              }],
             }, (err, data) => {
-              models.DataSourcePairModel.deleteMany({
-                $or: [{
-                  source1: id,
-                }, {
-                  source2: id,
-                }],
-              }, (err, data) => {
-                const filter = function (stat, path) {
-                  if (path.includes(`${sourceOwner}+${name}+`)) {
-                    return true;
-                  }
-                  return false;
-                };
-                fsFinder.from(`${__dirname}/csvUploads/`).filter(filter).findFiles((files) => {
-                  this.deleteFile(files, () => callback(err, data));
-                });
+              const filter = function (stat, path) {
+                if (path.includes(`${sourceOwner}+${name}+`)) {
+                  return true;
+                }
+                return false;
+              };
+              fsFinder.from(`${__dirname}/csvUploads/`).filter(filter).findFiles((files) => {
+                this.deleteFile(files, () => callback(err, data));
               });
             });
           });
@@ -326,17 +313,14 @@ module.exports = function () {
     },
 
     deleteSourcePair(pairId, dbName, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.deleteOne({
-          _id: pairId,
-        }, (err, data) => {
-          if (data) {
-            this.deleteDB(dbName, (err) => {
-              callback(err, data);
-            });
-          }
-        });
+      models.DataSourcePairModel.deleteOne({
+        _id: pairId,
+      }, (err, data) => {
+        if (data) {
+          this.deleteDB(dbName, (err) => {
+            callback(err, data);
+          });
+        }
       });
     },
 
@@ -352,7 +336,6 @@ module.exports = function () {
     },
 
     getDataSources(userID, role, orgId, callback) {
-      const mongoose = require('mongoose');
       if (!orgId) {
         orgId = 'undefined';
       }
@@ -362,105 +345,97 @@ module.exports = function () {
       } else {
         filters = {
           $or: [{
-            userID,
-          },
-          {
-            'shared.users': userID,
-          },
-          {
-            'shareToAll.activated': true,
-          },
-          {
-            $and: [{
-              shareToSameOrgid: true,
-            }, {
-              'owner.orgId': orgId,
-            }],
-          },
+              userID,
+            },
+            {
+              'shared.users': userID,
+            },
+            {
+              'shareToAll.activated': true,
+            },
+            {
+              $and: [{
+                shareToSameOrgid: true,
+              }, {
+                'owner.orgId': orgId,
+              }],
+            },
           ],
         };
       }
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.find(filters).populate('shared.users', 'userName').populate('userID', 'userName').lean()
-          .exec({}, (err, sources) => {
-            async.eachOfSeries(sources, (source, key, nxtSrc) => {
-              // converting _bsontype property into normal property
-              source = JSON.parse(JSON.stringify(source));
-              models.SharedDataSourceLocationsModel.find({
-                dataSource: source._id,
-              }, {
-                user: 1,
-                location: 1,
-                _id: 0,
-              }, (err, data) => {
-                sources[key].sharedLocation = data;
-                return nxtSrc();
-              });
-            }, () => {
-              if (err) {
-                winston.error(err);
-                return callback('Unexpected error occured,please retry');
-              }
-              callback(err, sources);
+      models.DataSourcesModel.find(filters).populate('shared.users', 'userName').populate('userID', 'userName').lean()
+        .exec({}, (err, sources) => {
+          async.eachOfSeries(sources, (source, key, nxtSrc) => {
+            // converting _bsontype property into normal property
+            source = JSON.parse(JSON.stringify(source));
+            models.SharedDataSourceLocationsModel.find({
+              dataSource: source._id,
+            }, {
+              user: 1,
+              location: 1,
+              _id: 0,
+            }, (err, data) => {
+              sources[key].sharedLocation = data;
+              return nxtSrc();
             });
-          });
-      });
-    },
-
-    getDataPairs(userID, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.find({
-          userID,
-        }).populate('source1').populate('source2').populate('shared')
-          .populate('userID')
-          .lean()
-          .exec({}, (err, data) => {
+          }, () => {
             if (err) {
               winston.error(err);
               return callback('Unexpected error occured,please retry');
             }
-            callback(err, data);
+            callback(err, sources);
           });
-      });
+        });
+    },
+
+    getDataPairs(userID, callback) {
+      models.DataSourcePairModel.find({
+          userID,
+        }).populate('source1').populate('source2').populate('shared')
+        .populate('userID')
+        .lean()
+        .exec({}, (err, data) => {
+          if (err) {
+            winston.error(err);
+            return callback('Unexpected error occured,please retry');
+          }
+          callback(err, data);
+        });
     },
 
     addDataSourcePair(sources, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        let createPair = true;
-        let errMsg;
-        this.getDataSourcePair(sources.userID, sources.orgId, (err, sourcePair) => {
-          if (sourcePair.length > 0 && sources.singlePair) {
-            errMsg = 'Single pair limit is active and a pair already exists, cant create more pairs';
-            createPair = false;
-          }
-          async.parallel({
-            deactivateShared: (callback) => {
-              if (sources.activePairID && createPair) {
-                this.deActivateSharedPair(sources.activePairID, sources.userID, (err, data) => callback(err, data));
-              } else {
-                return callback(false, false);
-              }
-            },
-
-            deactivatePairs: (callback) => {
-              if (createPair) {
-                this.deActivatePairs(sources.userID, (err, data) => callback(err, data));
-              } else {
-                return callback(false, false);
-              }
-            },
-          }, (error, results) => {
-            if (error) {
-              return callback(true, false, false);
+      let createPair = true;
+      let errMsg;
+      this.getDataSourcePair(sources.userID, sources.orgId, (err, sourcePair) => {
+        if (sourcePair.length > 0 && sources.singlePair) {
+          errMsg = 'Single pair limit is active and a pair already exists, cant create more pairs';
+          createPair = false;
+        }
+        async.parallel({
+          deactivateShared: (callback) => {
+            if (sources.activePairID && createPair) {
+              this.deActivateSharedPair(sources.activePairID, sources.userID, (err, data) => callback(err, data));
+            } else {
+              return callback(false, false);
             }
-            add(sources, createPair, (err, res) => {
-              if (!createPair) {
-                return callback(true, errMsg, res);
-              }
-              return callback(err, errMsg, res);
-            });
+          },
+
+          deactivatePairs: (callback) => {
+            if (createPair) {
+              this.deActivatePairs(sources.userID, (err, data) => callback(err, data));
+            } else {
+              return callback(false, false);
+            }
+          },
+        }, (error, results) => {
+          if (error) {
+            return callback(true, false, false);
+          }
+          add(sources, createPair, (err, res) => {
+            if (!createPair) {
+              return callback(true, errMsg, res);
+            }
+            return callback(err, errMsg, res);
           });
         });
       });
@@ -505,32 +480,29 @@ module.exports = function () {
     },
 
     activateSharedPair(pairID, userID, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.find({
-          status: 'active',
-          userID,
-        }).lean().exec({}, (err, data) => {
-          if (data) {
-            async.each(data, (dt, nxtDt) => {
-              models.DataSourcePairModel.findByIdAndUpdate(dt._id, {
-                status: 'inactive',
-              }, (err, data) => nxtDt());
-            }, () => {
-              models.DataSourcePairModel.findByIdAndUpdate(pairID, {
-                $push: {
-                  'shared.activeUsers': userID,
-                },
-              }, (err, data) => callback(err, data));
-            });
-          } else {
+      models.DataSourcePairModel.find({
+        status: 'active',
+        userID,
+      }).lean().exec({}, (err, data) => {
+        if (data) {
+          async.each(data, (dt, nxtDt) => {
+            models.DataSourcePairModel.findByIdAndUpdate(dt._id, {
+              status: 'inactive',
+            }, (err, data) => nxtDt());
+          }, () => {
             models.DataSourcePairModel.findByIdAndUpdate(pairID, {
               $push: {
                 'shared.activeUsers': userID,
               },
             }, (err, data) => callback(err, data));
-          }
-        });
+          });
+        } else {
+          models.DataSourcePairModel.findByIdAndUpdate(pairID, {
+            $push: {
+              'shared.activeUsers': userID,
+            },
+          }, (err, data) => callback(err, data));
+        }
       });
     },
 
@@ -566,22 +538,17 @@ module.exports = function () {
     },
 
     shareSourcePair(sharePair, users, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.findByIdAndUpdate(sharePair, {
-          'shared.users': users,
-        }, (err, data) => callback(err, data));
-      });
+      models.DataSourcePairModel.findByIdAndUpdate(sharePair, {
+        'shared.users': users,
+      }, (err, data) => callback(err, data));
     },
 
     shareDataSource(shareSource, users, limitLocationId, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcesModel.findByIdAndUpdate(shareSource, {
-          'shared.users': users,
-        }, (err, data) => {
-          async.eachSeries(users, (user, nxtUser) => {
-            models.SharedDataSourceLocationsModel.update({
+      models.DataSourcesModel.findByIdAndUpdate(shareSource, {
+        'shared.users': users,
+      }, (err, data) => {
+        async.eachSeries(users, (user, nxtUser) => {
+          models.SharedDataSourceLocationsModel.update({
               dataSource: shareSource,
               user,
             }, {
@@ -592,79 +559,61 @@ module.exports = function () {
               upsert: true,
             },
             (err, data) => nxtUser());
-          }, () => callback(err, data));
-        });
+        }, () => callback(err, data));
       });
     },
 
     resetDataSourcePair(userID, callback) {
-      const mongoose = require('mongoose');
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.update({
-          status: 'active',
-          userID,
-        }, {
-          status: 'inactive',
-        }, {
-          multi: true,
-        }, (err, data) => callback(err, data));
-      });
+      models.DataSourcePairModel.update({
+        status: 'active',
+        userID,
+      }, {
+        status: 'inactive',
+      }, {
+        multi: true,
+      }, (err, data) => callback(err, data));
     },
     getDataSourcePair(userID, orgId, callback) {
-      const mongoose = require('mongoose');
       // need to do it this way
       if (!orgId) {
         orgId = 'undefined';
       }
-      mongoose.connect(uri, {}, () => {
-        models.DataSourcePairModel.find({
+      models.DataSourcePairModel.find({
           $or: [{
-            userID,
-          },
-          {
-            'shared.users': userID,
-          },
-          {
-            'owner.orgId': orgId,
-          },
+              userID,
+            },
+            {
+              'shared.users': userID,
+            },
+            {
+              'owner.orgId': orgId,
+            },
           ],
         }).populate('source1', 'name userID').populate('source2', 'name userID').populate('userID', 'userName')
-          .populate('shared.users', 'userName')
-          .lean()
-          .exec({}, (err, data) => callback(err, data));
-      });
+        .populate('shared.users', 'userName')
+        .lean()
+        .exec({}, (err, data) => callback(err, data));
     },
     getGeneralConfig(callback) {
-      const database = config.getConf('DB_NAME');
-      const mongoose = require('mongoose');
-      let uri;
-      if (mongoUser && mongoPasswd) {
-        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${database}`;
-      } else {
-        uri = `mongodb://${mongoHost}:${mongoPort}/${database}`;
-      }
-      mongoose.connect(uri, {}, () => {
-        models.MetaDataModel.findOne({}, {
-          'config.generalConfig': 1,
-        }, (err, resData) => callback(err, resData));
-      });
+      models.MetaDataModel.findOne({}, {
+        'config.generalConfig': 1,
+      }, (err, resData) => callback(err, resData));
     },
     deleteDB(db, callback) {
-      const mongoose = require('mongoose');
-      let uri;
+      let mongoURI;
       if (mongoUser && mongoPasswd) {
-        uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
+        mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
       } else {
-        uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
+        mongoURI = `mongodb://${mongoHost}:${mongoPort}/${db}`;
       }
-      const conn = mongoose.createConnection(uri);
-      conn.on('error', (err) => {
+      const connection = mongoose.createConnection(mongoURI);
+      connection.on('error', (err) => {
         winston.error(err);
         winston.error(`An error has occured while connecting to db ${db}`);
       });
-      conn.on('connected', () => {
-        conn.db.dropDatabase((err) => {
-          conn.close();
+      connection.on('connected', () => {
+        connection.db.dropDatabase((err) => {
+          connection.close();
           if (err) {
             winston.error(err);
             throw err;
@@ -697,10 +646,11 @@ module.exports = function () {
           async.eachSeries(dbList, (list, nxtList) => {
             db = list.db;
             archive = list.archive;
+            let mongoURI
             if (mongoUser && mongoPasswd) {
-              var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
+              mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
             } else {
-              var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
+              mongoURI = `mongodb://${mongoHost}:${mongoPort}/${db}`;
             }
             const me = this;
 
@@ -710,7 +660,7 @@ module.exports = function () {
               cwd: tmpDir.name,
               sync: true,
             });
-            exec.execSync(`mongorestore --uri='${uri}' --drop --dir=${tmpDir.name}`, {
+            exec.execSync(`mongorestore --uri='${mongoURI}' --drop --dir=${tmpDir.name}`, {
               cwd: tmpDir.name,
             });
             fs.removeSync(tmpDir.name);
@@ -737,16 +687,17 @@ module.exports = function () {
         const db = list.db;
         const name = list.name;
         winston.info(`Archiving DB ${db}`);
+        let mongoURI
         if (mongoUser && mongoPasswd) {
-          var uri = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
+          mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
         } else {
-          var uri = `mongodb://${mongoHost}:${mongoPort}/${db}`;
+          mongoURI = `mongodb://${mongoHost}:${mongoPort}/${db}`;
         }
         const me = this;
         const dir = `${__dirname}/dbArchives`;
 
         const tmpDir = tmp.dirSync();
-        exec.execSync(`mongodump --uri=${uri} -o ${tmpDir.name}`, {
+        exec.execSync(`mongodump --uri=${mongoURI} -o ${tmpDir.name}`, {
           cwd: tmpDir.name,
         });
         if (fs.existsSync(`${tmpDir.name}/${db}`)) {
