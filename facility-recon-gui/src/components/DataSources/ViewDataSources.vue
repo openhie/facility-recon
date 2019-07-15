@@ -2,19 +2,48 @@
   <v-container fluid>
     <v-dialog
       v-model="deleteConfirm"
-      width="530px"
+      width="630px"
     >
       <v-card>
         <v-toolbar
-          color="primary"
+          color="error"
           dark
         >
           <v-toolbar-title>
-            Info
+            This will delete the datasource {{server.name}} from the database
           </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            dark
+            @click.native="deleteConfirm = false"
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
         </v-toolbar>
         <v-card-text>
-          This will delete the dataset from the database. Are you sure you want to delete {{server.name}} {{server.host}}
+          <label v-if='loadingPairs || pairs.length > 0'>
+            Below data source pairs (mapping) will also be deleted
+            <v-data-table
+              :headers="pairsHeaders"
+              :items="pairs"
+              hide-actions
+              :loading="loadingPairs"
+            >
+              <template
+                slot="items"
+                slot-scope="props"
+              >
+                <td>{{ props.item.source1Name }} - {{props.item.source2Name }}</td>
+                <td>{{ props.item.owner }}</td>
+              </template>
+            </v-data-table>
+          </label>
+          <label v-else>
+            There is no any data source pair (mapping) associated with this data source<br>
+          </label>
+          <br>
+          <b>Do you want to proceed and delete?</b>
         </v-card-text>
         <v-card-actions>
           <v-btn
@@ -551,6 +580,12 @@ export default {
     return {
       syncType: '',
       mode: '',
+      loadingPairs: false,
+      pairs: [],
+      pairsHeaders: [
+        { text: 'Pair Name', value: 'name' },
+        { text: 'Owner', value: 'owner' }
+      ],
       helpDialog: false,
       deleteConfirm: false,
       editDialog: false,
@@ -690,6 +725,7 @@ export default {
         this.$store.state.errorDescription = 'You are not the owner of this data source, ask the owner to remove you from the share'
         return
       }
+      this.getPairsToDelete()
       this.deleteConfirm = true
     },
     deleteDataSource () {
@@ -699,6 +735,24 @@ export default {
       axios.get(backendServer + `/deleteDataSource/${this.server._id}/${this.server.name}/${sourceOwner}/${userID}`).then((resp) => {
         this.server = {}
         eventBus.$emit('getDataSources')
+      })
+    },
+    getPairsToDelete () {
+      this.loadingPairs = true
+      axios.get('/getPairForDatasource/' + this.server._id).then((response) => {
+        this.loadingPairs = false
+        this.pairs = response.data
+      }).catch((error) => {
+        if (error.response) {
+          console.log(error.response.data)
+          console.log(error.response.status)
+          console.log(error.response.headers)
+        } else if (error.request) {
+          console.log(error.request)
+        } else {
+          console.log('Error', error.message)
+        }
+        console.log(error.config)
       })
     },
     share (source, action) {

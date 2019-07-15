@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
+
 require('./init');
 const cluster = require('cluster');
 const express = require('express');
@@ -50,19 +51,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS' ||
-    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
-    req.path == '/authenticate/' ||
-    req.path == '/getSignupConf' ||
-    req.path == '/getGeneralConfig' ||
-    req.path == '/addUser/' ||
-    req.path.startsWith('/progress') ||
-    req.path == '/' ||
-    req.path.startsWith('/static/js') ||
-    req.path.startsWith('/static/config.json') ||
-    req.path.startsWith('/static/css') ||
-    req.path.startsWith('/static/img') ||
-    req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS'
+    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
+    || req.path == '/authenticate/'
+    || req.path == '/getSignupConf'
+    || req.path == '/getGeneralConfig'
+    || req.path == '/addUser/'
+    || req.path.startsWith('/progress')
+    || req.path == '/'
+    || req.path.startsWith('/static/js')
+    || req.path.startsWith('/static/config.json')
+    || req.path.startsWith('/static/css')
+    || req.path.startsWith('/static/img')
+    || req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -132,11 +133,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-            name: 'Admin',
-          },
-          {
-            name: 'Data Manager',
-          },
+          name: 'Admin',
+        },
+        {
+          name: 'Data Manager',
+        },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -178,7 +179,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete(workers[worker.process.pid]);
+    delete (workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -2577,11 +2578,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config') &&
-          configData.config.hasOwnProperty('generalConfig') &&
-          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-          configData.config.generalConfig.recoProgressNotification.enabled &&
-          configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config')
+          && configData.config.hasOwnProperty('generalConfig')
+          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
+          && configData.config.generalConfig.recoProgressNotification.enabled
+          && configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,
@@ -2816,6 +2817,14 @@ if (cluster.isMaster) {
       } else {
         res.status(200).json(pairs);
       }
+    });
+  });
+
+  app.get('/getPairForDatasource/:datasource', (req, res) => {
+    winston.info('Received a request to get pairs associated with a datasource');
+    const id = req.params.datasource;
+    mongo.getMappingDBs(id, (pairs) => {
+      res.status(200).json(pairs);
     });
   });
 
@@ -3076,10 +3085,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null ||
-              headerMapping[level] === 'null' ||
-              headerMapping[level] === undefined ||
-              !headerMapping[level]) {
+            if (headerMapping[level] === null
+              || headerMapping[level] === 'null'
+              || headerMapping[level] === undefined
+              || !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3102,13 +3111,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null ||
-                data[headerMapping[level]] === undefined ||
-                data[headerMapping[level]] === false ||
-                !data[headerMapping[level]] ||
-                data[headerMapping[level]] === '' ||
-                !isNaN(headerMapping[level]) ||
-                data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null
+                || data[headerMapping[level]] === undefined
+                || data[headerMapping[level]] === false
+                || !data[headerMapping[level]]
+                || data[headerMapping[level]] === ''
+                || !isNaN(headerMapping[level])
+                || data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3116,11 +3125,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null ||
-              data[headerMapping.facility] === undefined ||
-              data[headerMapping.facility] === false ||
-              data[headerMapping.facility] === '' ||
-              data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null
+              || data[headerMapping.facility] === undefined
+              || data[headerMapping.facility] === false
+              || data[headerMapping.facility] === ''
+              || data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

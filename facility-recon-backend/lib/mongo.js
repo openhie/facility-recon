@@ -53,7 +53,8 @@ module.exports = function () {
       connection.once('open', () => {
         connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
           if (!data) {
-            const MetaData = new models.MetaDataModel({
+            const MetaDataModel = connection.model('MetaData', schemas.MetaData);
+            const MetaData = new MetaDataModel({
               levelMapping: dbLevel,
             });
             MetaData.save((err, data) => {
@@ -67,7 +68,7 @@ module.exports = function () {
               return callback(err, 'successful');
             });
           } else {
-            models.MetaDataModel.findByIdAndUpdate(data.id, {
+            connection.model('MetaData', schemas.MetaData).findByIdAndUpdate(data.id, {
               levelMapping: dbLevel,
             }, (err, data) => {
               connection.close();
@@ -238,14 +239,14 @@ module.exports = function () {
     getMappingDBs(dataSourceID, callback) {
       const mappingDBs = [];
       models.DataSourcePairModel.find({
-          $or: [{
-              source1: dataSourceID,
-            },
-            {
-              source2: dataSourceID,
-            },
-          ],
-        }).populate('source1', 'name').populate('source2', 'name').populate('userID', 'userName')
+        $or: [{
+          source1: dataSourceID,
+        },
+        {
+          source2: dataSourceID,
+        },
+        ],
+      }).populate('source1', 'name').populate('source2', 'name').populate('userID', 'userName')
         .lean()
         .exec({}, (err, pairs) => {
           if (err) {
@@ -345,21 +346,21 @@ module.exports = function () {
       } else {
         filters = {
           $or: [{
-              userID,
-            },
-            {
-              'shared.users': userID,
-            },
-            {
-              'shareToAll.activated': true,
-            },
-            {
-              $and: [{
-                shareToSameOrgid: true,
-              }, {
-                'owner.orgId': orgId,
-              }],
-            },
+            userID,
+          },
+          {
+            'shared.users': userID,
+          },
+          {
+            'shareToAll.activated': true,
+          },
+          {
+            $and: [{
+              shareToSameOrgid: true,
+            }, {
+              'owner.orgId': orgId,
+            }],
+          },
           ],
         };
       }
@@ -390,8 +391,8 @@ module.exports = function () {
 
     getDataPairs(userID, callback) {
       models.DataSourcePairModel.find({
-          userID,
-        }).populate('source1').populate('source2').populate('shared')
+        userID,
+      }).populate('source1').populate('source2').populate('shared')
         .populate('userID')
         .lean()
         .exec({}, (err, data) => {
@@ -549,16 +550,16 @@ module.exports = function () {
       }, (err, data) => {
         async.eachSeries(users, (user, nxtUser) => {
           models.SharedDataSourceLocationsModel.update({
-              dataSource: shareSource,
-              user,
-            }, {
-              dataSource: shareSource,
-              user,
-              location: limitLocationId,
-            }, {
-              upsert: true,
-            },
-            (err, data) => nxtUser());
+            dataSource: shareSource,
+            user,
+          }, {
+            dataSource: shareSource,
+            user,
+            location: limitLocationId,
+          }, {
+            upsert: true,
+          },
+          (err, data) => nxtUser());
         }, () => callback(err, data));
       });
     },
@@ -579,17 +580,17 @@ module.exports = function () {
         orgId = 'undefined';
       }
       models.DataSourcePairModel.find({
-          $or: [{
-              userID,
-            },
-            {
-              'shared.users': userID,
-            },
-            {
-              'owner.orgId': orgId,
-            },
-          ],
-        }).populate('source1', 'name userID').populate('source2', 'name userID').populate('userID', 'userName')
+        $or: [{
+          userID,
+        },
+        {
+          'shared.users': userID,
+        },
+        {
+          'owner.orgId': orgId,
+        },
+        ],
+      }).populate('source1', 'name userID').populate('source2', 'name userID').populate('userID', 'userName')
         .populate('shared.users', 'userName')
         .lean()
         .exec({}, (err, data) => callback(err, data));
@@ -646,7 +647,7 @@ module.exports = function () {
           async.eachSeries(dbList, (list, nxtList) => {
             db = list.db;
             archive = list.archive;
-            let mongoURI
+            let mongoURI;
             if (mongoUser && mongoPasswd) {
               mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
             } else {
@@ -687,7 +688,7 @@ module.exports = function () {
         const db = list.db;
         const name = list.name;
         winston.info(`Archiving DB ${db}`);
-        let mongoURI
+        let mongoURI;
         if (mongoUser && mongoPasswd) {
           mongoURI = `mongodb://${mongoUser}:${mongoPasswd}@${mongoHost}:${mongoPort}/${db}`;
         } else {

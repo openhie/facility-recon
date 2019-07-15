@@ -1,7 +1,7 @@
 {
-    "version": "3.1",
+    "version": "4.0.1",
     "appType": "APP",
-    "name": "Facility Reconciliation",
+    "name": "Facility Reconciliation 4.0",
     "description": "Facility Reconciliation",
     "launch_path": "index.html",
     "icons": {
@@ -17,7 +17,7 @@
     "activities": {
         "dhis": {
             "href": "http://app.gofr.org/dhis",
-            "namespace":"GOFR"
+            "namespace":"GOFR4.0"
         }
     }
 }
