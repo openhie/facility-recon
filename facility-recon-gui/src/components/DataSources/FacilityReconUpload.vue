@@ -582,20 +582,11 @@ export default {
       let reader = new FileReader()
       reader.addEventListener('load', function () {
         var data = reader.result
-        var byteLength = data.byteLength
-        var ui8a = new Uint8Array(data, 0)
-        var headerString = ''
-        for (var i = 0; i < byteLength; i++) {
-          var char = String.fromCharCode(ui8a[i])
-          if (char.match(/[^\r\n]+/g) !== null) {
-            headerString += char
-          } else {
-            break
-          }
-        }
+        var allTextLines = data.split(/\r\n|\n/)
+        var headerString = allTextLines[0]
         this.uploadedHeaders = headerString.split(',')
       }.bind(this), false)
-      reader.readAsArrayBuffer(e.target.files[0])
+      reader.readAsText(e.target.files[0], 'utf-8')
     },
     ensureNameUnique () {
       this.uploadNameErrors = []

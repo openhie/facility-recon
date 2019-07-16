@@ -38,6 +38,24 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-alert
+      style="width: 500px"
+      v-model="alertSuccess"
+      type="success"
+      dismissible
+      transition="scale-transition"
+    >
+      {{alertMsg}}
+    </v-alert>
+    <v-alert
+      style="width: 500px"
+      v-model="alertError"
+      type="error"
+      dismissible
+      transition="scale-transition"
+    >
+      {{alertMsg}}
+    </v-alert>
     <v-layout
       row
       wrap
@@ -98,26 +116,6 @@
       </v-flex>
     </v-layout>
     <v-layout column>
-      <v-flex xs6>
-        <v-alert
-          style="width: 500px"
-          v-model="alertSuccess"
-          type="success"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
-        <v-alert
-          style="width: 500px"
-          v-model="alertError"
-          type="error"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
-      </v-flex>
       <v-flex>
         <component
           :is="selectedComponent"
@@ -128,7 +126,8 @@
     <appDialogs
       :datasetLimitWarn="datasetLimitWarn"
       @limitWarnStateChange='limitWarnStateChange'
-    ></appDialogs>
+    >
+    </appDialogs>
   </v-container>
 </template>
 

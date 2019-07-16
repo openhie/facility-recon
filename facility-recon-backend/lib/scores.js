@@ -294,9 +294,9 @@ module.exports = function () {
                   // when parent constraint is On then automatch by name is also enabled by default
                   // when parent constraint is off then check if name automatch is also on
 
-                  if (lev == 0
-                    && !matchBroken
-                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0 &&
+                    !matchBroken &&
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     ignore.push(source2Entry.resource.id);
                     thisRanking.exactMatch = {
@@ -747,8 +747,8 @@ module.exports = function () {
                   for (const abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr]);
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false
-                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      if (parentsDiffer == false ||
+                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
                       ) {
                         matchComments.push('Names differ');
                         ignore.push(source2Entry.resource.id);
@@ -785,8 +785,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken
-                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken &&
+                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
@@ -890,14 +890,18 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id
-        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id ||
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
     getUnmatched(mcsdAll, mcsdFiltered, mappingDB, getmCSD, source, parentsFields, callback) {
       const unmatched = [];
       const fakeOrgId = config.getConf('mCSD:fakeOrgId');
+      const flagCode = config.getConf('mapping:flagCode');
+      const flagCommentCode = config.getConf('mapping:flagCommentCode');
+      const ignoreCode = config.getConf('mapping:ignoreCode');
+      const noMatchCode = config.getConf('mapping:noMatchCode');
 
       const mcsdUnmatched = {
         resourceType: 'Bundle',
@@ -914,12 +918,41 @@ module.exports = function () {
           if (source === 'source2') {
             matched = mappedLocations.entry.find((entry) => {
               const matchedSource2Id = mixin.getIdFromIdentifiers(entry.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
-              return matchedSource2Id === filteredEntry.resource.id && entry.resource.identifier.length === 2;
+              return matchedSource2Id === filteredEntry.resource.id;
             });
           } else if (source === 'source1') {
-            matched = mappedLocations.entry.find(entry => entry.resource.id === filteredEntry.resource.id && entry.resource.identifier.length === 2);
+            matched = mappedLocations.entry.find(entry => entry.resource.id === filteredEntry.resource.id);
           }
-          if (!matched) {
+          let status;
+          let noMatch;
+          let ignored;
+          let flagged;
+          let flagComments;
+          if (matched) {
+            noMatch = matched.resource.tag.find(tag => tag.code == noMatchCode);
+            ignored = matched.resource.tag.find(tag => tag.code == ignoreCode);
+            flagged = matched.resource.tag.find(tag => tag.code == flagCode);
+            flagComments = matched.resource.tag.find(tag => tag.code == flagCommentCode);
+          }
+          let newTag;
+          if (noMatch) {
+            newTag = noMatch;
+            status = 'No Match';
+          } else if (ignored) {
+            newTag = ignored;
+            status = 'Ignored';
+          } else if (flagged) {
+            newTag = flagged;
+            status = 'Flagged';
+          }
+          let comment = '';
+          if (flagComments && flagComments.hasOwnProperty('display')) {
+            comment = flagComments.display;
+          }
+          if (!matched || (matched && status)) {
+            if (!status) {
+              status = 'Not Processed';
+            }
             if (getmCSD) {
               // deep copy filteredEntry before modifying it
               const copiedEntry = JSON.parse(JSON.stringify(filteredEntry));
@@ -927,6 +960,15 @@ module.exports = function () {
               // remove fakeID
               if (parent.endsWith(fakeOrgId)) {
                 delete copiedEntry.resource.partOf;
+              }
+              if (newTag) {
+                if (!copiedEntry.resource.tag) {
+                  copiedEntry.resource.tag = [];
+                }
+                copiedEntry.resource.tag.push(newTag);
+                if (flagComments) {
+                  copiedEntry.resource.tag.push(flagComments);
+                }
               }
               mcsdUnmatched.entry.push(copiedEntry);
             }
@@ -957,6 +999,8 @@ module.exports = function () {
                 } else {
                   data.parents = parentCache[entityParent];
                 }
+                data.status = status;
+                data.comment = comment;
                 unmatched.push(data);
                 return filteredCallback();
               });
@@ -975,6 +1019,8 @@ module.exports = function () {
               } else {
                 data.parents = parentCache[entityParent];
               }
+              data.status = status;
+              data.comment = comment;
               unmatched.push(data);
               return filteredCallback();
             }

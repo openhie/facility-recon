@@ -26,6 +26,8 @@ export const scoresMixin = {
         this.$store.state.scoresProgressData.requestCancelled = true
         this.$store.state.scoresProgressData.cancelTokenSource.cancel('Cancelling request.')
         this.checkScoreProgress()
+      } else {
+        this.$store.state.scoresProgressData.scoreProgressTitle = 'Please be patient, waiting for server response'
       }
     },
     checkScoreProgress () {
@@ -201,30 +203,6 @@ export const scoresMixin = {
         this.checkScoreProgress()
       })
       // this.$store.state.scoresProgressData.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
-    },
-    getSource2Unmached () {
-      let source1 = this.getSource1()
-      let source2 = this.getSource2()
-      let userID = this.$store.state.activePair.userID._id
-      let sourcesOwner = this.getDatasourceOwner()
-      let source1Owner = sourcesOwner.source1Owner
-      let source2Owner = sourcesOwner.source2Owner
-      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
-      if (!source1 || !source2) {
-        return
-      }
-      let recoLevel = this.$store.state.recoLevel
-      let totalSource1Levels = this.$store.state.totalSource1Levels
-      let totalSource2Levels = this.$store.state.totalSource2Levels
-      let level = recoLevel
-      if (recoLevel === totalSource1Levels) {
-        level = totalSource2Levels
-      }
-      axios.get(backendServer + `/getUnmatched/${source1}/${source2}/${source1Owner}/${source2Owner}/${level}/${userID}?source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}`).then((unmatched) => {
-        this.loadingSource2Unmatched = false
-        this.$store.state.source2UnMatched = unmatched.data
-      })
     },
     getSource1 () {
       let source = this.$store.state.activePair.source1.name

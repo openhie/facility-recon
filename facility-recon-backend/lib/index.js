@@ -51,19 +51,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/progress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/progress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -133,11 +133,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -179,7 +179,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -1633,9 +1633,10 @@ if (cluster.isMaster) {
         };
         async.eachOf(mapped.entry, (entry, key, nxtEntry) => {
           if (entry.resource.hasOwnProperty('tag')) {
+            const flagged = entry.resource.tag.find(tag => tag.code == flagCode);
             const noMatch = entry.resource.tag.find(tag => tag.code == noMatchCode);
             const ignore = entry.resource.tag.find(tag => tag.code == ignoreCode);
-            if (noMatch || ignore) {
+            if (noMatch || ignore || flagged) {
               delete mapped.entry[key];
             }
             return nxtEntry();
@@ -1668,21 +1669,15 @@ if (cluster.isMaster) {
             matchCommentsTag = entry.resource.tag.find(tag => tag.code == matchCommentsCode);
             flagCommentsTag = entry.resource.tag.find(tag => tag.code == flagCommentCode);
           }
-          if (noMatch || ignore) {
+          if (noMatch || ignore || flagged) {
             return nxtmCSD();
           }
-          let matchComments,
-            flagComments,
-            comment;
+          let matchComments;
+          let comment;
           if (matchCommentsTag && matchCommentsTag.hasOwnProperty('display')) {
             comment = matchCommentsTag.display.join(', ');
           }
-          if (flagCommentsTag && flagCommentsTag.hasOwnProperty('display')) {
-            comment = flagCommentsTag.display;
-          }
-          if (flagged) {
-            status = 'Flagged';
-          } else if (autoMatched) {
+          if (autoMatched) {
             status = 'Automatically Matched';
           } else {
             status = 'Manually Matched';
@@ -1846,7 +1841,7 @@ if (cluster.isMaster) {
                       colHeader = 'Facilities';
                     }
                     if (!matchedCSV) {
-                      matchedCSV = colHeader + os.EOL + matchedCSV + csvString + os.EOL;
+                      matchedCSV = colHeader + os.EOL + csvString + os.EOL;
                     } else {
                       matchedCSV = matchedCSV + os.EOL + os.EOL + colHeader + os.EOL + csvString + os.EOL;
                     }
@@ -1990,6 +1985,8 @@ if (cluster.isMaster) {
               mcsd.filterLocations(response.source1mCSD, source1LimitOrgId, level, (mcsdLevel) => {
                 scores.getUnmatched(response.source1mCSD, mcsdLevel, mappingDB, true, 'source1', parentsFields, (unmatched, mcsdUnmatched) => {
                   if (unmatched.length > 0) {
+                    thisFields.push('status');
+                    thisFields.push('comment');
                     const csvString = json2csv(unmatched, {
                       thisFields,
                     });
@@ -2000,7 +1997,7 @@ if (cluster.isMaster) {
                       colHeader = 'Facilities';
                     }
                     if (!unmatchedSource1CSV) {
-                      unmatchedSource1CSV = colHeader + os.EOL + unmatchedSource1CSV + csvString + os.EOL;
+                      unmatchedSource1CSV = colHeader + os.EOL + csvString + os.EOL;
                     } else {
                       unmatchedSource1CSV = unmatchedSource1CSV + os.EOL + os.EOL + colHeader + os.EOL + csvString + os.EOL;
                     }
@@ -2032,6 +2029,8 @@ if (cluster.isMaster) {
               mcsd.filterLocations(response.source2mCSD, source2LimitOrgId, level, (mcsdLevel) => {
                 scores.getUnmatched(response.source2mCSD, mcsdLevel, mappingDB, true, 'source2', parentsFields, (unmatched, mcsdUnmatched) => {
                   if (unmatched.length > 0) {
+                    thisFields.push('status');
+                    thisFields.push('comment');
                     const csvString = json2csv(unmatched, {
                       thisFields,
                     });
@@ -2042,7 +2041,7 @@ if (cluster.isMaster) {
                       colHeader = 'Facilities';
                     }
                     if (!unmatchedSource2CSV) {
-                      unmatchedSource2CSV = colHeader + os.EOL + unmatchedSource2CSV + csvString + os.EOL;
+                      unmatchedSource2CSV = colHeader + os.EOL + csvString + os.EOL;
                     } else {
                       unmatchedSource2CSV = unmatchedSource2CSV + os.EOL + os.EOL + colHeader + os.EOL + csvString + os.EOL;
                     }
@@ -2058,46 +2057,6 @@ if (cluster.isMaster) {
         }));
       });
     }
-  });
-
-  app.get('/getUnmatched/:source1/:source2/:source1Owner/:source2Owner/:recoLevel/:userID', (req, res) => {
-    winston.info(`Getting Source2 Unmatched Orgs for ${req.params.source1}`);
-    if (!req.params.source1 || !req.params.source2) {
-      winston.error({
-        error: 'Missing Source1 or Source2',
-      });
-      res.status(400).json({
-        error: 'Missing Source1 or Source2',
-      });
-      return;
-    }
-    const {
-      userID,
-      source1Owner,
-      source2Owner,
-    } = req.params;
-    let {
-      recoLevel,
-    } = req.params;
-    let {
-      source2LimitOrgId,
-    } = req.query;
-    if (!source2LimitOrgId) {
-      source2LimitOrgId = topOrgId;
-    }
-    const source2DB = req.params.source2 + source2Owner;
-    const mappingDB = req.params.source1 + userID + req.params.source2;
-    if (levelMaps[source2DB] && levelMaps[source2DB][recoLevel]) {
-      recoLevel = levelMaps[orgid][recoLevel];
-    }
-    mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdAll) => {
-      mcsd.filterLocations(mcsdAll, source2LimitOrgId, recoLevel, (mcsdLevel) => {
-        scores.getUnmatched(mcsdAll, mcsdLevel, mappingDB, false, 'source2', null, (unmatched) => {
-          winston.info(`sending back Source2 unmatched Orgs for ${req.params.source1}`);
-          res.status(200).json(unmatched);
-        });
-      });
-    });
   });
 
   app.post('/match/:type', (req, res) => {
@@ -2578,11 +2537,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config')
-          && configData.config.hasOwnProperty('generalConfig')
-          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-          && configData.config.generalConfig.recoProgressNotification.enabled
-          && configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,
@@ -3085,10 +3044,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null
-              || headerMapping[level] === 'null'
-              || headerMapping[level] === undefined
-              || !headerMapping[level]) {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3111,13 +3070,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null
-                || data[headerMapping[level]] === undefined
-                || data[headerMapping[level]] === false
-                || !data[headerMapping[level]]
-                || data[headerMapping[level]] === ''
-                || !isNaN(headerMapping[level])
-                || data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
+                data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3125,11 +3084,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null
-              || data[headerMapping.facility] === undefined
-              || data[headerMapping.facility] === false
-              || data[headerMapping.facility] === ''
-              || data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }
