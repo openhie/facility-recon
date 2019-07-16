@@ -39,6 +39,7 @@ export const store = new Vuex.Store({
         recoProgressNotification: {
           enabled: false
         },
+        allowShareToAllForNonAdmin: false,
         selfRegistration: false,
         datasetsAdditionWays: ['CSV Upload', 'Remote Servers Sync'],
         datasetsAutosyncTime: '*/15 * * * *',

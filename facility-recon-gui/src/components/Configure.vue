@@ -240,6 +240,13 @@
                     ></v-checkbox>
                   </v-card-text>
                 </v-card>
+                <v-switch
+                  @change="saveConfiguration('generalConfig', 'allowShareToAllForNonAdmin')"
+                  color="primary"
+                  label="Allow non admin users to share datasets will all users"
+                  v-model="$store.state.config.generalConfig.allowShareToAllForNonAdmin"
+                >
+                </v-switch>
                 <v-tooltip top>
                   <v-switch
                     @change="displayDatasourceDialog"

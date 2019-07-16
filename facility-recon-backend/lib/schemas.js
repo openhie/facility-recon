@@ -182,6 +182,9 @@ const MetaData = new mongoose.Schema({
       selfRegistration: {
         type: Boolean,
       },
+      allowShareToAllForNonAdmin: {
+        type: Boolean,
+      },
       datasetsAdditionWays: [],
       datasetsAutosyncTime: {
         type: String,

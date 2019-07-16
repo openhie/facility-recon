@@ -243,6 +243,7 @@
                       </span>
                     </v-tooltip>
                     <v-checkbox
+                      v-if='$store.state.config.generalConfig.allowShareToAllForNonAdmin || $store.state.auth.role === "Admin"'
                       @change="sharingOptions"
                       color="primary"
                       label="Share with all other users"

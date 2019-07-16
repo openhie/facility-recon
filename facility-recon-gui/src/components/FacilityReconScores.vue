@@ -267,7 +267,7 @@
                   >
                     <v-icon left>thumb_down</v-icon>No Match
                   </v-btn>
-                  <span>Mark this source 1 location as being ignored</span>
+                  <span>Save this Source 1 location as having no match</span>
                 </v-tooltip>
               </v-flex>
               <v-flex xs2>
@@ -280,27 +280,22 @@
                   >
                     <v-icon left>thumb_down</v-icon>Ignore
                   </v-btn>
-                  <span>Save this Source 1 location as having no match</span>
+                  <span>Mark this source 1 location as being ignored</span>
                 </v-tooltip>
               </v-flex>
               <v-flex xs2>
                 <v-tooltip top>
-                  <v-btn-toggle
+                  <v-btn
                     v-if='potentialAvailable'
-                    v-model="showAllPotential"
+                    color="teal darken-6"
+                    style="color: white"
                     slot="activator"
+                    @click="showAllPotential = !showAllPotential"
                   >
-                    <v-btn
-                      color="teal darken-6"
-                      round
-                      style="color: white;"
-                      value="all"
-                    >
-                      <template v-if="showAllPotential === 'all'">Show Scored Suggestions</template>
-                      <template v-else>Show All Suggestions</template>
-                    </v-btn>
-                  </v-btn-toggle>
-                  <span v-if="showAllPotential === 'all'">Limit to only scored suggestions</span>
+                    <template v-if="showAllPotential">Show Scored Suggestions</template>
+                    <template v-else>Show All Suggestions</template>
+                  </v-btn>
+                  <span v-if="showAllPotential">Limit to only scored suggestions</span>
                   <span v-else>See all possible choices ignoring the score</span>
                 </v-tooltip>
               </v-flex>
@@ -1159,7 +1154,7 @@ export default {
       searchIgnore: '',
       searchFlagged: '',
       potentialMatches: [],
-      showAllPotential: null,
+      showAllPotential: false,
       alertText: '',
       alertTitle: '',
       alert: false,
@@ -1248,7 +1243,7 @@ export default {
     },
     getPotentialMatch (id) {
       this.potentialMatches = []
-      this.showAllPotential = null
+      this.showAllPotential = false
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.source1.id === id) {
           this.selectedSource1Name = scoreResult.source1.name
@@ -1753,7 +1748,7 @@ export default {
         this.$store.state.source2UnMatched !== null &&
         this.$store.state.source2UnMatched.length >
         this.potentialMatches.length &&
-        this.showAllPotential === 'all'
+        this.showAllPotential
       ) {
         let results = []
         for (let addIt of this.$store.state.source2UnMatched) {
