@@ -796,12 +796,6 @@ export default {
     'appDialogs': Dialogs
   },
   computed: {
-    uploadNameErrorsss () {
-      const errors = []
-      if (!this.$v.uploadName.$dirty) return errors
-      !this.$v.uploadName.required && errors.push('Upload Name is required')
-      return errors
-    },
     facilityErrors () {
       const errors = []
       if (!this.$v.facility.$dirty) return errors

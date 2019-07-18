@@ -84,10 +84,11 @@ module.exports = () => ({
   },
 
   getLocationByID(database, id, getCached, callback) {
+    let url;
     if (id) {
-      var url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
+      url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${id.toString()}`;
     } else {
-      var url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
         .toString();
     }
     const locations = {};
@@ -896,7 +897,9 @@ module.exports = () => ({
           resource,
         });
         fhir.entry = fhir.entry.concat(entry);
+        winston.info('mcsd save match');
         me.saveLocations(fhir, mappingDB, (err, res) => {
+          winston.info('mcsd match saved');
           if (err) {
             winston.error(err);
           }

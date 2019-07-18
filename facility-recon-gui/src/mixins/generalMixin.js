@@ -16,12 +16,24 @@ export const generalMixin = {
       } else {
         let totalDtSrcs = 0
         for (let source of this.$store.state.dataSources) {
-          if (
-            source._id !==
-            this.$store.state.config.generalConfig.reconciliation.fixSource2To
-          ) {
-            totalDtSrcs++
+          if (source._id === this.$store.state.config.generalConfig.reconciliation.fixSource2To) {
+            continue
           }
+          let userID = this.$store.state.auth.userID
+          let orgId = this.$store.state.dhis.user.orgId
+          let sharedToMe = source.shared.users.find((user) => {
+            return user._id === userID
+          })
+          let itsMine = source.owner.id === userID
+          let sharedToAll = source.shareToAll.activated === true
+          let sameOrgId = false
+          if (source.owner.orgId && source.owner.orgId === orgId) {
+            sameOrgId = true
+          }
+          if (!itsMine && !sharedToMe && !sharedToAll && !sameOrgId) {
+            continue
+          }
+          totalDtSrcs++
         }
         if (totalDtSrcs >= 1) {
           this.datasetLimitWarn = true

@@ -148,7 +148,7 @@
           open-on-hover
           bottom
           offset-y
-          v-if='!$store.state.denyAccess'
+          v-if='!$store.state.denyAccess && !$store.state.config.generalConfig.authDisabled'
         >
           <v-btn
             slot="activator"
@@ -305,6 +305,7 @@
           ></v-select>
         </v-flex>
       </v-layout>
+      percent {{$store.state.scoreSavingProgressData.percent}}
       <router-view />
     </v-content>
     <v-footer
@@ -557,20 +558,33 @@ export default {
         if (Object.keys(this.$store.state.activePair.source1).length > 0) {
           return false
         }
-        if (this.$store.state.dataSources.length > 2) {
-          return false
-        }
         let fixedSource2To = this.$store.state.config.generalConfig.reconciliation.fixSource2To
         let source1 = {}
         let source2 = {}
+        let userID = this.$store.state.auth.userID
+        let orgId = this.$store.state.dhis.user.orgId
+        let datasources = []
         for (let source of this.$store.state.dataSources) {
+          let sharedToMe = source.shared.users.find((user) => {
+            return user._id === userID
+          })
+          let itsMine = source.owner.id === userID
+          let sharedToAll = source.shareToAll.activated === true
+          let sameOrgId = false
+          if (source.owner.orgId && source.owner.orgId === orgId) {
+            sameOrgId = true
+          }
+          if (!itsMine && !sharedToMe && !sharedToAll && !sameOrgId) {
+            continue
+          }
           if (source._id === fixedSource2To) {
             source2 = source
           } else {
             source1 = source
           }
+          datasources.push(source)
         }
-        if (Object.keys(source1).length === 0 || Object.keys(source2).length === 0) {
+        if (datasources.length > 2 || Object.keys(source1).length === 0 || Object.keys(source2).length === 0) {
           return false
         }
         this.createDatasourcePair(source1, source2)
@@ -591,6 +605,9 @@ export default {
         let val = true
         callback(val)
         this.activatePair()
+      } else {
+        let val = false
+        callback(val)
       }
     }
   },

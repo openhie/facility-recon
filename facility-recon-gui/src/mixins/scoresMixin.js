@@ -18,7 +18,7 @@ export const scoresMixin = {
     }
   },
   methods: {
-    progressCheckTimeout () {
+    scoreProgressCheckTimeout () {
       this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
       clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
       let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
@@ -30,10 +30,16 @@ export const scoresMixin = {
         this.$store.state.scoresProgressData.scoreProgressTitle = 'Please be patient, waiting for server response'
       }
     },
+    scoreSavingProgressCheckTimeout () {
+      clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
+      this.$store.state.scoreSavingProgressData.requestCancelled = true
+      this.$store.state.scoreSavingProgressData.cancelTokenSource.cancel('Cancelling request.')
+      this.checkScoreSavingStatus()
+    },
     checkScoreProgress () {
       // if the req takes one minute without responding then display a message to user
       this.$store.state.scoresProgressData.cancelTokenSource = CancelToken.source()
-      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.progressCheckTimeout, 10000)
+      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.scoreProgressCheckTimeout, 10000)
       const clientId = this.$store.state.clientId
       axios.get(backendServer + '/progress/scoreResults/' + clientId, {
         cancelToken: this.$store.state.scoresProgressData.cancelTokenSource.token
@@ -48,10 +54,14 @@ export const scoresMixin = {
           this.$store.state.errorDescription = 'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
+          this.clearProgress('scoreResults')
+          this.checkScoreSavingStatus()
           return
         } else if ((scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length > 0)) {
           this.$store.state.scoresProgressData.scoreDialog = false
           this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
+          this.clearProgress('scoreResults')
+          this.checkScoreSavingStatus()
           return
         }
         this.$store.state.scoresProgressData.scoreProgressTitle = scoreProgress.data.status
@@ -64,6 +74,7 @@ export const scoresMixin = {
         }
         if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
           this.clearProgress('scoreResults')
+          this.checkScoreSavingStatus()
           this.loadingSource1Unmatched = false
           this.loadingSource2Unmatched = false
           let scoresData = scoreProgress.data.responseData
@@ -144,6 +155,47 @@ export const scoresMixin = {
         } else {
           clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
           this.checkScoreProgress()
+        }
+      })
+    },
+    checkScoreSavingStatus () {
+      // if the req takes one minute without responding then display a message to user
+      this.$store.state.scoreSavingProgressData.cancelTokenSource = CancelToken.source()
+      this.$store.state.scoreSavingProgressData.progressReqTimer = setInterval(this.scoreSavingProgressCheckTimeout, 10000)
+      const clientId = this.$store.state.clientId
+      console.log(clientId)
+      axios.get(backendServer + '/progress/scoreSavingStatus/' + clientId, {
+        cancelToken: this.$store.state.scoreSavingProgressData.cancelTokenSource.token
+      }).then((scoreSavingStatus) => {
+        console.log('clear progress')
+        let clearing = clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
+        console.log(clearing)
+        console.log(JSON.stringify(scoreSavingStatus.data))
+        if (!scoreSavingStatus.data ||
+          (!scoreSavingStatus.data.status && !scoreSavingStatus.data.percent && !scoreSavingStatus.data.error && this.$store.state.scoreSavingProgressData.savingMatches)) {
+          this.$store.state.errorTitle = 'An error has occured'
+          this.$store.state.errorDescription = 'An error has occured while checking saving status'
+          this.$store.state.errorColor = 'error'
+          this.$store.state.dialogError = true
+          return
+        } else if ((!scoreSavingStatus.data.status && !scoreSavingStatus.data.percent && !scoreSavingStatus.data.error && !this.$store.state.scoreSavingProgressData.savingMatches)) {
+          return
+        }
+        if (scoreSavingStatus.data.percent) {
+          this.$store.state.scoreSavingProgressData.percent = scoreSavingStatus.data.percent
+        }
+        if (scoreSavingStatus.data.percent === 100) {
+          this.$store.state.scoreSavingProgressData.savingMatches = false
+          this.clearProgress('scoreSavingStatus')
+        } else {
+          this.checkScoreSavingStatus()
+        }
+      }).catch((thrown) => {
+        if (this.$store.state.scoreSavingProgressData.requestCancelled) {
+          this.$store.state.scoreSavingProgressData.requestCancelled = false
+        } else {
+          clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
+          this.checkScoreSavingStatus()
         }
       })
     },

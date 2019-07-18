@@ -15,7 +15,7 @@
     "facility",
     "reconciliation"
   ],
-  "author": "Digital Health <digitalhealth@intrahealth.org>",
+  "author": "Intrahealth Digital Health Team <digitalhealth@intrahealth.org>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/openhie/facility-recon/issues"

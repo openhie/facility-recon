@@ -1,3 +1,5 @@
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-loop-func */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable guard-for-in */
 /* eslint-disable func-names */
@@ -49,13 +51,16 @@ module.exports = function () {
         winston.error('No Source1 data found');
         return callback();
       }
+      let totalRecords = mcsdSource2.entry.length;
       let count = 0;
+      let countSaved = 0;
+      updateDataSavingPercent(true);
       const ignore = [];
       const source2ParentNames = {};
       const source2MappedParentIds = {};
       const source2Unmatched = [];
       const source2MatchedIDs = [];
-
+      const matchesToSave = [];
       let totalAllMapped = mcsdMapped.entry.length;
       let totalAllNoMatch = 0;
       let totalAllIgnored = 0;
@@ -63,7 +68,6 @@ module.exports = function () {
 
       winston.info('Populating parents');
 
-      let totalRecords = mcsdSource2.entry.length;
       for (const entry of mcsdSource2.entry) {
         if (entry.resource.hasOwnProperty('partOf')) {
           source2ParentNames[entry.resource.id] = [];
@@ -178,6 +182,7 @@ module.exports = function () {
                   stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
+                updateDataSavingPercent();
                 return source1Callback();
               }
 
@@ -207,6 +212,7 @@ module.exports = function () {
                 stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
+              updateDataSavingPercent();
               return source1Callback();
             });
           } else { // if not mapped
@@ -263,95 +269,111 @@ module.exports = function () {
               } else {
                 source2Filtered = mcsdSource2.entry;
               }
-              async.eachSeries(source2Filtered, (source2Entry, source2Callback) => {
-                const matchComments = [];
-                const id = source2Entry.resource.id;
-                const source2Identifier = URI(config.getConf('mCSD:url'))
-                  .segment(source2DB)
-                  .segment('fhir')
-                  .segment('Location')
-                  .segment(id)
-                  .toString();
-                const ignoreThis = ignore.find(toIgnore => toIgnore == id);
-                if (ignoreThis) {
-                  return source2Callback();
-                }
-                // check if this is already mapped
-                this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
-                  if (mapped) {
-                    ignore.push(source2Entry.resource.id);
-                    return source2Callback();
-                  }
-                  let parentsDiffer = false;
-                  if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0]) && recoLevel != 2) {
-                    parentsDiffer = true;
-                    matchComments.push('Parents differ');
-                  }
-                  const source2Name = source2Entry.resource.name;
-                  const source2Id = source2Entry.resource.id;
 
-                  const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-                  // when parent constraint is On then automatch by name is also enabled by default
-                  // when parent constraint is off then check if name automatch is also on
-
-                  if (lev == 0 &&
-                    !matchBroken &&
-                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
-                  ) {
-                    ignore.push(source2Entry.resource.id);
-                    thisRanking.exactMatch = {
-                      name: source2Name,
-                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
-                      id: source2Entry.resource.id,
-                      matchComments,
-                    };
-                    thisRanking.potentialMatches = {};
-                    mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-
-                    });
-                    totalAllMapped += 1;
-                    source2MatchedIDs.push(source2Entry.resource.id);
-                    // we will need to break here and start processing nxt Source1
-                    return source2Callback();
+              let noNeedToSave = true;
+              const promises2 = [];
+              for (let x = 0; x < source2Filtered.length; x++) {
+                const source2Entry = source2Filtered[x];
+                promises2.push(new Promise((resolve, reject) => {
+                  const matchComments = [];
+                  const id = source2Entry.resource.id;
+                  const source2Identifier = URI(config.getConf('mCSD:url'))
+                    .segment(source2DB)
+                    .segment('fhir')
+                    .segment('Location')
+                    .segment(id)
+                    .toString();
+                  const ignoreThis = ignore.find(toIgnore => toIgnore == id);
+                  if (ignoreThis) {
+                    return resolve();
                   }
-                  if (lev == 0) {
-                    if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
-                      thisRanking.potentialMatches['0'] = [];
+                  // check if this is already mapped
+                  this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
+                    if (mapped) {
+                      ignore.push(source2Entry.resource.id);
+                      return resolve();
                     }
-                    thisRanking.potentialMatches['0'].push({
-                      name: source2Name,
-                      parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
-                      id: source2Entry.resource.id,
-                    });
-                    return source2Callback();
-                  }
-                  if (Object.keys(thisRanking.exactMatch).length == 0) {
-                    if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
-                      if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
-                        thisRanking.potentialMatches[lev] = [];
-                      }
-                      thisRanking.potentialMatches[lev].push({
+                    let parentsDiffer = false;
+                    if (!source2MappedParentIds[source2Entry.resource.id].includes(source1ParentIds[0]) && recoLevel != 2) {
+                      parentsDiffer = true;
+                      matchComments.push('Parents differ');
+                    }
+                    const source2Name = source2Entry.resource.name;
+                    const source2Id = source2Entry.resource.id;
+
+                    const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
+                    // when parent constraint is On then automatch by name is also enabled by default
+                    // when parent constraint is off then check if name automatch is also on
+                    if (lev == 0
+                      && !matchBroken
+                      && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                    ) {
+                      ignore.push(source2Entry.resource.id);
+                      thisRanking.exactMatch = {
                         name: source2Name,
                         parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                         id: source2Entry.resource.id,
+                        matchComments,
+                      };
+                      thisRanking.potentialMatches = {};
+                      noNeedToSave = false;
+                      matchesToSave.push({
+                        source1Id,
+                        source2Id: source2Entry.resource.id,
+                        source1DB,
+                        source2DB,
+                        mappingDB,
+                        recoLevel,
+                        totalLevels,
                       });
-                    } else {
-                      const existingLev = Object.keys(thisRanking.potentialMatches);
-                      const max = _.max(existingLev);
-                      if (lev < max) {
-                        delete thisRanking.potentialMatches[max];
-                        thisRanking.potentialMatches[lev] = [];
+                      // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                      //   updateDataSavingPercent();
+                      // });
+                      totalAllMapped += 1;
+                      source2MatchedIDs.push(source2Entry.resource.id);
+                      // we will need to break here and start processing nxt Source1
+                      return resolve();
+                    }
+                    if (lev == 0) {
+                      if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                        thisRanking.potentialMatches['0'] = [];
+                      }
+                      thisRanking.potentialMatches['0'].push({
+                        name: source2Name,
+                        parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
+                        id: source2Entry.resource.id,
+                      });
+                      return resolve();
+                    }
+                    if (Object.keys(thisRanking.exactMatch).length == 0) {
+                      if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
+                        if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
+                          thisRanking.potentialMatches[lev] = [];
+                        }
                         thisRanking.potentialMatches[lev].push({
                           name: source2Name,
-                          parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
+                          parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                           id: source2Entry.resource.id,
                         });
+                      } else {
+                        const existingLev = Object.keys(thisRanking.potentialMatches);
+                        const max = _.max(existingLev);
+                        if (lev < max) {
+                          delete thisRanking.potentialMatches[max];
+                          thisRanking.potentialMatches[lev] = [];
+                          thisRanking.potentialMatches[lev].push({
+                            name: source2Name,
+                            parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
+                            id: source2Entry.resource.id,
+                          });
+                        }
                       }
                     }
-                  }
-                  return source2Callback();
-                });
-              }, () => {
+                    return resolve();
+                  });
+                }));
+              }
+              Promise.all(promises2).then(() => {
                 scoreResults.push(thisRanking);
                 count += 1;
                 const percent = parseFloat((count * 100 / totalRecords).toFixed(2));
@@ -362,6 +384,9 @@ module.exports = function () {
                   stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
+                if (noNeedToSave) {
+                  updateDataSavingPercent();
+                }
                 return source1Callback();
               });
             }).catch((err) => {
@@ -382,8 +407,33 @@ module.exports = function () {
         }, () => {
           mcsdSource2All = {};
           callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
+          console.time('saving');
+          async.eachSeries(matchesToSave, (match, nxtMatch) => {
+            mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
+              updateDataSavingPercent();
+              return nxtMatch();
+            });
+          }, () => {
+            console.timeEnd('saving');
+          });
         });
       });
+
+      function updateDataSavingPercent(initialize = false) {
+        countSaved += 1;
+        if (initialize) {
+          countSaved = 0;
+        }
+        const percent = parseFloat((countSaved * 100 / totalRecords).toFixed(2));
+        winston.error(percent);
+        const scoreSavingStatId = `scoreSavingStatus${clientId}`;
+        const scoreSavingData = JSON.stringify({
+          status: '1/1 - Saving Data',
+          error: null,
+          percent,
+        });
+        redisClient.set(scoreSavingStatId, scoreSavingData);
+      }
     },
 
     getBuildingsScores(
@@ -415,6 +465,7 @@ module.exports = function () {
       }
       const ignore = [];
       let count = 0;
+      let countSaved = 0;
       const source2ParentNames = {};
       const source2MappedParentIds = {};
       const source2LevelMappingStatus = {};
@@ -721,7 +772,7 @@ module.exports = function () {
                   };
                   thisRanking.potentialMatches = {};
                   mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-
+                    updateDataSavingPercent();
                   });
                   totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
@@ -747,8 +798,8 @@ module.exports = function () {
                   for (const abbr in dictionary) {
                     const replaced = source1Name.replace(abbr, dictionary[abbr]);
                     if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false ||
-                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      if (parentsDiffer == false
+                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
                       ) {
                         matchComments.push('Names differ');
                         ignore.push(source2Entry.resource.id);
@@ -762,7 +813,9 @@ module.exports = function () {
                           id: source2Entry.resource.id,
                         };
                         thisRanking.potentialMatches = {};
-                        mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {});
+                        mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                          updateDataSavingPercent();
+                        });
                         totalAllMapped += 1;
                         source2MatchedIDs.push(source2Entry.resource.id);
                       } else {
@@ -785,8 +838,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
@@ -800,7 +853,7 @@ module.exports = function () {
                   };
                   thisRanking.potentialMatches = {};
                   mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-
+                    updateDataSavingPercent();
                   });
                   totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
@@ -884,14 +937,26 @@ module.exports = function () {
           callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
         });
       });
+
+      function updateDataSavingPercent() {
+        countSaved += 1;
+        const percent = parseFloat((countSaved * 100 / totalRecords).toFixed(2));
+        const scoreSavingStatId = `scoreSavingStatus${clientId}`;
+        const scoreSavingData = JSON.stringify({
+          status: '1/1 - Saving Data',
+          error: null,
+          percent,
+        });
+        redisClient.set(scoreSavingStatId, scoreSavingData);
+      }
     },
     matchStatus(mcsdMapped, id, callback) {
       if (mcsdMapped.length === 0 || !mcsdMapped) {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

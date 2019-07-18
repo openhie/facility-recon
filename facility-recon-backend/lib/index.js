@@ -185,21 +185,22 @@ if (cluster.isMaster) {
     workers[newworker.process.pid] = newworker;
   });
   cluster.on('message', (worker, message) => {
-    winston.info(`Master received message from ${worker.process.pid}`);
+    // winston.info(`Master received message from ${worker.process.pid}`);
     if (message.content === 'clean') {
       for (const i in workers) {
         if (workers[i].process.pid !== worker.process.pid) {
           workers[i].send(message);
-        } else {
-          winston.info(`Not sending clean message to self: ${i}`);
         }
+        // } else {
+        //   winston.info(`Not sending clean message to self: ${i}`);
+        // }
       }
     }
   });
 } else {
   process.on('message', (message) => {
     if (message.content === 'clean') {
-      winston.info(`${process.pid} received clean message from master.`);
+      // winston.info(`${process.pid} received clean message from master.`);
       mcsd.cleanCache(message.url, true);
     }
   });
@@ -2255,7 +2256,7 @@ if (cluster.isMaster) {
       connection.once('open', () => {
         connection.model('MetaData', schemas.MetaData).findOne({}, (err, data) => {
           connection.close();
-          if (data.recoStatus === 'in-progress') {
+          if (!data || data.recoStatus === 'in-progress') {
             mcsd.saveNoMatch(source1Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, (err) => {
               winston.info('Done matching');
               if (err) {

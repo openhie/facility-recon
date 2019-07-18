@@ -118,6 +118,14 @@ export const store = new Vuex.Store({
       requestCancelled: false,
       cancelTokenSource: ''
     },
+    scoreSavingProgressData: {
+      percent: null,
+      savingMatches: false,
+      savingProgressTimer: false,
+      progressReqTimer: '',
+      requestCancelled: false,
+      cancelTokenSource: ''
+    },
     uploadProgressData: {},
     dataSources: [],
     remoteDataSources: ['DHIS2', 'FHIR'],
