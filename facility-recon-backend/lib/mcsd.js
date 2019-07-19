@@ -897,9 +897,7 @@ module.exports = () => ({
           resource,
         });
         fhir.entry = fhir.entry.concat(entry);
-        winston.info('mcsd save match');
         me.saveLocations(fhir, mappingDB, (err, res) => {
-          winston.info('mcsd match saved');
           if (err) {
             winston.error(err);
           }

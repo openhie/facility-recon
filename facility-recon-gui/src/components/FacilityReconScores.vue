@@ -351,8 +351,9 @@
           >
           </v-select>
         </v-flex>
-        <v-flex xs1>
+        <v-flex xs2>
           <v-btn
+            v-if='!$store.state.scoreSavingProgressData.savingMatches'
             slot="activator"
             color="primary"
             dark
@@ -361,6 +362,19 @@
           >
             <v-icon>repeat_one</v-icon> Recalculate Scores
           </v-btn>
+          <template v-else>
+            Saving matches for {{translateDataHeader('source1', $store.state.recoLevel - 2)}}
+            <v-progress-linear
+              color="error"
+              width="20"
+              height="20"
+              :value="$store.state.scoreSavingProgressData.percent"
+            >
+              <center>
+                <span class="white--text"><b>{{$store.state.scoreSavingProgressData.percent}}%</b></span>
+              </center>
+            </v-progress-linear>
+          </template>
         </v-flex>
         <v-flex
           xs1
@@ -1095,7 +1109,7 @@
           xs1
           sm4
           md2
-          v-if="goNextLevel == 'yes'"
+          v-if="goNextLevel == 'yes' && !$store.state.scoreSavingProgressData.savingMatches"
         >
           <v-btn
             color="primary"

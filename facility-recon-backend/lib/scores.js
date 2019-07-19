@@ -54,7 +54,7 @@ module.exports = function () {
       let totalRecords = mcsdSource2.entry.length;
       let count = 0;
       let countSaved = 0;
-      updateDataSavingPercent(true);
+      updateDataSavingPercent('initialize');
       const ignore = [];
       const source2ParentNames = {};
       const source2MappedParentIds = {};
@@ -407,25 +407,32 @@ module.exports = function () {
         }, () => {
           mcsdSource2All = {};
           callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
-          console.time('saving');
-          async.eachSeries(matchesToSave, (match, nxtMatch) => {
-            mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
-              updateDataSavingPercent();
-              return nxtMatch();
+          let timeout = 0;
+          if (matchesToSave.length > 1000) {
+            timeout = 2000;
+          }
+          setTimeout(() => {
+            async.eachSeries(matchesToSave, (match, nxtMatch) => {
+              mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
+                updateDataSavingPercent();
+                return nxtMatch();
+              });
+            }, () => {
+              updateDataSavingPercent('done');
             });
-          }, () => {
-            console.timeEnd('saving');
-          });
+          }, timeout);
         });
       });
 
-      function updateDataSavingPercent(initialize = false) {
-        countSaved += 1;
-        if (initialize) {
+      function updateDataSavingPercent(status) {
+        if (status == 'initialize') {
           countSaved = 0;
+        } else if (status == 'done') {
+          countSaved = totalRecords;
+        } else {
+          countSaved += 1;
         }
         const percent = parseFloat((countSaved * 100 / totalRecords).toFixed(2));
-        winston.error(percent);
         const scoreSavingStatId = `scoreSavingStatus${clientId}`;
         const scoreSavingData = JSON.stringify({
           status: '1/1 - Saving Data',
@@ -463,21 +470,22 @@ module.exports = function () {
         winston.error('No Source1 data found');
         return callback();
       }
+      const totalRecords = mcsdSource2.entry.length;
       const ignore = [];
       let count = 0;
       let countSaved = 0;
+      updateDataSavingPercent('initialize');
       const source2ParentNames = {};
       const source2MappedParentIds = {};
       const source2LevelMappingStatus = {};
       const source2Unmatched = [];
       const source2MatchedIDs = [];
-
+      const matchesToSave = [];
       let totalAllMapped = mcsdMapped.entry.length;
       let totalAllNoMatch = 0;
       let totalAllIgnored = 0;
       let totalAllFlagged = 0;
       winston.info('Populating parents');
-      const totalRecords = mcsdSource2.entry.length;
       for (entry of mcsdSource2.entry) {
         const source2Identifier = URI(config.getConf('mCSD:url'))
           .segment(source2DB)
@@ -622,6 +630,7 @@ module.exports = function () {
                   stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
+                updateDataSavingPercent();
                 return source1Callback();
               }
 
@@ -650,6 +659,7 @@ module.exports = function () {
                 stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
+              updateDataSavingPercent();
               return source1Callback();
             });
           } else { // if not mapped
@@ -707,6 +717,8 @@ module.exports = function () {
               } else {
                 source2Filtered = mcsdSource2.entry;
               }
+
+              let noNeedToSave = true;
               async.each(source2Filtered, (source2Entry, source2Callback) => {
                 if (Object.keys(thisRanking.exactMatch).length > 0) {
                   return source2Callback();
@@ -771,9 +783,20 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                    updateDataSavingPercent();
+
+                  noNeedToSave = false;
+                  matchesToSave.push({
+                    source1Id,
+                    source2Id: source2Entry.resource.id,
+                    source1DB,
+                    source2DB,
+                    mappingDB,
+                    recoLevel,
+                    totalLevels,
                   });
+                  // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                  //   updateDataSavingPercent();
+                  // });
                   totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
                   return source2Callback();
@@ -813,9 +836,19 @@ module.exports = function () {
                           id: source2Entry.resource.id,
                         };
                         thisRanking.potentialMatches = {};
-                        mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                          updateDataSavingPercent();
+                        noNeedToSave = false;
+                        matchesToSave.push({
+                          source1Id,
+                          source2Id: source2Entry.resource.id,
+                          source1DB,
+                          source2DB,
+                          mappingDB,
+                          recoLevel,
+                          totalLevels,
                         });
+                        // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                        //   updateDataSavingPercent();
+                        // });
                         totalAllMapped += 1;
                         source2MatchedIDs.push(source2Entry.resource.id);
                       } else {
@@ -852,9 +885,19 @@ module.exports = function () {
                     id: source2Entry.resource.id,
                   };
                   thisRanking.potentialMatches = {};
-                  mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                    updateDataSavingPercent();
+                  noNeedToSave = false;
+                  matchesToSave.push({
+                    source1Id,
+                    source2Id: source2Entry.resource.id,
+                    source1DB,
+                    source2DB,
+                    mappingDB,
+                    recoLevel,
+                    totalLevels,
                   });
+                  // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                  //   updateDataSavingPercent();
+                  // });
                   totalAllMapped += 1;
                   source2MatchedIDs.push(source2Entry.resource.id);
                   return source2Callback();
@@ -915,6 +958,9 @@ module.exports = function () {
                   stage: 'last',
                 });
                 redisClient.set(scoreRequestId, scoreResData);
+                if (noNeedToSave) {
+                  updateDataSavingPercent();
+                }
                 return source1Callback();
               });
             }).catch((err) => {
@@ -935,11 +981,25 @@ module.exports = function () {
         }, () => {
           mcsdSource2All = {};
           callback(scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch);
+          async.eachSeries(matchesToSave, (match, nxtMatch) => {
+            mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
+              updateDataSavingPercent();
+              return nxtMatch();
+            });
+          }, () => {
+            updateDataSavingPercent('done');
+          });
         });
       });
 
-      function updateDataSavingPercent() {
-        countSaved += 1;
+      function updateDataSavingPercent(status) {
+        if (status == 'initialize') {
+          countSaved = 0;
+        } else if (status == 'done') {
+          countSaved = totalRecords;
+        } else {
+          countSaved += 1;
+        }
         const percent = parseFloat((countSaved * 100 / totalRecords).toFixed(2));
         const scoreSavingStatId = `scoreSavingStatus${clientId}`;
         const scoreSavingData = JSON.stringify({

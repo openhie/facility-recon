@@ -55,12 +55,14 @@ export const scoresMixin = {
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
           this.clearProgress('scoreResults')
+          this.$store.state.scoreSavingProgressData.savingMatches = true
           this.checkScoreSavingStatus()
           return
         } else if ((scoreProgress.data.status === null && scoreProgress.data.percent === null && scoreProgress.data.error === null && this.$store.state.scoreResults.length > 0)) {
           this.$store.state.scoresProgressData.scoreDialog = false
           this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
           this.clearProgress('scoreResults')
+          this.$store.state.scoreSavingProgressData.savingMatches = true
           this.checkScoreSavingStatus()
           return
         }
@@ -74,6 +76,7 @@ export const scoresMixin = {
         }
         if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
           this.clearProgress('scoreResults')
+          this.$store.state.scoreSavingProgressData.savingMatches = true
           this.checkScoreSavingStatus()
           this.loadingSource1Unmatched = false
           this.loadingSource2Unmatched = false
@@ -167,18 +170,21 @@ export const scoresMixin = {
       axios.get(backendServer + '/progress/scoreSavingStatus/' + clientId, {
         cancelToken: this.$store.state.scoreSavingProgressData.cancelTokenSource.token
       }).then((scoreSavingStatus) => {
-        console.log('clear progress')
-        let clearing = clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
-        console.log(clearing)
-        console.log(JSON.stringify(scoreSavingStatus.data))
+        clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
         if (!scoreSavingStatus.data ||
           (!scoreSavingStatus.data.status && !scoreSavingStatus.data.percent && !scoreSavingStatus.data.error && this.$store.state.scoreSavingProgressData.savingMatches)) {
           this.$store.state.errorTitle = 'An error has occured'
           this.$store.state.errorDescription = 'An error has occured while checking saving status'
           this.$store.state.errorColor = 'error'
           this.$store.state.dialogError = true
+          this.$store.state.scoreSavingProgressData.savingMatches = false
+          this.$store.state.scoreSavingProgressData.percent = 0
+          this.clearProgress('scoreSavingStatus')
           return
         } else if ((!scoreSavingStatus.data.status && !scoreSavingStatus.data.percent && !scoreSavingStatus.data.error && !this.$store.state.scoreSavingProgressData.savingMatches)) {
+          this.$store.state.scoreSavingProgressData.savingMatches = false
+          this.$store.state.scoreSavingProgressData.percent = 0
+          this.clearProgress('scoreSavingStatus')
           return
         }
         if (scoreSavingStatus.data.percent) {
@@ -186,6 +192,7 @@ export const scoresMixin = {
         }
         if (scoreSavingStatus.data.percent === 100) {
           this.$store.state.scoreSavingProgressData.savingMatches = false
+          this.$store.state.scoreSavingProgressData.percent = 0
           this.clearProgress('scoreSavingStatus')
         } else {
           this.checkScoreSavingStatus()

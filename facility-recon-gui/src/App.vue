@@ -305,7 +305,6 @@
           ></v-select>
         </v-flex>
       </v-layout>
-      percent {{$store.state.scoreSavingProgressData.percent}}
       <router-view />
     </v-content>
     <v-footer
