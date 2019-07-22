@@ -43,7 +43,7 @@ module.exports = function () {
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
           port: dhis2URL.port,
-          path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
+          path: `${dhis2URL.path}api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
           headers: {
             Authorization: auth,
           },
@@ -68,7 +68,7 @@ module.exports = function () {
       const req = (dhis2URL.protocol == 'https:' ? https : http).request({
         hostname: dhis2URL.hostname,
         port: dhis2URL.port,
-        path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
+        path: `${dhis2URL.path}api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
         headers: {
           Authorization: auth,
         },
@@ -176,7 +176,7 @@ module.exports = function () {
           headers: {
             Authorization: auth,
           },
-          timeout: 120000,
+          timeout: 300000,
           method: 'GET',
         }, (res) => {
           winston.info(`Request to get Metadata responded with code ${res.statusCode}`);
@@ -418,7 +418,7 @@ function checkLoaderDataStore() {
     const req = (dhis2URL.protocol == 'https:' ? https : http).request({
       hostname: dhis2URL.hostname,
       port: dhis2URL.port,
-      path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
+      path: `${dhis2URL.path}api/dataStore/CSD-Loader-Last-Export/${mixin.toTitleCase(name)}`,
       headers: {
         Authorization: auth,
       },
@@ -451,7 +451,7 @@ function setLastUpdate(hasKey, lastUpdate) {
   const req = (dhis2URL.protocol == 'https:' ? https : http).request({
     hostname: dhis2URL.hostname,
     port: dhis2URL.port,
-    path: `${dhis2URL.path}/api/dataStore/CSD-Loader-Last-Export/${database}`,
+    path: `${dhis2URL.path}api/dataStore/CSD-Loader-Last-Export/${database}`,
     headers: {
       Authorization: auth,
       'Content-Type': 'application/json',
