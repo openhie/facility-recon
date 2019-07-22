@@ -166,7 +166,6 @@ export const scoresMixin = {
       this.$store.state.scoreSavingProgressData.cancelTokenSource = CancelToken.source()
       this.$store.state.scoreSavingProgressData.progressReqTimer = setInterval(this.scoreSavingProgressCheckTimeout, 10000)
       const clientId = this.$store.state.clientId
-      console.log(clientId)
       axios.get(backendServer + '/progress/scoreSavingStatus/' + clientId, {
         cancelToken: this.$store.state.scoreSavingProgressData.cancelTokenSource.token
       }).then((scoreSavingStatus) => {

@@ -617,6 +617,7 @@ export default {
       axios
         .get(backendServer + '/countLevels/' + source1 + '/' + source2 + '/' + sourcesOwner + '/' + sourcesLimitOrgId)
         .then(levels => {
+          console.log(levels.data.totalSource1Levels + ' > ' + levels.data.totalSource2Levels)
           if (levels.data.totalSource1Levels === 1) {
             this.$store.state.errorTitle = 'No data for you'
             this.$store.state.errorDescription = 'Cant create this pair, ' + this.source1.name + ' has no data for you'

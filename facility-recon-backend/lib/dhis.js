@@ -172,7 +172,7 @@ module.exports = function () {
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
           port: dhis2URL.port,
-          path: `${dhis2URL.path}/api/metadata.json?${metadataOpts.join('&')}`,
+          path: `${dhis2URL.path}api/metadata.json?${metadataOpts.join('&')}`,
           headers: {
             Authorization: auth,
           },
