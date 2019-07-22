@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 require('./init');
 const winston = require('winston');
 const request = require('request');
@@ -103,9 +104,11 @@ module.exports = function () {
       req.end();
     },
     processMetaData(full, dousers, doservices) {
-      const clientId = credentials.clientId;
-      const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
-      dhisSyncRequest = JSON.stringify({
+      const {
+        clientId,
+      } = credentials;
+      let dhisSyncRequestId = `dhisSyncRequest${clientId}`;
+      let dhisSyncRequest = JSON.stringify({
         status: '1/2 - Loading all DHIS2 data from host',
         error: null,
         percent: null,
@@ -159,8 +162,12 @@ module.exports = function () {
         if (!full && lastUpdate) {
           metadataOpts.push(`filter=lastUpdated:gt:${lastUpdate}`);
         }
-        const dhis2URL = credentials.dhis2URL;
-        const auth = credentials.auth;
+        const {
+          dhis2URL,
+        } = credentials;
+        const {
+          auth,
+        } = credentials;
         winston.info(`GETTING ${dhis2URL.protocol}//${dhis2URL.hostname}:${dhis2URL.port}${dhis2URL.path}api/metadata.json?${metadataOpts.join('&')}`);
         const req = (dhis2URL.protocol == 'https:' ? https : http).request({
           hostname: dhis2URL.hostname,
@@ -169,6 +176,7 @@ module.exports = function () {
           headers: {
             Authorization: auth,
           },
+          timeout: 120000,
           method: 'GET',
         }, (res) => {
           winston.info(`Request to get Metadata responded with code ${res.statusCode}`);
@@ -180,36 +188,37 @@ module.exports = function () {
             if (!isJSON(body)) {
               winston.error(body);
               winston.error('Non JSON response received while getting DHIS2 data');
-              const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
+              dhisSyncRequestId = `dhisSyncRequest${clientId}`;
               dhisSyncRequest = JSON.stringify({
                 status: '1/2 - Getting DHIS2 Data',
-                error: 'Invalid response received while getting DHIS2 data,cross check the host name,username and password',
+                error: `Invalid response with code ${res.statusCode} received while getting DHIS2 data,cross check the host name,username and password`,
                 percent: null,
               });
               redisClient.set(dhisSyncRequestId, dhisSyncRequest);
-            }
-            let metadata;
-            try {
-              metadata = JSON.parse(body);
-            } catch (error) {
-              winston.error(error);
-              winston.error(body);
-              winston.error('An error occured while parsing response from DHIS2 server');
-            }
-
-            if (!metadata.hasOwnProperty('organisationUnits')) {
-              winston.info('No organization unit found in metadata');
-              const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
-              dhisSyncRequest = JSON.stringify({
-                status: 'Done',
-                error: null,
-                percent: 100,
-              });
-              redisClient.set(dhisSyncRequestId, dhisSyncRequest);
-              const thisRunTime = new Date().toISOString();
-              setLastUpdate(lastUpdate, thisRunTime);
             } else {
-              processOrgUnit(metadata, lastUpdate);
+              let metadata;
+              try {
+                metadata = JSON.parse(body);
+              } catch (error) {
+                winston.error(error);
+                winston.error(body);
+                winston.error('An error occured while parsing response from DHIS2 server');
+              }
+
+              if (!metadata.hasOwnProperty('organisationUnits')) {
+                winston.info('No organization unit found in metadata');
+                dhisSyncRequestId = `dhisSyncRequest${clientId}`;
+                dhisSyncRequest = JSON.stringify({
+                  status: 'Done',
+                  error: null,
+                  percent: 100,
+                });
+                redisClient.set(dhisSyncRequestId, dhisSyncRequest);
+                const thisRunTime = new Date().toISOString();
+                setLastUpdate(lastUpdate, thisRunTime);
+              } else {
+                processOrgUnit(metadata, lastUpdate);
+              }
             }
           });
           res.on('error', (e) => {
@@ -223,8 +232,11 @@ module.exports = function () {
 
 function processOrgUnit(metadata, hasKey) {
   winston.info('Now writting org units into the database');
-  const name = credentials.name;
-  const clientId = credentials.clientId;
+  const {
+    name,
+    clientId,
+  } = credentials;
+
   const database = mixin.toTitleCase(name) + credentials.sourceOwner;
   let counter = 0;
   const max = metadata.organisationUnits.length;
@@ -247,13 +259,13 @@ function processOrgUnit(metadata, hasKey) {
     }],
     text: 'Jurisdiction',
   };
-  const url = URI(config.getConf('mCSD:url')).segment(database)
+  const hostURL = URI(config.getConf('mCSD:url')).segment(database)
     .segment('fhir')
     .segment('Location')
     .segment(fhir.id)
     .toString();
-  const options = {
-    url: url.toString(),
+  let options = {
+    url: hostURL.toString(),
     headers: {
       'Content-Type': 'application/fhir+json',
     },
@@ -322,7 +334,7 @@ function processOrgUnit(metadata, hasKey) {
 
     if (org.featureType == 'POINT' && org.coordinates) {
       try {
-        coords = JSON.parse(org.coordinates);
+        const coords = JSON.parse(org.coordinates);
         fhir.position = {
           longitude: coords[1],
           latitude: coords[0],
@@ -358,27 +370,27 @@ function processOrgUnit(metadata, hasKey) {
       }
     }
 
-    const url = URI(config.getConf('mCSD:url')).segment(database)
+    hostURL = URI(config.getConf('mCSD:url')).segment(database)
       .segment('fhir')
       .segment('Location')
       .segment(fhir.id)
       .toString();
-    const options = {
-      url: url.toString(),
+    options = {
+      url: hostURL.toString(),
       headers: {
         'Content-Type': 'application/fhir+json',
       },
       json: fhir,
     };
     request.put(options, (err, res, body) => {
-      counter++;
+      counter += 1;
       const percent = parseFloat((counter * 100 / max).toFixed(2));
       let status = '2/2 - Saving DHIS2 locations into FHIR server';
       if (counter === max) {
         status = 'Done';
       }
       const dhisSyncRequestId = `dhisSyncRequest${clientId}`;
-      dhisSyncRequest = JSON.stringify({
+      const dhisSyncRequest = JSON.stringify({
         status,
         error: null,
         percent,
@@ -428,11 +440,13 @@ function checkLoaderDataStore() {
 }
 
 function setLastUpdate(hasKey, lastUpdate) {
-  const name = credentials.name;
+  const {
+    name,
+    auth,
+    dhis2URL,
+  } = credentials.name;
   const userID = credentials.sourceOwner;
   const database = mixin.toTitleCase(name) + userID;
-  const auth = credentials.auth;
-  const dhis2URL = credentials.dhis2URL;
   winston.info('setting lastupdated time');
   const req = (dhis2URL.protocol == 'https:' ? https : http).request({
     hostname: dhis2URL.hostname,
