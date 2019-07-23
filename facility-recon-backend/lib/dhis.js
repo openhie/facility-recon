@@ -259,7 +259,7 @@ function processOrgUnit(metadata, hasKey) {
     }],
     text: 'Jurisdiction',
   };
-  const hostURL = URI(config.getConf('mCSD:url')).segment(database)
+  let hostURL = URI(config.getConf('mCSD:url')).segment(database)
     .segment('fhir')
     .segment('Location')
     .segment(fhir.id)

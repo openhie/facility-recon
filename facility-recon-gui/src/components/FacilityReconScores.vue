@@ -220,7 +220,7 @@
                       <v-btn
                         color="error"
                         small
-                        @click.native="match('flag', props.item.id, props.item.name)"
+                        @click.native="match('flag', props.item.id, props.item.name, props.item.source2IdHierarchy)"
                         slot="activator"
                       >
                         <v-icon
@@ -235,7 +235,7 @@
                         color="primary"
                         small
                         dark
-                        @click.native="match('match', props.item.id, props.item.name)"
+                        @click.native="match('match', props.item.id, props.item.name, props.item.source2IdHierarchy)"
                         slot="activator"
                       >
                         <v-icon left>thumb_up</v-icon>Save Match
@@ -371,7 +371,7 @@
               :value="$store.state.scoreSavingProgressData.percent"
             >
               <center>
-                <span class="white--text"><b>{{$store.state.scoreSavingProgressData.percent}}%</b></span>
+                <span class="green--text"><b>{{$store.state.scoreSavingProgressData.percent}}%</b></span>
               </center>
             </v-progress-linear>
           </template>
@@ -884,7 +884,9 @@
                   <td>{{props.item.source1Name}}</td>
                   <td>{{props.item.source1Id}}</td>
                   <td>{{props.item.source2Name}}</td>
-                  <td>{{props.item.source2Id}}</td>
+                  <td>
+                    <v-treeview :items="props.item.source2IdHierarchy" />
+                  </td>
                   <td v-if='props.item.matchComments'>{{props.item.matchComments.join(', ')}}</td>
                   <td v-else></td>
                   <td>
@@ -1049,7 +1051,9 @@
                   <td>{{props.item.source1Name}}</td>
                   <td>{{props.item.source1Id}}</td>
                   <td>{{props.item.source2Name}}</td>
-                  <td>{{props.item.source2Id}}</td>
+                  <td>
+                    <v-treeview :items="props.item.source2IdHierarchy" />
+                  </td>
                   <td>{{props.item.flagComment}}</td>
                   <td>
                     <v-btn
@@ -1284,6 +1288,7 @@ export default {
                 score: score,
                 name: potentials.name,
                 id: potentials.id,
+                source2IdHierarchy: potentials.idHierarchy,
                 lat: potentials.lat,
                 long: potentials.long,
                 geoDistance: potentials.geoDistance,
@@ -1295,10 +1300,11 @@ export default {
       }
       this.dialog = true
     },
-    match (type, source2Id, source2Name) {
+    match (type, source2Id, source2Name, source2IdHierarchy) {
       this.matchType = type
       this.source2Id = source2Id
       this.source2Name = source2Name
+      this.source2IdHierarchy = source2IdHierarchy
       if (source2Id === null) {
         this.alert = true
         this.alertTitle = 'Information'
@@ -1358,6 +1364,7 @@ export default {
                   source1Parents: this.$store.state.source1UnMatched[k].parents,
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
+                  source2IdHierarchy: this.source2IdHierarchy,
                   source2Parents: source2Parents,
                   matchComments: response.data.matchComments
                 })
@@ -1369,6 +1376,7 @@ export default {
                   source1Parents: this.$store.state.source1UnMatched[k].parents,
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
+                  source2IdHierarchy: this.source2IdHierarchy,
                   source2Parents: source2Parents,
                   flagComment: this.flagComment
                 })
@@ -1411,6 +1419,7 @@ export default {
                 source1Parents: this.$store.state.flagged[k].source1Parents,
                 source2Name: this.$store.state.flagged[k].source2Name,
                 source2Id: this.$store.state.flagged[k].source2Id,
+                source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
                 source2Parents: this.$store.state.flagged[k].source2Parents
               })
               this.$store.state.flagged.splice(k, 1)
@@ -1460,8 +1469,7 @@ export default {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
-          this.alertText =
-            'Scores for this Location may not be available unless you recalculate scores'
+          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.matchedContent) {
             if (this.$store.state.matchedContent[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
@@ -1472,6 +1480,7 @@ export default {
               this.$store.state.source2UnMatched.push({
                 name: this.$store.state.matchedContent[k].source2Name,
                 id: this.$store.state.matchedContent[k].source2Id,
+                source2IdHierarchy: this.$store.state.matchedContent[k].source2IdHierarchy,
                 parents: this.$store.state.matchedContent[k].source2Parents
               })
               this.$store.state.matchedContent.splice(k, 1)
@@ -1532,6 +1541,7 @@ export default {
               this.$store.state.source2UnMatched.push({
                 name: this.$store.state.flagged[k].source2Name,
                 id: this.$store.state.flagged[k].source2Id,
+                source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
                 parents: this.$store.state.flagged[k].source2Parents
               })
               this.$store.state.flagged.splice(k, 1)

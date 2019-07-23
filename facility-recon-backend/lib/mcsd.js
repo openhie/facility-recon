@@ -765,7 +765,8 @@ module.exports = () => ({
           matchComments.push('Names differ');
         }
         if (recoLevel == totalLevels) {
-          if (source1Id !== source2Id) {
+          const idEqual = mixin.haveIdInCommon(res.source1mCSD.entry[0].resource.identifier, res.source2mCSD.entry[0].resource.identifier);
+          if (!idEqual) {
             matchComments.push('ID differ');
           }
           let source2Latitude = null;

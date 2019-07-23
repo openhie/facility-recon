@@ -187,6 +187,7 @@ module.exports = function () {
               }
 
               const matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
+              const idHierarchy = mixin.createIdHierarchy(mcsdSource2, matchedSource2Id);
               const matchInSource2 = mcsdSource2.entry.find(entry => entry.resource.id == matchedSource2Id);
 
               if (matchInSource2) {
@@ -199,6 +200,7 @@ module.exports = function () {
                   name: matchInSource2.resource.name,
                   parents: source2ParentNames[matchedSource2Id].slice(0, source2ParentNames[matchedSource2Id].length - 1),
                   id: matchedSource2Id,
+                  idHierarchy,
                   matchComments,
                 };
               }
@@ -304,15 +306,17 @@ module.exports = function () {
                     const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                     // when parent constraint is On then automatch by name is also enabled by default
                     // when parent constraint is off then check if name automatch is also on
-                    if (lev == 0
-                      && !matchBroken
-                      && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                    if (lev == 0 &&
+                      !matchBroken &&
+                      (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                     ) {
+                      const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       ignore.push(source2Entry.resource.id);
                       thisRanking.exactMatch = {
                         name: source2Name,
                         parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                         id: source2Entry.resource.id,
+                        idHierarchy,
                         matchComments,
                       };
                       thisRanking.potentialMatches = {};
@@ -320,6 +324,7 @@ module.exports = function () {
                       matchesToSave.push({
                         source1Id,
                         source2Id: source2Entry.resource.id,
+                        idHierarchy,
                         source1DB,
                         source2DB,
                         mappingDB,
@@ -335,6 +340,7 @@ module.exports = function () {
                       return resolve();
                     }
                     if (lev == 0) {
+                      const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                         thisRanking.potentialMatches['0'] = [];
                       }
@@ -342,11 +348,13 @@ module.exports = function () {
                         name: source2Name,
                         parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
                         id: source2Entry.resource.id,
+                        idHierarchy,
                       });
                       return resolve();
                     }
                     if (Object.keys(thisRanking.exactMatch).length == 0) {
                       if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
+                        const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                         if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
                           thisRanking.potentialMatches[lev] = [];
                         }
@@ -354,17 +362,20 @@ module.exports = function () {
                           name: source2Name,
                           parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1),
                           id: source2Entry.resource.id,
+                          idHierarchy,
                         });
                       } else {
                         const existingLev = Object.keys(thisRanking.potentialMatches);
                         const max = _.max(existingLev);
                         if (lev < max) {
+                          const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                           delete thisRanking.potentialMatches[max];
                           thisRanking.potentialMatches[lev] = [];
                           thisRanking.potentialMatches[lev].push({
                             name: source2Name,
                             parents: source2ParentNames[source2Id].slice(0, source2ParentNames[source2Id].length - 1), // slice to remove fake topOrgId
                             id: source2Entry.resource.id,
+                            idHierarchy,
                           });
                         }
                       }
@@ -397,8 +408,10 @@ module.exports = function () {
       }, () => {
         async.each(mcsdSource2.entry, (entry, nxtEntry) => {
           if (!source2MatchedIDs.includes(entry.resource.id)) {
+            const idHierarchy = mixin.createIdHierarchy(mcsdSource2, entry.resource.id);
             source2Unmatched.push({
               id: entry.resource.id,
+              idHierarchy,
               name: entry.resource.name,
               parents: source2ParentNames[entry.resource.id],
             });
@@ -637,6 +650,7 @@ module.exports = function () {
               const matchedSource2Id = mixin.getIdFromIdentifiers(match.resource.identifier, 'https://digitalhealth.intrahealth.org/source2');
               const matchInSource2 = mcsdSource2.entry.find(entry => entry.resource.id == matchedSource2Id);
               if (matchInSource2) {
+                const idHierarchy = mixin.createIdHierarchy(mcsdSource2, matchedSource2Id);
                 source2MatchedIDs.push(matchedSource2Id);
                 let matchComments = [];
                 if (matchCommentsTag && matchCommentsTag.hasOwnProperty('display')) {
@@ -646,6 +660,7 @@ module.exports = function () {
                   name: matchInSource2.resource.name,
                   parents: source2ParentNames[matchedSource2Id],
                   id: matchedSource2Id,
+                  idHierarchy,
                   matchComments,
                 };
               }
@@ -769,10 +784,11 @@ module.exports = function () {
                 const matchingIdent = source2Identifiers.find(source2Ident => source1Identifiers.find(source1Ident => source2Ident.value == source1Ident.value));
                 if (matchingIdent && !matchBroken) {
                   const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
-                  if (lev !== 0) {
+                  if (lev != 0) {
                     matchComments.push('Names differ');
                   }
                   ignore.push(source2Entry.resource.id);
+                  const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   thisRanking.exactMatch = {
                     name: source2Name,
                     parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
@@ -781,6 +797,7 @@ module.exports = function () {
                     geoDistance: dist,
                     matchComments,
                     id: source2Entry.resource.id,
+                    idHierarchy,
                   };
                   thisRanking.potentialMatches = {};
 
@@ -802,6 +819,7 @@ module.exports = function () {
                   return source2Callback();
                 }
                 if (matchingIdent && matchBroken) {
+                  const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                     thisRanking.potentialMatches['0'] = [];
                   }
@@ -812,68 +830,19 @@ module.exports = function () {
                     long: source2Longitude,
                     geoDistance: dist,
                     id: source2Entry.resource.id,
+                    idHierarchy,
                   });
                   return source2Callback();
                 }
 
-                if (!matchBroken) {
-                  const dictionary = config.getConf('dictionary');
-                  for (const abbr in dictionary) {
-                    const replaced = source1Name.replace(abbr, dictionary[abbr]);
-                    if (replaced.toLowerCase() === source2Name.toLowerCase()) {
-                      if (parentsDiffer == false
-                        || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
-                      ) {
-                        matchComments.push('Names differ');
-                        ignore.push(source2Entry.resource.id);
-                        thisRanking.exactMatch = {
-                          name: source2Name,
-                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                          lat: source2Latitude,
-                          long: source2Longitude,
-                          geoDistance: dist,
-                          matchComments,
-                          id: source2Entry.resource.id,
-                        };
-                        thisRanking.potentialMatches = {};
-                        noNeedToSave = false;
-                        matchesToSave.push({
-                          source1Id,
-                          source2Id: source2Entry.resource.id,
-                          source1DB,
-                          source2DB,
-                          mappingDB,
-                          recoLevel,
-                          totalLevels,
-                        });
-                        // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                        //   updateDataSavingPercent();
-                        // });
-                        totalAllMapped += 1;
-                        source2MatchedIDs.push(source2Entry.resource.id);
-                      } else {
-                        if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
-                          thisRanking.potentialMatches['0'] = [];
-                        }
-                        thisRanking.potentialMatches['0'].push({
-                          name: source2Name,
-                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                          lat: source2Latitude,
-                          long: source2Longitude,
-                          geoDistance: dist,
-                          id: source2Entry.resource.id,
-                        });
-                      }
-                      return source2Callback();
-                    }
-                  }
-                }
+                matchComments.push('ID differ');
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken
-                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken &&
+                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
+                  const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   ignore.push(source2Entry.resource.id);
                   thisRanking.exactMatch = {
                     name: source2Name,
@@ -883,6 +852,7 @@ module.exports = function () {
                     geoDistance: dist,
                     matchComments,
                     id: source2Entry.resource.id,
+                    idHierarchy,
                   };
                   thisRanking.potentialMatches = {};
                   noNeedToSave = false;
@@ -902,7 +872,71 @@ module.exports = function () {
                   source2MatchedIDs.push(source2Entry.resource.id);
                   return source2Callback();
                 }
+
+                if (!matchBroken) {
+                  const dictionary = config.getConf('dictionary');
+                  for (const abbr in dictionary) {
+                    let replacedSource1 = source1Name.replace(abbr, '');
+                    replacedSource1 = replacedSource1.replace(dictionary[abbr], '').trim();
+                    let replacedSource2 = source2Name.replace(abbr, '');
+                    replacedSource2 = replacedSource2.replace(dictionary[abbr], '').trim();
+                    if (replacedSource1.toLowerCase() === replacedSource2.toLowerCase()) {
+                      if (parentsDiffer == false ||
+                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
+                      ) {
+                        const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
+                        if (source2Name.toLowerCase() != source1Name.toLowerCase()) {
+                          matchComments.push('Names differ');
+                        }
+                        ignore.push(source2Entry.resource.id);
+                        thisRanking.exactMatch = {
+                          name: source2Name,
+                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                          lat: source2Latitude,
+                          long: source2Longitude,
+                          geoDistance: dist,
+                          matchComments,
+                          id: source2Entry.resource.id,
+                          idHierarchy,
+                        };
+                        thisRanking.potentialMatches = {};
+                        noNeedToSave = false;
+                        matchesToSave.push({
+                          source1Id,
+                          source2Id: source2Entry.resource.id,
+                          source1DB,
+                          source2DB,
+                          mappingDB,
+                          recoLevel,
+                          totalLevels,
+                        });
+                        // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                        //   updateDataSavingPercent();
+                        // });
+                        totalAllMapped += 1;
+                        source2MatchedIDs.push(source2Entry.resource.id);
+                      } else {
+                        const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
+                        if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                          thisRanking.potentialMatches['0'] = [];
+                        }
+                        thisRanking.potentialMatches['0'].push({
+                          name: source2Name,
+                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                          lat: source2Latitude,
+                          long: source2Longitude,
+                          geoDistance: dist,
+                          id: source2Entry.resource.id,
+                          idHierarchy,
+                        });
+                      }
+                      return source2Callback();
+                    }
+                  }
+                }
+
                 if (lev == 0) {
+                  const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
                     thisRanking.potentialMatches['0'] = [];
                   }
@@ -913,11 +947,13 @@ module.exports = function () {
                     long: source2Longitude,
                     geoDistance: dist,
                     id: source2Entry.resource.id,
+                    idHierarchy,
                   });
                   return source2Callback();
                 }
                 if (Object.keys(thisRanking.exactMatch).length == 0) {
                   if (thisRanking.potentialMatches.hasOwnProperty(lev) || Object.keys(thisRanking.potentialMatches).length < maxSuggestions) {
+                    const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                     if (!thisRanking.potentialMatches.hasOwnProperty(lev)) {
                       thisRanking.potentialMatches[lev] = [];
                     }
@@ -928,11 +964,13 @@ module.exports = function () {
                       long: source2Longitude,
                       geoDistance: dist,
                       id: source2Entry.resource.id,
+                      idHierarchy,
                     });
                   } else {
                     const existingLev = Object.keys(thisRanking.potentialMatches);
                     const max = _.max(existingLev);
                     if (lev < max) {
+                      const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       delete thisRanking.potentialMatches[max];
                       thisRanking.potentialMatches[lev] = [];
                       thisRanking.potentialMatches[lev].push({
@@ -942,6 +980,7 @@ module.exports = function () {
                         long: source2Longitude,
                         geoDistance: dist,
                         id: source2Entry.resource.id,
+                        idHierarchy,
                       });
                     }
                   }
@@ -1015,8 +1054,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id
-        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id ||
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
