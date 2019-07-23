@@ -306,9 +306,9 @@ module.exports = function () {
                     const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                     // when parent constraint is On then automatch by name is also enabled by default
                     // when parent constraint is off then check if name automatch is also on
-                    if (lev == 0 &&
-                      !matchBroken &&
-                      (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                    if (lev == 0
+                      && !matchBroken
+                      && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                     ) {
                       const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       ignore.push(source2Entry.resource.id);
@@ -739,7 +739,9 @@ module.exports = function () {
                   return source2Callback();
                 }
                 const matchComments = [];
-                const id = source2Entry.resource.id;
+                const {
+                  id,
+                } = source2Entry.resource;
                 const source2Identifiers = source2Entry.resource.identifier;
                 // if this source2 is already mapped then skip it
                 const ignoreThis = ignore.find(toIgnore => toIgnore == id);
@@ -839,8 +841,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   ignore.push(source2Entry.resource.id);
@@ -873,65 +875,62 @@ module.exports = function () {
                   return source2Callback();
                 }
 
-                if (!matchBroken) {
-                  const dictionary = config.getConf('dictionary');
-                  for (const abbr in dictionary) {
-                    let replacedSource1 = source1Name.replace(abbr, '');
-                    replacedSource1 = replacedSource1.replace(dictionary[abbr], '').trim();
-                    let replacedSource2 = source2Name.replace(abbr, '');
-                    replacedSource2 = replacedSource2.replace(dictionary[abbr], '').trim();
-                    if (replacedSource1.toLowerCase() === replacedSource2.toLowerCase()) {
-                      if (parentsDiffer == false ||
-                        (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true)
-                      ) {
-                        const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
-                        if (source2Name.toLowerCase() != source1Name.toLowerCase()) {
-                          matchComments.push('Names differ');
-                        }
-                        ignore.push(source2Entry.resource.id);
-                        thisRanking.exactMatch = {
-                          name: source2Name,
-                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                          lat: source2Latitude,
-                          long: source2Longitude,
-                          geoDistance: dist,
-                          matchComments,
-                          id: source2Entry.resource.id,
-                          idHierarchy,
-                        };
-                        thisRanking.potentialMatches = {};
-                        noNeedToSave = false;
-                        matchesToSave.push({
-                          source1Id,
-                          source2Id: source2Entry.resource.id,
-                          source1DB,
-                          source2DB,
-                          mappingDB,
-                          recoLevel,
-                          totalLevels,
-                        });
-                        // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                        //   updateDataSavingPercent();
-                        // });
-                        totalAllMapped += 1;
-                        source2MatchedIDs.push(source2Entry.resource.id);
-                      } else {
-                        const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
-                        if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
-                          thisRanking.potentialMatches['0'] = [];
-                        }
-                        thisRanking.potentialMatches['0'].push({
-                          name: source2Name,
-                          parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                          lat: source2Latitude,
-                          long: source2Longitude,
-                          geoDistance: dist,
-                          id: source2Entry.resource.id,
-                          idHierarchy,
-                        });
+                // use dictionary
+                const dictionary = config.getConf('dictionary');
+                for (const abbr in dictionary) {
+                  let replacedSource1 = source1Name.replace(abbr, '');
+                  replacedSource1 = replacedSource1.replace(dictionary[abbr], '').trim();
+                  let replacedSource2 = source2Name.replace(abbr, '');
+                  replacedSource2 = replacedSource2.replace(dictionary[abbr], '').trim();
+                  if (replacedSource1.toLowerCase() === replacedSource2.toLowerCase()) {
+                    if ((parentsDiffer == false && !matchBroken) || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true && !matchBroken)) {
+                      const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
+                      if (source2Name.toLowerCase() != source1Name.toLowerCase()) {
+                        matchComments.push('Names differ');
                       }
-                      return source2Callback();
+                      ignore.push(source2Entry.resource.id);
+                      thisRanking.exactMatch = {
+                        name: source2Name,
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                        lat: source2Latitude,
+                        long: source2Longitude,
+                        geoDistance: dist,
+                        matchComments,
+                        id: source2Entry.resource.id,
+                        idHierarchy,
+                      };
+                      thisRanking.potentialMatches = {};
+                      noNeedToSave = false;
+                      matchesToSave.push({
+                        source1Id,
+                        source2Id: source2Entry.resource.id,
+                        source1DB,
+                        source2DB,
+                        mappingDB,
+                        recoLevel,
+                        totalLevels,
+                      });
+                      // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
+                      //   updateDataSavingPercent();
+                      // });
+                      totalAllMapped += 1;
+                      source2MatchedIDs.push(source2Entry.resource.id);
+                    } else {
+                      const idHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
+                      if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                        thisRanking.potentialMatches['0'] = [];
+                      }
+                      thisRanking.potentialMatches['0'].push({
+                        name: source2Name,
+                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                        lat: source2Latitude,
+                        long: source2Longitude,
+                        geoDistance: dist,
+                        id: source2Entry.resource.id,
+                        idHierarchy,
+                      });
                     }
+                    return source2Callback();
                   }
                 }
 
@@ -1054,8 +1053,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
