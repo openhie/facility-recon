@@ -603,7 +603,7 @@ export default {
         }
       }
       for (let dtSrc of this.$store.state.dataSources) {
-        if (dtSrc.name === this.uploadName) {
+        if (dtSrc.name.toLowerCase() === this.uploadName.toLowerCase()) {
           this.uploadNameErrors.push('This Name Exists')
           return false
         }

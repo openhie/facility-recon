@@ -101,10 +101,12 @@ export const scoresMixin = {
               this.$store.state.flagged.push({
                 source1Name: scoreResult.source1.name,
                 source1Id: scoreResult.source1.id,
+                source1IdHierarchy: scoreResult.source1.source1IdHierarchy,
                 source1Parents: scoreResult.source1.parents,
                 source2Name: scoreResult.exactMatch.name,
                 source2Id: scoreResult.exactMatch.id,
-                source2IdHierarchy: scoreResult.exactMatch.idHierarchy,
+                source2IdHierarchy: scoreResult.exactMatch.source2IdHierarchy,
+                mappedParentName: scoreResult.exactMatch.mappedParentName,
                 source2Parents: scoreResult.exactMatch.parents,
                 flagComment: scoreResult.source1.flagComment
               })
@@ -129,7 +131,8 @@ export const scoresMixin = {
                 source1Parents: scoreResult.source1.parents,
                 source2Name: scoreResult.exactMatch.name,
                 source2Id: scoreResult.exactMatch.id,
-                source2IdHierarchy: scoreResult.exactMatch.idHierarchy,
+                source2IdHierarchy: scoreResult.exactMatch.source2IdHierarchy,
+                mappedParentName: scoreResult.exactMatch.mappedParentName,
                 source2Parents: scoreResult.exactMatch.parents,
                 matchComments: scoreResult.exactMatch.matchComments
               })

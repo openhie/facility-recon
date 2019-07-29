@@ -7,6 +7,10 @@ module.exports = function () {
     toTitleCase(str) {
       return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('');
     },
+    toTitleCaseSpace(str) {
+      str = str.replace(/[^\s]+/g, word => word.replace(/^./, first => first.toUpperCase()));
+      return str;
+    },
     getIdFromIdentifiers(identifier, system) {
       if (!Array.isArray(identifier)) {
         winston.error('Identifier submitted is not an array');

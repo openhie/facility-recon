@@ -1164,7 +1164,8 @@ module.exports = () => ({
             && data[headerMapping[level]] != false
             && data[headerMapping[level]] != ''
           ) {
-            const name = data[headerMapping[level]].trim();
+            let name = data[headerMapping[level]].trim();
+            name = mixin.toTitleCaseSpace(name);
             const levelNumber = parseInt(level.replace('level', ''));
             let mergedParents = '';
 

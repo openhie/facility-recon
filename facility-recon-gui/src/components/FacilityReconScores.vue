@@ -220,7 +220,7 @@
                       <v-btn
                         color="error"
                         small
-                        @click.native="match('flag', props.item.id, props.item.name, props.item.source2IdHierarchy)"
+                        @click.native="match('flag', props.item.id, props.item.name, props.item.source2IdHierarchy, props.item.mappedParentName)"
                         slot="activator"
                       >
                         <v-icon
@@ -248,6 +248,7 @@
                   <td>{{props.item.parents.join('->')}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalSource1Levels'>{{props.item.geoDistance}}</td>
                   <td>{{props.item.score}}</td>
+                  <td>{{potentialMatchComment(props.item)}}</td>
                 </tr>
               </template>
             </v-data-table>
@@ -1179,6 +1180,7 @@ export default {
       source1Parents: {},
       source1Filter: { text: '', level: '' },
       source1TreeUpdate: 0,
+      selectedSource1: {},
       selectedSource1Name: null,
       selectedSource1Id: null,
       selectedSource1Lat: null,
@@ -1264,6 +1266,7 @@ export default {
       this.showAllPotential = false
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.source1.id === id) {
+          this.selectedSource1 = scoreResult.source1
           this.selectedSource1Name = scoreResult.source1.name
           this.selectedSource1Parents = scoreResult.source1.parents
           this.selectedSource1Lat = scoreResult.source1.lat
@@ -1288,11 +1291,12 @@ export default {
                 score: score,
                 name: potentials.name,
                 id: potentials.id,
-                source2IdHierarchy: potentials.idHierarchy,
+                source2IdHierarchy: potentials.source2IdHierarchy,
                 lat: potentials.lat,
                 long: potentials.long,
                 geoDistance: potentials.geoDistance,
-                parents: potentials.parents
+                parents: potentials.parents,
+                mappedParentName: potentials.mappedParentName
               })
             }
           }
@@ -1300,11 +1304,60 @@ export default {
       }
       this.dialog = true
     },
-    match (type, source2Id, source2Name, source2IdHierarchy) {
+    potentialMatchComment (potentialMatch) {
+      let comment = ''
+      // check if ID different
+      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
+        let source1IDs = []
+        let source2IDs = []
+        if (this.selectedSource1.source1IdHierarchy) {
+          source1IDs.push(this.selectedSource1.source1IdHierarchy[0].id)
+          for (let child of this.selectedSource1.source1IdHierarchy[0].children) {
+            source1IDs.push(child.id)
+          }
+        }
+        if (potentialMatch.source2IdHierarchy) {
+          source2IDs.push(potentialMatch.source2IdHierarchy[0].id)
+          for (let child of potentialMatch.source2IdHierarchy[0].children) {
+            source2IDs.push(child.id)
+          }
+        }
+
+        let exist = source1IDs.some(id1 => source2IDs.indexOf(id1) >= 0)
+        if (!exist) {
+          if (comment) {
+            comment += ', '
+          }
+          comment += 'ID differ'
+        }
+      }
+
+      // check if names are different
+      if (potentialMatch.name.toLowerCase() !== this.selectedSource1.name.toLowerCase()) {
+        if (comment) {
+          comment += ', '
+        }
+        comment += 'Names differ'
+      }
+
+      // check if parents are different
+      const source2Parent = potentialMatch.mappedParentName
+      const source1Parent = this.selectedSource1.parents[0]
+      if (source1Parent !== source2Parent) {
+        if (comment) {
+          comment += ', '
+        }
+        comment += 'Parents differ'
+      }
+
+      return comment
+    },
+    match (type, source2Id, source2Name, source2IdHierarchy, mappedParentName) {
       this.matchType = type
       this.source2Id = source2Id
       this.source2Name = source2Name
       this.source2IdHierarchy = source2IdHierarchy
+      this.mappedParentName = mappedParentName
       if (source2Id === null) {
         this.alert = true
         this.alertTitle = 'Information'
@@ -1365,6 +1418,7 @@ export default {
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
                   source2IdHierarchy: this.source2IdHierarchy,
+                  mappedParentName: this.mappedParentName,
                   source2Parents: source2Parents,
                   matchComments: response.data.matchComments
                 })
@@ -1377,6 +1431,7 @@ export default {
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
                   source2IdHierarchy: this.source2IdHierarchy,
+                  mappedParentName: this.mappedParentName,
                   source2Parents: source2Parents,
                   flagComment: this.flagComment
                 })
@@ -1420,6 +1475,7 @@ export default {
                 source2Name: this.$store.state.flagged[k].source2Name,
                 source2Id: this.$store.state.flagged[k].source2Id,
                 source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
+                mappedParentName: this.$store.state.flagged[k].mappedParentName,
                 source2Parents: this.$store.state.flagged[k].source2Parents
               })
               this.$store.state.flagged.splice(k, 1)
@@ -1481,6 +1537,7 @@ export default {
                 name: this.$store.state.matchedContent[k].source2Name,
                 id: this.$store.state.matchedContent[k].source2Id,
                 source2IdHierarchy: this.$store.state.matchedContent[k].source2IdHierarchy,
+                mappedParentName: this.$store.state.matchedContent[k].mappedParentName,
                 parents: this.$store.state.matchedContent[k].source2Parents
               })
               this.$store.state.matchedContent.splice(k, 1)
@@ -1542,6 +1599,7 @@ export default {
                 name: this.$store.state.flagged[k].source2Name,
                 id: this.$store.state.flagged[k].source2Id,
                 source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
+                mappedParentName: this.$store.state.flagged[k].mappedParentName,
                 parents: this.$store.state.flagged[k].source2Parents
               })
               this.$store.state.flagged.splice(k, 1)
@@ -1749,9 +1807,7 @@ export default {
         { text: 'ID', value: 'id', sortable: false },
         { text: 'Parent', value: 'source2Parent', sortable: false }
       )
-      if (
-        this.$store.state.recoLevel === this.$store.state.totalSource1Levels
-      ) {
+      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
         results.push({
           text: 'Geo Dist (Miles)',
           value: 'geodist',
@@ -1759,6 +1815,7 @@ export default {
         })
       }
       results.push({ text: 'Score', value: 'score' })
+      results.push({ text: 'Comment', value: 'comment' })
       return results
     },
     potentialAvailable () {
@@ -1781,6 +1838,9 @@ export default {
           })
           if (!matched) {
             addIt.score = 'N/A'
+            if (!addIt.source2IdHierarchy && addIt.source2IdHierarchy) {
+              addIt.source2IdHierarchy = addIt.source2IdHierarchy
+            }
             results.push(addIt)
           }
         }
