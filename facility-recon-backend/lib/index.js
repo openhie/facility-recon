@@ -1030,11 +1030,14 @@ if (cluster.isMaster) {
   });
 
   app.delete('/deleteLocation', (req, res) => {
-    const id = req.query.id;
-    const source = req.query.source;
-    const sourceOwner = req.query.sourceOwner;
-    const userID = req.query.userID;
-    mcsd.deleteLocation(id, source, sourceOwner, userID, (resp, err) => {
+    const {
+      sourceId,
+      sourceName,
+      id,
+      userID,
+      sourceOwner,
+    } = req.query;
+    mcsd.deleteLocation(id, sourceId, sourceName, sourceOwner, userID, (resp, err) => {
       if (err) {
         res.status(400).send(err);
       } else {

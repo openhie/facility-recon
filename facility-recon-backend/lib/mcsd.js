@@ -591,46 +591,11 @@ module.exports = () => ({
     });
   },
 
-  deleteLocation(id, source, sourceOwner, userID, callback) {
-    const db = source + sourceOwner;
-    mongo.getMappingDBs(source, userID, (dbs) => {
-      dbs.push(db);
-      async.each(dbs, (db, nxtDb) => {
-        const removeSrc2Portion = db.split(sourceOwner + source);
-        if (removeSrc2Portion[0] !== db) {
-          const identifier = URI(config.getConf('mCSD:url'))
-            .segment(source + sourceOwner)
-            .segment('fhir')
-            .segment('Location')
-            .segment(id)
-            .toString();
-          this.getLocationByIdentifier(db, identifier, (mapped) => {
-            if (mapped.entry.length > 0) {
-              async.each(mapped.entry, (entry, nxtEntry) => {
-                const source2Identifier = entry.resource.identifier.find(identifier => identifier.system === 'https://digitalhealth.intrahealth.org/source2');
-                const source2Id = source2Identifier.value.split('/').pop();
-                if (id === source2Id) {
-                  const url_prefix = URI(config.getConf('mCSD:url'))
-                    .segment(db)
-                    .segment('fhir')
-                    .segment('Location');
-                  const url = URI(url_prefix).segment(entry.resource.id).toString();
-                  const options = {
-                    url,
-                  };
-                  request.delete(options, (err, res, body) => {
-                    this.cleanCache(url_prefix.toString());
-                    return nxtEntry();
-                  });
-                } else {
-                  return nxtEntry();
-                }
-              }, () => nxtDb());
-            } else {
-              return nxtDb();
-            }
-          });
-        } else {
+  deleteLocation(id, sourceId, sourceName, sourceOwner, userID, callback) {
+    mongo.getMappingDBs(sourceId, (dbs) => {
+      async.parallel({
+        deleteFromSrcDB: (callback1) => {
+          const db = mixin.toTitleCase(sourceName) + sourceOwner;
           const url_prefix = URI(config.getConf('mCSD:url'))
             .segment(db)
             .segment('fhir')
@@ -641,10 +606,43 @@ module.exports = () => ({
           };
           request.delete(options, (err, res, body) => {
             this.cleanCache(url_prefix.toString());
-            return nxtDb();
+            return callback1(false);
           });
-        }
-      }, () => callback(false, false));
+        },
+        deleteFromMappingDB: (callback2) => {
+          async.each(dbs, (db, nxtDB) => {
+            const sourceDB = mixin.toTitleCase(sourceName) + sourceOwner;
+            const identifier = URI(config.getConf('mCSD:url'))
+              .segment(sourceDB)
+              .segment('fhir')
+              .segment('Location')
+              .segment(id)
+              .toString();
+            this.getLocationByIdentifier(db.db, identifier, (mapped) => {
+              if (mapped.entry.length > 0) {
+                async.each(mapped.entry, (entry, nxtEntry) => {
+                  const url_prefix = URI(config.getConf('mCSD:url'))
+                    .segment(db.db)
+                    .segment('fhir')
+                    .segment('Location');
+                  const url = URI(url_prefix).segment(entry.resource.id).toString();
+                  const options = {
+                    url,
+                  };
+                  request.delete(options, (err, res, body) => {
+                    this.cleanCache(url_prefix.toString());
+                    return nxtEntry();
+                  });
+                }, () => nxtDB());
+              } else {
+                return nxtDB();
+              }
+            });
+          }, () => callback2(false));
+        },
+      }, () => {
+        callback(false, false);
+      });
     });
   },
 

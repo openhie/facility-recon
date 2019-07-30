@@ -503,13 +503,15 @@ export default {
           this.sourceOwner = sourcesOwner.source1Owner
           this.deleteSource = {
             name: 'source1',
-            value: this.source1
+            sourceId: this.$store.state.activePair.source1.id,
+            sourceName: this.source1
           }
         } else if (source === 'source2') {
           this.sourceOwner = sourcesOwner.source2Owner
           this.deleteSource = {
             name: 'source2',
-            value: this.source2
+            sourceId: this.$store.state.activePair.source2.id,
+            sourceName: this.source2
           }
         }
         this.deleteLocationData = location
@@ -517,7 +519,7 @@ export default {
       } else {
         this.confirmDelete = false
         let userID = this.$store.state.activePair.userID._id
-        let query = `id=${this.deleteLocationData.id}&source=${this.deleteSource.value}&userID=${userID}&sourceOwner=${this.sourceOwner}`
+        let query = `id=${this.deleteLocationData.id}&sourceId=${this.deleteSource.sourceId}&sourceName=${this.deleteSource.sourceName}&userID=${userID}&sourceOwner=${this.sourceOwner}`
         axios.delete(backendServer + `/deleteLocation?${query}`).then((resp) => {
           if (this.deleteSource.name === 'source1') {
             this.getSource1Grid(false)
