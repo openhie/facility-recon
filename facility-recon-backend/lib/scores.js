@@ -425,7 +425,7 @@ module.exports = function () {
               id: entry.resource.id,
               source2IdHierarchy,
               name: entry.resource.name,
-              parents: source2ParentNames[entry.resource.id],
+              parents: source2ParentNames[entry.resource.id].slice(0, source2ParentNames[entry.resource.id].length - 1),
               mappedParentName: source2MappedParentNames[entry.resource.id][0],
             });
           }
@@ -1041,7 +1041,7 @@ module.exports = function () {
             source2Unmatched.push({
               id: entry.resource.id,
               name: entry.resource.name,
-              parents: source2ParentNames[entry.resource.id],
+              parents: source2ParentNames[entry.resource.id].slice(0, source2ParentNames[entry.resource.id].length - 1),
               mappedParentName: source2MappedParentNames[entry.resource.id][0],
             });
           }

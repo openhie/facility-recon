@@ -149,7 +149,7 @@
           </v-toolbar>
           <v-card-title>
             Parents:
-            <b>{{selectedSource1Parents.join('->')}}</b>
+            <b>{{selectedSource1Parents | joinParentsAndReverse}}</b>
             <v-spacer></v-spacer>
             <template v-if='$store.state.recoLevel == $store.state.totalSource1Levels'>
               Latitude:
@@ -245,7 +245,7 @@
                   </td>
                   <td>{{props.item.name}}</td>
                   <td>{{props.item.id}}</td>
-                  <td>{{props.item.parents.join('->')}}</td>
+                  <td>{{props.item.parents | joinParentsAndReverse}}</td>
                   <td v-if='$store.state.recoLevel == $store.state.totalSource1Levels'>{{props.item.geoDistance}}</td>
                   <td>{{props.item.score}}</td>
                   <td>{{potentialMatchComment(props.item)}}</td>
@@ -670,7 +670,7 @@
                   slot="items"
                   slot-scope="props"
                 >
-                  <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | removeCountry | joinParents}}</td>
+                  <td>{{props.item.name}} <br>&ensp;&ensp;{{props.item.parents | joinParentsAndReverse}}</td>
                 </template>
               </v-data-table>
             </template>
@@ -1211,6 +1211,9 @@ export default {
     },
     joinParents (parents) {
       return parents.join('->')
+    },
+    joinParentsAndReverse (parents) {
+      return [...parents].reverse().join('->')
     }
   },
   methods: {

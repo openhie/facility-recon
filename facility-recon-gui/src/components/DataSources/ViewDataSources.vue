@@ -827,6 +827,12 @@ export default {
       })
     },
     exportCSV () {
+      if (!this.server.name) {
+        this.$store.state.dialogError = true
+        this.$store.state.errorTitle = 'Info'
+        this.$store.state.errorDescription = 'Please select data source'
+        return
+      }
       let sourceOwner = this.server.userID._id
       axios.get(backendServer + '/getUploadedCSV/' + sourceOwner + '/' + this.server.name).then((resp) => {
         let blob = new Blob([resp.data])
@@ -847,7 +853,7 @@ export default {
       })
     },
     sync (mode) {
-      if (Object.keys(this.server).length === 0) {
+      if (!this.server.name) {
         this.$store.state.dialogError = true
         this.$store.state.errorTitle = 'Info'
         this.$store.state.errorDescription = 'Please select data source'

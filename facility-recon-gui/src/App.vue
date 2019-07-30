@@ -131,17 +131,6 @@
               </v-list-tile>
               <span>{{ $t('App.menu.recoStatus.tooltip') }}</span>
             </v-tooltip>
-            <v-tooltip bottom>
-              <v-list-tile
-                to="dbAdmin"
-                slot="activator"
-              >
-                <v-list-tile-title>
-                  <v-icon>archive</v-icon> {{ $t('App.menu.archive.msg') }}
-                </v-list-tile-title>
-              </v-list-tile>
-              <span>{{ $t('App.menu.archive.tooltip') }}</span>
-            </v-tooltip>
           </v-list>
         </v-menu>
         <v-menu
