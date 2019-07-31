@@ -728,7 +728,7 @@ export default {
           this.$store.state.recoStatus = status.data.status
         }
         this.$store.state.errorTitle = 'Reconciliation Done'
-        this.$store.state.errorDescription = 'Reconciliation is complete, more changes can be done now'
+        this.$store.state.errorDescription = 'Reconciliation is complete, no more changes can be done'
         this.$store.state.errorColor = 'primary'
         this.$store.state.dialogError = true
       }).catch((err) => {
