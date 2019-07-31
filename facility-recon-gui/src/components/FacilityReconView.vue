@@ -233,7 +233,7 @@
               <v-progress-linear :indeterminate="true"></v-progress-linear>
             </template>
             <template v-else>
-              <v-card-title>
+              <!-- <v-card-title>
                 <v-text-field
                   v-model="searchSource1"
                   append-icon="search"
@@ -241,7 +241,7 @@
                   single-line
                   hide-details
                 ></v-text-field>
-              </v-card-title>
+              </v-card-title> -->
               <v-card-text>
                 <v-data-table
                   :headers="source1GridHeader"
@@ -297,7 +297,7 @@
               <v-progress-linear :indeterminate="true"></v-progress-linear>
             </template>
             <template v-else>
-              <v-card-title>
+              <!-- <v-card-title>
                 <v-text-field
                   v-model="searchSource2"
                   append-icon="search"
@@ -305,7 +305,7 @@
                   single-line
                   hide-details
                 ></v-text-field>
-              </v-card-title>
+              </v-card-title> -->
               <v-card-text>
                 <v-data-table
                   :headers="source2GridHeader"
