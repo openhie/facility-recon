@@ -907,55 +907,20 @@ module.exports = function () {
                   let replacedSource2 = source2Name.replace(abbr, '');
                   replacedSource2 = replacedSource2.replace(dictionary[abbr], '').trim();
                   if (replacedSource1.toLowerCase() === replacedSource2.toLowerCase()) {
-                    if ((parentsDiffer == false && !matchBroken) || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true && !matchBroken)) {
-                      const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
-                      if (source2Name.toLowerCase() != source1Name.toLowerCase()) {
-                        matchComments.push('Names differ');
-                      }
-                      ignore.push(source2Entry.resource.id);
-                      thisRanking.exactMatch = {
-                        name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                        mappedParentName: source2MappedParentNames[source2Entry.resource.id][0],
-                        lat: source2Latitude,
-                        long: source2Longitude,
-                        geoDistance: dist,
-                        matchComments,
-                        id: source2Entry.resource.id,
-                        source2IdHierarchy,
-                      };
-                      thisRanking.potentialMatches = {};
-                      noNeedToSave = false;
-                      matchesToSave.push({
-                        source1Id,
-                        source2Id: source2Entry.resource.id,
-                        source1DB,
-                        source2DB,
-                        mappingDB,
-                        recoLevel,
-                        totalLevels,
-                      });
-                      // mcsd.saveMatch(source1Id, source2Entry.resource.id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, 'match', true, false, () => {
-                      //   updateDataSavingPercent();
-                      // });
-                      totalAllMapped += 1;
-                      source2MatchedIDs.push(source2Entry.resource.id);
-                    } else {
-                      const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
-                      if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
-                        thisRanking.potentialMatches['0'] = [];
-                      }
-                      thisRanking.potentialMatches['0'].push({
-                        name: source2Name,
-                        parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
-                        mappedParentName: source2MappedParentNames[source2Entry.resource.id][0],
-                        lat: source2Latitude,
-                        long: source2Longitude,
-                        geoDistance: dist,
-                        id: source2Entry.resource.id,
-                        source2IdHierarchy,
-                      });
+                    const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
+                    if (!thisRanking.potentialMatches.hasOwnProperty('0')) {
+                      thisRanking.potentialMatches['0'] = [];
                     }
+                    thisRanking.potentialMatches['0'].push({
+                      name: source2Name,
+                      parents: source2ParentNames[source2Entry.resource.id].slice(0, source2ParentNames[source2Entry.resource.id].length - 1),
+                      mappedParentName: source2MappedParentNames[source2Entry.resource.id][0],
+                      lat: source2Latitude,
+                      long: source2Longitude,
+                      geoDistance: dist,
+                      id: source2Entry.resource.id,
+                      source2IdHierarchy,
+                    });
                     return source2Callback();
                   }
                 }

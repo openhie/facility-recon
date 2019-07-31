@@ -8,9 +8,9 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const isJSON = require('is-json');
+const redis = require('redis');
 const mixin = require('./mixin')();
 const config = require('./config');
-const redis = require('redis');
 
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1',
@@ -336,8 +336,8 @@ function processOrgUnit(metadata, hasKey) {
       try {
         const coords = JSON.parse(org.coordinates);
         fhir.position = {
-          longitude: coords[1],
-          latitude: coords[0],
+          longitude: coords[0],
+          latitude: coords[1],
         };
       } catch (e) {
         winston.error(`Failed to load coordinates. ${e.message}`);
