@@ -444,7 +444,7 @@ function setLastUpdate(hasKey, lastUpdate) {
     name,
     auth,
     dhis2URL,
-  } = credentials.name;
+  } = credentials;
   const userID = credentials.sourceOwner;
   const database = mixin.toTitleCase(name) + userID;
   winston.info('setting lastupdated time');
