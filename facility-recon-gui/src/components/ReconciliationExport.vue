@@ -205,9 +205,10 @@ export default {
         extension = 'csv'
         encoding = 'data:text/csv;charset=utf-8,'
       }
-      const matchedData = encodeURI(
-        encoding + this.matchedDownloadData
-      )
+      // const matchedData = encodeURI(
+      //   encoding + this.matchedDownloadData
+      // )
+      const matchedData = encoding + escape(this.matchedDownloadData)
       const link = document.createElement('a')
       link.setAttribute('href', matchedData)
       link.setAttribute(
@@ -226,9 +227,10 @@ export default {
         extension = 'csv'
         encoding = 'data:text/csv;charset=utf-8,'
       }
-      const unmatchedSource1Data = encodeURI(
-        encoding + this.unmatchedSource1DownloadData
-      )
+      // const unmatchedSource1Data = encodeURI(
+      //   encoding + this.unmatchedSource1DownloadData
+      // )
+      const unmatchedSource1Data = encoding + escape(this.unmatchedSource1DownloadData)
       const link = document.createElement('a')
       link.setAttribute('href', unmatchedSource1Data)
       link.setAttribute('download', `unmatched${this.getSource1()}.${extension}`)
@@ -244,9 +246,10 @@ export default {
         extension = 'csv'
         encoding = 'data:text/csv;charset=utf-8,'
       }
-      const unmatchedSource2Data = encodeURI(
-        encoding + this.unmatchedSource2DownloadData
-      )
+      // const unmatchedSource2Data = encodeURI(
+      //   encoding + this.unmatchedSource2DownloadData
+      // )
+      const unmatchedSource2Data = encoding + escape(this.unmatchedSource2DownloadData)
       const link = document.createElement('a')
       link.setAttribute('href', unmatchedSource2Data)
       link.setAttribute('download', `unmatched${this.getSource2()}.${extension}`)
