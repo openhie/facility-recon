@@ -137,6 +137,45 @@
           open-on-hover
           bottom
           offset-y
+          v-if='!$store.state.denyAccess'
+        >
+          <v-btn
+            slot="activator"
+            flat
+          >
+            <v-icon>location_on</v-icon>{{ $t('App.menu.facilityRegistry.msg')}}
+          </v-btn>
+          <v-list>
+            <v-tooltip top>
+              <v-list-tile
+                to="AddJurisdiction"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addJurisdiction.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addJurisdiction.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-list-tile
+                to="AddFacility"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>house</v-icon>{{ $t('App.menu.addFacility.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addFacility.tooltip')}}</span>
+            </v-tooltip>
+          </v-list>
+        </v-menu>
+        <v-menu
+          open-on-hover
+          bottom
+          offset-y
           v-if='!$store.state.denyAccess && !$store.state.config.generalConfig.authDisabled'
         >
           <v-btn

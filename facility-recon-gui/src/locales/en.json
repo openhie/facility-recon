@@ -16,10 +16,23 @@
         "msg": "Reconciliation Status",
         "tooltip": "Matching Status"
       },
+      "facilityRegistry": {
+        "msg": "Facility Registry",
+        "tooltip": "Facility Registry"
+      },
+      "addJurisdiction": {
+        "msg": "Add Jurisdiction",
+        "tooltip": "Add Counties/Districts"
+      },
+      "addFacility": {
+        "msg": "Add Facility",
+        "tooltip": "Add Facility"
+      },
       "archive": {
         "msg": "Archived Uploads",
         "tooltip": "Access to backup data"
       },
+
       "account": {
         "msg": "Account"
       },

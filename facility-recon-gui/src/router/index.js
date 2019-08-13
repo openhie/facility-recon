@@ -15,6 +15,8 @@ import AddDataSources from '@/components/DataSources/AddDataSources'
 import ViewDataSources from '@/components/DataSources/ViewDataSources'
 import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourcePair'
 import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
+import AddJurisdiction from '@/components/FacilityRegistry/AddJurisdiction'
+import AddFacility from '@/components/FacilityRegistry/AddFacility'
 import VueCookies from 'vue-cookies'
 import {
   store
@@ -102,6 +104,16 @@ let router = new Router({
     path: '/dbAdmin',
     name: 'FacilityReconDbAdmin',
     component: FacilityReconDbAdmin
+  },
+  {
+    path: '/AddJurisdiction',
+    name: 'AddJurisdiction',
+    component: AddJurisdiction
+  },
+  {
+    path: '/AddFacility',
+    name: 'AddFacility',
+    component: AddFacility
   }
   ]
 })

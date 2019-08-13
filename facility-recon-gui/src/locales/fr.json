@@ -16,6 +16,18 @@
         "msg": "État de rapprochement",
         "tooltip": "Statut de correspondance"
       },
+      "facilityRegistry": {
+        "msg": "Facility Registry",
+        "tooltip": "Facility Registry"
+      },
+      "addJurisdiction": {
+        "msg": "Add Jurisdiction",
+        "tooltip": "Add Counties/Districts"
+      },
+      "addFacility": {
+        "msg": "Add Facility",
+        "tooltip": "Add Facility"
+      },
       "archive": {
         "msg": "Téléchargements archivés",
         "tooltip": "Accès aux données de sauvegarde"

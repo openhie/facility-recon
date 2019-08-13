@@ -34,6 +34,7 @@ const schemas = require('./schemas');
 const mixin = require('./mixin')();
 const mongo = require('./mongo')();
 const config = require('./config');
+const FRRouter = require('./routes/facilityRegistry')
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();
@@ -112,6 +113,7 @@ app.use(bodyParser.urlencoded({
   extended: true,
 }));
 app.use(bodyParser.json());
+app.use('/FR/', FRRouter)
 // socket config - large documents can cause machine to max files open
 
 https.globalAgent.maxSockets = 32;
@@ -160,6 +162,42 @@ if (cluster.isMaster) {
               }
             });
           });
+        });
+      }
+    });
+
+    // check if FR has fake org id
+    mcsd.getLocationByID('', topOrgId, false, (results) => {
+      if (results.entry.length === 0) {
+        winston.info('Fake Org ID does not exist into the FR Database, Creating now')
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = topOrgName;
+        resource.id = topOrgId;
+        resource.identifier = [{
+          system: 'https://digitalhealth.intrahealth.org/id',
+          value: topOrgId,
+        }];
+        resource.physicalType = {
+          coding: [{
+            system: 'http://hl7.org/fhir/location-physical-type',
+            code: 'jdn',
+            display: 'Jurisdiction',
+          }],
+          text: 'Jurisdiction',
+        };
+        const fhirDoc = {};
+        fhirDoc.entry = [];
+        fhirDoc.type = 'document';
+        fhirDoc.entry.push({
+          resource,
+        });
+        mcsd.saveLocations(fhirDoc, '', (err, res) => {
+          if (err) {
+            winston.error(err);
+          } else {
+            winston.info('Fake Org Id Created Successfully')
+          }
         });
       }
     });
