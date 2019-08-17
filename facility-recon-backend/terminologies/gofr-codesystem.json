@@ -1,0 +1,69 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "gofr-codesystem",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/gofr-codesystem"
+    ]
+  },
+  "version": "1.0.0",
+  "name": "GOFR Code System",
+  "status": "draft",
+  "experimental": true,
+  "date": "2019-08-13",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [{
+      "code": "HOSP",
+      "display": "Hospital"
+    },
+    {
+      "code": "HPST",
+      "display": "Health Post"
+    },
+    {
+      "code": "HCNT",
+      "display": "Health Center"
+    },
+    {
+      "code": "DSPN",
+      "display": "Dispensary"
+    },
+    {
+      "code": "CLNC",
+      "display": "Clinic"
+    },
+    {
+      "code": "PFBO",
+      "display": "Private Faith Based"
+    },
+    {
+      "code": "PRVT",
+      "display": "Private"
+    },
+    {
+      "code": "PNPR",
+      "display": "Private Not Profit"
+    },
+    {
+      "code": "PBLC",
+      "display": "Public"
+    },
+    {
+      "code": "CNCS",
+      "display": "Concession"
+    },
+    {
+      "code": "active",
+      "display": "Functional"
+    },
+    {
+      "code": "inactive",
+      "display": "Not Functional"
+    },
+    {
+      "code": "suspended",
+      "display": "Suspended"
+    }
+  ]
+}

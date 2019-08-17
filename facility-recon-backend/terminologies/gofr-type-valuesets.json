@@ -1,0 +1,27 @@
+{
+  "resourceType": "ValueSet",
+  "id": "gofr-type-valuesets",
+  "url": "http://hl7.org/fhir/ValueSet/gofr-type-valuesets",
+  "version": "1.0.0",
+  "name": "GOFR Type Valuesets",
+  "status": "draft",
+  "date": "2019-08-13",
+  "compose": {
+    "include": [{
+      "system": "https://digitalhealth.intrahealth.org/ValueSet",
+      "concept": [{
+          "code": "HOSP"
+        },
+        {
+          "code": "HPST"
+        }, {
+          "code": "HCNT"
+        }, {
+          "code": "DSPN"
+        }, {
+          "code": "CLNC"
+        }
+      ]
+    }]
+  }
+}

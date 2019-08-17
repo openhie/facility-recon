@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/components/Login.vue'
@@ -17,6 +18,7 @@ import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourc
 import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import AddJurisdiction from '@/components/FacilityRegistry/AddJurisdiction'
 import AddFacility from '@/components/FacilityRegistry/AddFacility'
+import FacilitiesReport from '@/components/FacilityRegistry/FacilitiesReport'
 import VueCookies from 'vue-cookies'
 import {
   store
@@ -26,95 +28,100 @@ Vue.use(Router)
 
 let router = new Router({
   routes: [{
-    path: '/',
-    name: 'FacilityReconHome',
-    component: FacilityReconScores
-  },
-  {
-    path: '/addUser',
-    name: 'AddUser',
-    component: AddUser
-  },
-  {
-    path: '/UsersList',
-    name: 'UsersList',
-    component: UsersList
-  },
-  {
-    path: '/ChangePassword',
-    name: 'ChangePassword',
-    component: ChangePassword
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login
-  },
-  {
-    path: 'dhis2Auth',
-    name: 'DHIS2Auth',
-    component: DHIS2Auth
-  },
-  {
-    path: '/Signup',
-    name: 'Signup',
-    component: Signup
-  },
-  {
-    path: '/Configure',
-    name: 'Configure',
-    component: Configure
-  },
-  {
-    path: '/logout',
-    name: 'Logout',
-    component: Logout
-  },
-  {
-    path: '/ViewDataSources',
-    name: 'ViewDataSources',
-    component: ViewDataSources
-  },
-  {
-    path: '/AddDataSources',
-    name: 'AddDataSources',
-    component: AddDataSources
-  },
-  {
-    path: '/dataSourcesPair',
-    name: 'DataSourcesPair',
-    component: DataSourcesPair
-  },
-  {
-    path: '/view',
-    name: 'FacilityReconView',
-    component: FacilityReconView
-  },
-  {
-    path: '/scores',
-    name: 'FacilityReconScores',
-    component: FacilityReconScores
-  },
-  {
-    path: '/recoStatus',
-    name: 'FacilityRecoStatus',
-    component: FacilityRecoStatus
-  },
-  {
-    path: '/dbAdmin',
-    name: 'FacilityReconDbAdmin',
-    component: FacilityReconDbAdmin
-  },
-  {
-    path: '/AddJurisdiction',
-    name: 'AddJurisdiction',
-    component: AddJurisdiction
-  },
-  {
-    path: '/AddFacility',
-    name: 'AddFacility',
-    component: AddFacility
-  }
+      path: '/',
+      name: 'FacilityReconHome',
+      component: FacilityReconScores
+    },
+    {
+      path: '/addUser',
+      name: 'AddUser',
+      component: AddUser
+    },
+    {
+      path: '/UsersList',
+      name: 'UsersList',
+      component: UsersList
+    },
+    {
+      path: '/ChangePassword',
+      name: 'ChangePassword',
+      component: ChangePassword
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login
+    },
+    {
+      path: 'dhis2Auth',
+      name: 'DHIS2Auth',
+      component: DHIS2Auth
+    },
+    {
+      path: '/Signup',
+      name: 'Signup',
+      component: Signup
+    },
+    {
+      path: '/Configure',
+      name: 'Configure',
+      component: Configure
+    },
+    {
+      path: '/logout',
+      name: 'Logout',
+      component: Logout
+    },
+    {
+      path: '/ViewDataSources',
+      name: 'ViewDataSources',
+      component: ViewDataSources
+    },
+    {
+      path: '/AddDataSources',
+      name: 'AddDataSources',
+      component: AddDataSources
+    },
+    {
+      path: '/dataSourcesPair',
+      name: 'DataSourcesPair',
+      component: DataSourcesPair
+    },
+    {
+      path: '/view',
+      name: 'FacilityReconView',
+      component: FacilityReconView
+    },
+    {
+      path: '/scores',
+      name: 'FacilityReconScores',
+      component: FacilityReconScores
+    },
+    {
+      path: '/recoStatus',
+      name: 'FacilityRecoStatus',
+      component: FacilityRecoStatus
+    },
+    {
+      path: '/dbAdmin',
+      name: 'FacilityReconDbAdmin',
+      component: FacilityReconDbAdmin
+    },
+    {
+      path: '/AddJurisdiction',
+      name: 'AddJurisdiction',
+      component: AddJurisdiction
+    },
+    {
+      path: '/AddFacility',
+      name: 'AddFacility',
+      component: AddFacility
+    },
+    {
+      path: '/FacilitiesReport',
+      name: 'FacilitiesReport',
+      component: FacilitiesReport
+    }
   ]
 })
 

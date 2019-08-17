@@ -28,6 +28,10 @@
         "msg": "Add Facility",
         "tooltip": "Add Facility"
       },
+      "facilitiesReport": {
+        "msg": "Facilities Report",
+        "tooltip": "Facilities Report"
+      },
       "archive": {
         "msg": "Téléchargements archivés",
         "tooltip": "Accès aux données de sauvegarde"

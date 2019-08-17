@@ -170,6 +170,14 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addFacility.tooltip')}}</span>
             </v-tooltip>
+            <v-list-tile
+              to="FacilitiesReport"
+              v-if='$store.state.auth.role === "Admin"'
+            >
+              <v-list-tile-title>
+                <v-icon left>house</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
           </v-list>
         </v-menu>
         <v-menu

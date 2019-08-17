@@ -1,0 +1,25 @@
+{
+  "resourceType": "ValueSet",
+  "id": "gofr-ownership-valuesets",
+  "url": "http://hl7.org/fhir/ValueSet/gofr-ownership-valuesets",
+  "version": "1.0.0",
+  "name": "GOFR Ownership Valuesets",
+  "status": "draft",
+  "date": "2019-08-13",
+  "compose": {
+    "include": [{
+      "system": "https://digitalhealth.intrahealth.org/ValueSet",
+      "concept": [{
+        "code": "PFBO"
+      }, {
+        "code": "PRVT"
+      }, {
+        "code": "PNPR"
+      }, {
+        "code": "PBLC"
+      }, {
+        "code": "CNCS"
+      }]
+    }]
+  }
+}

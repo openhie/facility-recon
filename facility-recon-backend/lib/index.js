@@ -25,7 +25,6 @@ const redisClient = redis.createClient({
 });
 const moment = require('moment');
 const json2csv = require('json2csv').parse;
-const csv = require('fast-csv');
 const url = require('url');
 const async = require('async');
 const mongoose = require('mongoose');
@@ -34,7 +33,7 @@ const schemas = require('./schemas');
 const mixin = require('./mixin')();
 const mongo = require('./mongo')();
 const config = require('./config');
-const FRRouter = require('./routes/facilityRegistry')
+const FRRouter = require('./routes/facilityRegistry');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();
@@ -113,7 +112,7 @@ app.use(bodyParser.urlencoded({
   extended: true,
 }));
 app.use(bodyParser.json());
-app.use('/FR/', FRRouter)
+app.use('/FR/', FRRouter);
 // socket config - large documents can cause machine to max files open
 
 https.globalAgent.maxSockets = 32;
@@ -169,7 +168,7 @@ if (cluster.isMaster) {
     // check if FR has fake org id
     mcsd.getLocationByID('', topOrgId, false, (results) => {
       if (results.entry.length === 0) {
-        winston.info('Fake Org ID does not exist into the FR Database, Creating now')
+        winston.info('Fake Org ID does not exist into the FR Database, Creating now');
         const resource = {};
         resource.resourceType = 'Location';
         resource.name = topOrgName;
@@ -196,7 +195,7 @@ if (cluster.isMaster) {
           if (err) {
             winston.error(err);
           } else {
-            winston.info('Fake Org Id Created Successfully')
+            winston.info('Fake Org Id Created Successfully');
           }
         });
       }
@@ -1275,8 +1274,11 @@ if (cluster.isMaster) {
       winston.info(`Fetching Locations For ${source}`);
       const db = source + sourceOwner;
       const locationReceived = new Promise((resolve, reject) => {
-        mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
-          mcsd.getBuildings(mcsdData, (buildings) => {
+        mcsd.getLocationChildren({
+          db,
+          sourceLimitOrgId,
+        }, (mcsdData) => {
+          mcsd.getBuildingsFromData(mcsdData, (buildings) => {
             resolve({
               buildings,
               mcsdData,
@@ -1360,7 +1362,10 @@ if (cluster.isMaster) {
       winston.info(`Fetching Locations For ${source}`);
       async.parallel({
         locationChildren(callback) {
-          mcsd.getLocationChildren(db, sourceLimitOrgId, (mcsdData) => {
+          mcsd.getLocationChildren({
+            db,
+            sourceLimitOrgId,
+          }, (mcsdData) => {
             winston.info(`Done Fetching Locations For ${source}`);
             return callback(false, mcsdData);
           });
@@ -1420,7 +1425,10 @@ if (cluster.isMaster) {
     redisClient.set(statusRequestId, statusResData);
 
     const source2LocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdSource2) => {
+      mcsd.getLocationChildren({
+        source2DB,
+        source2LimitOrgId,
+      }, (mcsdSource2) => {
         mcsdSource2All = mcsdSource2;
         let level;
         if (recoLevel === totalSource1Levels) {
@@ -1439,7 +1447,10 @@ if (cluster.isMaster) {
       winston.error(err);
     });
     const source1LocationReceived = new Promise((resolve, reject) => {
-      mcsd.getLocationChildren(source1DB, source1LimitOrgId, (mcsdSource1) => {
+      mcsd.getLocationChildren({
+        source1DB,
+        source1LimitOrgId,
+      }, (mcsdSource1) => {
         mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, (mcsdSource1Level) => {
           resolve(mcsdSource1Level);
         });
@@ -1521,7 +1532,10 @@ if (cluster.isMaster) {
       async.parallel({
         source2Locations(callback) {
           const dbSource2 = source2 + source2Owner;
-          mcsd.getLocationChildren(dbSource2, source2LimitOrgId, (mcsdSource2) => {
+          mcsd.getLocationChildren({
+            dbSource2,
+            source2LimitOrgId,
+          }, (mcsdSource2) => {
             mcsdSource2All = mcsdSource2;
             let level;
             if (recoLevel === totalSource1Levels) {
@@ -1538,7 +1552,10 @@ if (cluster.isMaster) {
         },
         source1Loations(callback) {
           const dbSource1 = source1 + source1Owner;
-          mcsd.getLocationChildren(dbSource1, source1LimitOrgId, (mcsdSource1) => {
+          mcsd.getLocationChildren({
+            dbSource1,
+            source1LimitOrgId,
+          }, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
             mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, mcsdSource1Level => callback(false, mcsdSource1Level));
           });
@@ -1925,10 +1942,16 @@ if (cluster.isMaster) {
     if (type == 'FHIR') {
       async.series({
         source1mCSD(callback) {
-          mcsd.getLocationChildren(source1DB, source1LimitOrgId, mcsd => callback(null, mcsd));
+          mcsd.getLocationChildren({
+            source1DB,
+            source1LimitOrgId,
+          }, mcsdRes => callback(null, mcsdRes));
         },
         source2mCSD(callback) {
-          mcsd.getLocationChildren(source2DB, source2LimitOrgId, mcsd => callback(null, mcsd));
+          mcsd.getLocationChildren({
+            source2DB,
+            source2LimitOrgId,
+          }, mcsdRes => callback(null, mcsdRes));
         },
       }, (error, response) => {
         const mappingDB = req.query.source1 + userID + req.query.source2;
@@ -1963,10 +1986,16 @@ if (cluster.isMaster) {
 
       async.parallel({
         source1mCSD(callback) {
-          mcsd.getLocationChildren(source1DB, source1LimitOrgId, mcsd => callback(null, mcsd));
+          mcsd.getLocationChildren({
+            source1DB,
+            source1LimitOrgId,
+          }, mcsdRes => callback(null, mcsdRes));
         },
         source2mCSD(callback) {
-          mcsd.getLocationChildren(source2DB, source2LimitOrgId, mcsd => callback(null, mcsd));
+          mcsd.getLocationChildren({
+            source2DB,
+            source2LimitOrgId,
+          }, mcsdRes => callback(null, mcsdRes));
         },
       }, (error, response) => {
         // remove unmapped levels
@@ -3025,7 +3054,7 @@ if (cluster.isMaster) {
         percent: null,
       });
       redisClient.set(uploadRequestId, uploadReqPro);
-      validateCSV(files[fileName].path, fields, (valid, invalid) => {
+      mixin.validateCSV(files[fileName].path, fields, (valid, invalid) => {
         if (invalid.length > 0) {
           winston.error('Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),execution stopped');
           res.status(400).json({
@@ -3071,92 +3100,6 @@ if (cluster.isMaster) {
         });
       });
     });
-
-    function validateCSV(filePath, headerMapping, callback) {
-      const invalid = [];
-      const ids = [];
-      const levels = config.getConf('levels');
-      levels.sort();
-      levels.reverse();
-      csv
-        .fromPath(filePath, {
-          headers: true,
-        })
-        .on('data', (data) => {
-          let rowMarkedInvalid = false;
-          let index = 0;
-          async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null ||
-              headerMapping[level] === 'null' ||
-              headerMapping[level] === undefined ||
-              !headerMapping[level]) {
-              return nxtLevel();
-            }
-            if (data[headerMapping.code] == '') {
-              populateData(headerMapping, data, 'Missing Facility ID', invalid);
-              rowMarkedInvalid = true;
-            }
-            if (index === 0) {
-              index++;
-              if (ids.length == 0) {
-                ids.push(data[headerMapping.code]);
-              } else {
-                const idExist = ids.find(id => id === data[headerMapping.code]);
-                if (idExist) {
-                  rowMarkedInvalid = true;
-                  const reason = 'Duplicate ID';
-                  populateData(headerMapping, data, reason, invalid);
-                } else {
-                  ids.push(data[headerMapping.code]);
-                }
-              }
-            }
-            if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null ||
-                data[headerMapping[level]] === undefined ||
-                data[headerMapping[level]] === false ||
-                !data[headerMapping[level]] ||
-                data[headerMapping[level]] === '' ||
-                !isNaN(headerMapping[level]) ||
-                data[headerMapping[level]] == 0) {
-                const reason = `${headerMapping[level]} is blank`;
-                populateData(headerMapping, data, reason, invalid);
-              } else {
-                return nxtLevel();
-              }
-            }
-          }, () => {
-            if (data[headerMapping.facility] === null ||
-              data[headerMapping.facility] === undefined ||
-              data[headerMapping.facility] === false ||
-              data[headerMapping.facility] === '' ||
-              data[headerMapping.facility] == 0) {
-              const reason = `${headerMapping.facility} is blank`;
-              populateData(headerMapping, data, reason, invalid);
-            }
-          });
-        })
-        .on('end', () => callback(true, invalid));
-
-      function populateData(headerMapping, data, reason, invalid) {
-        const row = {};
-        async.each(headerMapping, (header, nxtHeader) => {
-          if (header == 'null') {
-            return nxtHeader();
-          }
-          if (!data.hasOwnProperty(header)) {
-            return nxtHeader();
-          }
-          row[header] = data[header];
-          return nxtHeader();
-        }, () => {
-          invalid.push({
-            data: row,
-            reason,
-          });
-        });
-      }
-    }
   });
 
   // merging signup custom fields into Users model

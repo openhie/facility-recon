@@ -112,11 +112,9 @@
 <script>
 import axios from 'axios'
 import LiquorTree from 'liquor-tree'
-import { generalMixin } from '../../mixins/generalMixin'
 import { required } from 'vuelidate/lib/validators'
 const backendServer = process.env.BACKEND_SERVER
 export default {
-  mixins: [generalMixin],
   validations: {
     name: { required }
   },
@@ -134,8 +132,6 @@ export default {
   methods: {
     getTree () {
       this.jurisdictionHierarchy = []
-      let source1Owner = this.getDatasourceOwner().source1Owner
-      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
       axios.get(backendServer + '/FR/getTree').then((hierarchy) => {
         if (hierarchy.data) {
           this.jurisdictionHierarchy = hierarchy.data

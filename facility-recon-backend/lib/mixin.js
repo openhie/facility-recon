@@ -1,6 +1,9 @@
 /* eslint-disable func-names */
 require('./init');
 const winston = require('winston');
+const csv = require('fast-csv');
+const async = require('async');
+const config = require('./config');
 
 module.exports = function () {
   return {
@@ -14,6 +17,7 @@ module.exports = function () {
       if (!str) {
         return str;
       }
+      str = str.toLowerCase();
       return str.replace(/[^\s]+/g, word => word.replace(/^./, first => first.toUpperCase()));
     },
     getIdFromIdentifiers(identifier, system) {
@@ -57,6 +61,92 @@ module.exports = function () {
         return true;
       }
       return false;
+    },
+
+    validateCSV(filePath, headerMapping, callback) {
+      const invalid = [];
+      const ids = [];
+      const levels = config.getConf('levels');
+      levels.sort();
+      levels.reverse();
+      csv
+        .fromPath(filePath, {
+          headers: true,
+        })
+        .on('data', (data) => {
+          let rowMarkedInvalid = false;
+          let index = 0;
+          async.eachSeries(levels, (level, nxtLevel) => {
+            if (headerMapping[level] === null
+              || headerMapping[level] === 'null'
+              || headerMapping[level] === undefined
+              || !headerMapping[level]) {
+              return nxtLevel();
+            }
+            if (data[headerMapping.code] == '') {
+              populateData(headerMapping, data, 'Missing Facility ID', invalid);
+              rowMarkedInvalid = true;
+            }
+            if (index === 0) {
+              index += 1;
+              if (ids.length == 0) {
+                ids.push(data[headerMapping.code]);
+              } else {
+                const idExist = ids.find(id => id === data[headerMapping.code]);
+                if (idExist) {
+                  rowMarkedInvalid = true;
+                  const reason = 'Duplicate ID';
+                  populateData(headerMapping, data, reason, invalid);
+                } else {
+                  ids.push(data[headerMapping.code]);
+                }
+              }
+            }
+            if (!rowMarkedInvalid) {
+              if (data[headerMapping[level]] === null
+                || data[headerMapping[level]] === undefined
+                || data[headerMapping[level]] === false
+                || !data[headerMapping[level]]
+                || data[headerMapping[level]] === ''
+                || !isNaN(headerMapping[level])
+                || data[headerMapping[level]] == 0) {
+                const reason = `${headerMapping[level]} is blank`;
+                populateData(headerMapping, data, reason, invalid);
+              } else {
+                return nxtLevel();
+              }
+            }
+          }, () => {
+            if (data[headerMapping.facility] === null
+              || data[headerMapping.facility] === undefined
+              || data[headerMapping.facility] === false
+              || data[headerMapping.facility] === ''
+              || data[headerMapping.facility] == 0) {
+              const reason = `${headerMapping.facility} is blank`;
+              populateData(headerMapping, data, reason, invalid);
+            }
+          });
+        })
+        .on('end', () => callback(true, invalid));
+
+      function populateData(headerMapping, data, reason, invalid) {
+        const row = {};
+        async.each(headerMapping, (header, nxtHeader) => {
+          if (header == 'null') {
+            return nxtHeader();
+          }
+          if (!data.hasOwnProperty(header)) {
+            return nxtHeader();
+          }
+          row[header] = data[header];
+          return nxtHeader();
+        }, () => {
+          invalid.push({
+            data: row,
+            reason,
+          });
+        });
+      }
     },
   };
 };
