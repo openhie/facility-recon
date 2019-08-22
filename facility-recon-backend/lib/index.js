@@ -51,19 +51,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS' ||
-    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
-    req.path == '/authenticate/' ||
-    req.path == '/getSignupConf' ||
-    req.path == '/getGeneralConfig' ||
-    req.path == '/addUser/' ||
-    req.path.startsWith('/progress') ||
-    req.path == '/' ||
-    req.path.startsWith('/static/js') ||
-    req.path.startsWith('/static/config.json') ||
-    req.path.startsWith('/static/css') ||
-    req.path.startsWith('/static/img') ||
-    req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS'
+    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
+    || req.path == '/authenticate/'
+    || req.path == '/getSignupConf'
+    || req.path == '/getGeneralConfig'
+    || req.path == '/addUser/'
+    || req.path.startsWith('/progress')
+    || req.path == '/'
+    || req.path.startsWith('/static/js')
+    || req.path.startsWith('/static/config.json')
+    || req.path.startsWith('/static/css')
+    || req.path.startsWith('/static/img')
+    || req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -76,7 +76,7 @@ const jwtValidator = function (req, res, next) {
       error: 'Token is missing',
     });
   } else {
-    tokenArray = req.headers.authorization.split(' ');
+    const tokenArray = req.headers.authorization.split(' ');
     const token = req.headers.authorization = tokenArray[1];
     jwt.verify(token, config.getConf('auth:secret'), (err, decoded) => {
       if (err) {
@@ -134,11 +134,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-            name: 'Admin',
-          },
-          {
-            name: 'Data Manager',
-          },
+          name: 'Admin',
+        },
+        {
+          name: 'Data Manager',
+        },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -216,7 +216,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete(workers[worker.process.pid]);
+    delete (workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -1275,8 +1275,8 @@ if (cluster.isMaster) {
       const db = source + sourceOwner;
       const locationReceived = new Promise((resolve, reject) => {
         mcsd.getLocationChildren({
-          db,
-          sourceLimitOrgId,
+          database: db,
+          parent: sourceLimitOrgId,
         }, (mcsdData) => {
           mcsd.getBuildingsFromData(mcsdData, (buildings) => {
             resolve({
@@ -1363,8 +1363,8 @@ if (cluster.isMaster) {
       async.parallel({
         locationChildren(callback) {
           mcsd.getLocationChildren({
-            db,
-            sourceLimitOrgId,
+            database: db,
+            parent: sourceLimitOrgId,
           }, (mcsdData) => {
             winston.info(`Done Fetching Locations For ${source}`);
             return callback(false, mcsdData);
@@ -1426,8 +1426,8 @@ if (cluster.isMaster) {
 
     const source2LocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren({
-        source2DB,
-        source2LimitOrgId,
+        database: source2DB,
+        parent: source2LimitOrgId,
       }, (mcsdSource2) => {
         mcsdSource2All = mcsdSource2;
         let level;
@@ -1448,8 +1448,8 @@ if (cluster.isMaster) {
     });
     const source1LocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren({
-        source1DB,
-        source1LimitOrgId,
+        database: source1DB,
+        parent: source1LimitOrgId,
       }, (mcsdSource1) => {
         mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, (mcsdSource1Level) => {
           resolve(mcsdSource1Level);
@@ -1533,8 +1533,8 @@ if (cluster.isMaster) {
         source2Locations(callback) {
           const dbSource2 = source2 + source2Owner;
           mcsd.getLocationChildren({
-            dbSource2,
-            source2LimitOrgId,
+            database: dbSource2,
+            parent: source2LimitOrgId,
           }, (mcsdSource2) => {
             mcsdSource2All = mcsdSource2;
             let level;
@@ -1553,8 +1553,8 @@ if (cluster.isMaster) {
         source1Loations(callback) {
           const dbSource1 = source1 + source1Owner;
           mcsd.getLocationChildren({
-            dbSource1,
-            source1LimitOrgId,
+            database: dbSource1,
+            parent: source1LimitOrgId,
           }, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
             mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, mcsdSource1Level => callback(false, mcsdSource1Level));
@@ -1943,14 +1943,14 @@ if (cluster.isMaster) {
       async.series({
         source1mCSD(callback) {
           mcsd.getLocationChildren({
-            source1DB,
-            source1LimitOrgId,
+            database: source1DB,
+            parent: source1LimitOrgId,
           }, mcsdRes => callback(null, mcsdRes));
         },
         source2mCSD(callback) {
           mcsd.getLocationChildren({
-            source2DB,
-            source2LimitOrgId,
+            database: source2DB,
+            parent: source2LimitOrgId,
           }, mcsdRes => callback(null, mcsdRes));
         },
       }, (error, response) => {
@@ -1987,14 +1987,14 @@ if (cluster.isMaster) {
       async.parallel({
         source1mCSD(callback) {
           mcsd.getLocationChildren({
-            source1DB,
-            source1LimitOrgId,
+            database: source1DB,
+            parent: source1LimitOrgId,
           }, mcsdRes => callback(null, mcsdRes));
         },
         source2mCSD(callback) {
           mcsd.getLocationChildren({
-            source2DB,
-            source2LimitOrgId,
+            database: source2DB,
+            parent: source2LimitOrgId,
           }, mcsdRes => callback(null, mcsdRes));
         },
       }, (error, response) => {
@@ -2608,11 +2608,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config') &&
-          configData.config.hasOwnProperty('generalConfig') &&
-          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-          configData.config.generalConfig.recoProgressNotification.enabled &&
-          configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config')
+          && configData.config.hasOwnProperty('generalConfig')
+          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
+          && configData.config.generalConfig.recoProgressNotification.enabled
+          && configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,

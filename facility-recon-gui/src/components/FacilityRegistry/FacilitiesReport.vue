@@ -291,9 +291,6 @@
             d-flex
             text-center
           >
-            <template v-if="loadingBuildings">
-              <v-progress-linear :indeterminate="true"></v-progress-linear>
-            </template>
             <v-scroll-y-transition mode="out-in">
               <v-card
                 v-if='activeJurisdiction.id'
@@ -323,6 +320,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-data-table
+                    :loading="loadingBuildings"
                     :headers="buildingsHeaders"
                     :items="buildings"
                     :search="searchBuildings"

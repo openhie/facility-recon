@@ -12,10 +12,18 @@
         >
           <v-scroll-y-transition>
             <v-flex xs5>
+              <v-text-field
+                v-model="searchJurisdiction"
+                append-icon="search"
+                label="Search Jurisdiction"
+                single-line
+                hide-details
+              ></v-text-field>
               <liquor-tree
                 @node:selected="selectedJurisdiction"
                 v-if="jurisdictionHierarchy.length > 0"
                 :data="jurisdictionHierarchy"
+                :filter="searchJurisdiction"
                 ref="jurisdictionHierarchy"
               />
             </v-flex>
@@ -286,6 +294,7 @@ export default {
       alertFail: false,
       alertSuccess: false,
       alertMsg: '',
+      searchJurisdiction: '',
       activeJurisdiction: {},
       jurisdictionHierarchy: [],
       name: '',
