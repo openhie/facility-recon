@@ -101,6 +101,7 @@ export const scoresMixin = {
               this.$store.state.flagged.push({
                 source1Name: scoreResult.source1.name,
                 source1Id: scoreResult.source1.id,
+                source1UUID: scoreResult.source1.uuid,
                 source1IdHierarchy: scoreResult.source1.source1IdHierarchy,
                 source1Parents: scoreResult.source1.parents,
                 source2Name: scoreResult.exactMatch.name,
@@ -115,6 +116,7 @@ export const scoresMixin = {
               this.$store.state.noMatchContent.push({
                 source1Name: scoreResult.source1.name,
                 source1Id: scoreResult.source1.id,
+                source1UUID: scoreResult.source1.uuid,
                 parents: parents
               })
             } else if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'ignore') {
@@ -122,12 +124,14 @@ export const scoresMixin = {
               this.$store.state.ignoreContent.push({
                 source1Name: scoreResult.source1.name,
                 source1Id: scoreResult.source1.id,
+                source1UUID: scoreResult.source1.uuid,
                 parents: parents
               })
             } else if (Object.keys(scoreResult.exactMatch).length > 0) {
               this.$store.state.matchedContent.push({
                 source1Name: scoreResult.source1.name,
                 source1Id: scoreResult.source1.id,
+                source1UUID: scoreResult.source1.uuid,
                 source1Parents: scoreResult.source1.parents,
                 source2Name: scoreResult.exactMatch.name,
                 source2Id: scoreResult.exactMatch.id,
@@ -147,6 +151,7 @@ export const scoresMixin = {
               this.$store.state.source1UnMatched.push({
                 name: scoreResult.source1.name,
                 id: scoreResult.source1.id,
+                UUID: scoreResult.source1.uuid,
                 parents: scoreResult.source1.parents
               })
             }

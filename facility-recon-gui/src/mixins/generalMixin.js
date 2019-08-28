@@ -63,7 +63,7 @@ export const generalMixin = {
         })
     },
     toTitleCase (str) {
-      return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('')
+      return str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('').toLowerCase()
     },
 
     translateDataHeader (source, level) {

@@ -120,8 +120,8 @@ module.exports = function () {
         // check if this Source1 Orgid is mapped
         const source1Id = source1Entry.resource.id;
         let matchBroken = false;
-        if (source1Entry.resource.hasOwnProperty('tag')) {
-          const matchBrokenTag = source1Entry.resource.tag.find(tag => tag.code == matchBrokenCode);
+        if (source1Entry.resource.meta.hasOwnProperty('tag')) {
+          const matchBrokenTag = source1Entry.resource.meta.tag.find(tag => tag.code == matchBrokenCode);
           if (matchBrokenTag) {
             matchBroken = true;
           }
@@ -145,6 +145,7 @@ module.exports = function () {
                 name: source1Entry.resource.name,
                 parents: source1Parents.slice(0, source1Parents.length - 1),
                 id: source1Entry.resource.id,
+                uuid: source1Entry.resource.id,
                 source1IdHierarchy,
               };
               thisRanking.potentialMatches = {};
@@ -153,16 +154,16 @@ module.exports = function () {
               let ignorered = null;
               let flagged = null;
               let matchCommentsTag = {};
-              if (match.resource.hasOwnProperty('tag')) {
-                noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-                ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
-                flagged = match.resource.tag.find(tag => tag.code == flagCode);
-                matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
+              if (match.resource.meta.hasOwnProperty('tag')) {
+                noMatch = match.resource.meta.tag.find(tag => tag.code == noMatchCode);
+                ignorered = match.resource.meta.tag.find(tag => tag.code == ignoreCode);
+                flagged = match.resource.meta.tag.find(tag => tag.code == flagCode);
+                matchCommentsTag = match.resource.meta.tag.find(tag => tag.code == matchCommentsCode);
               }
               if (flagged) {
                 totalAllFlagged += 1;
                 thisRanking.source1.tag = 'flagged';
-                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                const flagComment = match.resource.meta.tag.find(tag => tag.code == flagCommentCode);
                 if (flagComment) {
                   thisRanking.source1.flagComment = flagComment.display;
                 }
@@ -197,9 +198,9 @@ module.exports = function () {
 
               if (matchInSource2) {
                 source2MatchedIDs.push(matchedSource2Id);
-                let matchComments = [];
+                const matchComments = [];
                 if (matchCommentsTag && matchCommentsTag.hasOwnProperty('display')) {
-                  matchComments = matchCommentsTag.display;
+                  matchComments.push(matchCommentsTag.display);
                 }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
@@ -269,6 +270,7 @@ module.exports = function () {
                 name: source1Name,
                 parents: source1ParentNames.slice(0, source1Parents.length - 1),
                 id: source1Entry.resource.id,
+                uuid: source1Entry.resource.id,
                 source1IdHierarchy,
               };
               thisRanking.potentialMatches = {};
@@ -314,9 +316,9 @@ module.exports = function () {
                     const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                     // when parent constraint is On then automatch by name is also enabled by default
                     // when parent constraint is off then check if name automatch is also on
-                    if (lev == 0 &&
-                      !matchBroken &&
-                      (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                    if (lev == 0
+                      && !matchBroken
+                      && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                     ) {
                       const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       ignore.push(source2Entry.resource.id);
@@ -587,8 +589,8 @@ module.exports = function () {
         }
 
         let matchBroken = false;
-        if (source1Entry.resource.hasOwnProperty('tag')) {
-          const matchBrokenTag = source1Entry.resource.tag.find(tag => tag.code == matchBrokenCode);
+        if (source1Entry.resource.meta.hasOwnProperty('tag')) {
+          const matchBrokenTag = source1Entry.resource.meta.tag.find(tag => tag.code == matchBrokenCode);
           if (matchBrokenTag) {
             matchBroken = true;
           }
@@ -619,6 +621,7 @@ module.exports = function () {
                 lat: source1Latitude,
                 long: source1Longitude,
                 id: source1BuildingId,
+                uuid: source1Entry.resource.id,
                 source1IdHierarchy,
               };
               thisRanking.potentialMatches = {};
@@ -627,16 +630,16 @@ module.exports = function () {
               let ignorered = null;
               let flagged = null;
               let matchCommentsTag = {};
-              if (match.resource.hasOwnProperty('tag')) {
-                noMatch = match.resource.tag.find(tag => tag.code == noMatchCode);
-                ignorered = match.resource.tag.find(tag => tag.code == ignoreCode);
-                flagged = match.resource.tag.find(tag => tag.code == flagCode);
-                matchCommentsTag = match.resource.tag.find(tag => tag.code == matchCommentsCode);
+              if (match.resource.meta.hasOwnProperty('tag')) {
+                noMatch = match.resource.meta.tag.find(tag => tag.code == noMatchCode);
+                ignorered = match.resource.meta.tag.find(tag => tag.code == ignoreCode);
+                flagged = match.resource.meta.tag.find(tag => tag.code == flagCode);
+                matchCommentsTag = match.resource.meta.tag.find(tag => tag.code == matchCommentsCode);
               }
               if (flagged) {
                 totalAllFlagged += 1;
                 thisRanking.source1.tag = 'flagged';
-                const flagComment = match.resource.tag.find(tag => tag.code == flagCommentCode);
+                const flagComment = match.resource.meta.tag.find(tag => tag.code == flagCommentCode);
                 if (flagComment) {
                   thisRanking.source1.flagComment = flagComment.display;
                 }
@@ -670,9 +673,9 @@ module.exports = function () {
               if (matchInSource2) {
                 const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, matchedSource2Id);
                 source2MatchedIDs.push(matchedSource2Id);
-                let matchComments = [];
+                const matchComments = [];
                 if (matchCommentsTag && matchCommentsTag.hasOwnProperty('display')) {
-                  matchComments = matchCommentsTag.display;
+                  matchComments.push(matchCommentsTag.display);
                 }
                 thisRanking.exactMatch = {
                   name: matchInSource2.resource.name,
@@ -743,6 +746,7 @@ module.exports = function () {
                 lat: source1Latitude,
                 long: source1Longitude,
                 id: source1BuildingId,
+                uuid: source1Entry.resource.id,
                 source1IdHierarchy,
               };
               thisRanking.potentialMatches = {};
@@ -864,8 +868,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   ignore.push(source2Entry.resource.id);
@@ -1048,8 +1052,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
@@ -1087,10 +1091,10 @@ module.exports = function () {
           let flagged;
           let flagComments;
           if (matched) {
-            noMatch = matched.resource.tag.find(tag => tag.code == noMatchCode);
-            ignored = matched.resource.tag.find(tag => tag.code == ignoreCode);
-            flagged = matched.resource.tag.find(tag => tag.code == flagCode);
-            flagComments = matched.resource.tag.find(tag => tag.code == flagCommentCode);
+            noMatch = matched.resource.meta.tag.find(tag => tag.code == noMatchCode);
+            ignored = matched.resource.meta.tag.find(tag => tag.code == ignoreCode);
+            flagged = matched.resource.meta.tag.find(tag => tag.code == flagCode);
+            flagComments = matched.resource.meta.tag.find(tag => tag.code == flagCommentCode);
           }
           let newTag;
           if (noMatch) {
@@ -1120,12 +1124,12 @@ module.exports = function () {
                 delete copiedEntry.resource.partOf;
               }
               if (newTag) {
-                if (!copiedEntry.resource.tag) {
-                  copiedEntry.resource.tag = [];
+                if (!copiedEntry.resource.meta.tag) {
+                  copiedEntry.resource.meta.tag = [];
                 }
-                copiedEntry.resource.tag.push(newTag);
+                copiedEntry.resource.meta.tag.push(newTag);
                 if (flagComments) {
-                  copiedEntry.resource.tag.push(flagComments);
+                  copiedEntry.resource.meta.tag.push(flagComments);
                 }
               }
               mcsdUnmatched.entry.push(copiedEntry);
@@ -1217,10 +1221,10 @@ module.exports = function () {
             let nomatch;
             let ignore;
             let flagged;
-            if (mapped.resource.hasOwnProperty('tag')) {
-              nomatch = mapped.resource.tag.find(tag => tag.code === noMatchCode);
-              ignore = mapped.resource.tag.find(tag => tag.code === ignoreCode);
-              flagged = mapped.resource.tag.find(tag => tag.code === flagCode);
+            if (mapped.resource.meta.hasOwnProperty('tag')) {
+              nomatch = mapped.resource.meta.tag.find(tag => tag.code === noMatchCode);
+              ignore = mapped.resource.meta.tag.find(tag => tag.code === ignoreCode);
+              flagged = mapped.resource.meta.tag.find(tag => tag.code === flagCode);
             }
             if (flagged) {
               mappingStatus.flagged.push({

@@ -51,6 +51,8 @@
     "node-zip": "^1.1.1",
     "nodemon": "^1.18.3",
     "path": "^0.12.7",
+    "pg": "^7.12.1",
+    "properties-reader": "^0.3.1",
     "redis": "^2.8.0",
     "request": "^2.85.0",
     "stdio": "^0.2.7",
@@ -61,7 +63,8 @@
     "uniqid": "^5.0.3",
     "urijs": "^1.19.1",
     "uuid": "^3.2.1",
-    "winston": "^2.4.2"
+    "winston": "^2.4.2",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.5",

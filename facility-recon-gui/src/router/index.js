@@ -19,6 +19,8 @@ import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import AddJurisdiction from '@/components/FacilityRegistry/AddJurisdiction'
 import AddFacility from '@/components/FacilityRegistry/AddFacility'
 import FacilitiesReport from '@/components/FacilityRegistry/FacilitiesReport'
+import AddCodeSystem from '@/components/FacilityRegistry/AddCodeSystem'
+import AddService from '@/components/FacilityRegistry/AddService'
 import VueCookies from 'vue-cookies'
 import {
   store
@@ -121,6 +123,19 @@ let router = new Router({
       path: '/FacilitiesReport',
       name: 'FacilitiesReport',
       component: FacilitiesReport
+    },
+    {
+      path: '/AddCodeSystem',
+      name: 'AddCodeSystem',
+      component: AddCodeSystem,
+      props: (route) => ({
+        codeSystemType: route.query.type
+      })
+    },
+    {
+      path: '/AddService',
+      name: 'AddService',
+      component: AddService
     }
   ]
 })

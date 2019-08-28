@@ -897,7 +897,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakMatch(props.item.source1Id)'
+                      @click='breakMatch(props.item.source1UUID)'
                     >
                       <v-icon>undo</v-icon>Break Match
                     </v-btn>
@@ -906,7 +906,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakMatch(props.item.source1Id)'
+                      @click='breakMatch(props.item.source1UUID)'
                     >
                       <v-icon>undo</v-icon>Break Match
                     </v-btn>
@@ -1063,7 +1063,7 @@
                       color="primary"
                       style='text-transform: none'
                       small
-                      @click='acceptFlag(props.item.source1Id)'
+                      @click='acceptFlag(props.item.source1UUID)'
                     >
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
@@ -1072,7 +1072,7 @@
                       color="primary"
                       style='text-transform: none'
                       small
-                      @click='acceptFlag(props.item.source1Id)'
+                      @click='acceptFlag(props.item.source1UUID)'
                     >
                       <v-icon>thumb_up</v-icon>Confirm Match
                     </v-btn>
@@ -1082,7 +1082,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='unFlag(props.item.source1Id)'
+                      @click='unFlag(props.item.source1UUID)'
                     >
                       <v-icon>cached</v-icon>Release
                     </v-btn>
@@ -1091,7 +1091,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='unFlag(props.item.source1Id)'
+                      @click='unFlag(props.item.source1UUID)'
                     >
                       <v-icon>cached</v-icon>Release
                     </v-btn>
@@ -1183,6 +1183,7 @@ export default {
       selectedSource1: {},
       selectedSource1Name: null,
       selectedSource1Id: null,
+      selectedSource1UUID: null,
       selectedSource1Lat: null,
       selectedSource1Long: null,
       selectedSource1Parents: [],
@@ -1275,6 +1276,7 @@ export default {
           this.selectedSource1Lat = scoreResult.source1.lat
           this.selectedSource1Long = scoreResult.source1.long
           this.selectedSource1Id = scoreResult.source1.id
+          this.selectedSource1UUID = scoreResult.source1.uuid
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
               let potentials = scoreResult.potentialMatches[score][j]
@@ -1379,7 +1381,7 @@ export default {
       this.$store.state.dynamicProgress = true
       let sourcesOwner = this.getDatasourceOwner()
       let formData = new FormData()
-      formData.append('source1Id', this.selectedSource1Id)
+      formData.append('source1Id', this.selectedSource1UUID)
       formData.append('source2Id', this.source2Id)
       formData.append('source1Owner', sourcesOwner.source1Owner)
       formData.append('source2Owner', sourcesOwner.source2Owner)
@@ -1408,15 +1410,13 @@ export default {
 
           // Add from a list of Source 1 Matched and remove from list of Source 1 unMatched
           for (let k in this.$store.state.source1UnMatched) {
-            if (
-              this.$store.state.source1UnMatched[k].id ===
-              this.selectedSource1Id
-            ) {
+            if (this.$store.state.source1UnMatched[k].UUID === this.selectedSource1UUID) {
               if (this.matchType === 'match') {
                 ++this.$store.state.totalAllMapped
                 this.$store.state.matchedContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
+                  source1UUID: this.selectedSource1UUID,
                   source1Parents: this.$store.state.source1UnMatched[k].parents,
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
@@ -1430,6 +1430,7 @@ export default {
                 this.$store.state.flagged.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
+                  source1UUID: this.selectedSource1UUID,
                   source1Parents: this.$store.state.source1UnMatched[k].parents,
                   source2Name: this.source2Name,
                   source2Id: this.source2Id,
@@ -1444,6 +1445,7 @@ export default {
           }
           this.flagComment = ''
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
         })
@@ -1454,15 +1456,16 @@ export default {
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
         })
     },
-    acceptFlag (source1Id) {
+    acceptFlag (source1UUID) {
       this.$store.state.progressTitle = 'Accepting flag'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
-      formData.append('source1Id', source1Id)
+      formData.append('source1Id', source1UUID)
       let userID = this.$store.state.activePair.userID._id
       axios
         .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
@@ -1470,10 +1473,11 @@ export default {
           this.$store.state.dynamicProgress = false
           // Add from a list of Source 1 Matched and remove from list of Flagged
           for (let k in this.$store.state.flagged) {
-            if (this.$store.state.flagged[k].source1Id === source1Id) {
+            if (this.$store.state.flagged[k].source1UUID === source1UUID) {
               this.$store.state.matchedContent.push({
                 source1Name: this.$store.state.flagged[k].source1Name,
                 source1Id: this.$store.state.flagged[k].source1Id,
+                source1UUID: this.$store.state.flagged[k].source1UUID,
                 source1Parents: this.$store.state.flagged[k].source1Parents,
                 source2Name: this.$store.state.flagged[k].source2Name,
                 source2Id: this.$store.state.flagged[k].source2Id,
@@ -1493,18 +1497,19 @@ export default {
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
           console.log(err)
         })
     },
-    breakMatch (source1Id) {
+    breakMatch (source1UUID) {
       this.$store.state.progressTitle = 'Breaking match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source1Id', source1Id)
+      formData.append('source1Id', source1UUID)
       axios
         .post(
           backendServer +
@@ -1530,10 +1535,11 @@ export default {
           this.alertTitle = 'Information'
           this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.matchedContent) {
-            if (this.$store.state.matchedContent[k].source1Id === source1Id) {
+            if (this.$store.state.matchedContent[k].source1UUID === source1UUID) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.matchedContent[k].source1Name,
                 id: this.$store.state.matchedContent[k].source1Id,
+                UUID: this.$store.state.matchedContent[k].source1UUID,
                 parents: this.$store.state.matchedContent[k].source1Parents
               })
               this.$store.state.source2UnMatched.push({
@@ -1554,18 +1560,19 @@ export default {
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
           console.log(err)
         })
     },
-    unFlag (source1Id) {
+    unFlag (source1UUID) {
       this.$store.state.progressTitle = 'Unflagging match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source1Id', source1Id)
+      formData.append('source1Id', source1UUID)
       axios
         .post(
           backendServer +
@@ -1589,13 +1596,13 @@ export default {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
-          this.alertText =
-            'Scores for this Location may not be available unless you recalculate scores'
+          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.flagged) {
-            if (this.$store.state.flagged[k].source1Id === source1Id) {
+            if (this.$store.state.flagged[k].source1UUID === source1UUID) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.flagged[k].source1Name,
                 id: this.$store.state.flagged[k].source1Id,
+                uuid: this.$store.state.flagged[k].source1UUID,
                 parents: this.$store.state.flagged[k].source1Parents
               })
               this.$store.state.source2UnMatched.push({
@@ -1616,6 +1623,7 @@ export default {
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
           console.log(err)
@@ -1684,6 +1692,7 @@ export default {
           this.alertTitle = 'Error'
           this.alertText = err.response.data.error
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
           this.dialog = false
           console.log(err)
@@ -1745,6 +1754,7 @@ export default {
           }
           this.dialog = false
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
         })
         .catch(err => {
@@ -1754,6 +1764,7 @@ export default {
           this.alertText = err.response.data.error
           this.dialog = false
           this.selectedSource1Id = null
+          this.selectedSource1UUID = null
           this.selectedSource1Name = null
         })
     },

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
 
@@ -37,6 +38,7 @@ const FRRouter = require('./routes/facilityRegistry');
 const mcsd = require('./mcsd')();
 const dhis = require('./dhis')();
 const fhir = require('./fhir')();
+const hapi = require('./hapi');
 const scores = require('./scores')();
 
 const mongoUser = config.getConf('DB_USER');
@@ -187,9 +189,14 @@ if (cluster.isMaster) {
         };
         const fhirDoc = {};
         fhirDoc.entry = [];
-        fhirDoc.type = 'document';
+        fhirDoc.type = 'batch';
+        fhirDoc.resourceType = 'Bundle';
         fhirDoc.entry.push({
           resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${topOrgId}`,
+          },
         });
         mcsd.saveLocations(fhirDoc, '', (err, res) => {
           if (err) {
@@ -1691,10 +1698,10 @@ if (cluster.isMaster) {
           entry: [],
         };
         async.eachOf(mapped.entry, (entry, key, nxtEntry) => {
-          if (entry.resource.hasOwnProperty('tag')) {
-            const flagged = entry.resource.tag.find(tag => tag.code == flagCode);
-            const noMatch = entry.resource.tag.find(tag => tag.code == noMatchCode);
-            const ignore = entry.resource.tag.find(tag => tag.code == ignoreCode);
+          if (entry.resource.meta.hasOwnProperty('tag')) {
+            const flagged = entry.resource.meta.tag.find(tag => tag.code == flagCode);
+            const noMatch = entry.resource.meta.tag.find(tag => tag.code == noMatchCode);
+            const ignore = entry.resource.meta.tag.find(tag => tag.code == ignoreCode);
             if (noMatch || ignore || flagged) {
               delete mapped.entry[key];
             }
@@ -1719,14 +1726,14 @@ if (cluster.isMaster) {
             manuallyMatched,
             matchCommentsTag,
             flagCommentsTag;
-          if (entry.resource.hasOwnProperty('tag')) {
-            flagged = entry.resource.tag.find(tag => tag.code == flagCode);
-            noMatch = entry.resource.tag.find(tag => tag.code == noMatchCode);
-            ignore = entry.resource.tag.find(tag => tag.code == ignoreCode);
-            autoMatched = entry.resource.tag.find(tag => tag.code == autoMatchedCode);
-            manuallyMatched = entry.resource.tag.find(tag => tag.code == manualllyMatchedCode);
-            matchCommentsTag = entry.resource.tag.find(tag => tag.code == matchCommentsCode);
-            flagCommentsTag = entry.resource.tag.find(tag => tag.code == flagCommentCode);
+          if (entry.resource.meta.hasOwnProperty('tag')) {
+            flagged = entry.resource.meta.tag.find(tag => tag.code == flagCode);
+            noMatch = entry.resource.meta.tag.find(tag => tag.code == noMatchCode);
+            ignore = entry.resource.meta.tag.find(tag => tag.code == ignoreCode);
+            autoMatched = entry.resource.meta.tag.find(tag => tag.code == autoMatchedCode);
+            manuallyMatched = entry.resource.meta.tag.find(tag => tag.code == manualllyMatchedCode);
+            matchCommentsTag = entry.resource.meta.tag.find(tag => tag.code == matchCommentsCode);
+            flagCommentsTag = entry.resource.meta.tag.find(tag => tag.code == flagCommentCode);
           }
           if (noMatch || ignore || flagged) {
             return nxtmCSD();
@@ -2797,17 +2804,27 @@ if (cluster.isMaster) {
     } = req.params;
     const name = mixin.toTitleCase(req.params.name);
     winston.info(`Received request to delete data source with id ${id}`);
-    mongo.deleteDataSource(id, name, sourceOwner, userID, (err, response) => {
+    const dbName = name + userID;
+    hapi.deleteServer(dbName, (err) => {
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured while deleting data source,please retry',
         });
         winston.error(err);
-      } else {
-        res.status(200).json({
-          status: 'done',
-        });
+        return;
       }
+      mongo.deleteDataSource(id, name, sourceOwner, userID, (err, response) => {
+        if (err) {
+          res.status(500).json({
+            error: 'Unexpected error occured while deleting data source,please retry',
+          });
+          winston.error(err);
+        } else {
+          res.status(200).json({
+            status: 'done',
+          });
+        }
+      });
     });
   });
 
@@ -2871,33 +2888,41 @@ if (cluster.isMaster) {
       try {
         fields.activePairID = JSON.parse(fields.activePairID);
       } catch (error) {
-
+        winston.error(error);
       }
-      mongo.addDataSourcePair(fields, (error, errMsg, results) => {
-        if (error) {
-          if (errMsg) {
-            winston.error(errMsg);
-          } else {
-            winston.error(error);
-          }
-          res.status(400).json({
-            error: errMsg,
-          });
-        } else {
-          const db1 = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID._id;
-          const db2 = mixin.toTitleCase(JSON.parse(fields.source2).name) + JSON.parse(fields.source2).userID._id;
-          async.series({
-            levelMapping1(callback) {
-              mongo.getLevelMapping(db1, levelMapping => callback(false, levelMapping));
-            },
-            levelMapping2(callback) {
-              mongo.getLevelMapping(db2, levelMapping => callback(false, levelMapping));
-            },
-          }, (err, mappings) => {
-            winston.info('Data source pair saved successfully');
-            res.status(200).json(JSON.stringify(mappings));
+      const database = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID._id + mixin.toTitleCase(JSON.parse(fields.source2).name);
+      hapi.createServer(database, (err) => {
+        if (err) {
+          return res.status(400).json({
+            error: 'An expected error occured',
           });
         }
+        mongo.addDataSourcePair(fields, (error, errMsg, results) => {
+          if (error) {
+            if (errMsg) {
+              winston.error(errMsg);
+            } else {
+              winston.error(error);
+            }
+            res.status(400).json({
+              error: errMsg,
+            });
+          } else {
+            const db1 = mixin.toTitleCase(JSON.parse(fields.source1).name) + JSON.parse(fields.source1).userID._id;
+            const db2 = mixin.toTitleCase(JSON.parse(fields.source2).name) + JSON.parse(fields.source2).userID._id;
+            async.series({
+              levelMapping1(callback) {
+                mongo.getLevelMapping(db1, levelMapping => callback(false, levelMapping));
+              },
+              levelMapping2(callback) {
+                mongo.getLevelMapping(db2, levelMapping => callback(false, levelMapping));
+              },
+            }, (err, mappings) => {
+              winston.info('Data source pair saved successfully');
+              res.status(200).json(JSON.stringify(mappings));
+            });
+          }
+        });
       });
     });
   });
@@ -2911,12 +2936,18 @@ if (cluster.isMaster) {
     const source1Name = mixin.toTitleCase(req.query.source1Name);
     const source2Name = mixin.toTitleCase(req.query.source2Name);
     const dbName = source1Name + userID + source2Name;
-    mongo.deleteSourcePair(pairId, dbName, (err, data) => {
+    hapi.deleteServer(dbName, (err) => {
       if (err) {
         winston.error(err);
         return res.send(500).send(err);
       }
-      res.status(200).send();
+      mongo.deleteSourcePair(pairId, dbName, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return res.send(500).send(err);
+        }
+        res.status(200).send();
+      });
     });
   });
 
@@ -3065,38 +3096,50 @@ if (cluster.isMaster) {
         }
         res.status(200).end();
 
-        const oldPath = files[fileName].path;
-
-        const newPath = `${__dirname}/csvUploads/${fields.userID}+${mixin.toTitleCase(fields.csvName)}+${moment().format()}.csv`;
-        fs.readFile(oldPath, (err, data) => {
-          if (err) {
-            winston.error(err);
-          }
-          fs.writeFile(newPath, data, (err) => {
-            if (err) {
-              winston.error(err);
-            }
-          });
-        });
         winston.info('CSV File Passed Validation');
-        winston.info(`Uploading data for ${database} now`);
-        const uploadReqPro = JSON.stringify({
+        uploadReqPro = JSON.stringify({
           status: '3/3 Uploading of DB started',
           error: null,
           percent: null,
         });
         redisClient.set(uploadRequestId, uploadReqPro);
-        mongo.saveLevelMapping(fields, database, (error, response) => {
+        winston.info('Creating HAPI server now');
+        hapi.createServer(database, (err) => {
+          if (err) {
+            uploadReqPro = JSON.stringify({
+              status: 'Error',
+              error: 'An error has occured, upload cancelled',
+              percent: null,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+            return;
+          }
+          const oldPath = files[fileName].path;
 
-        });
-        mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
-          winston.info(`Data upload for ${database} is done`);
-          const uploadReqPro = JSON.stringify({
-            status: 'Done',
-            error: null,
-            percent: 100,
+          const newPath = `${__dirname}/csvUploads/${fields.userID}+${mixin.toTitleCase(fields.csvName)}+${moment().format()}.csv`;
+          fs.readFile(oldPath, (err, data) => {
+            if (err) {
+              winston.error(err);
+            }
+            fs.writeFile(newPath, data, (err) => {
+              if (err) {
+                winston.error(err);
+              }
+            });
           });
-          redisClient.set(uploadRequestId, uploadReqPro);
+          winston.info(`Uploading data for ${database} now`);
+          mongo.saveLevelMapping(fields, database, (error, response) => {
+
+          });
+          mcsd.CSVTomCSD(files[fileName].path, fields, database, clientId, () => {
+            winston.info(`Data upload for ${database} is done`);
+            const uploadReqPro = JSON.stringify({
+              status: 'Done',
+              error: null,
+              percent: 100,
+            });
+            redisClient.set(uploadRequestId, uploadReqPro);
+          });
         });
       });
     });

@@ -158,7 +158,7 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addJurisdiction.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip bottom>
+            <v-tooltip top>
               <v-list-tile
                 to="AddFacility"
                 slot="activator"
@@ -178,6 +178,42 @@
                 <v-icon left>house</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
               </v-list-tile-title>
             </v-list-tile>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=serviceCategories"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addServiceCategory.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addServiceCategory.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=serviceTypes"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addServiceType.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addServiceType.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-list-tile
+                to="AddService"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>house</v-icon>{{ $t('App.menu.addService.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addService.tooltip')}}</span>
+            </v-tooltip>
           </v-list>
         </v-menu>
         <v-menu
@@ -368,6 +404,12 @@ export default {
   props: ['generalConfig'],
   data () {
     return {
+      items: [
+        { title: 'Click Me' },
+        { title: 'Click Me' },
+        { title: 'Click Me' },
+        { title: 'Click Me 2' }
+      ],
       fixed: false,
       title: this.$t('App.title'),
       locale: 'en',

@@ -17,6 +17,7 @@ const mongo = require('./mongo')();
 const mixin = require('./mixin')();
 const config = require('./config');
 const codesystem = require('../terminologies/gofr-codesystem.json');
+const moment = require('moment');
 
 const topOrgId = config.getConf('mCSD:fakeOrgId');
 const topOrgName = config.getConf('mCSD:fakeOrgName');
@@ -30,11 +31,59 @@ module.exports = () => ({
     return codesystem.concept.find(concept => concept.code === code);
   },
 
+  getCodeSystem({
+    codeSystemURI,
+    database,
+  }, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
+    let url = URI(config.getConf('mCSD:url'));
+    if (database) {
+      url = url.segment(database);
+    }
+    url = url.segment('fhir').segment('CodeSystem').toString();
+    if (codeSystemURI) {
+      url += `?url=${codeSystemURI}`;
+    }
+    const codeSystems = {};
+    codeSystems.entry = [];
+    async.doWhilst(
+      (callback) => {
+        const options = {
+          url,
+        };
+        url = false;
+        request.get(options, (err, res, body) => {
+          if (!isJSON(body)) {
+            return callback(false, false);
+          }
+          const mcsd = JSON.parse(body);
+          const next = mcsd.link.find(link => link.relation == 'next');
+          if (next) {
+            url = next.url;
+          }
+          if (mcsd.total > 0) {
+            codeSystems.entry = codeSystems.entry.concat(mcsd.entry);
+          }
+          return callback(false, url);
+        });
+      },
+      () => url != false,
+      () => {
+        callback(codeSystems);
+      },
+    );
+  },
+
   getOrganizationByID({
     database,
     id,
     getCached,
   }, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
     let url = URI(config.getConf('mCSD:url'));
     if (database) {
       url = url.segment(database);
@@ -62,7 +111,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          organizations.entry = organizations.entry.concat(mcsd.entry);
+          if (mcsd.total > 0) {
+            organizations.entry = organizations.entry.concat(mcsd.entry);
+          }
           return callback(false, url);
         });
       },
@@ -109,7 +160,7 @@ module.exports = () => ({
             return callback(false, false);
           }
           body = JSON.parse(body);
-          if (!body.hasOwnProperty('entry')) {
+          if (body.total == 0) {
             winston.error('Non mCSD data returned');
             cache.del(`started_${baseUrl}`);
             return callback(false, false);
@@ -137,6 +188,9 @@ module.exports = () => ({
   },
 
   getLocationByID(database, id, getCached, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
     let url = URI(config.getConf('mCSD:url'));
     if (database) {
       url = url.segment(database);
@@ -164,7 +218,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          locations.entry = locations.entry.concat(mcsd.entry);
+          if (mcsd.total > 0) {
+            locations.entry = locations.entry.concat(mcsd.entry);
+          }
           return callback(false, url);
         });
       },
@@ -174,6 +230,7 @@ module.exports = () => ({
       },
     );
   },
+
   getLocationByIdentifier(database, identifier, callback) {
     const locations = {};
     locations.entry = [];
@@ -197,7 +254,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          locations.entry = locations.entry.concat(body.entry);
+          if (body.total > 0) {
+            locations.entry = locations.entry.concat(body.entry);
+          }
           return callback(false, url);
         });
       },
@@ -212,6 +271,9 @@ module.exports = () => ({
     database,
     parent,
   }, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
     if (!parent) {
       parent = '';
     }
@@ -219,12 +281,11 @@ module.exports = () => ({
     if (database) {
       url = url.segment(database);
     }
-    url = url.segment('fhir').segment('Location');
+    url = url.segment('fhir').segment('Location').toString();
     if (parent) {
-      url = url.segment(parent);
+      url += `?_id=${parent}&_revinclude:recurse=Location:partof`;
     }
     url = url.toString();
-    url += '/$hierarchy?_count=37000';
     const data = cache.get(`url_${url}`);
     if (data) {
       winston.info(`Getting ${url} from cache`);
@@ -254,7 +315,7 @@ module.exports = () => ({
         return callback(mcsd);
       }
       body = JSON.parse(body);
-      if (body.entry.length > 1) {
+      if (body.entry && body.entry.length > 1) {
         winston.info(`Saving ${url} to cache`);
         cache.put(`url_${url}`, body, config.getConf('mCSD:cacheTime'));
       } else {
@@ -284,7 +345,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          locations.entry = locations.entry.concat(mcsd.entry);
+          if (mcsd.total > 0) {
+            locations.entry = locations.entry.concat(mcsd.entry);
+          }
           return callback(false, url);
         });
       },
@@ -297,11 +360,11 @@ module.exports = () => ({
 
   getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
     const parents = [];
-    if (entityParent == null ||
-      entityParent == false ||
-      entityParent == undefined ||
-      !topOrg ||
-      !database
+    if (entityParent == null
+      || entityParent == false
+      || entityParent == undefined
+      || !topOrg
+      || !database
     ) {
       return callback(parents);
     }
@@ -373,7 +436,7 @@ module.exports = () => ({
           body = JSON.parse(body);
           let long = null;
           let lat = null;
-          if (body.entry.length === 0) {
+          if (body.total === 0) {
             winston.error('Empty mcsd data received, this wasnt expected');
             return callback(parents);
           }
@@ -433,10 +496,10 @@ module.exports = () => ({
           // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
           else if (topOrg && sourceEntityID.endsWith(topOrg)) {
             return callback(parents);
-          } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
-            body.entry[0].resource.partOf.reference != false &&
-            body.entry[0].resource.partOf.reference != null &&
-            body.entry[0].resource.partOf.reference != undefined) {
+          } else if (body.entry[0].resource.hasOwnProperty('partOf')
+            && body.entry[0].resource.partOf.reference != false
+            && body.entry[0].resource.partOf.reference != null
+            && body.entry[0].resource.partOf.reference != undefined) {
             var entityParent = body.entry[0].resource.partOf.reference;
             getPar(entityParent, (parents) => {
               callback(parents);
@@ -497,10 +560,10 @@ module.exports = () => ({
           winston.error('parent details (either id,names or all) to be returned not specified');
         }
 
-        if (entry.resource.hasOwnProperty('partOf') &&
-          entry.resource.partOf.reference != false &&
-          entry.resource.partOf.reference != null &&
-          entry.resource.partOf.reference != undefined) {
+        if (entry.resource.hasOwnProperty('partOf')
+          && entry.resource.partOf.reference != false
+          && entry.resource.partOf.reference != null
+          && entry.resource.partOf.reference != undefined) {
           entityParent = entry.resource.partOf.reference;
           filter(entityParent, parents => callback(parents));
         } else {
@@ -618,9 +681,9 @@ module.exports = () => ({
         }
         body = JSON.parse(body);
         let entry;
-        if (body.entry.length === 0 && prev_entry.length > 0) {
+        if (body.total === 0 && prev_entry.length > 0) {
           entry = prev_entry.shift();
-        } else if (body.entry.length === 0 && Object.keys(prev_entry).length === 0) {
+        } else if (body.total === 0 && Object.keys(prev_entry).length === 0) {
           return callback(totalLevels);
         } else {
           prev_entry = [];
@@ -659,7 +722,7 @@ module.exports = () => ({
       promise.then(() => {
         const fhir = {};
         fhir.entry = [];
-        fhir.type = 'document';
+        fhir.type = 'batch';
         fhir.entry = fhir.entry.concat(location.entry[0]);
         this.saveLocations(fhir, db, (err, res) => {
           if (err) {
@@ -841,13 +904,22 @@ module.exports = () => ({
     }
     const fhir = {};
     fhir.entry = [];
-    fhir.type = 'document';
+    fhir.type = 'batch';
+    fhir.resourceType = 'Bundle';
     fhir.entry.push({
       resource: LocationResource,
+      request: {
+        method: 'PUT',
+        url: `Location/${LocationResource.id}`,
+      },
     });
     if (organizationResource) {
       fhir.entry.push({
         resource: organizationResource,
+        request: {
+          method: 'PUT',
+          url: `Organization/${organizationResource.id}`,
+        },
       });
     }
     this.saveLocations(fhir, '', (err, res) => {
@@ -858,6 +930,59 @@ module.exports = () => ({
     });
   },
 
+  addCodeSystem({
+    name,
+    text,
+    code,
+    codeSystemType,
+  }, callback) {
+    const codeSystems = config.getConf('codeSystems');
+    const codeSyst = codeSystems.find(code => code.name === codeSystemType);
+    if (!codeSyst) {
+      winston.error(`Code system type ${codeSystemType} not found on the config file`);
+      return callback(true);
+    }
+    const codeSystemURI = codeSyst.uri;
+    this.getCodeSystem({
+      codeSystemURI,
+    }, (codeSystem) => {
+      let codeSystemResource = {};
+      if (codeSystem.entry.length > 0) {
+        codeSystemResource = codeSystem.entry[0].resource;
+        codeSystemResource.date = moment().format('YYYY-MM-DDTHH:mm:ssZ');
+        codeSystemResource.concept.push({
+          code,
+          display: name,
+        });
+      } else {
+        codeSystemResource.resourceType = 'CodeSystem';
+        codeSystemResource.id = uuid4();
+        codeSystemResource.url = codeSystemURI;
+        codeSystemResource.status = 'active';
+        codeSystemResource.content = 'complete';
+        codeSystemResource.caseSensitive = true;
+        codeSystemResource.date = moment().format('YYYY-MM-DDTHH:mm:ssZ');
+        codeSystemResource.version = '1.0.0';
+        codeSystemResource.concept = [];
+        codeSystemResource.concept.push({
+          code,
+          display: name,
+        });
+      }
+      const fhir = {};
+      fhir.entry = [];
+      fhir.type = 'document';
+      fhir.entry.push({
+        resource: codeSystemResource,
+      });
+      this.saveLocations(fhir, '', (err, res) => {
+        if (err) {
+          winston.error(err);
+        }
+        callback(err);
+      });
+    });
+  },
   deleteLocation(id, sourceId, sourceName, sourceOwner, userID, callback) {
     mongo.getMappingDBs(sourceId, (dbs) => {
       async.parallel({
@@ -914,6 +1039,9 @@ module.exports = () => ({
   },
 
   saveLocations(mCSD, database, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
     let url = URI(config.getConf('mCSD:url'));
     if (database) {
       url = url.segment(database);
@@ -1080,7 +1208,8 @@ module.exports = () => ({
 
         const fhir = {};
         fhir.entry = [];
-        fhir.type = 'document';
+        fhir.type = 'batch';
+        fhir.resourceType = 'Bundle';
         const entry = [];
         const resource = {};
         resource.resourceType = 'Location';
@@ -1125,47 +1254,41 @@ module.exports = () => ({
             system: 'http://hl7.org/fhir/location-physical-type',
           }],
         };
+        if (!resource.meta) {
+          resource.meta = {};
+        }
+        if (!resource.meta.tag) {
+          resource.meta.tag = [];
+        }
         if (matchComments.length > 0) {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
-          }
-          resource.tag.push({
+          resource.meta.tag.push({
             system: source2System,
             code: matchCommentsCode,
             display: matchComments,
           });
         }
         if (type == 'flag') {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
-          }
           if (flagComment) {
-            resource.tag.push({
+            resource.meta.tag.push({
               system: source2System,
               code: flagCommentCode,
               display: flagComment,
             });
           }
-          resource.tag.push({
+          resource.meta.tag.push({
             system: source2System,
             code: flagCode,
             display: 'To be reviewed',
           });
         }
         if (autoMatch) {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
-          }
-          resource.tag.push({
+          resource.meta.tag.push({
             system: source2System,
             code: autoMatchedCode,
             display: 'Automatically Matched',
           });
         } else {
-          if (!resource.hasOwnProperty('tag')) {
-            resource.tag = [];
-          }
-          resource.tag.push({
+          resource.meta.tag.push({
             system: source2System,
             code: manualllyMatchedCode,
             display: 'Manually Matched',
@@ -1173,6 +1296,10 @@ module.exports = () => ({
         }
         entry.push({
           resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${resource.id}`,
+          },
         });
         fhir.entry = fhir.entry.concat(entry);
         me.saveLocations(fhir, mappingDB, (err, res) => {
@@ -1186,7 +1313,6 @@ module.exports = () => ({
   },
   acceptFlag(source1Id, mappingDB, callback) {
     this.getLocationByID(mappingDB, source1Id, false, (flagged) => {
-      delete flagged.resourceType;
       delete flagged.id;
       delete flagged.meta;
       delete flagged.total;
@@ -1194,20 +1320,24 @@ module.exports = () => ({
       const flagCode = config.getConf('mapping:flagCode');
       const flagCommentCode = config.getConf('mapping:flagCommentCode');
       // remove the flag tag
-      for (const k in flagged.entry[0].resource.tag) {
-        const tag = flagged.entry[0].resource.tag[k];
+      for (const k in flagged.entry[0].resource.meta.tag) {
+        const tag = flagged.entry[0].resource.meta.tag[k];
         if (tag.code === flagCode) {
-          flagged.entry[0].resource.tag.splice(k, 1);
+          flagged.entry[0].resource.meta.tag.splice(k, 1);
         }
       }
 
-      for (const k in flagged.entry[0].resource.tag) {
-        const tag = flagged.entry[0].resource.tag[k];
+      for (const k in flagged.entry[0].resource.meta.tag) {
+        const tag = flagged.entry[0].resource.meta.tag[k];
         if (tag.code === flagCommentCode) {
-          flagged.entry[0].resource.tag.splice(k, 1);
+          flagged.entry[0].resource.meta.tag.splice(k, 1);
         }
       }
-      flagged.type = 'document';
+      flagged.entry[0].request = {};
+      flagged.entry[0].request.method = 'PUT';
+      flagged.entry[0].request.url = `Location/${flagged.entry[0].resource.id}`;
+      flagged.resourceType = 'Bundle';
+      flagged.type = 'batch';
 
       // deleting existing location
       const url_prefix = URI(config.getConf('mCSD:url')).segment(mappingDB).segment('fhir').segment('Location');
@@ -1238,85 +1368,90 @@ module.exports = () => ({
 
     const me = this;
     async.parallel({
-        source1Mapped(callback) {
-          me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
-            if (mapped.entry.length > 0) {
-              winston.error('Attempting to mark an already mapped location as no match');
-              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-            }
-            return callback(null, null);
-          });
-        },
+      source1Mapped(callback) {
+        me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
+          if (mapped.entry.length > 0) {
+            winston.error('Attempting to mark an already mapped location as no match');
+            return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+          }
+          return callback(null, null);
+        });
       },
-      (err, res) => {
-        if (res.source1Mapped !== null) {
-          return callback(res.source1Mapped);
-        }
-        me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'document';
-          const entry = [];
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = mcsd.entry[0].resource.name;
-          resource.id = source1Id;
+    },
+    (err, res) => {
+      if (res.source1Mapped !== null) {
+        return callback(res.source1Mapped);
+      }
+      me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'batch';
+        fhir.resourceType = 'Bundle';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = mcsd.entry[0].resource.name;
+        resource.id = source1Id;
 
-          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-            resource.partOf = {
-              display: mcsd.entry[0].resource.partOf.display,
-              reference: mcsd.entry[0].resource.partOf.reference,
-            };
-          }
-          if (recoLevel == totalLevels) {
-            var typeCode = 'bu';
-            var typeName = 'building';
-          } else {
-            var typeCode = 'jdn';
-            var typeName = 'Jurisdiction';
-          }
-          resource.physicalType = {
-            coding: [{
-              code: typeCode,
-              display: typeName,
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
+        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+          resource.partOf = {
+            display: mcsd.entry[0].resource.partOf.display,
+            reference: mcsd.entry[0].resource.partOf.reference,
           };
-          resource.identifier = [];
-          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-            .segment(source1Id)
-            .toString();
-          resource.identifier.push({
+        }
+        if (recoLevel == totalLevels) {
+          var typeCode = 'bu';
+          var typeName = 'building';
+        } else {
+          var typeCode = 'jdn';
+          var typeName = 'Jurisdiction';
+        }
+        resource.physicalType = {
+          coding: [{
+            code: typeCode,
+            display: typeName,
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        };
+        resource.identifier = [];
+        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+          .segment(source1Id)
+          .toString();
+        resource.identifier.push({
+          system: source1System,
+          value: source1URL,
+        });
+        resource.meta = {};
+        resource.meta.tag = [];
+        if (type == 'nomatch') {
+          resource.meta.tag.push({
             system: source1System,
-            value: source1URL,
+            code: noMatchCode,
+            display: 'No Match',
           });
-
-          resource.tag = [];
-          if (type == 'nomatch') {
-            resource.tag.push({
-              system: source1System,
-              code: noMatchCode,
-              display: 'No Match',
-            });
-          } else if (type == 'ignore') {
-            resource.tag.push({
-              system: source1System,
-              code: ignoreCode,
-              display: 'Ignore',
-            });
+        } else if (type == 'ignore') {
+          resource.meta.tag.push({
+            system: source1System,
+            code: ignoreCode,
+            display: 'Ignore',
+          });
+        }
+        entry.push({
+          resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${resource.id}`,
+          },
+        });
+        fhir.entry = fhir.entry.concat(entry);
+        me.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
           }
-          entry.push({
-            resource,
-          });
-          fhir.entry = fhir.entry.concat(entry);
-          me.saveLocations(fhir, mappingDB, (err, res) => {
-            if (err) {
-              winston.error(err);
-            }
-            callback(err);
-          });
+          callback(err);
         });
       });
+    });
   },
   breakMatch(source1Id, mappingDB, source1DB, callback) {
     if (!source1Id) {
@@ -1349,23 +1484,31 @@ module.exports = () => ({
       const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
       // remove the flag tag
       let found = false;
-      async.eachSeries(location.entry[0].resource.tag, (tag, nxtTag) => {
+      async.eachSeries(location.entry[0].resource.meta.tag, (tag, nxtTag) => {
         if (tag.code === matchBrokenCode) {
           found = true;
         }
         return nxtTag();
       }, () => {
-        location.type = 'document';
+        location.resourceType = 'Bundle';
+        location.type = 'batch';
         if (!found) {
-          if (!location.entry[0].resource.hasOwnProperty('tag')) {
-            location.entry[0].resource.tag = [];
-          }
           const source1System = 'https://digitalhealth.intrahealth.org/source1';
-          location.entry[0].resource.tag.push({
+          if (!location.entry[0].resource.meta) {
+            location.entry[0].resource.meta = {};
+          }
+          if (!location.entry[0].resource.meta.tag) {
+            location.entry[0].resource.meta.tag = [];
+          }
+          location.entry[0].resource.meta.tag.push({
             system: source1System,
             code: matchBrokenCode,
             display: 'Match Broken',
           });
+          location.entry[0].request = {};
+          location.entry[0].request.method = 'PUT';
+          location.entry[0].request.url = `Location/${location.entry[0].resource.id}`;
+          winston.error(JSON.stringify(location));
           this.saveLocations(location, source1DB, (err, res) => {});
         }
       });
@@ -1436,10 +1579,10 @@ module.exports = () => ({
         let facilityParent = null;
         let facilityParentUUID = null;
         async.eachSeries(levels, (level, nxtLevel) => {
-          if (data[headerMapping[level]] != null &&
-            data[headerMapping[level]] != undefined &&
-            data[headerMapping[level]] != false &&
-            data[headerMapping[level]] != ''
+          if (data[headerMapping[level]] != null
+            && data[headerMapping[level]] != undefined
+            && data[headerMapping[level]] != false
+            && data[headerMapping[level]] != ''
           ) {
             let name = data[headerMapping[level]].trim();
             name = mixin.toTitleCaseSpace(name);
@@ -1620,7 +1763,7 @@ module.exports = () => ({
     resource.status = 'active';
     resource.mode = 'instance';
     resource.name = building.name;
-    resource.id = building.id;
+    resource.id = building.uuid;
     resource.identifier = [];
     resource.identifier.push({
       system: 'https://digitalhealth.intrahealth.org/source1',

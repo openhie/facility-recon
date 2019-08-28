@@ -32,6 +32,22 @@
         "msg": "Facilities Report",
         "tooltip": "Facilities Report"
       },
+      "addServiceType": {
+        "msg": "Add Service Type",
+        "tooltip": "Add Service Type"
+      },
+      "addServiceCategory": {
+        "msg": "Add Service Category",
+        "tooltip": "Add Service Category"
+      },
+      "addService": {
+        "msg": "Add Service",
+        "tooltip": "Add Service"
+      },
+      "services": {
+        "msg": "Services",
+        "tooltip": "Services"
+      },
       "archive": {
         "msg": "Archived Uploads",
         "tooltip": "Access to backup data"

@@ -64,5 +64,31 @@
   "encryption": {
     "algorithm": "aes-256-ctr",
     "secret": "b1ea334a-bf5a-11e8-a355-529269fb1459"
+  },
+  "codeSystems": [{
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/servicetypes",
+    "name": "serviceTypes"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/servicecategories",
+    "name": "serviceCategories"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/facilityownership",
+    "name": "facilityOwnership"
+  }],
+  "hapi": {
+    "DBUser": "hapi",
+    "DBPassword": "hapi",
+    "defaultDBName": "gofr",
+    "fhirVersion": "R4",
+    "DBDependencyGrpID": "org.postgresql",
+    "DBDependencyArtfactID": "postgresql",
+    "DBDriver": "org.postgresql.Driver",
+    "DBDialect": "org.hibernate.dialect.PostgreSQL95Dialect",
+    "serverStarterPath": "/home/ally/hapi-fhir-jpaserver-starter",
+    "tomcatPath": "/opt/tomcat"
+  },
+  "pg": {
+    "user": "gofr",
+    "password": "gofr"
   }
 }

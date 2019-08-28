@@ -171,6 +171,35 @@ router.get('/getBuildings', (req, res) => {
   });
 });
 
+router.post('/addCodeSystem', (req, res) => {
+  winston.info('Received a request to add code system');
+  const form = new formidable.IncomingForm();
+  form.parse(req, (err, fields, files) => {
+    mcsd.addCodeSystem(fields, (error) => {
+      if (error) {
+        res.status(500).send(error);
+      } else {
+        winston.info('New code system added successfully');
+        res.status(200).send();
+      }
+    });
+  });
+});
+
+router.get('/getCodeSystem', (req, res) => {
+  winston.info('Received a request to get code system');
+  const {
+    codeSystemType,
+  } = req.query;
+  mcsd.getCodeSystem(codeSystemType, (codeSystem) => {
+    let codeSystemResource = {};
+    if (codeSystem.entry.length > 0 && codeSystem.entry[0].resource.concept) {
+      codeSystemResource = codeSystem.entry[0].resource.concept;
+    }
+    res.status(200).send(codeSystemResource);
+  });
+});
+
 router.get('/getTree', (req, res) => {
   winston.info('Received a request to get location tree');
   let {
