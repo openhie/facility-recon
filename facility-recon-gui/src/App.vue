@@ -180,7 +180,7 @@
             </v-list-tile>
             <v-tooltip top>
               <v-list-tile
-                to="/AddCodeSystem?type=serviceCategories"
+                to="/AddCodeSystem?type=serviceCategories&displayText=Service Categorie"
                 slot="activator"
                 v-if='$store.state.auth.role === "Admin"'
               >
@@ -192,7 +192,7 @@
             </v-tooltip>
             <v-tooltip top>
               <v-list-tile
-                to="/AddCodeSystem?type=serviceTypes"
+                to="/AddCodeSystem?type=serviceTypes&displayText=Service Type"
                 slot="activator"
                 v-if='$store.state.auth.role === "Admin"'
               >
@@ -201,6 +201,18 @@
                 </v-list-tile-title>
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceType.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=specialties&displayText=Specialty"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addServiceSpecialty.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addServiceSpecialty.tooltip')}}</span>
             </v-tooltip>
             <v-tooltip bottom>
               <v-list-tile

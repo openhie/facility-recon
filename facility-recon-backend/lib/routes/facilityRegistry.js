@@ -8,6 +8,7 @@ const async = require('async');
 const router = express.Router();
 const mcsd = require('../mcsd')();
 const config = require('../config');
+const mixin = require('../mixin')();
 
 const topOrgId = config.getConf('mCSD:fakeOrgId');
 
@@ -71,13 +72,11 @@ router.get('/getBuildings', (req, res) => {
         }
         if (building.resource.type) {
           row.type = {};
-          if (building.resource.type.coding) {
-            const coding = building.resource.type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType');
-            if (coding) {
-              row.type.code = coding.code;
-            }
+          const type = building.resource.type.find(type => type.coding && type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType'));
+          if (type) {
+            row.type.code = type.coding[0].code;
+            row.type.text = type.text;
           }
-          row.type.text = building.resource.type.text;
         }
         if (building.resource.status) {
           row.status = {};
@@ -103,19 +102,19 @@ router.get('/getBuildings', (req, res) => {
             row.long = building.resource.position.longitude;
           }
         }
-        const phone = building.resource.telecom.find(telecom => telecom.system === 'phone');
+        const phone = building.resource.telecom && building.resource.telecom.find(telecom => telecom.system === 'phone');
         if (phone) {
           row.phone = phone.value;
         }
-        const email = building.resource.telecom.find(telecom => telecom.system === 'email');
+        const email = building.resource.telecom && building.resource.telecom.find(telecom => telecom.system === 'email');
         if (email) {
           row.email = email.value;
         }
-        const fax = building.resource.telecom.find(telecom => telecom.system === 'fax');
+        const fax = building.resource.telecom && building.resource.telecom.find(telecom => telecom.system === 'fax');
         if (fax) {
           row.fax = fax.value;
         }
-        const website = building.resource.telecom.find(telecom => telecom.system === 'website');
+        const website = building.resource.telecom && building.resource.telecom.find(telecom => telecom.system === 'url');
         if (website) {
           row.website = website.value;
         }
@@ -144,11 +143,11 @@ router.get('/getBuildings', (req, res) => {
                 id: orgId,
               }, (orgDt) => {
                 if (orgDt.entry && orgDt.entry.length > 0) {
-                  if (orgDt.entry[0].resource.type && orgDt.entry[0].resource.type.coding) {
-                    row.ownership.text = orgDt.entry[0].resource.type.text;
-                    const coding = orgDt.entry[0].resource.type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType');
-                    if (coding) {
-                      row.ownership.code = coding.code;
+                  if (orgDt.entry[0].resource.type) {
+                    const type = orgDt.entry[0].resource.type.find(type => type.coding && type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType'));
+                    if (type) {
+                      row.ownership.code = type.coding[0].code;
+                      row.ownership.text = type.text;
                     }
                     return callback(null);
                   }
@@ -191,7 +190,16 @@ router.get('/getCodeSystem', (req, res) => {
   const {
     codeSystemType,
   } = req.query;
-  mcsd.getCodeSystem(codeSystemType, (codeSystem) => {
+  const codeSyst = mixin.getCodesysteURI(codeSystemType);
+  let codeSystemURI;
+  if (codeSyst) {
+    codeSystemURI = codeSyst.uri;
+  } else {
+    winston.warn(`Codesystem URI ${codeSystemType} was not found on the configuration`);
+  }
+  mcsd.getCodeSystem({
+    codeSystemURI,
+  }, (codeSystem) => {
     let codeSystemResource = {};
     if (codeSystem.entry.length > 0 && codeSystem.entry[0].resource.concept) {
       codeSystemResource = codeSystem.entry[0].resource.concept;

@@ -26,7 +26,8 @@ const redisClient = redis.createClient({
 });
 const moment = require('moment');
 const json2csv = require('json2csv').parse;
-const url = require('url');
+const URL = require('url');
+const URI = require('urijs');
 const async = require('async');
 const mongoose = require('mongoose');
 const models = require('./models');
@@ -53,19 +54,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/progress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/progress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -136,11 +137,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -167,46 +168,70 @@ if (cluster.isMaster) {
       }
     });
 
-    // check if FR has fake org id
-    mcsd.getLocationByID('', topOrgId, false, (results) => {
-      if (results.entry.length === 0) {
-        winston.info('Fake Org ID does not exist into the FR Database, Creating now');
-        const resource = {};
-        resource.resourceType = 'Location';
-        resource.name = topOrgName;
-        resource.id = topOrgId;
-        resource.identifier = [{
-          system: 'https://digitalhealth.intrahealth.org/id',
-          value: topOrgId,
-        }];
-        resource.physicalType = {
-          coding: [{
-            system: 'http://hl7.org/fhir/location-physical-type',
-            code: 'jdn',
-            display: 'Jurisdiction',
-          }],
-          text: 'Jurisdiction',
-        };
-        const fhirDoc = {};
-        fhirDoc.entry = [];
-        fhirDoc.type = 'batch';
-        fhirDoc.resourceType = 'Bundle';
-        fhirDoc.entry.push({
-          resource,
-          request: {
-            method: 'PUT',
-            url: `Location/${topOrgId}`,
-          },
-        });
-        mcsd.saveLocations(fhirDoc, '', (err, res) => {
+    // check if FR DB Exists
+    const database = config.getConf('hapi:defaultDBName');
+    let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+      .toString();
+    const options = {
+      url,
+    };
+    url = false;
+    request.get(options, (err, res, body) => {
+      if (res.statusCode === 404) {
+        hapi.createServer(database, (err) => {
           if (err) {
             winston.error(err);
           } else {
-            winston.info('Fake Org Id Created Successfully');
+            createFakeOrgID(database);
           }
-        });
+        })
+      } else {
+        // check if FR has fake org id
+        createFakeOrgID(database);
       }
     });
+
+    function createFakeOrgID(database) {
+      mcsd.getLocationByID(database, topOrgId, false, (results) => {
+        if (results.entry.length === 0) {
+          winston.info('Fake Org ID does not exist into the FR Database, Creating now');
+          const resource = {};
+          resource.resourceType = 'Location';
+          resource.name = topOrgName;
+          resource.id = topOrgId;
+          resource.identifier = [{
+            system: 'https://digitalhealth.intrahealth.org/id',
+            value: topOrgId,
+          }];
+          resource.physicalType = {
+            coding: [{
+              system: 'http://hl7.org/fhir/location-physical-type',
+              code: 'jdn',
+              display: 'Jurisdiction',
+            }],
+            text: 'Jurisdiction',
+          };
+          const fhirDoc = {};
+          fhirDoc.entry = [];
+          fhirDoc.type = 'batch';
+          fhirDoc.resourceType = 'Bundle';
+          fhirDoc.entry.push({
+            resource,
+            request: {
+              method: 'PUT',
+              url: `Location/${topOrgId}`,
+            },
+          });
+          mcsd.saveLocations(fhirDoc, '', (err, res) => {
+            if (err) {
+              winston.error(err);
+            } else {
+              winston.info('Fake Org Id Created Successfully');
+            }
+          });
+        }
+      });
+    }
   });
 
   const numWorkers = require('os').cpus().length;
@@ -223,7 +248,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -543,7 +568,7 @@ if (cluster.isMaster) {
           password = mongo.decrypt(server.password);
         }
         const auth = `Basic ${Buffer.from(`${server.username}:${password}`).toString('base64')}`;
-        const dhis2URL = url.parse(server.host);
+        const dhis2URL = URL.parse(server.host);
         const database = server.name + server.userID._id;
         dhis.getLastUpdate(database, dhis2URL, auth, (lastUpdate) => {
           if (lastUpdate) {
@@ -2338,7 +2363,7 @@ if (cluster.isMaster) {
               winston.info('Done matching');
               if (err) {
                 res.status(400).send({
-                  error: err,
+                  error: 'Un expected error has occured',
                 });
               } else res.status(200).send();
             });
@@ -2388,6 +2413,12 @@ if (cluster.isMaster) {
           connection.close();
           if (data.recoStatus === 'in-progress') {
             mcsd.breakMatch(source1Id, mappingDB, source1DB, (err, results) => {
+              if (err) {
+                winston.error(err);
+                return res.status(500).json({
+                  error: err,
+                });
+              }
               winston.info(`break match done for ${fields.source1Id}`);
               res.status(200).send(err);
             });
@@ -2615,11 +2646,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config')
-          && configData.config.hasOwnProperty('generalConfig')
-          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-          && configData.config.generalConfig.recoProgressNotification.enabled
-          && configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,

@@ -951,7 +951,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakNoMatch(props.item.source1Id, "nomatch")'
+                      @click='breakNoMatch(props.item.source1UUID, "nomatch")'
                     >
                       <v-icon>cached</v-icon>Break No Match
                     </v-btn>
@@ -960,7 +960,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakNoMatch(props.item.source1Id, "nomatch")'
+                      @click='breakNoMatch(props.item.source1UUID, "nomatch")'
                     >
                       <v-icon>cached</v-icon>Break No Match
                     </v-btn>
@@ -1005,7 +1005,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakNoMatch(props.item.source1Id, "ignore")'
+                      @click='breakNoMatch(props.item.source1UUID, "ignore")'
                     >
                       <v-icon>cached</v-icon>Break Ignore
                     </v-btn>
@@ -1014,7 +1014,7 @@
                       color="error"
                       style='text-transform: none'
                       small
-                      @click='breakNoMatch(props.item.source1Id, "ignore")'
+                      @click='breakNoMatch(props.item.source1UUID, "ignore")'
                     >
                       <v-icon>cached</v-icon>Break Ignore
                     </v-btn>
@@ -1602,7 +1602,7 @@ export default {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.flagged[k].source1Name,
                 id: this.$store.state.flagged[k].source1Id,
-                uuid: this.$store.state.flagged[k].source1UUID,
+                UUID: this.$store.state.flagged[k].source1UUID,
                 parents: this.$store.state.flagged[k].source1Parents
               })
               this.$store.state.source2UnMatched.push({
@@ -1629,11 +1629,11 @@ export default {
           console.log(err)
         })
     },
-    breakNoMatch (source1Id, type) {
+    breakNoMatch (source1UUID, type) {
       this.$store.state.progressTitle = 'Breaking no match'
       this.$store.state.dynamicProgress = true
       let formData = new FormData()
-      formData.append('source1Id', source1Id)
+      formData.append('source1Id', source1UUID)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       let userID = this.$store.state.activePair.userID._id
@@ -1662,10 +1662,11 @@ export default {
             'Scores for this Location may not be available unless you recalculate scores'
           if (type === 'nomatch') {
             for (let k in this.$store.state.noMatchContent) {
-              if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
+              if (this.$store.state.noMatchContent[k].source1UUID === source1UUID) {
                 this.$store.state.source1UnMatched.push({
                   name: this.$store.state.noMatchContent[k].source1Name,
                   id: this.$store.state.noMatchContent[k].source1Id,
+                  UUID: this.$store.state.noMatchContent[k].source1UUID,
                   parents: this.$store.state.noMatchContent[k].parents
                 })
                 this.$store.state.noMatchContent.splice(k, 1)
@@ -1674,10 +1675,11 @@ export default {
             }
           } else if (type === 'ignore') {
             for (let k in this.$store.state.ignoreContent) {
-              if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
+              if (this.$store.state.ignoreContent[k].source1UUID === source1UUID) {
                 this.$store.state.source1UnMatched.push({
                   name: this.$store.state.ignoreContent[k].source1Name,
                   id: this.$store.state.ignoreContent[k].source1Id,
+                  UUID: this.$store.state.ignoreContent[k].source1UUID,
                   parents: this.$store.state.ignoreContent[k].parents
                 })
                 this.$store.state.ignoreContent.splice(k, 1)
@@ -1706,7 +1708,7 @@ export default {
       let source1Owner = sourcesOwner.source1Owner
       let source2Owner = sourcesOwner.source2Owner
       let formData = new FormData()
-      formData.append('source1Id', this.selectedSource1Id)
+      formData.append('source1Id', this.selectedSource1UUID)
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
@@ -1730,6 +1732,7 @@ export default {
                 this.$store.state.noMatchContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
+                  source1UUID: this.selectedSource1UUID,
                   parents: this.$store.state.source1UnMatched[k].parents
                 })
                 ++this.$store.state.totalAllNoMatch
@@ -1745,6 +1748,7 @@ export default {
                 this.$store.state.ignoreContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
+                  source1UUID: this.selectedSource1UUID,
                   parents: this.$store.state.source1UnMatched[k].parents
                 })
                 ++this.$store.state.totalAllIgnore

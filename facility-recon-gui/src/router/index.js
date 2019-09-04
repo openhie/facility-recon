@@ -129,7 +129,8 @@ let router = new Router({
       name: 'AddCodeSystem',
       component: AddCodeSystem,
       props: (route) => ({
-        codeSystemType: route.query.type
+        codeSystemType: route.query.type,
+        displayText: route.query.displayText
       })
     },
     {

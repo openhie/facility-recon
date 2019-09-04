@@ -769,9 +769,14 @@ module.exports = () => ({
     };
     const fhir = {};
     fhir.entry = [];
-    fhir.type = 'document';
+    fhir.type = 'batch';
+    fhir.resourceType = 'Bundle';
     fhir.entry.push({
       resource,
+      request: {
+        method: 'PUT',
+        url: `Location/${resource.id}`,
+      },
     });
     this.saveLocations(fhir, '', (err, res) => {
       if (err) {
@@ -800,24 +805,29 @@ module.exports = () => ({
         value: fields.code,
       }];
     }
-    LocationResource.type = {};
+    LocationResource.type = [];
 
-    LocationResource.type.coding = [];
-    LocationResource.type.coding.push({
+    const coding = [];
+    coding.push({
       system: 'urn:ietf:rfc:3986',
       code: 'urn:ihe:iti:mcsd:2019:facility',
       display: 'Facility',
       userSelected: false,
     });
+    LocationResource.type.push({
+      coding,
+    });
     if (fields.type) {
       const typeConcept = this.getTerminologyCode(fields.type);
       if (typeConcept) {
-        LocationResource.type.text = typeConcept.display;
-        LocationResource.type.coding.push({
+        const type = {};
+        type.text = typeConcept.display;
+        type.coding = [{
           system: 'https://digitalhealth.intrahealth.org/locType',
           code: typeConcept.code,
           display: typeConcept.display,
-        });
+        }];
+        LocationResource.type.push(type);
       }
     }
     if (fields.status) {
@@ -857,7 +867,7 @@ module.exports = () => ({
       }
       if (fields.contact.website) {
         LocationResource.telecom.push({
-          system: 'website',
+          system: 'url',
           value: fields.contact.website,
         });
       }
@@ -889,14 +899,16 @@ module.exports = () => ({
         organizationResource.id = uuid4();
         organizationResource.resourceType = 'Organization';
         organizationResource.name = fields.name;
-        organizationResource.type = {};
-        organizationResource.type.text = ownershipConcept.display;
-        organizationResource.type.coding = [];
-        organizationResource.type.coding.push({
+        organizationResource.type = [];
+        const type = {};
+        type.text = ownershipConcept.display;
+        type.coding = [];
+        type.coding.push({
           system: 'https://digitalhealth.intrahealth.org/orgType',
           code: ownershipConcept.code,
           display: ownershipConcept.display,
         });
+        organizationResource.type.push(type);
         LocationResource.managingOrganization = {
           reference: `Organization/${organizationResource.id}`,
         };
@@ -936,8 +948,7 @@ module.exports = () => ({
     code,
     codeSystemType,
   }, callback) {
-    const codeSystems = config.getConf('codeSystems');
-    const codeSyst = codeSystems.find(code => code.name === codeSystemType);
+    const codeSyst = mixin.getCodesysteURI(codeSystemType);
     if (!codeSyst) {
       winston.error(`Code system type ${codeSystemType} not found on the config file`);
       return callback(true);
@@ -971,9 +982,14 @@ module.exports = () => ({
       }
       const fhir = {};
       fhir.entry = [];
-      fhir.type = 'document';
+      fhir.type = 'batch';
+      fhir.resourceType = 'Bundle';
       fhir.entry.push({
         resource: codeSystemResource,
+        request: {
+          method: 'PUT',
+          url: `CodeSystem/${codeSystemResource.id}`,
+        },
       });
       this.saveLocations(fhir, '', (err, res) => {
         if (err) {
@@ -1055,6 +1071,12 @@ module.exports = () => ({
       json: mCSD,
     };
     request.post(options, (err, res, body) => {
+      winston.error(body);
+      if (res.statusCode === 404) {
+        winston.error(body);
+        winston.error('Looks like the mapping DB does not exist, cant save this location');
+        return callback('Failed to save', null);
+      }
       if (err) {
         winston.error(err);
         return callback(err);
@@ -1383,6 +1405,10 @@ module.exports = () => ({
         return callback(res.source1Mapped);
       }
       me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+        if (mcsd.entry.length === 0) {
+          winston.error(`Location with ID ${source1Id} not found on the mCSD DB, this isnt expected, please cross check`);
+          return callback(true);
+        }
         const fhir = {};
         fhir.entry = [];
         fhir.type = 'batch';
@@ -1399,12 +1425,14 @@ module.exports = () => ({
             reference: mcsd.entry[0].resource.partOf.reference,
           };
         }
+        let typeCode;
+        let typeName;
         if (recoLevel == totalLevels) {
-          var typeCode = 'bu';
-          var typeName = 'building';
+          typeCode = 'bu';
+          typeName = 'building';
         } else {
-          var typeCode = 'jdn';
-          var typeName = 'Jurisdiction';
+          typeCode = 'jdn';
+          typeName = 'Jurisdiction';
         }
         resource.physicalType = {
           coding: [{
@@ -1471,46 +1499,51 @@ module.exports = () => ({
       }
       request.delete(options, (err, res, body) => {
         this.cleanCache(url_prefix.toString());
+        if (res.statusCode === 409) {
+          return callback('Can not break this match as there are other matches that are child of this', null);
+        }
         if (err) {
-          winston.error(err);
+          return callback('Un expected error has occured, match was not broken', null);
         }
-        callback(err, null);
-      });
-      delete location.resourceType;
-      delete location.id;
-      delete location.meta;
-      delete location.total;
-      delete location.link;
-      const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
-      // remove the flag tag
-      let found = false;
-      async.eachSeries(location.entry[0].resource.meta.tag, (tag, nxtTag) => {
-        if (tag.code === matchBrokenCode) {
-          found = true;
-        }
-        return nxtTag();
-      }, () => {
-        location.resourceType = 'Bundle';
-        location.type = 'batch';
-        if (!found) {
-          const source1System = 'https://digitalhealth.intrahealth.org/source1';
-          if (!location.entry[0].resource.meta) {
-            location.entry[0].resource.meta = {};
+        delete location.resourceType;
+        delete location.id;
+        delete location.meta;
+        delete location.total;
+        delete location.link;
+        const matchBrokenCode = config.getConf('mapping:matchBrokenCode');
+        // remove the flag tag
+        let found = false;
+        async.eachSeries(location.entry[0].resource.meta.tag, (tag, nxtTag) => {
+          if (tag.code === matchBrokenCode) {
+            found = true;
           }
-          if (!location.entry[0].resource.meta.tag) {
-            location.entry[0].resource.meta.tag = [];
+          return nxtTag();
+        }, () => {
+          location.resourceType = 'Bundle';
+          location.type = 'batch';
+          if (!found) {
+            const source1System = 'https://digitalhealth.intrahealth.org/source1';
+            if (!location.entry[0].resource.meta) {
+              location.entry[0].resource.meta = {};
+            }
+            if (!location.entry[0].resource.meta.tag) {
+              location.entry[0].resource.meta.tag = [];
+            }
+            location.entry[0].resource.meta.tag.push({
+              system: source1System,
+              code: matchBrokenCode,
+              display: 'Match Broken',
+            });
+            location.entry[0].request = {};
+            location.entry[0].request.method = 'PUT';
+            location.entry[0].request.url = `Location/${location.entry[0].resource.id}`;
+            this.saveLocations(location, source1DB, (err, res) => {
+              callback(err, null);
+            });
+          } else {
+            callback(err, null);
           }
-          location.entry[0].resource.meta.tag.push({
-            system: source1System,
-            code: matchBrokenCode,
-            display: 'Match Broken',
-          });
-          location.entry[0].request = {};
-          location.entry[0].request.method = 'PUT';
-          location.entry[0].request.url = `Location/${location.entry[0].resource.id}`;
-          winston.error(JSON.stringify(location));
-          this.saveLocations(location, source1DB, (err, res) => {});
-        }
+        });
       });
     });
   },
@@ -1874,7 +1907,9 @@ module.exports = () => ({
       if (found) {
         return callback1();
       }
-      const id = entry.resource.id;
+      const {
+        id,
+      } = entry.resource;
       const item = {
         text: entry.resource.name,
         id,

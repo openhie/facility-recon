@@ -24,7 +24,7 @@
         {{alertMsg}}
       </v-alert>
       <v-card-title primary-title>
-        <b>Adding New Service Type</b>
+        <b>Adding New {{displayText}}</b>
       </v-card-title>
       <v-card-text>
         <v-card>
@@ -81,7 +81,7 @@ export default {
   validations: {
     name: { required }
   },
-  props: ['codeSystemType'],
+  props: ['codeSystemType', 'displayText'],
   data () {
     return {
       alertFail: false,

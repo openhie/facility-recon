@@ -40,6 +40,10 @@
         "msg": "Add Service Category",
         "tooltip": "Add Service Category"
       },
+      "addServiceSpecialty": {
+        "msg": "Add Service Specialty",
+        "tooltip": "Add Service Specialty"
+      },
       "addService": {
         "msg": "Add Service",
         "tooltip": "Add Service"

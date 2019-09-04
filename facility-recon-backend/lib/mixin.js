@@ -7,6 +7,11 @@ const config = require('./config');
 
 module.exports = function () {
   return {
+    getCodesysteURI(codeSystemType) {
+      const codeSystems = config.getConf('codeSystems');
+      const codeSyst = codeSystems.find(code => code.name === codeSystemType);
+      return codeSyst;
+    },
     toTitleCase(str) {
       if (!str) {
         return str;
@@ -78,10 +83,10 @@ module.exports = function () {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null ||
-              headerMapping[level] === 'null' ||
-              headerMapping[level] === undefined ||
-              !headerMapping[level]) {
+            if (headerMapping[level] === null
+              || headerMapping[level] === 'null'
+              || headerMapping[level] === undefined
+              || !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -104,13 +109,13 @@ module.exports = function () {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null ||
-                data[headerMapping[level]] === undefined ||
-                data[headerMapping[level]] === false ||
-                !data[headerMapping[level]] ||
-                data[headerMapping[level]] === '' ||
-                !isNaN(headerMapping[level]) ||
-                data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null
+                || data[headerMapping[level]] === undefined
+                || data[headerMapping[level]] === false
+                || !data[headerMapping[level]]
+                || data[headerMapping[level]] === ''
+                || !isNaN(headerMapping[level])
+                || data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -118,11 +123,11 @@ module.exports = function () {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null ||
-              data[headerMapping.facility] === undefined ||
-              data[headerMapping.facility] === false ||
-              data[headerMapping.facility] === '' ||
-              data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null
+              || data[headerMapping.facility] === undefined
+              || data[headerMapping.facility] === false
+              || data[headerMapping.facility] === ''
+              || data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

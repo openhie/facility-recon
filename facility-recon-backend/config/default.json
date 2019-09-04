@@ -66,6 +66,9 @@
     "secret": "b1ea334a-bf5a-11e8-a355-529269fb1459"
   },
   "codeSystems": [{
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/specialties",
+    "name": "specialties"
+  }, {
     "uri": "https://codesystem.digitalhealth.intrahealth.org/servicetypes",
     "name": "serviceTypes"
   }, {
