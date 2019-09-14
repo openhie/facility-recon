@@ -175,7 +175,15 @@
               v-if='$store.state.auth.role === "Admin"'
             >
               <v-list-tile-title>
-                <v-icon left>house</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
+                <v-icon left>list</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+            <v-list-tile
+              to="ServicesReport"
+              v-if='$store.state.auth.role === "Admin"'
+            >
+              <v-list-tile-title>
+                <v-icon left>list</v-icon>{{ $t('App.menu.servicesReport.msg')}}
               </v-list-tile-title>
             </v-list-tile>
             <v-tooltip top>
@@ -213,6 +221,78 @@
                 </v-list-tile-title>
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceSpecialty.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=serviceEligibilities&displayText=Service Eligibility"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addServiceEligibility.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addServiceEligibility.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=languages&displayText=Language"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addLanguage.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addLanguage.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=referralMethods&displayText=Referral Methods"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addReferralMethod.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addReferralMethod.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=programs&displayText=Program"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addProgram.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addProgram.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=serviceCharacteristics&displayText=Service Characteristics"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addCharacteristic.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addCharacteristic.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="/AddCodeSystem?type=serviceProvisionConditions&displayText=Service Provision Condition"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.addServiceProvisionCondition.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.addServiceProvisionCondition.tooltip')}}</span>
             </v-tooltip>
             <v-tooltip bottom>
               <v-list-tile

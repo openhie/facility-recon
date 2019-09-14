@@ -32,6 +32,10 @@
         "msg": "Facilities Report",
         "tooltip": "Facilities Report"
       },
+      "servicesReport": {
+        "msg": "Services Report",
+        "tooltip": "Services Report"
+      },
       "addServiceType": {
         "msg": "Add Service Type",
         "tooltip": "Add Service Type"
@@ -43,6 +47,30 @@
       "addServiceSpecialty": {
         "msg": "Add Service Specialty",
         "tooltip": "Add Service Specialty"
+      },
+      "addServiceEligibility": {
+        "msg": "Add Service Eligibility",
+        "tooltip": "Add Service Eligibility"
+      },
+      "addLanguage": {
+        "msg": "Add Language",
+        "tooltip": "Add Language"
+      },
+      "addReferralMethod": {
+        "msg": "Add Referral Methods",
+        "tooltip": "Add Referral Methods"
+      },
+      "addProgram": {
+        "msg": "Add Programs",
+        "tooltip": "Add Programs"
+      },
+      "addCharacteristic": {
+        "msg": "Add Characteristics",
+        "tooltip": "Add Characteristics"
+      },
+      "addServiceProvisionCondition": {
+        "msg": "Add Service Provision Condition",
+        "tooltip": "Add Service Provision Condition"
       },
       "addService": {
         "msg": "Add Service",

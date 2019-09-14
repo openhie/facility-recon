@@ -33,6 +33,7 @@ module.exports = () => ({
 
   getCodeSystem({
     codeSystemURI,
+    code,
     database,
   }, callback) {
     if (!database) {
@@ -42,10 +43,14 @@ module.exports = () => ({
     if (database) {
       url = url.segment(database);
     }
-    url = url.segment('fhir').segment('CodeSystem').toString();
+    url = url.segment('fhir').segment('CodeSystem');
     if (codeSystemURI) {
-      url += `?url=${codeSystemURI}`;
+      url.addQuery('url', codeSystemURI);
     }
+    if (code) {
+      url.addQuery('code', code);
+    }
+    url = url.toString();
     const codeSystems = {};
     codeSystems.entry = [];
     async.doWhilst(
@@ -63,7 +68,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0) {
+          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
             codeSystems.entry = codeSystems.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -76,10 +81,30 @@ module.exports = () => ({
     );
   },
 
+  getCodeSystemFromCodesMinimal({
+    codes,
+    codeSystemName,
+  }, callback) {
+    const codeSystemURI = mixin.getCodesysteURI(codeSystemName);
+    let concepts = [];
+    if (Array.isArray(codes) && codes.length > 0) {
+      this.getCodeSystem({
+        codeSystemURI: codeSystemURI.uri,
+      }, (codeSystems) => {
+        async.each(codeSystems.entry, (codeSystem, nxtSyst) => {
+          const codeConcept = codeSystem.resource.concept.filter(concept => codes.includes(concept.code));
+          concepts = concepts.concat(codeConcept);
+          return nxtSyst();
+        }, () => callback(concepts));
+      });
+    } else {
+      return callback(null);
+    }
+  },
+
   getOrganizationByID({
     database,
     id,
-    getCached,
   }, callback) {
     if (!database) {
       database = config.getConf('hapi:defaultDBName');
@@ -111,7 +136,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0) {
+          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
             organizations.entry = organizations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -120,6 +145,82 @@ module.exports = () => ({
       () => url != false,
       () => {
         callback(organizations);
+      },
+    );
+  },
+
+  getServices({
+    database,
+    id,
+  }, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
+    const baseUrl = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('HealthcareService');
+    let url = baseUrl;
+    baseUrl.toString();
+    if (id) {
+      url.addQuery('_id', id);
+    }
+    url = url.toString();
+    let services;
+    services = cache.get(`url_${baseUrl}`);
+    if (services) {
+      winston.info(`Getting ${baseUrl} from cache`);
+      return callback(services);
+    }
+    services = {
+      entry: [],
+    };
+
+    const started = cache.get(`started_${baseUrl}`);
+    if (started) {
+      winston.info(`getServices is in progress will try again in 10 seconds.${baseUrl}`);
+      setTimeout(() => {
+        this.getLocations({
+          database,
+          id,
+        }, callback);
+      }, 10000);
+      return;
+    }
+    cache.put(`started_${baseUrl}`, true);
+    winston.info(`Getting ${baseUrl} from server`);
+    async.doWhilst(
+      (callback) => {
+        const options = {
+          url,
+        };
+        url = false;
+        request.get(options, (err, res, body) => {
+          if (!isJSON(body)) {
+            cache.del(`started_${baseUrl}`);
+            return callback(false, false);
+          }
+          body = JSON.parse(body);
+          if (body.total == 0 && body.entry && body.entry.length > 0) {
+            winston.error('Non mCSD data returned');
+            cache.del(`started_${baseUrl}`);
+            return callback(false, false);
+          }
+          const next = body.link.find(link => link.relation == 'next');
+          if (next) {
+            url = next.url;
+          }
+          services.entry = services.entry.concat(body.entry);
+          return callback(false, url);
+        });
+      },
+      () => url != false,
+      () => {
+        if (services.entry.length > 1) {
+          winston.info(`Saving ${baseUrl} to cache`);
+          cache.put(`url_${baseUrl}`, services, config.getConf('mCSD:cacheTime'));
+        } else {
+          winston.info(`Not more than 1 entry for ${baseUrl} so not caching.`);
+        }
+        cache.del(`started_${baseUrl}`);
+        return callback(services);
       },
     );
   },
@@ -160,7 +261,7 @@ module.exports = () => ({
             return callback(false, false);
           }
           body = JSON.parse(body);
-          if (body.total == 0) {
+          if (body.total == 0 && body.entry && body.entry.length > 0) {
             winston.error('Non mCSD data returned');
             cache.del(`started_${baseUrl}`);
             return callback(false, false);
@@ -218,7 +319,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0) {
+          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
             locations.entry = locations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -254,7 +355,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (body.total > 0) {
+          if (body.total > 0 && body.entry && body.entry.length > 0) {
             locations.entry = locations.entry.concat(body.entry);
           }
           return callback(false, url);
@@ -277,53 +378,46 @@ module.exports = () => ({
     if (!parent) {
       parent = '';
     }
-    let url = URI(config.getConf('mCSD:url'));
+    let baseUrl = URI(config.getConf('mCSD:url'));
     if (database) {
-      url = url.segment(database);
+      baseUrl = baseUrl.segment(database);
     }
-    url = url.segment('fhir').segment('Location').toString();
+    baseUrl = baseUrl.segment('fhir').segment('Location').toString();
+    let url = baseUrl;
     if (parent) {
       url += `?_id=${parent}&_revinclude:recurse=Location:partof`;
     }
     url = url.toString();
-    const data = cache.get(`url_${url}`);
-    if (data) {
-      winston.info(`Getting ${url} from cache`);
-      return callback(data);
-    }
-
-    const started = cache.get(`started_${url}`);
-    if (started) {
-      winston.info('getLocationChildren is in progress will try again in 10 seconds.');
-      setTimeout(this.getLocationChildren, 10000, {
-        database,
-        parent,
-      }, callback);
-      return;
-    }
-    cache.put(`started_${url}`, true);
-    winston.info(`Getting ${url} from server`);
-
-    const options = {
-      url,
+    const locations = {
+      entry: [],
     };
-    request.get(options, (err, res, body) => {
-      if (!isJSON(body)) {
-        const mcsd = {};
-        mcsd.entry = [];
-        cache.del(`started_${url}`);
-        return callback(mcsd);
-      }
-      body = JSON.parse(body);
-      if (body.entry && body.entry.length > 1) {
-        winston.info(`Saving ${url} to cache`);
-        cache.put(`url_${url}`, body, config.getConf('mCSD:cacheTime'));
-      } else {
-        winston.info(`Not more than 1 entry for ${url} so not caching.`);
-      }
-      cache.del(`started_${url}`);
-      callback(body);
-    });
+    winston.info(`Getting ${url} from server`);
+    async.doWhilst(
+      (doCallback) => {
+        const options = {
+          url,
+        };
+        url = false;
+        request.get(options, (err, res, body) => {
+          if (!isJSON(body)) {
+            return doCallback(false, false);
+          }
+          body = JSON.parse(body);
+          if (body.total == 0 && body.entry && body.entry.length > 0) {
+            winston.error('Non mCSD data returned');
+            return doCallback(false, false);
+          }
+          const next = body.link.find(link => link.relation == 'next');
+          if (next) {
+            url = next.url;
+          }
+          locations.entry = locations.entry.concat(body.entry);
+          return doCallback(false, url);
+        });
+      },
+      () => url != false,
+      () => callback(locations),
+    );
   },
 
   getImmediateChildren(database, id, callback) {
@@ -345,7 +439,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0) {
+          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
             locations.entry = locations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -436,7 +530,7 @@ module.exports = () => ({
           body = JSON.parse(body);
           let long = null;
           let lat = null;
-          if (body.total === 0) {
+          if (body.total === 0 && body.entry && body.entry.length > 0) {
             winston.error('Empty mcsd data received, this wasnt expected');
             return callback(parents);
           }
@@ -681,9 +775,9 @@ module.exports = () => ({
         }
         body = JSON.parse(body);
         let entry;
-        if (body.total === 0 && prev_entry.length > 0) {
+        if ((body.total === 0 || (body.entry && body.entry.length === 0)) && prev_entry.length > 0) {
           entry = prev_entry.shift();
-        } else if (body.total === 0 && Object.keys(prev_entry).length === 0) {
+        } else if ((body.total === 0 || (body.entry && body.entry.length === 0)) && Object.keys(prev_entry).length === 0) {
           return callback(totalLevels);
         } else {
           prev_entry = [];
@@ -785,7 +879,269 @@ module.exports = () => ({
       callback(err);
     });
   },
-
+  addService(fields, callback) {
+    async.series({
+      type: (callback) => {
+        const types = JSON.parse(fields.type);
+        this.getCodeSystemFromCodesMinimal({
+          codes: types,
+          codeSystemName: 'serviceTypes',
+        }, concepts => callback(null, concepts));
+      },
+      category: (callback) => {
+        const categories = JSON.parse(fields.category);
+        this.getCodeSystemFromCodesMinimal({
+          codes: categories,
+          codeSystemName: 'serviceCategories',
+        }, concepts => callback(null, concepts));
+      },
+      characteristic: (callback) => {
+        let characteristics;
+        try {
+          characteristics = JSON.parse(fields.characteristic);
+        } catch (error) {
+          return callback(null, null);
+        }
+        this.getCodeSystemFromCodesMinimal({
+          codes: characteristics,
+          codeSystemName: 'serviceCharacteristics',
+        }, concepts => callback(null, concepts));
+      },
+      serviceProvisionCode: (callback) => {
+        let serviceProvisionConditions;
+        try {
+          serviceProvisionConditions = JSON.parse(fields.serviceProvisionCode);
+        } catch (error) {
+          return callback(null, null);
+        }
+        this.getCodeSystemFromCodesMinimal({
+          codes: serviceProvisionConditions,
+          codeSystemName: 'serviceProvisionConditions',
+        }, concepts => callback(null, concepts));
+      },
+      program: (callback) => {
+        let programs;
+        try {
+          programs = JSON.parse(fields.program);
+        } catch (error) {
+          return callback(null, null);
+        }
+        this.getCodeSystemFromCodesMinimal({
+          codes: programs,
+          codeSystemName: 'programs',
+        }, concepts => callback(null, concepts));
+      },
+      specialty: (callback) => {
+        const specialties = JSON.parse(fields.specialty);
+        this.getCodeSystemFromCodesMinimal({
+          codes: specialties,
+          codeSystemName: 'specialties',
+        }, concepts => callback(null, concepts));
+      },
+      eligibility: (callback) => {
+        const eligibilities = JSON.parse(fields.eligibility);
+        this.getCodeSystemFromCodesMinimal({
+          codes: eligibilities,
+          codeSystemName: 'serviceEligibilities',
+        }, concepts => callback(null, concepts));
+      },
+      language: (callback) => {
+        const languages = JSON.parse(fields.communication);
+        this.getCodeSystemFromCodesMinimal({
+          codes: languages,
+          codeSystemName: 'languages',
+        }, concepts => callback(null, concepts));
+      },
+      referralMethod: (callback) => {
+        const referralMethods = JSON.parse(fields.referralMethod);
+        this.getCodeSystemFromCodesMinimal({
+          codes: referralMethods,
+          codeSystemName: 'referralMethods',
+        }, concepts => callback(null, concepts));
+      },
+      location: (callback) => {
+        const locations = JSON.parse(fields.location);
+        if (Array.isArray(locations) && locations.length > 0) {
+          const locationRef = locations.map(location => ({
+            reference: `Location/${location}`,
+          }));
+          return callback(null, locationRef);
+        }
+        return callback(null);
+      },
+    }, (err, response) => {
+      const resource = {};
+      resource.resourceType = 'HealthcareService';
+      if (fields.id) {
+        resource.id = fields.id;
+      } else {
+        resource.id = uuid4();
+      }
+      resource.name = fields.name;
+      if (fields.code) {
+        resource.identifier = [{
+          system: 'https://digitalhealth.intrahealth.org/code',
+          value: fields.code,
+        }];
+      }
+      resource.active = JSON.parse(fields.active);
+      resource.appointmentRequired = JSON.parse(fields.appointmentRequired);
+      if (JSON.parse(fields.category).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('serviceCategories');
+        const codeableConcept = mixin.createCodeableConcept(response.category, codeSystemURI.uri);
+        resource.category = codeableConcept;
+      }
+      if (JSON.parse(fields.type).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('serviceTypes');
+        const codeableConcept = mixin.createCodeableConcept(response.type, codeSystemURI.uri);
+        resource.type = codeableConcept;
+      }
+      if (JSON.parse(fields.characteristic).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('serviceCharacteristics');
+        const codeableConcept = mixin.createCodeableConcept(response.characteristic, codeSystemURI.uri);
+        resource.characteristic = codeableConcept;
+      }
+      if (JSON.parse(fields.program).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('programs');
+        const codeableConcept = mixin.createCodeableConcept(response.program, codeSystemURI.uri);
+        resource.program = codeableConcept;
+      }
+      if (JSON.parse(fields.specialty).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('specialties');
+        const codeableConcept = mixin.createCodeableConcept(response.specialty, codeSystemURI.uri);
+        resource.specialty = codeableConcept;
+      }
+      if (JSON.parse(fields.eligibility).length > 0) {
+        resource.eligibility = [];
+        const codeSystemURI = mixin.getCodesysteURI('serviceEligibilities');
+        const codeableConcept = mixin.createCodeableConcept(response.eligibility, codeSystemURI.uri);
+        codeableConcept.forEach((codeable) => {
+          resource.eligibility.push({
+            code: codeable,
+          });
+        });
+      }
+      if (JSON.parse(fields.communication).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('languages');
+        const codeableConcept = mixin.createCodeableConcept(response.language, codeSystemURI.uri);
+        resource.communication = codeableConcept;
+      }
+      if (JSON.parse(fields.referralMethod).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('referralMethods');
+        const codeableConcept = mixin.createCodeableConcept(response.referralMethod, codeSystemURI.uri);
+        resource.referralMethod = codeableConcept;
+      }
+      if (JSON.parse(fields.serviceProvisionCode).length > 0) {
+        const codeSystemURI = mixin.getCodesysteURI('serviceProvisionConditions');
+        const codeableConcept = mixin.createCodeableConcept(response.serviceProvisionCode, codeSystemURI.uri);
+        resource.serviceProvisionCode = codeableConcept;
+      }
+      if (JSON.parse(fields.location).length > 0) {
+        resource.location = response.location;
+      }
+      if (fields.comment) {
+        resource.comment = fields.comment;
+      }
+      if (fields.extraDetails) {
+        resource.extraDetails = fields.extraDetails;
+      }
+      if (fields.photo) {
+        resource.photo = fields.photo;
+      }
+      try {
+        const telecom = JSON.parse(fields.telecom);
+        resource.telecom = [];
+        if (telecom.phone) {
+          resource.telecom.push({
+            system: 'phone',
+            value: telecom.phone,
+          });
+        }
+        if (telecom.email) {
+          resource.telecom.push({
+            system: 'email',
+            value: telecom.email,
+          });
+        }
+        if (telecom.fax) {
+          resource.telecom.push({
+            system: 'fax',
+            value: telecom.fax,
+          });
+        }
+        if (telecom.website) {
+          resource.telecom.push({
+            system: 'url',
+            value: telecom.website,
+          });
+        }
+      } catch (error) {
+        winston.error(error);
+      }
+      if (resource.telecom.length === 0) {
+        delete resource.telecom;
+      }
+      const availableTime = JSON.parse(fields.availableTime);
+      resource.availableTime = [];
+      availableTime.forEach((avTime) => {
+        const time = {};
+        let addThis = false;
+        if (avTime.mainFields.daysOfWeek.length > 0) {
+          time.daysOfWeek = avTime.mainFields.daysOfWeek;
+          addThis = true;
+        }
+        time.allDay = avTime.mainFields.allDay;
+        if (avTime.mainFields.availableStartTime && !avTime.mainFields.allDay) {
+          time.availableStartTime = avTime.mainFields.availableStartTime;
+          addThis = true;
+        }
+        if (avTime.mainFields.availableEndTime && !avTime.mainFields.allDay) {
+          time.availableEndTime = avTime.mainFields.availableEndTime;
+          addThis = true;
+        }
+        if (addThis) {
+          resource.availableTime.push(time);
+        }
+      });
+      if (resource.availableTime.length === 0) {
+        delete resource.availableTime;
+      }
+      const notAvailable = JSON.parse(fields.notAvailable);
+      resource.notAvailable = [];
+      notAvailable.forEach((notAv) => {
+        const notAvDet = {};
+        notAvDet.description = notAv.mainFields.description;
+        if (notAvDet.description) {
+          if (notAv.mainFields.during && notAv.mainFields.during.start) {
+            notAvDet.during = {};
+            notAvDet.during.start = notAv.mainFields.during.start;
+          }
+          if (notAv.mainFields.during && notAv.mainFields.during.end) {
+            notAvDet.during.end = notAv.mainFields.during.end;
+          }
+          resource.notAvailable.push(notAvDet);
+        }
+      });
+      const fhir = {};
+      fhir.entry = [];
+      fhir.type = 'batch';
+      fhir.resourceType = 'Bundle';
+      fhir.entry.push({
+        resource,
+        request: {
+          method: 'PUT',
+          url: `HealthcareService/${resource.id}`,
+        },
+      });
+      this.saveLocations(fhir, '', (err, res) => {
+        if (err) {
+          winston.error(err);
+        }
+        callback(err);
+      });
+      winston.error(JSON.stringify(fhir, null, 2));
+    });
+  },
   addBuilding(fields, callback) {
     const LocationResource = {};
     if (fields.id) {
@@ -1071,7 +1427,6 @@ module.exports = () => ({
       json: mCSD,
     };
     request.post(options, (err, res, body) => {
-      winston.error(body);
       if (res.statusCode === 404) {
         winston.error(body);
         winston.error('Looks like the mapping DB does not exist, cant save this location');
@@ -1898,14 +2253,20 @@ module.exports = () => ({
     }, () => callback(grid, totalBuildings));
   },
 
-  createTree(mcsd, topOrg, callback) {
+  createTree(mcsd, topOrg, includeBuilding, callback) {
     const tree = [];
     const lookup = [];
     const addLater = {};
     async.each(mcsd.entry, (entry, callback1) => {
-      const found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu');
-      if (found) {
+      const found = entry.resource.physicalType.coding.find(coding => coding.code === 'bu');
+      if (found && !includeBuilding) {
         return callback1();
+      }
+      let locType;
+      if (found) {
+        locType = 'bu';
+      } else {
+        locType = 'ju';
       }
       const {
         id,
@@ -1913,6 +2274,9 @@ module.exports = () => ({
       const item = {
         text: entry.resource.name,
         id,
+        data: {
+          locType,
+        },
         children: [],
       };
       lookup[id] = item;

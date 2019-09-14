@@ -11,7 +11,11 @@
           pa-4
         >
           <v-flex xs5>
+            <template v-if="loadingTree">
+              <v-progress-linear :indeterminate="true"></v-progress-linear>
+            </template>
             <v-text-field
+              v-if="jurisdictionHierarchy.length > 0"
               v-model="searchJurisdiction"
               append-icon="search"
               label="Search Jurisdiction"
@@ -128,6 +132,7 @@ export default {
   },
   data () {
     return {
+      loadingTree: false,
       alertFail: false,
       alertSuccess: false,
       alertMsg: '',
@@ -141,7 +146,9 @@ export default {
   methods: {
     getTree () {
       this.jurisdictionHierarchy = []
+      this.loadingTree = true
       axios.get(backendServer + '/FR/getTree').then((hierarchy) => {
+        this.loadingTree = false
         if (hierarchy.data) {
           this.jurisdictionHierarchy = hierarchy.data
         }

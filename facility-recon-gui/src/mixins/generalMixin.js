@@ -1,5 +1,7 @@
 import axios from 'axios'
-import { eventBus } from '@/main'
+import {
+  eventBus
+} from '@/main'
 const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
   data () {
@@ -63,13 +65,27 @@ export const generalMixin = {
           return callback(err, null)
         })
     },
+    getTree (includeBuilding, callback) {
+      axios.get(backendServer + '/FR/getTree', {
+        params: {
+          includeBuilding
+        }
+      }).then((hierarchy) => {
+        if (hierarchy.data) {
+          let err = false
+          return callback(err, hierarchy.data)
+        }
+      }).catch((err) => {
+        return callback(err, [])
+      })
+    },
     clearProgress (type) {
       axios.get(
         backendServer +
-          '/clearProgress/' +
-          type +
-          '/' +
-          this.$store.state.clientId
+        '/clearProgress/' +
+        type +
+        '/' +
+        this.$store.state.clientId
       )
     },
     getGeneralConfig (callback) {
@@ -79,8 +95,8 @@ export const generalMixin = {
       axios
         .get(
           backendServer +
-            '/getGeneralConfig?defaultGenerConfig=' +
-            defaultGenerConfig
+          '/getGeneralConfig?defaultGenerConfig=' +
+          defaultGenerConfig
         )
         .then(config => {
           if (config) {

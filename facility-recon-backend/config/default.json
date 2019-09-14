@@ -75,8 +75,26 @@
     "uri": "https://codesystem.digitalhealth.intrahealth.org/servicecategories",
     "name": "serviceCategories"
   }, {
-    "uri": "https://codesystem.digitalhealth.intrahealth.org/facilityownership",
-    "name": "facilityOwnership"
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/serviceeligibilities",
+    "name": "serviceEligibilities"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/facilityownerships",
+    "name": "facilityOwnerships"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/languages",
+    "name": "languages"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/referralmethods",
+    "name": "referralMethods"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/programs",
+    "name": "programs"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/servicecharacteristics",
+    "name": "serviceCharacteristics"
+  }, {
+    "uri": "https://codesystem.digitalhealth.intrahealth.org/serviceprovisionconditions",
+    "name": "serviceProvisionConditions"
   }],
   "hapi": {
     "DBUser": "hapi",

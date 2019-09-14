@@ -12,6 +12,20 @@ const mixin = require('../mixin')();
 
 const topOrgId = config.getConf('mCSD:fakeOrgId');
 
+router.post('/addService', (req, res) => {
+  winston.info('Received a request to add a new service');
+  const form = new formidable.IncomingForm();
+  form.parse(req, (err, fields, files) => {
+    mcsd.addService(fields, (error) => {
+      if (error) {
+        res.status(400).send(error);
+      } else {
+        winston.info('New Jurisdiction added successfully');
+        res.status(200).send();
+      }
+    });
+  });
+});
 router.post('/addJurisdiction', (req, res) => {
   winston.info('Received a request to add a new Jurisdiction');
   const form = new formidable.IncomingForm();
@@ -39,6 +53,87 @@ router.post('/addBuilding', (req, res) => {
         res.status(200).send();
       }
     });
+  });
+});
+
+router.get('/getLocationNames', (req, res) => {
+  const {
+    ids,
+  } = req.query;
+  const names = [];
+  async.each(ids, (id, nxtId) => {
+    mcsd.getLocationByID('', id, false, (location) => {
+      if (location && location.entry && location.entry.length > 0) {
+        names.push({
+          id: location.entry[0].resource.id,
+          name: location.entry[0].resource.name,
+        });
+        return nxtId();
+      }
+      return nxtId();
+    });
+  }, () => {
+    res.status(200).json(names);
+  });
+});
+
+router.get('/getServices', (req, res) => {
+  winston.info('Received a request to get list of service offered by facilities');
+  const {
+    id,
+    getResource,
+  } = req.query;
+  const filters = {
+    id,
+  };
+
+  function getResourceLocationNames(resource, callback) {
+    if (!resource || !resource.location || !Array.isArray(resource.location)) {
+      return callback(resource);
+    }
+    async.eachOf(resource.location, (id, index, nxtId) => {
+      mcsd.getLocationByID('', id.reference, false, (location) => {
+        if (location && location.entry && location.entry.length > 0) {
+          resource.location[index].name = location.entry[0].resource.name;
+          return nxtId();
+        }
+        return nxtId();
+      });
+    }, () => {
+      callback(resource);
+    });
+  }
+
+  mcsd.getServices(filters, (mcsdServices) => {
+    if (getResource) {
+      if (mcsdServices && mcsdServices.entry && mcsdServices.entry.length > 0) {
+        getResourceLocationNames(mcsdServices.entry[0].resource, () => res.status(200).json(mcsdServices));
+      } else {
+        res.status(200).json(mcsdServices);
+      }
+      return;
+    }
+    const services = [];
+    async.each(mcsdServices.entry, (service, nxtService) => {
+      const srv = {};
+      srv.id = service.resource.id;
+      srv.name = service.resource.name;
+      const ident = service.resource.identifier.find(identifier => identifier.system === 'https://digitalhealth.intrahealth.org/code');
+      srv.code = ident.value;
+      srv.locations = service.resource.location.length;
+      srv.type = [];
+      service.resource.type.forEach((type) => {
+        srv.type.push(type.text);
+      });
+      if (service.resource.active) {
+        srv.active = 'Yes';
+      } else {
+        srv.active = 'No';
+      }
+      services.push(srv);
+      return nxtService();
+    });
+    res.status(200).json(services);
   });
 });
 
@@ -72,11 +167,13 @@ router.get('/getBuildings', (req, res) => {
         }
         if (building.resource.type) {
           row.type = {};
-          const type = building.resource.type.find(type => type.coding && type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType'));
-          if (type) {
-            row.type.code = type.coding[0].code;
-            row.type.text = type.text;
-          }
+          building.resource.type.forEach((type) => {
+            const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType');
+            if (coding) {
+              row.type.code = coding.code;
+              row.type.text = coding.display;
+            }
+          });
         }
         if (building.resource.status) {
           row.status = {};
@@ -144,11 +241,13 @@ router.get('/getBuildings', (req, res) => {
               }, (orgDt) => {
                 if (orgDt.entry && orgDt.entry.length > 0) {
                   if (orgDt.entry[0].resource.type) {
-                    const type = orgDt.entry[0].resource.type.find(type => type.coding && type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType'));
-                    if (type) {
-                      row.ownership.code = type.coding[0].code;
-                      row.ownership.text = type.text;
-                    }
+                    orgDt.entry[0].resource.type.forEach((type) => {
+                      const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType');
+                      if (coding) {
+                        row.ownership.code = coding.code;
+                        row.ownership.text = coding.display;
+                      }
+                    });
                     return callback(null);
                   }
                   return callback(null);
@@ -196,11 +295,12 @@ router.get('/getCodeSystem', (req, res) => {
     codeSystemURI = codeSyst.uri;
   } else {
     winston.warn(`Codesystem URI ${codeSystemType} was not found on the configuration`);
+    return res.status(401).send();
   }
   mcsd.getCodeSystem({
     codeSystemURI,
   }, (codeSystem) => {
-    let codeSystemResource = {};
+    let codeSystemResource = [];
     if (codeSystem.entry.length > 0 && codeSystem.entry[0].resource.concept) {
       codeSystemResource = codeSystem.entry[0].resource.concept;
     }
@@ -212,15 +312,19 @@ router.get('/getTree', (req, res) => {
   winston.info('Received a request to get location tree');
   let {
     sourceLimitOrgId,
+    includeBuilding,
   } = req.query;
   if (!sourceLimitOrgId) {
     sourceLimitOrgId = topOrgId;
+  }
+  if (includeBuilding && typeof includeBuilding === 'string') {
+    includeBuilding = JSON.parse(includeBuilding);
   }
   winston.info('Fetching FR Locations');
   async.parallel({
     locationChildren(callback) {
       mcsd.getLocationChildren({
-        sourceLimitOrgId,
+        parent: sourceLimitOrgId,
       }, (mcsdData) => {
         winston.info('Done Fetching FR Locations');
         return callback(false, mcsdData);
@@ -234,8 +338,8 @@ router.get('/getTree', (req, res) => {
     },
   }, (error, response) => {
     winston.info('Creating FR Tree');
-    mcsd.createTree(response.locationChildren, sourceLimitOrgId, (tree) => {
-      if (sourceLimitOrgId !== topOrgId) {
+    mcsd.createTree(response.locationChildren, sourceLimitOrgId, includeBuilding, (tree) => {
+      if (sourceLimitOrgId !== topOrgId && response.parentDetails.entry) {
         tree = {
           text: response.parentDetails.entry[0].resource.name,
           id: sourceLimitOrgId,

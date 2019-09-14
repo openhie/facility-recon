@@ -7,6 +7,25 @@ const config = require('./config');
 
 module.exports = function () {
   return {
+    createCodeableConcept(codes, system) {
+      const codeableConcept = [];
+      codes.forEach((code) => {
+        let codeSystem = system;
+        if (code.system) {
+          codeSystem = code.system;
+        }
+        const coding = [{
+          system: codeSystem,
+          code: code.code,
+          display: code.display,
+        }];
+        codeableConcept.push({
+          coding,
+          text: code.display,
+        });
+      });
+      return codeableConcept;
+    },
     getCodesysteURI(codeSystemType) {
       const codeSystems = config.getConf('codeSystems');
       const codeSyst = codeSystems.find(code => code.name === codeSystemType);
