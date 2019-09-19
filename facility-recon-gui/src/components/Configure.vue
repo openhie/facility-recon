@@ -292,6 +292,9 @@
               </v-flex>
               <v-flex>
                 <v-card>
+                  <v-card-title primary-title>
+                    GOFR Authentication
+                  </v-card-title>
                   <v-card-text>
                     <v-switch
                       @change="disableGOFRAuth"
@@ -398,55 +401,82 @@
                   </v-card-text>
                 </v-card>
               </v-flex>
+              <v-divider></v-divider>
               <v-flex>
-                <v-switch
-                  @change="saveConfiguration('generalConfig', 'selfRegistration')"
-                  color="primary"
-                  label="Enable self registration"
-                  v-model="$store.state.config.generalConfig.selfRegistration"
-                >
-                </v-switch>
-                <v-layout
-                  row
-                  wrap
-                  v-if='$store.state.config.generalConfig.selfRegistration'
-                >
-                  <v-spacer></v-spacer>
-                  <v-flex xs3>
-                    <v-treeview :items="signupFields"></v-treeview>
-                  </v-flex>
-                  <v-flex xs8>
-                    <v-btn
-                      small
-                      round
-                      @click='moreFields = !moreFields'
-                      color="success"
-                    >Add More Fields</v-btn>
-                    <v-text-field
-                      v-if='moreFields'
-                      v-model="fieldLabel"
-                      label="Field Label"
-                    ></v-text-field>
-                    <v-text-field
-                      v-if='moreFields'
-                      v-model="fieldName"
-                      label="Unique Name"
-                    ></v-text-field>
-                    <v-select
-                      v-if='moreFields'
-                      :items="requiredText"
-                      v-model="required"
-                      label="Required"
-                    ></v-select>
-                    <v-btn
-                      color="info"
-                      small
-                      v-if='moreFields'
-                      @click='addMoreFields'
-                    >Save</v-btn>
-                  </v-flex>
-                </v-layout>
+                <v-card>
+                  <v-card-title primary-title>
+                    Self Registration
+                  </v-card-title>
+                  <v-card-text>
+                    <v-switch
+                      @change="saveConfiguration('generalConfig', 'selfRegistration')"
+                      color="primary"
+                      label="Enable self registration"
+                      v-model="$store.state.config.generalConfig.selfRegistration.enabled"
+                    >
+                    </v-switch>
+                    <v-layout
+                      row
+                      wrap
+                      v-if='$store.state.config.generalConfig.selfRegistration.enabled'
+                    >
+                      <v-spacer></v-spacer>
+                      <v-flex xs3>
+                        <v-treeview :items="signupFields"></v-treeview>
+                      </v-flex>
+                      <v-spacer></v-spacer>
+                      <v-flex xs8>
+                        <v-btn
+                          small
+                          round
+                          @click='moreFields = !moreFields'
+                          color="success"
+                        >Add More Fields</v-btn>
+                        <v-text-field
+                          v-if='moreFields'
+                          v-model="fieldLabel"
+                          label="Field Label"
+                        ></v-text-field>
+                        <v-text-field
+                          v-if='moreFields'
+                          v-model="fieldName"
+                          label="Unique Name"
+                        ></v-text-field>
+                        <v-select
+                          v-if='moreFields'
+                          :items="requiredText"
+                          v-model="required"
+                          label="Required"
+                        ></v-select>
+                        <v-btn
+                          color="info"
+                          small
+                          v-if='moreFields'
+                          @click='addMoreFields'
+                        >
+                          <v-icon left>save</v-icon> Save
+                        </v-btn>
+                        <v-btn
+                          color="error"
+                          small
+                          v-if='moreFields'
+                          @click='moreFields = false'
+                        >
+                          <v-icon left>close</v-icon> Cancel
+                        </v-btn>
+                      </v-flex>
+                    </v-layout>
+                    <v-switch
+                      @change="saveConfiguration('generalConfig', 'selfRegistration')"
+                      color="primary"
+                      label="Requires Admin Approval Of Self Registration"
+                      v-model="$store.state.config.generalConfig.selfRegistration.requiresApproval"
+                    >
+                    </v-switch>
+                  </v-card-text>
+                </v-card>
               </v-flex>
+              <v-divider></v-divider>
               <v-flex xs1>
                 <v-card>
                   <v-card-title primary-title>

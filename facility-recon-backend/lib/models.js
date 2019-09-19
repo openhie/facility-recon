@@ -1,5 +1,5 @@
-const schemas = require('./schemas');
 const mongoose = require('mongoose');
+const schemas = require('./schemas');
 
 const DataSourcesModel = mongoose.model('DataSources', schemas.DataSources);
 const SharedDataSourceLocationsModel = mongoose.model('SharedDataSourceLocations', schemas.SharedDataSourceLocations);

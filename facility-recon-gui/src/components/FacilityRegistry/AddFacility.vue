@@ -3,7 +3,12 @@
     <template>
       <v-card>
         <v-card-title class="indigo white--text headline">
-          Jurisdiction Hierarchy
+          <template v-if="action === 'request'">
+            Fill Details Below About A New Facility And Submit For Approval
+          </template>
+          <template v-if="action === 'add'">
+            Fill Details Below To Add A New Facility
+          </template>
         </v-card-title>
 
         <v-layout
@@ -46,7 +51,7 @@
                 flat
               >
                 <v-alert
-                  style="width: 500px"
+                  style="width: 600px"
                   v-model="alertSuccess"
                   type="success"
                   dismissible
@@ -55,7 +60,7 @@
                   {{alertMsg}}
                 </v-alert>
                 <v-alert
-                  style="width: 500px"
+                  style="width: 600px"
                   v-model="alertFail"
                   type="error"
                   dismissible
@@ -65,7 +70,12 @@
                 </v-alert>
                 <v-card-title primary-title>
                   <b>
-                    <center>Adding New Facility Under {{activeJurisdiction.text}}</center>
+                    <template v-if="action === 'request'">
+                      Requesting New Facility Under {{activeJurisdiction.text}}
+                    </template>
+                    <template v-else-if="action === 'add'">
+                      Adding New Facility Under {{activeJurisdiction.text}}
+                    </template>
                   </b>
                 </v-card-title>
                 <v-card-text>
@@ -78,7 +88,7 @@
                         column
                         wrap
                       >
-                        <v-flex xs1>
+                        <v-flex xs12>
                           <v-layout
                             row
                             wrap
@@ -106,7 +116,7 @@
                             </v-flex>
                           </v-layout>
                         </v-flex>
-                        <v-flex>
+                        <v-flex xs12>
                           <v-layout
                             row
                             wrap
@@ -131,7 +141,7 @@
                             </v-flex>
                           </v-layout>
                         </v-flex>
-                        <v-flex>
+                        <v-flex xs12>
                           <v-layout
                             row
                             wrap
@@ -155,7 +165,7 @@
                             </v-flex>
                           </v-layout>
                         </v-flex>
-                        <v-flex>
+                        <v-flex xs12>
                           <v-layout
                             row
                             wrap
@@ -180,7 +190,7 @@
                             </v-flex>
                           </v-layout>
                         </v-flex>
-                        <v-flex>
+                        <v-flex xs12>
                           <v-card>
                             <v-card-title primary-title>
                               Contacts Informations
@@ -242,7 +252,7 @@
                             </v-card-text>
                           </v-card>
                         </v-flex>
-                        <v-flex>
+                        <v-flex xs12>
                           <v-textarea
                             outline
                             label="Facility Description"
@@ -268,14 +278,25 @@
                         color="deep-purple accent-4"
                         depressed
                       >
-                        <v-icon left>language</v-icon>Add
+                        <v-icon left>language</v-icon>
+                        <template v-if="action === 'request'">
+                          Send Request
+                        </template>
+                        <template v-else-if="action === 'add'">
+                          Add
+                        </template>
                       </v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-card-text>
               </v-card>
               <template v-else>
-                <b>Select a location on the left to add a facility</b>
+                <template v-if="action === 'request'">
+                  <b>Select a location on the left to request a new facility</b>
+                </template>
+                <template v-else-if="action === 'add'">
+                  <b>Select a location on the left to add a facility</b>
+                </template>
               </template>
             </v-scroll-y-transition>
           </v-flex>
@@ -293,6 +314,7 @@ export default {
   validations: {
     name: { required }
   },
+  props: ['action', 'requestType'],
   data () {
     return {
       loadingTree: false,
@@ -380,6 +402,9 @@ export default {
       formData.append('name', this.name)
       formData.append('alt_name', this.alt_name)
       formData.append('code', this.code)
+      formData.append('action', this.action)
+      formData.append('requestType', this.requestType)
+      formData.append('username', this.$store.state.auth.username)
       if (this.facilityType) {
         formData.append('type', this.facilityType)
       }

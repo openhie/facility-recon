@@ -1,6 +1,43 @@
 <template>
   <v-container fluid>
     <v-dialog
+      v-model="confirm"
+      width="630px"
+    >
+      <v-toolbar
+        color="error"
+        dark
+      >
+        <v-toolbar-title>
+          Confirmation
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn
+          icon
+          dark
+          @click.native="confirm = false"
+        >
+          <v-icon>close</v-icon>
+        </v-btn>
+      </v-toolbar>
+      <v-card>
+        <v-card-text>
+          {{confirmTitle}}
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="primary"
+            @click="changeRequestStatus"
+          >Proceed</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            @click.native="confirm = false"
+          >Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
       persistent
       v-model="editDialog"
       transition="scale-transition"
@@ -246,7 +283,13 @@
                       dark
                       @click="saveEdit()"
                     >
-                      <v-icon left>save</v-icon>Save
+                      <v-icon left>save</v-icon>
+                      <template v-if="requestCategory === 'updateRequest'">
+                        Send Request
+                      </template>
+                      <template v-else>
+                        Save
+                      </template>
                     </v-btn>
                   </v-flex>
                 </v-layout>
@@ -258,12 +301,17 @@
     </v-dialog>
     <v-card>
       <v-card-title class="indigo white--text headline">
-        Facilities List
+        <template v-if="requestCategory === 'updateRequest'">
+          Choose Facility To Request Change Of Information
+        </template>
+        <template v-else>
+          Facilities List
+        </template>
       </v-card-title>
 
       <v-layout justify-space-between>
         <v-scroll-y-transition>
-          <v-flex xs3>
+          <v-flex xs2>
             <v-text-field
               v-model="searchJurisdiction"
               append-icon="search"
@@ -330,13 +378,48 @@
                     slot-scope="props"
                   >
                     <td>
-                      <v-btn
-                        icon
-                        color="primary"
-                        @click="edit(props.item)"
+                      <v-tooltip top>
+                        <v-btn
+                          v-if="canEditBuilding(props.item)"
+                          icon
+                          color="primary"
+                          slot="activator"
+                          @click="edit(props.item)"
+                        >
+                          <v-icon>edit</v-icon>
+                        </v-btn>
+                        <span>Edit</span>
+                      </v-tooltip>
+                      <v-tooltip
+                        top
+                        v-if="action === 'request'"
                       >
-                        <v-icon>edit</v-icon>
-                      </v-btn>
+                        <v-btn
+                          v-if="canChangeRequestStatus(props.item, 'approve')"
+                          icon
+                          color="success"
+                          slot="activator"
+                          @click="changeRequestStatus(props.item, 'approved', true)"
+                        >
+                          <v-icon>check_circle</v-icon>
+                        </v-btn>
+                        <span>Approve</span>
+                      </v-tooltip>
+                      <v-tooltip
+                        top
+                        v-if="action === 'request'"
+                      >
+                        <v-btn
+                          v-if="canChangeRequestStatus(props.item, 'reject')"
+                          icon
+                          color="error"
+                          slot="activator"
+                          @click="changeRequestStatus(props.item, 'rejected', true)"
+                        >
+                          <v-icon>cancel</v-icon>
+                        </v-btn>
+                        <span>Reject</span>
+                      </v-tooltip>
                     </td>
                     <td>{{props.item.name}}</td>
                     <td>{{props.item.code}}</td>
@@ -346,12 +429,15 @@
                     <td>{{props.item.status.text}}</td>
                     <td>{{props.item.lat}}</td>
                     <td>{{props.item.long}}</td>
+                    <td v-if="action === 'request' && requestCategory === 'requestsList'">
+                      {{props.item.requestStatus}}
+                    </td>
                   </template>
                 </v-data-table>
               </v-card-text>
             </v-card>
             <template v-else-if="!loadingBuildings">
-              <b>Select a location on the left to add a facility</b>
+              <b>Select a jurisdiction on the left to display its facilities</b>
             </template>
           </v-scroll-y-transition>
         </v-flex>
@@ -370,6 +456,7 @@ export default {
   validations: {
     name: { required }
   },
+  props: ['action', 'requestType', 'requestCategory'],
   data () {
     return {
       facilityId: '',
@@ -449,17 +536,81 @@ export default {
         phone: '',
         fax: '',
         website: ''
-      }
+      },
+      requestStatus: '',
+      confirm: false,
+      confirmTitle: ''
     }
   },
   methods: {
+    changeRequestStatus (item, status, isConfirm) {
+      if (isConfirm) {
+        this.requestStatus = status
+        let statusDisplay
+        if (status === 'approved') {
+          statusDisplay = 'approved'
+        } else if (status === 'rejected') {
+          statusDisplay = 'rejected'
+        }
+        this.confirm = true
+        this.confirmTitle = 'Are you sure that you want to mark facility ' + item.name + ' as ' + statusDisplay
+        this.facilityId = item.id
+      } else {
+        this.$store.state.progressTitle = 'Saving new status'
+        this.confirm = false
+        this.$store.state.dynamicProgress = true
+        let formData = new FormData()
+        formData.append('id', this.facilityId)
+        formData.append('status', this.requestStatus)
+        axios.post(backendServer + '/FR/changeBuildingRequestStatus', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }).then(() => {
+          this.$store.state.dynamicProgress = false
+          this.$store.state.errorTitle = 'Info'
+          this.$store.state.errorDescription = 'Request status changed successfully'
+          this.$store.state.dialogError = true
+          this.getBuildings()
+        }).catch((err) => {
+          this.$store.state.errorTitle = 'Error'
+          this.$store.state.errorDescription = 'This request was not successfully processed'
+          this.$store.state.dialogError = true
+          console.log(err)
+        })
+      }
+    },
+    canChangeRequestStatus (item, actionName) {
+      if (this.action !== 'request' || (this.action === 'request' && this.requestCategory !== 'requestsList')) {
+        return false
+      }
+      if (actionName === 'approve') {
+        if (item.requestStatus === 'Approved') {
+          return false
+        }
+      } else if (actionName === 'reject') {
+        if (item.requestStatus === 'Approved' || item.requestStatus === 'Rejected') {
+          return false
+        }
+      }
+      return true
+    },
+    canEditBuilding (item) {
+      if (item.requestStatus === 'Approved' && this.requestCategory === 'requestsList') {
+        return false
+      }
+      return true
+    },
     getBuildings () {
       this.facilities = []
       this.buildings = []
       this.loadingBuildings = true
       axios.get(backendServer + '/FR/getBuildings', {
         params: {
-          jurisdiction: this.activeJurisdiction.id
+          jurisdiction: this.activeJurisdiction.id,
+          action: this.action,
+          requestType: this.requestType,
+          requestCategory: this.requestCategory
         }
       }).then((response) => {
         this.loadingBuildings = false
@@ -501,6 +652,8 @@ export default {
       formData.append('name', this.name)
       formData.append('alt_name', this.alt_name)
       formData.append('code', this.code)
+      formData.append('action', this.action)
+      formData.append('requestType', this.requestType)
       if (this.facilityType) {
         formData.append('type', this.facilityType)
       }
@@ -552,6 +705,9 @@ export default {
         this.loadingTree = false
       }
     })
+    if (this.action === 'request' && this.requestCategory === 'requestsList') {
+      this.buildingsHeaders.push({ text: 'Request Status', value: 'requestStatus' })
+    }
   },
   computed: {
     nameErrors () {

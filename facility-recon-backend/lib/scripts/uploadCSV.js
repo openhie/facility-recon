@@ -72,6 +72,9 @@ function buildJurisdiction(jurisdictions, bundle) {
   jurisdictions.forEach((jurisdiction) => {
     const resource = {};
     resource.resourceType = 'Location';
+    resource.meta = {};
+    resource.meta.profile = [];
+    resource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
     resource.name = jurisdiction.name;
     resource.status = 'active';
     resource.mode = 'instance';
@@ -108,6 +111,10 @@ function buildBuilding(building, bundle) {
   const resource = {};
   resource.resourceType = 'Location';
   resource.mode = 'instance';
+  resource.meta = {};
+  resource.meta.profile = [];
+  resource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
+  resource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityLocation');
   resource.name = building.name;
   if (building.alt_name) {
     resource.alias = [];
@@ -180,15 +187,21 @@ function buildBuilding(building, bundle) {
   if (building.description) {
     resource.description = building.description;
   }
-  let organizationResource;
+  const orgUUID = uuid5(building.id, building.uuid);
+  const organizationResource = {};
+  organizationResource.id = orgUUID;
+  organizationResource.resourceType = 'Organization';
+  organizationResource.meta = {};
+  organizationResource.meta.profile = [];
+  organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Organization');
+  organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityOrganization');
+  organizationResource.name = building.name;
+  resource.managingOrganization = {
+    reference: `Organization/${organizationResource.id}`,
+  };
   if (building.ownership) {
     const ownershipConcept = getTerminologyCodeFromName(building.ownership);
     if (ownershipConcept) {
-      const orgUUID = uuid5(building.id, building.uuid);
-      organizationResource = {};
-      organizationResource.id = orgUUID;
-      organizationResource.resourceType = 'Organization';
-      organizationResource.name = building.name;
       organizationResource.type = {};
       organizationResource.type.text = ownershipConcept.display;
       organizationResource.type.coding = [];
@@ -197,9 +210,6 @@ function buildBuilding(building, bundle) {
         code: ownershipConcept.code,
         display: ownershipConcept.display,
       });
-      resource.managingOrganization = {
-        reference: `Organization/${organizationResource.id}`,
-      };
     }
   }
   resource.physicalType = {
@@ -237,8 +247,17 @@ function csvTomCSD(filePath, headerMapping, callback) {
   const promises = [];
   const processed = [];
 
-  let recordCount = 0;
-  let saveBundle = {
+  let recordCountBuilding = 0;
+  let recordCountJurisdiction = 0;
+  const defaultDBName = config.getConf('hapi:defaultDBName');
+  const requestsDBName = config.getConf('hapi:requestsDBName');
+  let saveBundleBuilding = {
+    id: uuid4(),
+    resourceType: 'Bundle',
+    type: 'batch',
+    entry: [],
+  };
+  let saveBundleJurisdiction = {
     id: uuid4(),
     resourceType: 'Bundle',
     type: 'batch',
@@ -340,8 +359,8 @@ function csvTomCSD(filePath, headerMapping, callback) {
           });
           processed.push(countryUUID);
         }
-        recordCount += jurisdictions.length;
-        buildJurisdiction(jurisdictions, saveBundle);
+        recordCountBuilding += jurisdictions.length;
+        buildJurisdiction(jurisdictions, saveBundleJurisdiction);
         let facilityName = data[headerMapping.facility].replace(/ {1,}/g, ' ').trim();
         facilityName = mixin.toTitleCaseSpace(facilityName);
         let altName = data[headerMapping.alt_name];
@@ -392,28 +411,68 @@ function csvTomCSD(filePath, headerMapping, callback) {
           parent: facilityParent,
           parentUUID: facilityParentUUID,
         };
-        recordCount += 1;
-        buildBuilding(building, saveBundle);
-        if (recordCount >= 250) {
+        recordCountBuilding += 1;
+        buildBuilding(building, saveBundleBuilding);
+        if (recordCountBuilding >= 250) {
           const tmpBundle = {
-            ...saveBundle,
+            ...saveBundleBuilding,
           };
-          saveBundle = {
+          saveBundleBuilding = {
             id: uuid4(),
             resourceType: 'Bundle',
             type: 'batch',
             entry: [],
           };
-          recordCount = 0;
+          recordCountBuilding = 0;
           promises.push(new Promise((resolve, reject) => {
-            mcsd.saveLocations(tmpBundle, '', () => {
+            mcsd.saveLocations(tmpBundle, defaultDBName, () => {
+              resolve();
+            });
+          }));
+        }
+        if (recordCountJurisdiction >= 250) {
+          const tmpBundle = {
+            ...saveBundleJurisdiction,
+          };
+          saveBundleJurisdiction = {
+            id: uuid4(),
+            resourceType: 'Bundle',
+            type: 'batch',
+            entry: [],
+          };
+          recordCountJurisdiction = 0;
+          promises.push(new Promise((resolve, reject) => {
+            async.parallel([
+              (callback) => {
+                mcsd.saveLocations(tmpBundle, defaultDBName, () => callback(null, null));
+              },
+              (callback) => {
+                mcsd.saveLocations(tmpBundle, requestsDBName, () => callback(null, null));
+              },
+            ], () => {
               resolve();
             });
           }));
         }
       });
     }).on('end', () => {
-      mcsd.saveLocations(saveBundle, '', () => {
+      async.parallel([
+        (callback) => {
+          mcsd.saveLocations(saveBundleBuilding, defaultDBName, () => callback(null, null));
+        },
+        (callback) => {
+          async.parallel([
+            (callback) => {
+              mcsd.saveLocations(saveBundleJurisdiction, defaultDBName, () => callback(null, null));
+            },
+            (callback) => {
+              mcsd.saveLocations(saveBundleJurisdiction, requestsDBName, () => callback(null, null));
+            },
+          ], () => {
+            callback(null, null);
+          });
+        },
+      ], () => {
         Promise.all(promises).then(() => {
           winston.info('Upload Done');
           process.exit();

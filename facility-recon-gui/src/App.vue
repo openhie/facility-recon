@@ -148,6 +148,30 @@
           <v-list>
             <v-tooltip top>
               <v-list-tile
+                to="RequestBuildingAddition?action=request&requestType=add"
+                slot="activator"
+                v-if='$store.state.auth.role === "Guest"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.requestNewFacility.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.requestNewFacility.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="RequestUpdateBuildingDetails?action=request&requestCategory=updateRequest&requestType=update"
+                slot="activator"
+                v-if='$store.state.auth.role === "Guest"'
+              >
+                <v-list-tile-title>
+                  <v-icon left>language</v-icon>{{ $t('App.menu.requestUpdateFacility.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.requestUpdateFacility.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
                 to="AddJurisdiction"
                 slot="activator"
                 v-if='$store.state.auth.role === "Admin"'
@@ -160,7 +184,7 @@
             </v-tooltip>
             <v-tooltip top>
               <v-list-tile
-                to="AddFacility"
+                to="AddFacility?action=add"
                 slot="activator"
                 v-if='$store.state.auth.role === "Admin"'
               >
@@ -178,6 +202,30 @@
                 <v-icon left>list</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
               </v-list-tile-title>
             </v-list-tile>
+            <v-tooltip top>
+              <v-list-tile
+                to="NewFacilitiesRequestsReport?action=request&requestCategory=requestsList&requestType=add"
+                v-if='$store.state.auth.role === "Guest" || $store.state.auth.role === "Admin"'
+                slot="activator"
+              >
+                <v-list-tile-title>
+                  <v-icon left>list</v-icon>{{ $t('App.menu.newFacilitiesRequestsReport.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.newFacilitiesRequestsReport.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <v-list-tile
+                to="FacilitiesUpdateRequestsReport?action=request&requestCategory=requestsList&requestType=update"
+                v-if='$store.state.auth.role === "Guest" || $store.state.auth.role === "Admin"'
+                slot="activator"
+              >
+                <v-list-tile-title>
+                  <v-icon left>list</v-icon>{{ $t('App.menu.facilitiesUpdateRequestsReport.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.facilitiesUpdateRequestsReport.tooltip')}}</span>
+            </v-tooltip>
             <v-list-tile
               to="ServicesReport"
               v-if='$store.state.auth.role === "Admin"'

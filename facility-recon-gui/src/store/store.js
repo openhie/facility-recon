@@ -40,7 +40,10 @@ export const store = new Vuex.Store({
           enabled: false
         },
         allowShareToAllForNonAdmin: false,
-        selfRegistration: false,
+        selfRegistration: {
+          enabled: false,
+          requiresApproval: false
+        },
         datasetsAdditionWays: ['CSV Upload', 'Remote Servers Sync'],
         datasetsAutosyncTime: '*/15 * * * *',
         authDisabled: false,

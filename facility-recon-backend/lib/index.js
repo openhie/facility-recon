@@ -54,19 +54,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/progress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/progress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -137,11 +137,14 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
+          {
+            name: 'Guest',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -153,6 +156,8 @@ if (cluster.isMaster) {
               userName: 'root@gofr.org',
               status: 'Active',
               role: data[0]._id,
+              email: 'root@gofr.org',
+              phone: '+255',
               password: bcrypt.hashSync('gofr', 8),
             });
             User.save((err, data) => {
@@ -169,8 +174,9 @@ if (cluster.isMaster) {
     });
 
     // check if FR DB Exists
-    const database = config.getConf('hapi:defaultDBName');
-    let url = URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')
+    const defaultDB = config.getConf('hapi:defaultDBName');
+    const requestsDB = config.getConf('hapi:requestsDBName');
+    let url = URI(config.getConf('mCSD:url')).segment(defaultDB).segment('fhir').segment('Location')
       .toString();
     const options = {
       url,
@@ -178,20 +184,36 @@ if (cluster.isMaster) {
     url = false;
     request.get(options, (err, res, body) => {
       if (!res) {
-        winston.error('It appears that FHIR server is not running, quiting GOFR now ...')
-        //process.exit()
+        winston.error('It appears that FHIR server is not running, quiting GOFR now ...');
+        // process.exit()
       }
       if (res.statusCode === 404) {
-        hapi.createServer(database, (err) => {
-          if (err) {
-            winston.error(err);
-          } else {
-            createFakeOrgID(database);
-          }
+        async.series({
+          createDefaultDB: (callback) => {
+            hapi.createServer(defaultDB, (err) => {
+              if (err) {
+                winston.error(err);
+              } else {
+                createFakeOrgID(defaultDB);
+              }
+              callback(null);
+            });
+          },
+          createRequestsDB: (callback) => {
+            hapi.createServer(requestsDB, (err) => {
+              if (err) {
+                winston.error(err);
+              } else {
+                createFakeOrgID(requestsDB);
+              }
+              callback(null);
+            });
+          },
         });
       } else {
         // check if FR has fake org id
-        createFakeOrgID(database);
+        createFakeOrgID(requestsDB);
+        createFakeOrgID(defaultDB);
       }
     });
 
@@ -226,7 +248,7 @@ if (cluster.isMaster) {
               url: `Location/${topOrgId}`,
             },
           });
-          mcsd.saveLocations(fhirDoc, '', (err, res) => {
+          mcsd.saveLocations(fhirDoc, database, (err, res) => {
             if (err) {
               winston.error(err);
             } else {
@@ -252,7 +274,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -409,10 +431,12 @@ if (cluster.isMaster) {
                 }
                 schemaData[field] = fields[field];
               }
-              if (!schemaData.hasOwnProperty('role') || !schemaData.role) {
+              if (schemaData.status !== 'Pending' && (!schemaData.hasOwnProperty('role') || !schemaData.role)) {
                 schemaData.role = data[0]._id;
               }
-              schemaData.status = 'Active';
+              if (!schemaData.status) {
+                schemaData.status = 'Active';
+              }
               const Users = new models.UsersModel(schemaData);
               Users.save((err, data) => {
                 if (err) {
@@ -444,6 +468,33 @@ if (cluster.isMaster) {
             error: 'Internal error occured',
           });
         }
+      });
+    });
+  });
+
+  app.post('/changeAccountStatus', (req, res) => {
+    winston.info('Received a request to change account status');
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields) => {
+      const {
+        role,
+        status,
+        id,
+      } = fields;
+      const updates = {};
+      if (role) {
+        updates.role = role;
+      }
+      updates.status = status;
+      models.UsersModel.findByIdAndUpdate(id, updates, (err, data) => {
+        if (err) {
+          winston.error('An error has occured while changing account status');
+          winston.error(err);
+          res.status(500).send();
+          return;
+        }
+        winston.info('Account status has been changed');
+        res.status(200).send();
       });
     });
   });
@@ -2650,11 +2701,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config')
-          && configData.config.hasOwnProperty('generalConfig')
-          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-          && configData.config.generalConfig.recoProgressNotification.enabled
-          && configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,

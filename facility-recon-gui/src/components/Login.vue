@@ -79,7 +79,7 @@
         <v-card-actions>
           <v-toolbar>
             <v-btn
-              v-if="$store.state.config.generalConfig.selfRegistration"
+              v-if="$store.state.config.generalConfig.selfRegistration.enabled"
               color="success"
               @click="displaySignup"
             >Signup</v-btn>

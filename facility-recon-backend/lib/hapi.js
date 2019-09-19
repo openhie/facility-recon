@@ -24,7 +24,7 @@ const pgPassword = config.getConf('pg:password');
 const pool = new Pool({
   user: pgUser,
   password: pgPassword,
-  database: 'template1',
+  database: 'testingdb1',
   host: 'localhost',
   port: 5432,
 });

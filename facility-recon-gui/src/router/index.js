@@ -19,6 +19,9 @@ import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import AddJurisdiction from '@/components/FacilityRegistry/AddJurisdiction'
 import AddFacility from '@/components/FacilityRegistry/AddFacility'
 import FacilitiesReport from '@/components/FacilityRegistry/FacilitiesReport'
+import RequestUpdateBuildingDetails from '@/components/FacilityRegistry/RequestUpdateBuildingDetails'
+import NewFacilitiesRequestsReport from '@/components/FacilityRegistry/NewFacilitiesRequestsReport'
+import FacilitiesUpdateRequestsReport from '@/components/FacilityRegistry/FacilitiesUpdateRequestsReport'
 import ServicesReport from '@/components/FacilityRegistry/ServicesReport'
 import AddCodeSystem from '@/components/FacilityRegistry/AddCodeSystem'
 import AddService from '@/components/FacilityRegistry/AddService'
@@ -111,6 +114,35 @@ let router = new Router({
       component: FacilityReconDbAdmin
     },
     {
+      path: '/RequestBuildingAddition',
+      name: 'RequestBuildingAddition',
+      component: AddFacility,
+      props: (route) => ({
+        action: route.query.action,
+        requestType: route.query.requestType
+      })
+    },
+    {
+      path: '/RequestUpdateBuildingDetails',
+      name: 'RequestUpdateBuildingDetails',
+      component: RequestUpdateBuildingDetails,
+      props: (route) => ({
+        action: route.query.action,
+        requestCategory: route.query.requestCategory,
+        requestType: route.query.requestType
+      })
+    },
+    {
+      path: '/FacilitiesUpdateRequestsReport',
+      name: 'FacilitiesUpdateRequestsReport',
+      component: FacilitiesUpdateRequestsReport,
+      props: (route) => ({
+        action: route.query.action,
+        requestCategory: route.query.requestCategory,
+        requestType: route.query.requestType
+      })
+    },
+    {
       path: '/AddJurisdiction',
       name: 'AddJurisdiction',
       component: AddJurisdiction
@@ -118,12 +150,30 @@ let router = new Router({
     {
       path: '/AddFacility',
       name: 'AddFacility',
-      component: AddFacility
+      component: AddFacility,
+      props: (route) => ({
+        action: route.query.action
+      })
     },
     {
       path: '/FacilitiesReport',
       name: 'FacilitiesReport',
-      component: FacilitiesReport
+      component: FacilitiesReport,
+      props: (route) => ({
+        action: route.query.action,
+        requestCategory: route.query.requestCategory,
+        requestType: route.query.requestType
+      })
+    },
+    {
+      path: '/NewFacilitiesRequestsReport',
+      name: 'NewFacilitiesRequestsReport',
+      component: NewFacilitiesRequestsReport,
+      props: (route) => ({
+        action: route.query.action,
+        requestCategory: route.query.requestCategory,
+        requestType: route.query.requestType
+      })
     },
     {
       path: '/ServicesReport',

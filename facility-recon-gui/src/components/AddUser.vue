@@ -72,6 +72,28 @@
             />
             <v-text-field
               required
+              @blur="validatePhone"
+              @change="validatePhone"
+              @input="validatePhone"
+              :error-messages="phoneErrors"
+              v-model="phone"
+              box
+              color="deep-purple"
+              label="Phone"
+            />
+            <v-text-field
+              required
+              @blur="validateEmail"
+              @change="validateEmail"
+              @input="validateEmail"
+              :error-messages="emailErrors"
+              v-model="email"
+              box
+              color="deep-purple"
+              label="Email*"
+            />
+            <v-text-field
+              required
               @blur="$v.userName.$touch()"
               @change="$v.surname.$touch()"
               :error-messages="usernameErrors"
@@ -167,7 +189,6 @@ import { required } from 'vuelidate/lib/validators'
 import { generalMixin } from '../mixins/generalMixin'
 
 const backendServer = process.env.BACKEND_SERVER
-
 export default {
   mixins: [generalMixin],
   validations: {
@@ -176,24 +197,52 @@ export default {
     password: { required },
     role: { required },
     firstName: { required },
-    surname: { required }
+    surname: { required },
+    phone: { required },
+    email: { required }
   },
   data () {
     return {
       firstName: '',
       otherName: '',
       surname: '',
+      phone: '',
+      email: '',
       userName: '',
       password: '',
       retype_password: '',
       role: '',
       customFields: [],
+      phoneErrors: [],
+      emailErrors: [],
       alertFail: false,
       alertSuccess: false,
       alertMsg: ''
     }
   },
   methods: {
+    validateEmail () {
+      this.emailErrors = []
+      if (!this.email) {
+        this.emailErrors.push('Email is required')
+        return false
+      }
+      let re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!re.test(this.email)) {
+        this.emailErrors.push('Invalid Email')
+        return false
+      }
+    },
+    validatePhone () {
+      this.phoneErrors = []
+      if (!this.phone) {
+        return this.phoneErrors.push('Phone is required')
+      }
+      let re = /^[+]?[\s./0-9]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/g
+      if (!re.test(this.phone)) {
+        return this.phoneErrors.push('Invalid phone number')
+      }
+    },
     addUser () {
       if (this.password !== this.retype_password) {
         this.$store.state.dialogError = true
@@ -209,6 +258,8 @@ export default {
       formData.append('password', this.password)
       formData.append('userName', this.userName)
       formData.append('surname', this.surname)
+      formData.append('phone', this.phone)
+      formData.append('email', this.email)
       formData.append('role', this.role)
       for (let field in this.customFields) {
         formData.append(field, this.customFields[field])

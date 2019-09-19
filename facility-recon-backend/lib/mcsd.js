@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable guard-for-in */
 /* eslint-disable no-param-reassign */
 /* eslint-disable consistent-return */
 require('./init');
@@ -288,7 +290,7 @@ module.exports = () => ({
     );
   },
 
-  getLocationByID(database, id, getCached, callback) {
+  getLocationByID(database, id, includeFacilityOrganization, callback) {
     if (!database) {
       database = config.getConf('hapi:defaultDBName');
     }
@@ -298,10 +300,13 @@ module.exports = () => ({
     }
     url = url.segment('fhir').segment('Location');
     if (id) {
-      url = `${url}?_id=${id.toString()}`;
-    } else {
-      url = url.toString();
+      url.addQuery('_id', id);
     }
+    if (includeFacilityOrganization) {
+      url.addQuery('_include', 'Location:organization');
+    }
+    url = url.toString();
+
     const locations = {};
     locations.entry = [];
     async.doWhilst(
@@ -407,6 +412,9 @@ module.exports = () => ({
             winston.error('Non mCSD data returned');
             return doCallback(false, false);
           }
+          if (!body.entry || body.entry.length === 0) {
+            return doCallback(false, false);
+          }
           const next = body.link.find(link => link.relation == 'next');
           if (next) {
             url = next.url;
@@ -454,11 +462,11 @@ module.exports = () => ({
 
   getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
     const parents = [];
-    if (entityParent == null
-      || entityParent == false
-      || entityParent == undefined
-      || !topOrg
-      || !database
+    if (entityParent == null ||
+      entityParent == false ||
+      entityParent == undefined ||
+      !topOrg ||
+      !database
     ) {
       return callback(parents);
     }
@@ -590,10 +598,10 @@ module.exports = () => ({
           // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
           else if (topOrg && sourceEntityID.endsWith(topOrg)) {
             return callback(parents);
-          } else if (body.entry[0].resource.hasOwnProperty('partOf')
-            && body.entry[0].resource.partOf.reference != false
-            && body.entry[0].resource.partOf.reference != null
-            && body.entry[0].resource.partOf.reference != undefined) {
+          } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
+            body.entry[0].resource.partOf.reference != false &&
+            body.entry[0].resource.partOf.reference != null &&
+            body.entry[0].resource.partOf.reference != undefined) {
             var entityParent = body.entry[0].resource.partOf.reference;
             getPar(entityParent, (parents) => {
               callback(parents);
@@ -654,10 +662,10 @@ module.exports = () => ({
           winston.error('parent details (either id,names or all) to be returned not specified');
         }
 
-        if (entry.resource.hasOwnProperty('partOf')
-          && entry.resource.partOf.reference != false
-          && entry.resource.partOf.reference != null
-          && entry.resource.partOf.reference != undefined) {
+        if (entry.resource.hasOwnProperty('partOf') &&
+          entry.resource.partOf.reference != false &&
+          entry.resource.partOf.reference != null &&
+          entry.resource.partOf.reference != undefined) {
           entityParent = entry.resource.partOf.reference;
           filter(entityParent, parents => callback(parents));
         } else {
@@ -681,7 +689,10 @@ module.exports = () => ({
   getBuildingsFromData(mcsd, callback) {
     const buildings = [];
     mcsd.entry.map((entry) => {
-      const found = entry.resource.physicalType.coding.find(coding => coding.code == 'bu');
+      if (!entry.resource || !entry.resource.physicalType || !entry.resource.physicalType.coding || !Array.isArray(entry.resource.physicalType.coding)) {
+        return;
+      }
+      const found = entry.resource.physicalType.coding.find(coding => coding.code === 'bu');
       if (found) {
         buildings.push(entry);
       }
@@ -829,14 +840,23 @@ module.exports = () => ({
   },
 
   addJurisdiction({
+    database,
     name,
     code,
+    id,
     parent,
   }, callback) {
     const resource = {};
     resource.resourceType = 'Location';
+    resource.meta = {};
+    resource.meta.profile = [];
+    resource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
     resource.name = name;
-    resource.id = uuid4();
+    if (id) {
+      resource.id = id;
+    } else {
+      resource.id = uuid4();
+    }
     if (parent) {
       resource.partOf = {
         reference: `Location/${parent}`,
@@ -872,11 +892,11 @@ module.exports = () => ({
         url: `Location/${resource.id}`,
       },
     });
-    this.saveLocations(fhir, '', (err, res) => {
+    this.saveLocations(fhir, database, (err, res) => {
       if (err) {
         winston.error(err);
       }
-      callback(err);
+      callback(err, resource.id);
     });
   },
   addService(fields, callback) {
@@ -1139,7 +1159,6 @@ module.exports = () => ({
         }
         callback(err);
       });
-      winston.error(JSON.stringify(fhir, null, 2));
     });
   },
   addBuilding(fields, callback) {
@@ -1150,6 +1169,10 @@ module.exports = () => ({
       LocationResource.id = uuid4();
     }
     LocationResource.resourceType = 'Location';
+    LocationResource.meta = {};
+    LocationResource.meta.profile = [];
+    LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
+    LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityLocation');
     LocationResource.name = fields.name;
     if (fields.alt_name) {
       LocationResource.alias = [];
@@ -1246,15 +1269,60 @@ module.exports = () => ({
       }],
       text: 'Building',
     };
-
-    let organizationResource;
+    if (fields.action === 'request') {
+      const usernameURI = mixin.getCodesysteURI('usernames');
+      const statusesURI = mixin.getCodesysteURI('statuses');
+      if (!LocationResource.meta) {
+        LocationResource.meta = {};
+      }
+      if (!LocationResource.meta.tag) {
+        LocationResource.meta.tag = [];
+      }
+      const tagExist = LocationResource.meta.tag.find(tag => tag.code === fields.username && tag.system === usernameURI.uri);
+      if (!tagExist && fields.username) {
+        LocationResource.meta.tag.push({
+          system: usernameURI.uri,
+          code: fields.username,
+        });
+      }
+      const status = LocationResource.meta.tag.find(tag => tag.code === 'pending' && tag.system === statusesURI.uri);
+      if (!status) {
+        LocationResource.meta.tag.push({
+          system: statusesURI.uri,
+          code: 'pending',
+          display: 'Pending',
+        });
+      }
+      const requestTypesURI = mixin.getCodesysteURI('requestTypes');
+      const requestType = LocationResource.meta.tag.find(tag => tag.system === requestTypesURI.uri);
+      if (fields.requestType === 'add' && !requestType) {
+        LocationResource.meta.tag.push({
+          system: requestTypesURI.uri,
+          code: 'add',
+          display: 'Request to add new facility',
+        });
+      } else if (fields.requestType === 'update' && !requestType) {
+        LocationResource.meta.tag.push({
+          system: requestTypesURI.uri,
+          code: 'update',
+          display: 'Request to update facility details',
+        });
+      }
+    }
+    const organizationResource = {};
+    organizationResource.id = uuid4();
+    organizationResource.resourceType = 'Organization';
+    organizationResource.meta = {};
+    organizationResource.meta.profile = [];
+    organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Organization');
+    organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityOrganization');
+    organizationResource.name = fields.name;
+    LocationResource.managingOrganization = {
+      reference: `Organization/${organizationResource.id}`,
+    };
     if (fields.ownership) {
       const ownershipConcept = this.getTerminologyCode(fields.ownership);
       if (ownershipConcept) {
-        organizationResource = {};
-        organizationResource.id = uuid4();
-        organizationResource.resourceType = 'Organization';
-        organizationResource.name = fields.name;
         organizationResource.type = [];
         const type = {};
         type.text = ownershipConcept.display;
@@ -1265,9 +1333,6 @@ module.exports = () => ({
           display: ownershipConcept.display,
         });
         organizationResource.type.push(type);
-        LocationResource.managingOrganization = {
-          reference: `Organization/${organizationResource.id}`,
-        };
       }
     }
     const fhir = {};
@@ -1290,11 +1355,113 @@ module.exports = () => ({
         },
       });
     }
-    this.saveLocations(fhir, '', (err, res) => {
+    let database = '';
+    if (fields.action && fields.action === 'request') {
+      database = config.getConf('hapi:requestsDBName');
+    }
+    this.saveLocations(fhir, database, (err, res) => {
       if (err) {
         winston.error(err);
       }
       callback(err);
+    });
+  },
+
+  changeBuildingRequestStatus({
+    id,
+    status,
+  }, callback) {
+    let database = config.getConf('hapi:requestsDBName');
+    this.getLocationByID(database, id, true, (location) => {
+      if (!location || !location.entry || location.entry.length === 0) {
+        winston.error(`No location with id ${id} found`);
+        return callback(`No location with id ${id} found`);
+      }
+      const locationResource = location.entry.find(entry => entry.resource.resourceType === 'Location');
+      const organizationResource = location.entry.find(entry => entry.resource.resourceType === 'Organization');
+      if (!locationResource) {
+        winston.error(`No location resource with id ${id} found`);
+        return callback(`No location resource with id ${id} found`);
+      }
+      const statusesURI = mixin.getCodesysteURI('statuses');
+      let statusDisplay;
+      if (status === 'rejected') {
+        statusDisplay = 'Rejected';
+      } else if (status === 'approved') {
+        statusDisplay = 'Approved';
+      }
+      for (const tagIndex in locationResource.resource.meta.tag) {
+        const tag = locationResource.resource.meta.tag[tagIndex];
+        if (tag.system === statusesURI.uri) {
+          locationResource.resource.meta.tag[tagIndex].code = status;
+          locationResource.resource.meta.tag[tagIndex].display = statusDisplay;
+        }
+      }
+
+      const fhir = {};
+      fhir.entry = [];
+      fhir.type = 'batch';
+      fhir.resourceType = 'Bundle';
+      fhir.entry.push({
+        resource: locationResource.resource,
+        request: {
+          method: 'PUT',
+          url: `Location/${locationResource.resource.id}`,
+        },
+      });
+      async.series([
+        (callback) => {
+          this.deleteResource({
+            resource: 'Location',
+            id: locationResource.resource.id,
+            database,
+          }, (err) => {
+            if (err) {
+              return callback(err);
+            }
+            callback(null);
+          });
+        },
+        (callback) => {
+          this.saveLocations(fhir, database, (err, res) => {
+            if (err) {
+              winston.error(err);
+              return callback('An error has occured while changing request status');
+            }
+            return callback(null);
+          });
+        },
+      ], (err, response) => {
+        if (status === 'approved') {
+          for (const tagIndex in fhir.entry[0].resource.meta.tag) {
+            const {
+              tag,
+            } = fhir.entry[0].resource.meta;
+            if (tag.system === statusesURI.uri) {
+              delete fhir.entry[0].resource.meta.tag[tagIndex];
+            }
+          }
+          if (organizationResource) {
+            fhir.entry.push({
+              resource: organizationResource.resource,
+              request: {
+                method: 'PUT',
+                url: `Organization/${organizationResource.resource.id}`,
+              },
+            });
+          }
+          database = '';
+          this.saveLocations(fhir, database, (err, res) => {
+            if (err) {
+              winston.error(err);
+              return callback(err);
+            }
+            return callback();
+          });
+        } else {
+          return callback();
+        }
+      });
     });
   },
 
@@ -1355,6 +1522,33 @@ module.exports = () => ({
       });
     });
   },
+
+  deleteResource({
+    database,
+    resource,
+    id,
+  }, callback) {
+    if (!database) {
+      database = config.getConf('hapi:defaultDBName');
+    }
+    const urlPrefix = URI(config.getConf('mCSD:url'))
+      .segment(database)
+      .segment('fhir')
+      .segment(resource);
+    const url = URI(urlPrefix).segment(id).toString();
+    const options = {
+      url,
+    };
+    request.delete(options, (err, res, body) => {
+      if (err) {
+        winston.error(err);
+        return callback(err);
+      }
+      this.cleanCache(urlPrefix.toString());
+      return callback();
+    });
+  },
+
   deleteLocation(id, sourceId, sourceName, sourceOwner, userID, callback) {
     mongo.getMappingDBs(sourceId, (dbs) => {
       async.parallel({
@@ -1745,96 +1939,96 @@ module.exports = () => ({
 
     const me = this;
     async.parallel({
-      source1Mapped(callback) {
-        me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
-          if (mapped.entry.length > 0) {
-            winston.error('Attempting to mark an already mapped location as no match');
-            return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-          }
-          return callback(null, null);
-        });
+        source1Mapped(callback) {
+          me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
+            if (mapped.entry.length > 0) {
+              winston.error('Attempting to mark an already mapped location as no match');
+              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+            }
+            return callback(null, null);
+          });
+        },
       },
-    },
-    (err, res) => {
-      if (res.source1Mapped !== null) {
-        return callback(res.source1Mapped);
-      }
-      me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-        if (mcsd.entry.length === 0) {
-          winston.error(`Location with ID ${source1Id} not found on the mCSD DB, this isnt expected, please cross check`);
-          return callback(true);
+      (err, res) => {
+        if (res.source1Mapped !== null) {
+          return callback(res.source1Mapped);
         }
-        const fhir = {};
-        fhir.entry = [];
-        fhir.type = 'batch';
-        fhir.resourceType = 'Bundle';
-        const entry = [];
-        const resource = {};
-        resource.resourceType = 'Location';
-        resource.name = mcsd.entry[0].resource.name;
-        resource.id = source1Id;
-
-        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-          resource.partOf = {
-            display: mcsd.entry[0].resource.partOf.display,
-            reference: mcsd.entry[0].resource.partOf.reference,
-          };
-        }
-        let typeCode;
-        let typeName;
-        if (recoLevel == totalLevels) {
-          typeCode = 'bu';
-          typeName = 'building';
-        } else {
-          typeCode = 'jdn';
-          typeName = 'Jurisdiction';
-        }
-        resource.physicalType = {
-          coding: [{
-            code: typeCode,
-            display: typeName,
-            system: 'http://hl7.org/fhir/location-physical-type',
-          }],
-        };
-        resource.identifier = [];
-        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-          .segment(source1Id)
-          .toString();
-        resource.identifier.push({
-          system: source1System,
-          value: source1URL,
-        });
-        resource.meta = {};
-        resource.meta.tag = [];
-        if (type == 'nomatch') {
-          resource.meta.tag.push({
-            system: source1System,
-            code: noMatchCode,
-            display: 'No Match',
-          });
-        } else if (type == 'ignore') {
-          resource.meta.tag.push({
-            system: source1System,
-            code: ignoreCode,
-            display: 'Ignore',
-          });
-        }
-        entry.push({
-          resource,
-          request: {
-            method: 'PUT',
-            url: `Location/${resource.id}`,
-          },
-        });
-        fhir.entry = fhir.entry.concat(entry);
-        me.saveLocations(fhir, mappingDB, (err, res) => {
-          if (err) {
-            winston.error(err);
+        me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+          if (mcsd.entry.length === 0) {
+            winston.error(`Location with ID ${source1Id} not found on the mCSD DB, this isnt expected, please cross check`);
+            return callback(true);
           }
-          callback(err);
+          const fhir = {};
+          fhir.entry = [];
+          fhir.type = 'batch';
+          fhir.resourceType = 'Bundle';
+          const entry = [];
+          const resource = {};
+          resource.resourceType = 'Location';
+          resource.name = mcsd.entry[0].resource.name;
+          resource.id = source1Id;
+
+          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+            resource.partOf = {
+              display: mcsd.entry[0].resource.partOf.display,
+              reference: mcsd.entry[0].resource.partOf.reference,
+            };
+          }
+          let typeCode;
+          let typeName;
+          if (recoLevel == totalLevels) {
+            typeCode = 'bu';
+            typeName = 'building';
+          } else {
+            typeCode = 'jdn';
+            typeName = 'Jurisdiction';
+          }
+          resource.physicalType = {
+            coding: [{
+              code: typeCode,
+              display: typeName,
+              system: 'http://hl7.org/fhir/location-physical-type',
+            }],
+          };
+          resource.identifier = [];
+          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+            .segment(source1Id)
+            .toString();
+          resource.identifier.push({
+            system: source1System,
+            value: source1URL,
+          });
+          resource.meta = {};
+          resource.meta.tag = [];
+          if (type == 'nomatch') {
+            resource.meta.tag.push({
+              system: source1System,
+              code: noMatchCode,
+              display: 'No Match',
+            });
+          } else if (type == 'ignore') {
+            resource.meta.tag.push({
+              system: source1System,
+              code: ignoreCode,
+              display: 'Ignore',
+            });
+          }
+          entry.push({
+            resource,
+            request: {
+              method: 'PUT',
+              url: `Location/${resource.id}`,
+            },
+          });
+          fhir.entry = fhir.entry.concat(entry);
+          me.saveLocations(fhir, mappingDB, (err, res) => {
+            if (err) {
+              winston.error(err);
+            }
+            callback(err);
+          });
         });
       });
-    });
   },
   breakMatch(source1Id, mappingDB, source1DB, callback) {
     if (!source1Id) {
@@ -1967,10 +2161,10 @@ module.exports = () => ({
         let facilityParent = null;
         let facilityParentUUID = null;
         async.eachSeries(levels, (level, nxtLevel) => {
-          if (data[headerMapping[level]] != null
-            && data[headerMapping[level]] != undefined
-            && data[headerMapping[level]] != false
-            && data[headerMapping[level]] != ''
+          if (data[headerMapping[level]] != null &&
+            data[headerMapping[level]] != undefined &&
+            data[headerMapping[level]] != false &&
+            data[headerMapping[level]] != ''
           ) {
             let name = data[headerMapping[level]].trim();
             name = mixin.toTitleCaseSpace(name);

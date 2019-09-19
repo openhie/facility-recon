@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
+const {
+  Schema,
+} = mongoose;
 
 const usersFields = {
   firstName: {
@@ -17,6 +19,13 @@ const usersFields = {
   role: {
     type: Schema.Types.ObjectId,
     ref: 'Roles',
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
     required: true,
   },
   userName: {
@@ -180,7 +189,12 @@ const MetaData = new mongoose.Schema({
     }],
     generalConfig: {
       selfRegistration: {
-        type: Boolean,
+        enabled: {
+          type: Boolean,
+        },
+        requiresApproval: {
+          type: Boolean,
+        },
       },
       allowShareToAllForNonAdmin: {
         type: Boolean,

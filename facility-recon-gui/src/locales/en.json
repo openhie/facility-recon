@@ -1,6 +1,6 @@
 {
   "App": {
-    "title": "Facility Reconciliation",
+    "title": "Global Open Facility Registry",
     "initApp": "Initializing App",
     "source": "Source",
     "menu": {
@@ -35,6 +35,22 @@
       "servicesReport": {
         "msg": "Services Report",
         "tooltip": "Services Report"
+      },
+      "newFacilitiesRequestsReport": {
+        "msg": "New Facilities Requests Report",
+        "tooltip": "Report on requests made to create new facilities"
+      },
+      "facilitiesUpdateRequestsReport": {
+        "msg": "Report Of Requested Facilities Updates",
+        "tooltip": "Report about requests to update details of facilities"
+      },
+      "requestNewFacility": {
+        "msg": "Request Addition Of New Facility",
+        "tooltip": "Request Addition Of New Facility"
+      },
+      "requestUpdateFacility": {
+        "msg": "Request Update Of Facility Details",
+        "tooltip": "Request Update Of Facility Details"
       },
       "addServiceType": {
         "msg": "Add Service Type",

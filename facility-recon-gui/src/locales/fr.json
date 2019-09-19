@@ -36,6 +36,22 @@
         "msg": "Services Report",
         "tooltip": "Services Report"
       },
+      "facilitiesRequestsReport": {
+        "msg": "Facilities Requests Report",
+        "tooltip": "Report on requests made to create new facilities"
+      },
+      "facilitiesUpdateRequestsReport": {
+        "msg": "Facilities Updates Requests Report",
+        "tooltip": "Report about requests to update details of facilities"
+      },
+      "requestNewFacility": {
+        "msg": "Request Addition Of New Facility",
+        "tooltip": "Request Addition Of New Facility"
+      },
+      "requestUpdateFacility": {
+        "msg": "Request Update Of Facility Details",
+        "tooltip": "Request Update Of Facility Details"
+      },
       "addServiceType": {
         "msg": "Add Service Type",
         "tooltip": "Add Service Type"
