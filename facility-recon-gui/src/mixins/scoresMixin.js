@@ -22,7 +22,7 @@ export const scoresMixin = {
       this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
       clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
       let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
-      if (percent !== 100 || (percent === 100 && this.$store.state.scoresProgressData.stage !== 'final')) {
+      if (percent !== 100 || (percent === 100 && this.$store.state.scoresProgressData.stage !== 'last')) {
         this.$store.state.scoresProgressData.requestCancelled = true
         this.$store.state.scoresProgressData.cancelTokenSource.cancel('Cancelling request.')
         this.checkScoreProgress()
