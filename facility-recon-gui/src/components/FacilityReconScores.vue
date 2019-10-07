@@ -358,7 +358,7 @@
             slot="activator"
             color="primary"
             dark
-            @click="getScores"
+            @click="getScores(false)"
             round
           >
             <v-icon>repeat_one</v-icon> Recalculate Scores
@@ -1255,7 +1255,7 @@ export default {
         return
       }
       this.$store.state.recoLevel = level
-      this.getScores()
+      this.getScores(false)
       if (
         this.$store.state.recoLevel === this.$store.state.totalSource1Levels
       ) {
@@ -1264,7 +1264,83 @@ export default {
         this.dialogWidth = '1190px'
       }
     },
-    getPotentialMatch (id) {
+    getBuildingPotentialMatches (id) {
+      this.potentialMatches = []
+      let source1 = this.getSource1()
+      let source2 = this.getSource2()
+      let recoLevel = this.$store.state.recoLevel
+      let totalSource1Levels = this.$store.state.totalSource1Levels
+      let totalSource2Levels = this.$store.state.totalSource2Levels
+      const clientId = this.$store.state.clientId
+      let sourcesOwner = this.getDatasourceOwner()
+      let userID = this.$store.state.activePair.userID._id
+      let source1Owner = sourcesOwner.source1Owner
+      let source2Owner = sourcesOwner.source2Owner
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
+      let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
+      let path = `id=${id}&source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint + '&getPotential=' + true
+      this.$store.state.dynamicProgress = true
+      this.$store.state.progressTitle = 'Getting potential matches from server'
+      axios.get(backendServer + '/reconcile/?' + path).then((response) => {
+        this.$store.state.dynamicProgress = false
+        if (response.data) {
+          let scores = JSON.parse(response.data).responseData.scoreResults
+          if (scores.length > 0) {
+            let matches = scores[0]
+            const exactMatches = matches.exactMatch
+            if (Object.keys(exactMatches).length > 0) {
+              this.$store.state.dialogError = true
+              this.$store.state.errorDescription = 'This location is already mapped, please recalculate scores to get changes'
+              this.$store.state.errorTitle = 'Info'
+              this.$store.state.errorColor = 'error'
+              return
+            }
+            this.selectedSource1 = matches.source1
+            this.selectedSource1Name = matches.source1.name
+            this.selectedSource1Parents = matches.source1.parents
+            this.selectedSource1Lat = matches.source1.lat
+            this.selectedSource1Long = matches.source1.long
+            this.selectedSource1Id = matches.source1.id
+            for (let score in matches.potentialMatches) {
+              for (let j in matches.potentialMatches[score]) {
+                let potentials = matches.potentialMatches[score][j]
+                var matched = this.$store.state.matchedContent.find(matched => {
+                  return matched.source2Id === potentials.id
+                })
+                var flagged = this.$store.state.flagged.find(flagged => {
+                  return flagged.source2Id === potentials.id
+                })
+                if (matched) {
+                  continue
+                }
+                if (flagged) {
+                  continue
+                }
+                this.potentialMatches.push({
+                  score: score,
+                  name: potentials.name,
+                  id: potentials.id,
+                  source2IdHierarchy: potentials.source2IdHierarchy,
+                  lat: potentials.lat,
+                  long: potentials.long,
+                  geoDistance: potentials.geoDistance,
+                  parents: potentials.parents,
+                  mappedParentName: potentials.mappedParentName
+                })
+              }
+            }
+          }
+          this.dialog = true
+        } else {
+          this.dialog = true
+        }
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    getJurisdictionPotentialMatches (id) {
       this.potentialMatches = []
       this.showAllPotential = false
       for (let scoreResult of this.$store.state.scoreResults) {
@@ -1306,6 +1382,13 @@ export default {
         }
       }
       this.dialog = true
+    },
+    getPotentialMatch (id) {
+      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
+        this.getBuildingPotentialMatches(id)
+      } else {
+        this.getJurisdictionPotentialMatches(id)
+      }
     },
     potentialMatchComment (potentialMatch) {
       let comment = ''
@@ -1520,8 +1603,8 @@ export default {
           userID,
           formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+            'Content-Type': 'multipart/form-data'
+          }
           }
         )
         .then(data => {
@@ -1581,8 +1664,8 @@ export default {
           userID,
           formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+            'Content-Type': 'multipart/form-data'
+          }
           }
         )
         .then(data => {
@@ -1642,8 +1725,8 @@ export default {
           userID,
           formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+            'Content-Type': 'multipart/form-data'
+          }
           }
         )
         .then(data => {
@@ -1705,8 +1788,8 @@ export default {
         .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
           formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+            'Content-Type': 'multipart/form-data'
+          }
           }
         )
         .then(() => {
@@ -2101,7 +2184,7 @@ export default {
   created () {
     if (this.$store.state.recalculateScores) {
       this.$store.state.recalculateScores = false
-      this.getScores()
+      this.getScores(false)
     }
     eventBus.$on('changeCSVHeaderNames', () => {
       let levelName = this.translateDataHeader(

@@ -51,19 +51,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS' ||
-    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
-    req.path == '/authenticate/' ||
-    req.path == '/getSignupConf' ||
-    req.path == '/getGeneralConfig' ||
-    req.path == '/addUser/' ||
-    req.path.startsWith('/progress') ||
-    req.path == '/' ||
-    req.path.startsWith('/static/js') ||
-    req.path.startsWith('/static/config.json') ||
-    req.path.startsWith('/static/css') ||
-    req.path.startsWith('/static/img') ||
-    req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS'
+    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
+    || req.path == '/authenticate/'
+    || req.path == '/getSignupConf'
+    || req.path == '/getGeneralConfig'
+    || req.path == '/addUser/'
+    || req.path.startsWith('/progress')
+    || req.path == '/'
+    || req.path.startsWith('/static/js')
+    || req.path.startsWith('/static/config.json')
+    || req.path.startsWith('/static/css')
+    || req.path.startsWith('/static/img')
+    || req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -133,11 +133,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-            name: 'Admin',
-          },
-          {
-            name: 'Data Manager',
-          },
+          name: 'Admin',
+        },
+        {
+          name: 'Data Manager',
+        },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -179,7 +179,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete(workers[worker.process.pid]);
+    delete (workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -902,8 +902,8 @@ if (cluster.isMaster) {
     if (!source2LimitOrgId) {
       source2LimitOrgId = topOrgId;
     }
-    const source1 = req.params.source1 + source1Owner;
-    const source2 = req.params.source2 + source2Owner;
+    const source1 = mixin.toTitleCase(req.params.source1) + source1Owner;
+    const source2 = mixin.toTitleCase(req.params.source2) + source2Owner;
     async.parallel({
       Source1Levels(callback) {
         mcsd.countLevels(source1, source1LimitOrgId, (err, source1TotalLevels) => {
@@ -1423,6 +1423,10 @@ if (cluster.isMaster) {
     });
   });
 
+  app.get('/getPotentialMatches', (req, res) => {
+
+  });
+
   app.get('/reconcile', (req, res) => {
     const {
       totalSource1Levels,
@@ -1434,10 +1438,12 @@ if (cluster.isMaster) {
       source2,
       source1Owner,
       source2Owner,
+      id,
     } = req.query;
     let {
       source1LimitOrgId,
       source2LimitOrgId,
+      getPotential,
     } = req.query;
     if (!source1LimitOrgId) {
       source1LimitOrgId = topOrgId;
@@ -1453,6 +1459,11 @@ if (cluster.isMaster) {
     } catch (error) {
       winston.error(error);
     }
+    try {
+      getPotential = JSON.parse(getPotential);
+    } catch (error) {
+      winston.error(error);
+    }
     // remove parent contraint for the first level
     if (recoLevel == 2) {
       parentConstraint = false;
@@ -1465,7 +1476,9 @@ if (cluster.isMaster) {
         error: 'Missing source1 or source2 or reconciliation Level or userID',
       });
     } else {
-      res.status(200).send();
+      if (!id) {
+        res.status(200).send();
+      }
       winston.info('Getting scores');
       const {
         orgid,
@@ -1495,23 +1508,36 @@ if (cluster.isMaster) {
             if (levelMaps[orgid] && levelMaps[orgid][recoLevel]) {
               level = levelMaps[orgid][recoLevel];
             }
-            mcsd.filterLocations(mcsdSource2, source2LimitOrgId, level, mcsdSource2Level => callback(false, mcsdSource2Level));
+            mcsd.filterLocations(mcsdSource2, source2LimitOrgId, level, mcsdSource2Level => callback(null, mcsdSource2Level));
           });
         },
         source1Loations(callback) {
           const dbSource1 = source1 + source1Owner;
           mcsd.getLocationChildren(dbSource1, source1LimitOrgId, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
-            mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, mcsdSource1Level => callback(false, mcsdSource1Level));
+            if (id) {
+              const locations = mcsdSource1.entry.filter((entry) => entry.resource.id == id);
+              const mcsdSource1Locations = {};
+              if (locations.length > 0) {
+                mcsdSource1Locations.total = 1;
+                mcsdSource1Locations.entry = [];
+                mcsdSource1Locations.entry = mcsdSource1Locations.entry.concat(locations);
+                mcsdSource1Locations.total = 1;
+              } else {
+                mcsdSource1Locations.total = 0;
+              }
+              return callback(null, mcsdSource1Locations);
+            }
+            mcsd.filterLocations(mcsdSource1, source1LimitOrgId, recoLevel, mcsdSource1Level => callback(null, mcsdSource1Level));
           });
         },
         mappingData(callback) {
           const mappingDB = source1 + userID + source2;
-          mcsd.getLocations(mappingDB, mcsdMapped => callback(false, mcsdMapped));
+          mcsd.getLocations(mappingDB, mcsdMapped => callback(null, mcsdMapped));
         },
       }, (error, results) => {
-        const source1DB = source1 + source1Owner;
-        const source2DB = source2 + source2Owner;
+        const source1DB = mixin.toTitleCase(source1) + source1Owner;
+        const source2DB = mixin.toTitleCase(source2) + source2Owner;
         const mappingDB = source1 + userID + source2;
         if (recoLevel == totalSource1Levels) {
           scores.getBuildingsScores(
@@ -1526,7 +1552,8 @@ if (cluster.isMaster) {
             recoLevel,
             totalSource1Levels,
             clientId,
-            parentConstraint, (scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch) => {
+            parentConstraint,
+            getPotential, (scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch) => {
               const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
               const responseData = {
                 scoreResults,
@@ -1549,6 +1576,9 @@ if (cluster.isMaster) {
                 stage: 'last',
               });
               redisClient.set(scoreRequestId, scoreResData);
+              if (id) {
+                res.status(200).json(scoreResData);
+              }
               winston.info('Score results sent back');
             },
           );
@@ -2541,11 +2571,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config') &&
-          configData.config.hasOwnProperty('generalConfig') &&
-          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-          configData.config.generalConfig.recoProgressNotification.enabled &&
-          configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config')
+          && configData.config.hasOwnProperty('generalConfig')
+          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
+          && configData.config.generalConfig.recoProgressNotification.enabled
+          && configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,
@@ -3048,10 +3078,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null ||
-              headerMapping[level] === 'null' ||
-              headerMapping[level] === undefined ||
-              !headerMapping[level]) {
+            if (headerMapping[level] === null
+              || headerMapping[level] === 'null'
+              || headerMapping[level] === undefined
+              || !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3074,13 +3104,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null ||
-                data[headerMapping[level]] === undefined ||
-                data[headerMapping[level]] === false ||
-                !data[headerMapping[level]] ||
-                data[headerMapping[level]] === '' ||
-                !isNaN(headerMapping[level]) ||
-                data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null
+                || data[headerMapping[level]] === undefined
+                || data[headerMapping[level]] === false
+                || !data[headerMapping[level]]
+                || data[headerMapping[level]] === ''
+                || !isNaN(headerMapping[level])
+                || data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3088,11 +3118,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null ||
-              data[headerMapping.facility] === undefined ||
-              data[headerMapping.facility] === false ||
-              data[headerMapping.facility] === '' ||
-              data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null
+              || data[headerMapping.facility] === undefined
+              || data[headerMapping.facility] === false
+              || data[headerMapping.facility] === ''
+              || data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

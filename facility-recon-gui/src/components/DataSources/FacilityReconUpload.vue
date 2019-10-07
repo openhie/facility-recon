@@ -594,8 +594,8 @@ export default {
       if (this.uploadName === '') {
         return this.uploadNameErrors.push('Upload name is required')
       }
-      if (this.uploadName.length > 35) {
-        return this.uploadNameErrors.push('Name must not exceed 35 characters')
+      if (this.uploadName.length > 19) {
+        return this.uploadNameErrors.push('Name must not exceed 19 characters')
       }
       for (let invalidChar of this.invalidCharacters) {
         if (this.uploadName.indexOf(invalidChar) !== -1) {
