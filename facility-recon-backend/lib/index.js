@@ -51,19 +51,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/progress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/progress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -133,11 +133,11 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-        },
-        {
-          name: 'Data Manager',
-        },
+            name: 'Admin',
+          },
+          {
+            name: 'Data Manager',
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -179,7 +179,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -1374,12 +1374,12 @@ if (cluster.isMaster) {
     const source2DB = req.params.source2 + source2Owner;
     const recoLevel = req.params.level;
     const statusRequestId = `mappingStatus${clientId}`;
-    statusResData = JSON.stringify({
+    const statusResData = JSON.stringify({
       status: '1/2 - Loading Source2 and Source1 Data',
       error: null,
       percent: null,
     });
-    redisClient.set(statusRequestId, statusResData);
+    redisClient.set(statusRequestId, statusResData, 'EX', 1200);
 
     const source2LocationReceived = new Promise((resolve, reject) => {
       mcsd.getLocationChildren(source2DB, source2LimitOrgId, (mcsdSource2) => {
@@ -1492,7 +1492,7 @@ if (cluster.isMaster) {
         error: null,
         percent: null,
       });
-      redisClient.set(scoreRequestId, scoreResData);
+      redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
       async.parallel({
         source2Locations(callback) {
           const dbSource2 = source2 + source2Owner;
@@ -1516,7 +1516,7 @@ if (cluster.isMaster) {
           mcsd.getLocationChildren(dbSource1, source1LimitOrgId, (mcsdSource1) => {
             mcsdSource1All = mcsdSource1;
             if (id) {
-              const locations = mcsdSource1.entry.filter((entry) => entry.resource.id == id);
+              const locations = mcsdSource1.entry.filter(entry => entry.resource.id == id);
               const mcsdSource1Locations = {};
               if (locations.length > 0) {
                 mcsdSource1Locations.total = 1;
@@ -1575,7 +1575,7 @@ if (cluster.isMaster) {
                 responseData,
                 stage: 'last',
               });
-              redisClient.set(scoreRequestId, scoreResData);
+              redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
               if (id) {
                 res.status(200).json(scoreResData);
               }
@@ -1596,6 +1596,7 @@ if (cluster.isMaster) {
             totalSource1Levels,
             clientId,
             parentConstraint,
+            getPotential,
             (scoreResults, source2Unmatched, totalAllMapped, totalAllFlagged, totalAllIgnored, totalAllNoMatch) => {
               const source1TotalAllNotMapped = (mcsdSource1All.entry.length - 1) - totalAllMapped;
               const responseData = {
@@ -1618,7 +1619,10 @@ if (cluster.isMaster) {
                 responseData,
                 stage: 'last',
               });
-              redisClient.set(scoreRequestId, scoreResData);
+              redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
+              if (id) {
+                res.status(200).json(scoreResData);
+              }
               winston.info('Score results sent back');
             },
           );
@@ -2571,11 +2575,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config')
-          && configData.config.hasOwnProperty('generalConfig')
-          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-          && configData.config.generalConfig.recoProgressNotification.enabled
-          && configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,
@@ -2834,7 +2838,7 @@ if (cluster.isMaster) {
       try {
         fields.activePairID = JSON.parse(fields.activePairID);
       } catch (error) {
-
+        winston.error(error);
       }
       mongo.addDataSourcePair(fields, (error, errMsg, results) => {
         if (error) {
@@ -2992,7 +2996,7 @@ if (cluster.isMaster) {
         error: null,
         percent: null,
       });
-      redisClient.set(uploadRequestId, uploadReqPro);
+      redisClient.set(uploadRequestId, uploadReqPro, 'EX', 1200);
       if (!Array.isArray(expectedLevels)) {
         winston.error('Invalid config data for key Levels ');
         res.status(400).json({
@@ -3016,7 +3020,7 @@ if (cluster.isMaster) {
         error: null,
         percent: null,
       });
-      redisClient.set(uploadRequestId, uploadReqPro);
+      redisClient.set(uploadRequestId, uploadReqPro, 'EX', 1200);
       validateCSV(files[fileName].path, fields, (valid, invalid) => {
         if (invalid.length > 0) {
           winston.error('Uploaded CSV is invalid (has either duplicated IDs or empty levels/facility),execution stopped');
@@ -3048,7 +3052,7 @@ if (cluster.isMaster) {
           error: null,
           percent: null,
         });
-        redisClient.set(uploadRequestId, uploadReqPro);
+        redisClient.set(uploadRequestId, uploadReqPro, 'EX', 1200);
         mongo.saveLevelMapping(fields, database, (error, response) => {
 
         });
@@ -3059,7 +3063,7 @@ if (cluster.isMaster) {
             error: null,
             percent: 100,
           });
-          redisClient.set(uploadRequestId, uploadReqPro);
+          redisClient.set(uploadRequestId, uploadReqPro, 'EX', 1200);
         });
       });
     });
@@ -3078,10 +3082,10 @@ if (cluster.isMaster) {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null
-              || headerMapping[level] === 'null'
-              || headerMapping[level] === undefined
-              || !headerMapping[level]) {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -3104,13 +3108,13 @@ if (cluster.isMaster) {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null
-                || data[headerMapping[level]] === undefined
-                || data[headerMapping[level]] === false
-                || !data[headerMapping[level]]
-                || data[headerMapping[level]] === ''
-                || !isNaN(headerMapping[level])
-                || data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
+                data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -3118,11 +3122,11 @@ if (cluster.isMaster) {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null
-              || data[headerMapping.facility] === undefined
-              || data[headerMapping.facility] === false
-              || data[headerMapping.facility] === ''
-              || data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

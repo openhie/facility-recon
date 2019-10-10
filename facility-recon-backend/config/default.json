@@ -5,7 +5,8 @@
   },
   "mCSD": {
     "fakeOrgId": "eac583d2-d1ba-11e8-a8d5-f2801f1b9fd1",
-    "fakeOrgName": "Taifafeki"
+    "fakeOrgName": "Taifafeki",
+    "cacheTime": 1200
   },
   "dbArchives": {
     "maxArchives": 2

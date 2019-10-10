@@ -1,6 +1,10 @@
 import axios from 'axios'
-import { generalMixin } from './generalMixin'
-import { eventBus } from '../main'
+import {
+  generalMixin
+} from './generalMixin'
+import {
+  eventBus
+} from '../main'
 
 const CancelToken = axios.CancelToken
 const backendServer = process.env.BACKEND_SERVER
@@ -15,56 +19,42 @@ export const scoresMixin = {
   },
   methods: {
     scoreProgressCheckTimeout () {
-      this.$store.state.scoresProgressData.scoreProgressTitle =
-        'Server is busy with automatching, please be patient'
+      this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
       clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
-      let percent = parseInt(
-        this.$store.state.scoresProgressData.scoreProgressPercent
-      )
+      let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
       if (
         percent !== 100 ||
         (percent === 100 &&
           this.$store.state.scoresProgressData.stage !== 'last')
       ) {
         this.$store.state.scoresProgressData.requestCancelled = true
-        this.$store.state.scoresProgressData.cancelTokenSource.cancel(
-          'Cancelling request.'
-        )
+        this.$store.state.scoresProgressData.cancelTokenSource.cancel('Cancelling request.')
         this.checkScoreProgress()
       } else {
-        this.$store.state.scoresProgressData.scoreProgressTitle =
-          'Please be patient, waiting for server response'
+        this.$store.state.scoresProgressData.scoreProgressTitle = 'Please be patient, waiting for server response'
       }
     },
     scoreSavingProgressCheckTimeout () {
       clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
       this.$store.state.scoreSavingProgressData.requestCancelled = true
-      this.$store.state.scoreSavingProgressData.cancelTokenSource.cancel(
-        'Cancelling request.'
-      )
+      this.$store.state.scoreSavingProgressData.cancelTokenSource.cancel('Cancelling request.')
       this.checkScoreSavingStatus()
     },
     checkScoreProgress () {
       // if the req takes one minute without responding then display a message to user
       this.$store.state.scoresProgressData.cancelTokenSource = CancelToken.source()
       let time
-      let percent = parseInt(
-        this.$store.state.scoresProgressData.scoreProgressPercent
-      )
+      let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
       if (percent > 96) {
         time = 402382
       } else {
         time = 10000
       }
-      this.$store.state.scoresProgressData.progressReqTimer = setInterval(
-        this.scoreProgressCheckTimeout,
-        time
-      )
+      this.$store.state.scoresProgressData.progressReqTimer = setInterval(this.scoreProgressCheckTimeout, time)
       const clientId = this.$store.state.clientId
       axios
         .get(backendServer + '/progress/scoreResults/' + clientId, {
-          cancelToken: this.$store.state.scoresProgressData.cancelTokenSource
-            .token
+          cancelToken: this.$store.state.scoresProgressData.cancelTokenSource.token
         })
         .then(scoreProgress => {
           clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
@@ -102,23 +92,15 @@ export const scoresMixin = {
             this.checkScoreSavingStatus()
             return
           }
-          this.$store.state.scoresProgressData.scoreProgressTitle =
-            scoreProgress.data.status
+          this.$store.state.scoresProgressData.scoreProgressTitle = scoreProgress.data.status
           if (scoreProgress.data.percent) {
-            if (
-              this.$store.state.scoresProgressData.progressType !== 'percent'
-            ) {
+            if (this.$store.state.scoresProgressData.progressType !== 'percent') {
               this.$store.state.scoresProgressData.progressType = 'percent'
             }
-            this.$store.state.scoresProgressData.scoreProgressPercent =
-              scoreProgress.data.percent
-            this.$store.state.scoresProgressData.stage =
-              scoreProgress.data.stage
+            this.$store.state.scoresProgressData.scoreProgressPercent = scoreProgress.data.percent
+            this.$store.state.scoresProgressData.stage = scoreProgress.data.stage
           }
-          if (
-            scoreProgress.data.status === 'Done' &&
-            this.$store.state.scoreResults.length === 0
-          ) {
+          if (scoreProgress.data.status === 'Done' && this.$store.state.scoreResults.length === 0) {
             this.clearProgress('scoreResults')
             this.$store.state.scoreSavingProgressData.savingMatches = true
             this.checkScoreSavingStatus()
@@ -132,23 +114,16 @@ export const scoresMixin = {
             this.$store.state.ignoreContent = []
             this.$store.state.flagged = []
             this.$store.state.scoreResults = scoresData.scoreResults
-            this.$store.state.source2TotalRecords =
-              scoresData.source2TotalRecords
-            this.$store.state.source2TotalAllRecords =
-              scoresData.source2TotalAllRecords
+            this.$store.state.source2TotalRecords = scoresData.source2TotalRecords
+            this.$store.state.source2TotalAllRecords = scoresData.source2TotalAllRecords
             this.$store.state.totalAllMapped = scoresData.totalAllMapped
             this.$store.state.totalAllFlagged = scoresData.totalAllFlagged
             this.$store.state.totalAllNoMatch = scoresData.totalAllNoMatch
             this.$store.state.totalAllIgnore = scoresData.totalAllIgnore
-            this.$store.state.source1TotalAllNotMapped =
-              scoresData.source1TotalAllNotMapped
-            this.$store.state.source1TotalAllRecords =
-              scoresData.source1TotalAllRecords
+            this.$store.state.source1TotalAllNotMapped = scoresData.source1TotalAllNotMapped
+            this.$store.state.source1TotalAllRecords = scoresData.source1TotalAllRecords
             for (let scoreResult of this.$store.state.scoreResults) {
-              if (
-                scoreResult.source1.hasOwnProperty('tag') &&
-                scoreResult.source1.tag === 'flagged'
-              ) {
+              if (scoreResult.source1.hasOwnProperty('tag') && scoreResult.source1.tag === 'flagged') {
                 this.$store.state.flagged.push({
                   source1Name: scoreResult.source1.name,
                   source1Id: scoreResult.source1.id,
@@ -196,9 +171,7 @@ export const scoresMixin = {
               } else {
                 let addTree = this.topTree
                 for (
-                  let i = scoreResult.source1.parents.length - 1;
-                  i >= 0;
-                  i--
+                  let i = scoreResult.source1.parents.length - 1; i >= 0; i--
                 ) {
                   if (!addTree[scoreResult.source1.parents[i]]) {
                     addTree[scoreResult.source1.parents[i]] = {}
@@ -244,9 +217,7 @@ export const scoresMixin = {
             .cancelTokenSource.token
         })
         .then(scoreSavingStatus => {
-          clearInterval(
-            this.$store.state.scoreSavingProgressData.progressReqTimer
-          )
+          clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
           if (
             !scoreSavingStatus.data ||
             (!scoreSavingStatus.data.status &&
@@ -255,8 +226,7 @@ export const scoresMixin = {
               this.$store.state.scoreSavingProgressData.savingMatches)
           ) {
             this.$store.state.errorTitle = 'An error has occured'
-            this.$store.state.errorDescription =
-              'An error has occured while checking saving status'
+            this.$store.state.errorDescription = 'An error has occured while checking saving status'
             this.$store.state.errorColor = 'error'
             this.$store.state.dialogError = true
             this.$store.state.scoreSavingProgressData.savingMatches = false
@@ -275,24 +245,20 @@ export const scoresMixin = {
             return
           }
           if (scoreSavingStatus.data.percent) {
-            this.$store.state.scoreSavingProgressData.percent =
-              scoreSavingStatus.data.percent
+            this.$store.state.scoreSavingProgressData.percent = scoreSavingStatus.data.percent
           }
-          if (scoreSavingStatus.data.percent === 100) {
+          if (parseInt(scoreSavingStatus.data.percent) === 100) {
             this.$store.state.scoreSavingProgressData.savingMatches = false
             this.$store.state.scoreSavingProgressData.percent = 0
             this.clearProgress('scoreSavingStatus')
           } else {
             this.checkScoreSavingStatus()
           }
-        })
-        .catch(thrown => {
+        }).catch(thrown => {
           if (this.$store.state.scoreSavingProgressData.requestCancelled) {
             this.$store.state.scoreSavingProgressData.requestCancelled = false
           } else {
-            clearInterval(
-              this.$store.state.scoreSavingProgressData.progressReqTimer
-            )
+            clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
             this.checkScoreSavingStatus()
           }
         })
@@ -353,15 +319,10 @@ export const scoresMixin = {
       let source2Owner = sourcesOwner.source2Owner
       let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
       let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
-      let parentConstraint = JSON.stringify(
-        this.$store.state.config.generalConfig.reconciliation.parentConstraint
-      )
+      let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
       let path = `source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path +=
-        `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` +
-        parentConstraint +
-        '&getPotential=' +
-        getPotential
+      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint + '&getPotential=' + getPotential
+      this.$store.state.scoresProgressData.scoreProgressPercent = 0
       axios.get(backendServer + '/reconcile/?' + path).then(() => {
         this.checkScoreProgress()
       })

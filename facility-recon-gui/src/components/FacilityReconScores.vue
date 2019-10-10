@@ -35,7 +35,7 @@
                 :rotate="-90"
                 :size="100"
                 :width="15"
-                :value="$store.state.scoresProgressData.scoreProgressPercent"
+                :value="parseInt($store.state.scoresProgressData.scoreProgressPercent)"
                 color="primary"
                 v-if="$store.state.scoresProgressData.progressType == 'percent'"
               >
@@ -1384,11 +1384,12 @@ export default {
       this.dialog = true
     },
     getPotentialMatch (id) {
-      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
-        this.getBuildingPotentialMatches(id)
-      } else {
-        this.getJurisdictionPotentialMatches(id)
-      }
+      this.getBuildingPotentialMatches(id)
+      // if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
+      //   this.getBuildingPotentialMatches(id)
+      // } else {
+      //   this.getJurisdictionPotentialMatches(id)
+      // }
     },
     potentialMatchComment (potentialMatch) {
       let comment = ''
@@ -1588,30 +1589,14 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
       formData.append('source1Id', source1Id)
-      axios
-        .post(
-          backendServer +
-          '/breakMatch/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          sourcesOwner.source1Owner +
-          '/' +
-          sourcesOwner.source2Owner +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-          }
-        )
+      axios.post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      )
         .then(data => {
           this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Information'
-          this.alertText = 'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.matchedContent) {
             if (this.$store.state.matchedContent[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
@@ -1649,31 +1634,14 @@ export default {
       let userID = this.$store.state.activePair.userID._id
       let sourcesOwner = this.getDatasourceOwner()
       formData.append('source1Id', source1Id)
-      axios
-        .post(
-          backendServer +
-          '/breakMatch/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          sourcesOwner.source1Owner +
-          '/' +
-          sourcesOwner.source2Owner +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-          }
-        )
+      axios.post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      )
         .then(data => {
           this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Information'
-          this.alertText =
-            'Scores for this Location may not be available unless you recalculate scores'
           for (let k in this.$store.state.flagged) {
             if (this.$store.state.flagged[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
@@ -1712,55 +1680,38 @@ export default {
       formData.append('recoLevel', this.$store.state.recoLevel)
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       let userID = this.$store.state.activePair.userID._id
-      axios
-        .post(
-          backendServer +
-          '/breakNoMatch/' +
-          type +
-          '/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-          }
-        )
-        .then(data => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Information'
-          this.alertText =
-            'Scores for this Location may not be available unless you recalculate scores'
-          if (type === 'nomatch') {
-            for (let k in this.$store.state.noMatchContent) {
-              if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
-                this.$store.state.source1UnMatched.push({
-                  name: this.$store.state.noMatchContent[k].source1Name,
-                  id: this.$store.state.noMatchContent[k].source1Id,
-                  parents: this.$store.state.noMatchContent[k].parents
-                })
-                this.$store.state.noMatchContent.splice(k, 1)
-                --this.$store.state.totalAllNoMatch
-              }
-            }
-          } else if (type === 'ignore') {
-            for (let k in this.$store.state.ignoreContent) {
-              if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
-                this.$store.state.source1UnMatched.push({
-                  name: this.$store.state.ignoreContent[k].source1Name,
-                  id: this.$store.state.ignoreContent[k].source1Id,
-                  parents: this.$store.state.ignoreContent[k].parents
-                })
-                this.$store.state.ignoreContent.splice(k, 1)
-                --this.$store.state.totalAllIgnore
-              }
+      axios.post(backendServer + '/breakNoMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(data => {
+        this.$store.state.dynamicProgress = false
+        if (type === 'nomatch') {
+          for (let k in this.$store.state.noMatchContent) {
+            if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
+              this.$store.state.source1UnMatched.push({
+                name: this.$store.state.noMatchContent[k].source1Name,
+                id: this.$store.state.noMatchContent[k].source1Id,
+                parents: this.$store.state.noMatchContent[k].parents
+              })
+              this.$store.state.noMatchContent.splice(k, 1)
+              --this.$store.state.totalAllNoMatch
             }
           }
-        })
+        } else if (type === 'ignore') {
+          for (let k in this.$store.state.ignoreContent) {
+            if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
+              this.$store.state.source1UnMatched.push({
+                name: this.$store.state.ignoreContent[k].source1Name,
+                id: this.$store.state.ignoreContent[k].source1Id,
+                parents: this.$store.state.ignoreContent[k].parents
+              })
+              this.$store.state.ignoreContent.splice(k, 1)
+              --this.$store.state.totalAllIgnore
+            }
+          }
+        }
+      })
         .catch(err => {
           this.$store.state.dynamicProgress = false
           this.alert = true
@@ -1785,12 +1736,11 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
-          formData, {
-            headers: {
+        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`, formData, {
+          headers: {
             'Content-Type': 'multipart/form-data'
           }
-          }
+        }
         )
         .then(() => {
           this.$store.state.dynamicProgress = false
