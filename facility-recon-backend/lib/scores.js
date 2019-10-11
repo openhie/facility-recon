@@ -9,7 +9,6 @@ const async = require('async');
 const URI = require('urijs');
 const levenshtein = require('fast-levenshtein');
 const redis = require('redis');
-const jsonSize = require('json-size');
 
 const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1',
@@ -99,60 +98,64 @@ module.exports = function () {
             return callback(null);
           });
         },
-      ], () => {
-        if (!useCache) {
-          winston.info('Populating parents');
-          for (const entry of mcsdSource2.entry) {
-            if (entry.resource.hasOwnProperty('partOf')) {
-              source2ParentNames[entry.resource.id] = [];
-              source2MappedParentIds[entry.resource.id] = [];
-              source2MappedParentNames[entry.resource.id] = [];
-              const entityParent = entry.resource.partOf.reference;
-              mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
-                // lets make sure that we use the mapped parent for comparing against Source1
-                async.each(parents, (parent, parentCallback) => {
-                  const parentIdentifier = URI(config.getConf('mCSD:url'))
-                    .segment(source2DB)
-                    .segment('fhir')
-                    .segment('Location')
-                    .segment(parent.id)
-                    .toString();
-                  this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
-                    if (mapped) {
-                      source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
-                      source2MappedParentNames[entry.resource.id].push(mapped.resource.name);
-                      source2ParentNames[entry.resource.id].push(parent.text);
-                    } else {
-                      source2MappedParentIds[entry.resource.id].push(parent.id);
-                      source2ParentNames[entry.resource.id].push(parent.text);
+        (callback) => {
+          if (!useCache) {
+            winston.info('Populating parents');
+            for (const entry of mcsdSource2.entry) {
+              if (entry.resource.hasOwnProperty('partOf')) {
+                source2ParentNames[entry.resource.id] = [];
+                source2MappedParentIds[entry.resource.id] = [];
+                source2MappedParentNames[entry.resource.id] = [];
+                const entityParent = entry.resource.partOf.reference;
+                mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
+                  // lets make sure that we use the mapped parent for comparing against Source1
+                  async.each(parents, (parent, parentCallback) => {
+                    const parentIdentifier = URI(config.getConf('mCSD:url'))
+                      .segment(source2DB)
+                      .segment('fhir')
+                      .segment('Location')
+                      .segment(parent.id)
+                      .toString();
+                    this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
+                      if (mapped) {
+                        source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
+                        source2MappedParentNames[entry.resource.id].push(mapped.resource.name);
+                        source2ParentNames[entry.resource.id].push(parent.text);
+                      } else {
+                        source2MappedParentIds[entry.resource.id].push(parent.id);
+                        source2ParentNames[entry.resource.id].push(parent.text);
+                      }
+                      parentCallback();
+                    });
+                  }, () => {
+                    count += 1;
+                    const percent = parseFloat((count * 100 / totalSource2Records)).toFixed(1);
+                    scoreRequestId = `scoreResults${clientId}`;
+                    const scoreResData = JSON.stringify({
+                      status: '2/3 - Scanning Source2 Location Parents',
+                      error: null,
+                      percent,
+                      stage: 'not last',
+                    });
+                    redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
+                    if (count === mcsdSource2.entry.length) {
+                      const source2Parents = {};
+                      source2Parents.source2MappedParentIds = source2MappedParentIds;
+                      source2Parents.source2MappedParentNames = source2MappedParentNames;
+                      source2Parents.source2ParentNames = source2ParentNames;
+                      redisClient.set(`parents${recoLevel}${source2DB}`, JSON.stringify(source2Parents), 'EX', 1200);
+                      winston.info('Done populating parents');
+                      return callback(null);
                     }
-                    parentCallback();
                   });
-                }, () => {
-                  count += 1;
-                  const percent = parseFloat((count * 100 / totalSource2Records)).toFixed(1);
-                  scoreRequestId = `scoreResults${clientId}`;
-                  const scoreResData = JSON.stringify({
-                    status: '2/3 - Scanning Source2 Location Parents',
-                    error: null,
-                    percent,
-                    stage: 'not last',
-                  });
-                  redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
-                  if (count === mcsdSource2.entry.length) {
-                    const source2Parents = {};
-                    source2Parents.source2MappedParentIds = source2MappedParentIds;
-                    source2Parents.source2MappedParentNames = source2MappedParentNames;
-                    source2Parents.source2ParentNames = source2ParentNames;
-                    winston.error(jsonSize(JSON.stringify(source2Parents)));
-                    redisClient.set(`parents${recoLevel}${source2DB}`, JSON.stringify(source2Parents), 'EX', 1200);
-                    winston.info('Done populating parents');
-                  }
                 });
-              });
+              }
             }
+          } else {
+            return callback(null);
           }
-        }
+        },
+      ], () => {
         winston.info('Calculating scores now');
         count = 0;
         async.eachSeries(mcsdSource1.entry, (source1Entry, source1Callback) => {
@@ -353,9 +356,9 @@ module.exports = function () {
                       const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                       // when parent constraint is On then automatch by name is also enabled by default
                       // when parent constraint is off then check if name automatch is also on
-                      if (lev == 0 &&
-                        !matchBroken &&
-                        (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                      if (lev == 0
+                        && !matchBroken
+                        && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                       ) {
                         const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                         ignore.push(source2Entry.resource.id);
@@ -585,76 +588,79 @@ module.exports = function () {
             return callback(null);
           });
         },
-      ], () => {
-        if (!useCache) {
-          winston.info('Populating parents');
-          for (let i = 0, len = mcsdSource2.entry.length; i < len; i++) {
-            const entry = mcsdSource2.entry[i];
-            const source2Identifier = URI(config.getConf('mCSD:url'))
-              .segment(source2DB)
-              .segment('fhir')
-              .segment('Location')
-              .segment(entry.resource.id)
-              .toString();
-            source2LevelMappingStatus[entry.resource.id] = [];
-            this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
-              if (mapped) {
-                source2LevelMappingStatus[entry.resource.id] = true;
-              } else {
-                source2LevelMappingStatus[entry.resource.id] = false;
-              }
-            });
-            if (entry.resource.hasOwnProperty('partOf')) {
-              source2ParentNames[entry.resource.id] = [];
-              source2MappedParentIds[entry.resource.id] = [];
-              source2MappedParentNames[entry.resource.id] = [];
-              const entityParent = entry.resource.partOf.reference;
-              mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
-                // lets make sure that we use the mapped parent for comparing against Source1
-                async.each(parents, (parent, parentCallback) => {
-                  const parentIdentifier = URI(config.getConf('mCSD:url'))
-                    .segment(source2DB)
-                    .segment('fhir')
-                    .segment('Location')
-                    .segment(parent.id)
-                    .toString();
-                  this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
-                    if (mapped) {
-                      source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
-                      source2MappedParentNames[entry.resource.id].push(mapped.resource.name);
-                      source2ParentNames[entry.resource.id].push(parent.text);
-                    } else {
-                      source2MappedParentIds[entry.resource.id].push(parent.id);
-                      source2ParentNames[entry.resource.id].push(parent.text);
-                    }
-                    parentCallback();
-                  });
-                }, () => {
-                  count += 1;
-                  scoreRequestId = `scoreResults${clientId}`;
-                  const percent = parseFloat((count * 100 / totalSource2Records)).toFixed(1);
-                  const scoreResData = JSON.stringify({
-                    status: '2/3 - Scanning Source2 Location Parents',
-                    error: null,
-                    percent,
-                    stage: 'not last',
-                  });
-                  redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
-                  if (count === mcsdSource2.entry.length) {
-                    const source2Parents = {};
-                    source2Parents.source2MappedParentIds = source2MappedParentIds;
-                    source2Parents.source2MappedParentNames = source2MappedParentNames;
-                    source2Parents.source2ParentNames = source2ParentNames;
-                    winston.error(jsonSize(JSON.stringify(source2Parents)));
-                    redisClient.set(`parents${recoLevel}${source2DB}`, JSON.stringify(source2Parents), 'EX', 1200);
-                    winston.info('Done populating parents');
-                  }
-                });
+        (callback) => {
+          if (!useCache) {
+            winston.info('Populating parents');
+            for (let i = 0, len = mcsdSource2.entry.length; i < len; i++) {
+              const entry = mcsdSource2.entry[i];
+              const source2Identifier = URI(config.getConf('mCSD:url'))
+                .segment(source2DB)
+                .segment('fhir')
+                .segment('Location')
+                .segment(entry.resource.id)
+                .toString();
+              source2LevelMappingStatus[entry.resource.id] = [];
+              this.matchStatus(mcsdMapped, source2Identifier, (mapped) => {
+                if (mapped) {
+                  source2LevelMappingStatus[entry.resource.id] = true;
+                } else {
+                  source2LevelMappingStatus[entry.resource.id] = false;
+                }
               });
+              if (entry.resource.hasOwnProperty('partOf')) {
+                source2ParentNames[entry.resource.id] = [];
+                source2MappedParentIds[entry.resource.id] = [];
+                source2MappedParentNames[entry.resource.id] = [];
+                const entityParent = entry.resource.partOf.reference;
+                mcsd.getLocationParentsFromData(entityParent, mcsdSource2All, 'all', (parents) => {
+                  // lets make sure that we use the mapped parent for comparing against Source1
+                  async.each(parents, (parent, parentCallback) => {
+                    const parentIdentifier = URI(config.getConf('mCSD:url'))
+                      .segment(source2DB)
+                      .segment('fhir')
+                      .segment('Location')
+                      .segment(parent.id)
+                      .toString();
+                    this.matchStatus(mcsdMapped, parentIdentifier, (mapped) => {
+                      if (mapped) {
+                        source2MappedParentIds[entry.resource.id].push(mapped.resource.id);
+                        source2MappedParentNames[entry.resource.id].push(mapped.resource.name);
+                        source2ParentNames[entry.resource.id].push(parent.text);
+                      } else {
+                        source2MappedParentIds[entry.resource.id].push(parent.id);
+                        source2ParentNames[entry.resource.id].push(parent.text);
+                      }
+                      parentCallback();
+                    });
+                  }, () => {
+                    count += 1;
+                    scoreRequestId = `scoreResults${clientId}`;
+                    const percent = parseFloat((count * 100 / totalSource2Records)).toFixed(1);
+                    const scoreResData = JSON.stringify({
+                      status: '2/3 - Scanning Source2 Location Parents',
+                      error: null,
+                      percent,
+                      stage: 'not last',
+                    });
+                    redisClient.set(scoreRequestId, scoreResData, 'EX', 1200);
+                    if (count === mcsdSource2.entry.length) {
+                      const source2Parents = {};
+                      source2Parents.source2MappedParentIds = source2MappedParentIds;
+                      source2Parents.source2MappedParentNames = source2MappedParentNames;
+                      source2Parents.source2ParentNames = source2ParentNames;
+                      redisClient.set(`parents${recoLevel}${source2DB}`, JSON.stringify(source2Parents), 'EX', 1200);
+                      winston.info('Done populating parents');
+                      return callback(null);
+                    }
+                  });
+                });
+              }
             }
+          } else {
+            return callback(null);
           }
-        }
-
+        },
+      ], () => {
         // clear mcsdSource2All
         mcsdSource2All = {};
         winston.info('Calculating scores now');
@@ -950,8 +956,8 @@ module.exports = function () {
 
                   const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                  if (lev == 0 && !matchBroken &&
-                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0 && !matchBroken
+                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                     ignore.push(source2Entry.resource.id);
@@ -1150,8 +1156,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

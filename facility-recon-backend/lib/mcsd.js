@@ -186,7 +186,7 @@ module.exports = () => ({
         setTimeout(this.getLocationChildren, 10000, database, topOrgId, callback);
         return;
       }
-      redisClient.set(`started_${url}`, '', 'EX', 600);
+      redisClient.set(`started_${urlPrefix}`, '', 'EX', 600);
       winston.info(`Getting ${url} from server`);
 
       const options = {
@@ -201,8 +201,8 @@ module.exports = () => ({
         }
         body = JSON.parse(body);
         if (body.entry.length > 1) {
-          winston.info(`Saving ${url} to cache`);
-          redisClient.set(`url_${url}`, JSON.stringify(body), 'EX', config.getConf('mCSD:cacheTime'));
+          winston.info(`Saving ${urlPrefix} to cache`);
+          redisClient.set(`url_${urlPrefix}`, JSON.stringify(body), 'EX', config.getConf('mCSD:cacheTime'));
         } else {
           winston.info(`Not more than 1 entry for ${url} so not caching.`);
         }
@@ -244,11 +244,11 @@ module.exports = () => ({
 
   getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
     const parents = [];
-    if (entityParent == null ||
-      entityParent == false ||
-      entityParent == undefined ||
-      !topOrg ||
-      !database
+    if (entityParent == null
+      || entityParent == false
+      || entityParent == undefined
+      || !topOrg
+      || !database
     ) {
       return callback(parents);
     }
@@ -322,10 +322,10 @@ module.exports = () => ({
         // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
         else if (topOrg && sourceEntityID.endsWith(topOrg)) {
           return callback(parents);
-        } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
-          body.entry[0].resource.partOf.reference != false &&
-          body.entry[0].resource.partOf.reference != null &&
-          body.entry[0].resource.partOf.reference != undefined) {
+        } else if (body.entry[0].resource.hasOwnProperty('partOf')
+          && body.entry[0].resource.partOf.reference != false
+          && body.entry[0].resource.partOf.reference != null
+          && body.entry[0].resource.partOf.reference != undefined) {
           entityParent = body.entry[0].resource.partOf.reference;
           getPar(entityParent, (parents) => {
             callback(parents);
@@ -385,10 +385,10 @@ module.exports = () => ({
           winston.error('parent details (either id,names or all) to be returned not specified');
         }
 
-        if (entry.resource.hasOwnProperty('partOf') &&
-          entry.resource.partOf.reference != false &&
-          entry.resource.partOf.reference != null &&
-          entry.resource.partOf.reference != undefined) {
+        if (entry.resource.hasOwnProperty('partOf')
+          && entry.resource.partOf.reference != false
+          && entry.resource.partOf.reference != null
+          && entry.resource.partOf.reference != undefined) {
           entityParent = entry.resource.partOf.reference;
           filter(entityParent, parents => callback(parents));
         } else {
@@ -909,85 +909,85 @@ module.exports = () => ({
 
     const me = this;
     async.parallel({
-        source1Mapped(callback) {
-          me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
-            if (mapped.entry.length > 0) {
-              winston.error('Attempting to mark an already mapped location as no match');
-              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-            }
-            return callback(null, null);
-          });
-        },
+      source1Mapped(callback) {
+        me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
+          if (mapped.entry.length > 0) {
+            winston.error('Attempting to mark an already mapped location as no match');
+            return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+          }
+          return callback(null, null);
+        });
       },
-      (err, res) => {
-        if (res.source1Mapped !== null) {
-          return callback(res.source1Mapped);
-        }
-        me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'document';
-          const entry = [];
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = mcsd.entry[0].resource.name;
-          resource.id = source1Id;
+    },
+    (err, res) => {
+      if (res.source1Mapped !== null) {
+        return callback(res.source1Mapped);
+      }
+      me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'document';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = mcsd.entry[0].resource.name;
+        resource.id = source1Id;
 
-          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-            resource.partOf = {
-              display: mcsd.entry[0].resource.partOf.display,
-              reference: mcsd.entry[0].resource.partOf.reference,
-            };
-          }
-          if (recoLevel == totalLevels) {
-            var typeCode = 'bu';
-            var typeName = 'building';
-          } else {
-            var typeCode = 'jdn';
-            var typeName = 'Jurisdiction';
-          }
-          resource.physicalType = {
-            coding: [{
-              code: typeCode,
-              display: typeName,
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
+        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+          resource.partOf = {
+            display: mcsd.entry[0].resource.partOf.display,
+            reference: mcsd.entry[0].resource.partOf.reference,
           };
-          resource.identifier = [];
-          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-            .segment(source1Id)
-            .toString();
-          resource.identifier.push({
-            system: source1System,
-            value: source1URL,
-          });
+        }
+        if (recoLevel == totalLevels) {
+          var typeCode = 'bu';
+          var typeName = 'building';
+        } else {
+          var typeCode = 'jdn';
+          var typeName = 'Jurisdiction';
+        }
+        resource.physicalType = {
+          coding: [{
+            code: typeCode,
+            display: typeName,
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        };
+        resource.identifier = [];
+        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+          .segment(source1Id)
+          .toString();
+        resource.identifier.push({
+          system: source1System,
+          value: source1URL,
+        });
 
-          resource.tag = [];
-          if (type == 'nomatch') {
-            resource.tag.push({
-              system: source1System,
-              code: noMatchCode,
-              display: 'No Match',
-            });
-          } else if (type == 'ignore') {
-            resource.tag.push({
-              system: source1System,
-              code: ignoreCode,
-              display: 'Ignore',
-            });
+        resource.tag = [];
+        if (type == 'nomatch') {
+          resource.tag.push({
+            system: source1System,
+            code: noMatchCode,
+            display: 'No Match',
+          });
+        } else if (type == 'ignore') {
+          resource.tag.push({
+            system: source1System,
+            code: ignoreCode,
+            display: 'Ignore',
+          });
+        }
+        entry.push({
+          resource,
+        });
+        fhir.entry = fhir.entry.concat(entry);
+        me.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
           }
-          entry.push({
-            resource,
-          });
-          fhir.entry = fhir.entry.concat(entry);
-          me.saveLocations(fhir, mappingDB, (err, res) => {
-            if (err) {
-              winston.error(err);
-            }
-            callback(err);
-          });
+          callback(err);
         });
       });
+    });
   },
   breakMatch(source1Id, mappingDB, source1DB, callback) {
     if (!source1Id) {
@@ -1112,10 +1112,10 @@ module.exports = () => ({
         let facilityParent = null;
         let facilityParentUUID = null;
         async.eachSeries(levels, (level, nxtLevel) => {
-          if (data[headerMapping[level]] != null &&
-            data[headerMapping[level]] != undefined &&
-            data[headerMapping[level]] != false &&
-            data[headerMapping[level]] != ''
+          if (data[headerMapping[level]] != null
+            && data[headerMapping[level]] != undefined
+            && data[headerMapping[level]] != false
+            && data[headerMapping[level]] != ''
           ) {
             let name = data[headerMapping[level]].trim();
             name = mixin.toTitleCaseSpace(name);

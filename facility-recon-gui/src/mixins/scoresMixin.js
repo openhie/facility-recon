@@ -67,11 +67,9 @@ export const scoresMixin = {
           ) {
             // clearInterval(this.$store.state.scoresProgressData.scoreProgressTimer)
             this.$store.state.scoresProgressData.scoreDialog = false
-            this.$store.state.scoresProgressData.scoreProgressTitle =
-              'Waiting for progress status'
+            this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
             this.$store.state.errorTitle = 'An error has occured'
-            this.$store.state.errorDescription =
-              'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
+            this.$store.state.errorDescription = 'An error has occured while reaching out to server, please click recalculate scores to restart automatch'
             this.$store.state.errorColor = 'error'
             this.$store.state.dialogError = true
             this.clearProgress('scoreResults')
@@ -85,8 +83,7 @@ export const scoresMixin = {
             this.$store.state.scoreResults.length > 0
           ) {
             this.$store.state.scoresProgressData.scoreDialog = false
-            this.$store.state.scoresProgressData.scoreProgressTitle =
-              'Waiting for progress status'
+            this.$store.state.scoresProgressData.scoreProgressTitle = 'Waiting for progress status'
             this.clearProgress('scoreResults')
             this.$store.state.scoreSavingProgressData.savingMatches = true
             this.checkScoreSavingStatus()
@@ -248,6 +245,7 @@ export const scoresMixin = {
             this.$store.state.scoreSavingProgressData.percent = scoreSavingStatus.data.percent
           }
           if (parseInt(scoreSavingStatus.data.percent) === 100) {
+            console.log('done')
             this.$store.state.scoreSavingProgressData.savingMatches = false
             this.$store.state.scoreSavingProgressData.percent = 0
             this.clearProgress('scoreSavingStatus')
