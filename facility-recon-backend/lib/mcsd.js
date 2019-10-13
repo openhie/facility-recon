@@ -1,3 +1,4 @@
+/* eslint-disable radix */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable guard-for-in */
 /* eslint-disable no-param-reassign */
@@ -209,7 +210,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          services.entry = services.entry.concat(body.entry);
+          if (body.total > 0 && body.entry && body.entry.length > 0) {
+            services.entry = services.entry.concat(body.entry);
+          }
           return callback(false, url);
         });
       },
@@ -272,7 +275,9 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          locations.entry = locations.entry.concat(body.entry);
+          if (body.total > 0 && body.entry && body.entry.length > 0) {
+            locations.entry = locations.entry.concat(body.entry);
+          }
           return callback(false, url);
         });
       },
@@ -462,11 +467,11 @@ module.exports = () => ({
 
   getLocationParentsFromDB(database, entityParent, topOrg, details, callback) {
     const parents = [];
-    if (entityParent == null ||
-      entityParent == false ||
-      entityParent == undefined ||
-      !topOrg ||
-      !database
+    if (entityParent == null
+      || entityParent == false
+      || entityParent == undefined
+      || !topOrg
+      || !database
     ) {
       return callback(parents);
     }
@@ -598,10 +603,10 @@ module.exports = () => ({
           // if this is a topOrg then end here,we dont need to fetch the upper org which is continent i.e Africa
           else if (topOrg && sourceEntityID.endsWith(topOrg)) {
             return callback(parents);
-          } else if (body.entry[0].resource.hasOwnProperty('partOf') &&
-            body.entry[0].resource.partOf.reference != false &&
-            body.entry[0].resource.partOf.reference != null &&
-            body.entry[0].resource.partOf.reference != undefined) {
+          } else if (body.entry[0].resource.hasOwnProperty('partOf')
+            && body.entry[0].resource.partOf.reference != false
+            && body.entry[0].resource.partOf.reference != null
+            && body.entry[0].resource.partOf.reference != undefined) {
             var entityParent = body.entry[0].resource.partOf.reference;
             getPar(entityParent, (parents) => {
               callback(parents);
@@ -662,10 +667,10 @@ module.exports = () => ({
           winston.error('parent details (either id,names or all) to be returned not specified');
         }
 
-        if (entry.resource.hasOwnProperty('partOf') &&
-          entry.resource.partOf.reference != false &&
-          entry.resource.partOf.reference != null &&
-          entry.resource.partOf.reference != undefined) {
+        if (entry.resource.hasOwnProperty('partOf')
+          && entry.resource.partOf.reference != false
+          && entry.resource.partOf.reference != null
+          && entry.resource.partOf.reference != undefined) {
           entityParent = entry.resource.partOf.reference;
           filter(entityParent, parents => callback(parents));
         } else {
@@ -1162,208 +1167,377 @@ module.exports = () => ({
     });
   },
   addBuilding(fields, callback) {
-    const LocationResource = {};
-    if (fields.id) {
-      LocationResource.id = fields.id;
-    } else {
-      LocationResource.id = uuid4();
-    }
-    LocationResource.resourceType = 'Location';
-    LocationResource.meta = {};
-    LocationResource.meta.profile = [];
-    LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
-    LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityLocation');
-    LocationResource.name = fields.name;
-    if (fields.alt_name) {
-      LocationResource.alias = [];
-      LocationResource.alias.push(fields.alt_name);
-    }
-    if (fields.code) {
-      LocationResource.identifier = [{
-        system: 'https://digitalhealth.intrahealth.org/code',
-        value: fields.code,
-      }];
-    }
-    LocationResource.type = [];
-
-    const coding = [];
-    coding.push({
-      system: 'urn:ietf:rfc:3986',
-      code: 'urn:ihe:iti:mcsd:2019:facility',
-      display: 'Facility',
-      userSelected: false,
-    });
-    LocationResource.type.push({
-      coding,
-    });
-    if (fields.type) {
-      const typeConcept = this.getTerminologyCode(fields.type);
-      if (typeConcept) {
-        const type = {};
-        type.text = typeConcept.display;
-        type.coding = [{
-          system: 'https://digitalhealth.intrahealth.org/locType',
-          code: typeConcept.code,
-          display: typeConcept.display,
-        }];
-        LocationResource.type.push(type);
-      }
-    }
-    if (fields.status) {
-      LocationResource.status = fields.status;
-    } else {
-      LocationResource.status = 'active';
-    }
-    if (fields.lat || fields.long) {
-      LocationResource.position = {};
-      if (fields.lat) {
-        LocationResource.position.latitude = fields.lat;
-      }
-      if (fields.long) {
-        LocationResource.position.longitude = fields.long;
-      }
-    }
-    try {
-      fields.contact = JSON.parse(fields.contact);
-      LocationResource.telecom = [];
-      if (fields.contact.phone) {
-        LocationResource.telecom.push({
-          system: 'phone',
-          value: fields.contact.phone,
-        });
-      }
-      if (fields.contact.email) {
-        LocationResource.telecom.push({
-          system: 'email',
-          value: fields.contact.email,
-        });
-      }
-      if (fields.contact.fax) {
-        LocationResource.telecom.push({
-          system: 'fax',
-          value: fields.contact.fax,
-        });
-      }
-      if (fields.contact.website) {
-        LocationResource.telecom.push({
-          system: 'url',
-          value: fields.contact.website,
-        });
-      }
-    } catch (error) {
-      winston.error(error);
-    }
-    if (fields.description) {
-      LocationResource.description = fields.description;
-    }
-    if (fields.parent) {
-      LocationResource.partOf = {
-        reference: `Location/${fields.parent}`,
-      };
-    }
-    LocationResource.physicalType = {
-      coding: [{
-        system: 'http://hl7.org/fhir/location-physical-type',
-        code: 'bu',
-        display: 'Building',
-      }],
-      text: 'Building',
-    };
-    if (fields.action === 'request') {
-      const usernameURI = mixin.getCodesysteURI('usernames');
-      const statusesURI = mixin.getCodesysteURI('statuses');
-      if (!LocationResource.meta) {
-        LocationResource.meta = {};
-      }
-      if (!LocationResource.meta.tag) {
-        LocationResource.meta.tag = [];
-      }
-      const tagExist = LocationResource.meta.tag.find(tag => tag.code === fields.username && tag.system === usernameURI.uri);
-      if (!tagExist && fields.username) {
-        LocationResource.meta.tag.push({
-          system: usernameURI.uri,
-          code: fields.username,
-        });
-      }
-      const status = LocationResource.meta.tag.find(tag => tag.code === 'pending' && tag.system === statusesURI.uri);
-      if (!status) {
-        LocationResource.meta.tag.push({
-          system: statusesURI.uri,
-          code: 'pending',
-          display: 'Pending',
-        });
-      }
-      const requestTypesURI = mixin.getCodesysteURI('requestTypes');
-      const requestType = LocationResource.meta.tag.find(tag => tag.system === requestTypesURI.uri);
-      if (fields.requestType === 'add' && !requestType) {
-        LocationResource.meta.tag.push({
-          system: requestTypesURI.uri,
-          code: 'add',
-          display: 'Request to add new facility',
-        });
-      } else if (fields.requestType === 'update' && !requestType) {
-        LocationResource.meta.tag.push({
-          system: requestTypesURI.uri,
-          code: 'update',
-          display: 'Request to update facility details',
-        });
-      }
-    }
-    const organizationResource = {};
-    organizationResource.id = uuid4();
-    organizationResource.resourceType = 'Organization';
-    organizationResource.meta = {};
-    organizationResource.meta.profile = [];
-    organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Organization');
-    organizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityOrganization');
-    organizationResource.name = fields.name;
-    LocationResource.managingOrganization = {
-      reference: `Organization/${organizationResource.id}`,
-    };
-    if (fields.ownership) {
-      const ownershipConcept = this.getTerminologyCode(fields.ownership);
-      if (ownershipConcept) {
-        organizationResource.type = [];
-        const type = {};
-        type.text = ownershipConcept.display;
-        type.coding = [];
-        type.coding.push({
-          system: 'https://digitalhealth.intrahealth.org/orgType',
-          code: ownershipConcept.code,
-          display: ownershipConcept.display,
-        });
-        organizationResource.type.push(type);
-      }
-    }
-    const fhir = {};
-    fhir.entry = [];
-    fhir.type = 'batch';
-    fhir.resourceType = 'Bundle';
-    fhir.entry.push({
-      resource: LocationResource,
-      request: {
-        method: 'PUT',
-        url: `Location/${LocationResource.id}`,
-      },
-    });
-    if (organizationResource) {
-      fhir.entry.push({
-        resource: organizationResource,
-        request: {
-          method: 'PUT',
-          url: `Organization/${organizationResource.id}`,
-        },
-      });
-    }
     let database = '';
     if (fields.action && fields.action === 'request') {
       database = config.getConf('hapi:requestsDBName');
     }
-    this.saveLocations(fhir, database, (err, res) => {
-      if (err) {
-        winston.error(err);
+    async.series([
+      (callback) => {
+        if (fields.id) {
+          this.getLocationByID(database, fields.id, true, location => callback(null, location));
+        } else {
+          return callback(null);
+        }
+      },
+    ], (error, response) => {
+      if (error) {
+        winston.error('An error has occured while trying to get a resource ID');
+        return callback(error);
       }
-      callback(err);
+      if (!response || !Array.isArray(response) || (response[0] && (!response[0].entry || !Array.isArray(response[0].entry)))) {
+        winston.error('invalid response received');
+        return callback('invalid response received');
+      }
+      let LocationResource;
+      let OrganizationResource;
+      if (response[0]) {
+        LocationResource = response[0].entry.find(entry => entry.resource.resourceType === 'Location');
+        OrganizationResource = response[0].entry.find(entry => entry.resource.resourceType === 'Organization');
+      }
+      let editingLocation = false;
+      if (LocationResource) {
+        LocationResource = LocationResource.resource;
+        editingLocation = true;
+      } else {
+        LocationResource = {};
+      }
+      if (OrganizationResource) {
+        OrganizationResource = OrganizationResource.resource;
+      } else {
+        OrganizationResource = {};
+      }
+      if (!LocationResource.id) {
+        LocationResource.id = uuid4();
+        LocationResource.resourceType = 'Location';
+        LocationResource.meta = {};
+        LocationResource.meta.profile = [];
+        LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
+        LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityLocation');
+      }
+      if (fields.name) {
+        LocationResource.name = fields.name;
+      }
+      if (fields.alt_name) {
+        if (!LocationResource.alias) {
+          LocationResource.alias = [];
+          LocationResource.alias.push(fields.alt_name);
+        } else {
+          const aliasIndex = LocationResource.alias.indexOf(fields.alt_name);
+          if (aliasIndex === -1) {
+            LocationResource.alias.push(fields.alt_name);
+          } else {
+            LocationResource.alias[aliasIndex] = fields.alt_name;
+          }
+        }
+      } else {
+        LocationResource.alias = [];
+      }
+      if (fields.code) {
+        if (!LocationResource.identifier) {
+          LocationResource.identifier = [{
+            system: 'https://digitalhealth.intrahealth.org/code',
+            value: fields.code,
+          }];
+        } else {
+          const codeIndex = LocationResource.identifier.findIndex(identifier => identifier.system === 'https://digitalhealth.intrahealth.org/code');
+          if (codeIndex === -1) {
+            LocationResource.identifier.push({
+              system: 'https://digitalhealth.intrahealth.org/code',
+              value: fields.code,
+            });
+          } else {
+            LocationResource.identifier[codeIndex] = {
+              system: 'https://digitalhealth.intrahealth.org/code',
+              value: fields.code,
+            };
+          }
+        }
+      } else {
+        const codeIndex = LocationResource.identifier && LocationResource.identifier.findIndex(identifier => identifier.system === 'https://digitalhealth.intrahealth.org/code');
+        if (codeIndex !== -1 && LocationResource.identifier) {
+          LocationResource.identifier.splice(codeIndex, 1);
+        }
+      }
+
+      if (!LocationResource.type) {
+        LocationResource.type = [];
+        const coding = [];
+        coding.push({
+          system: 'urn:ietf:rfc:3986',
+          code: 'urn:ihe:iti:mcsd:2019:facility',
+          display: 'Facility',
+          userSelected: false,
+        });
+        LocationResource.type.push({
+          coding,
+        });
+      }
+      if (fields.type) {
+        const typeConcept = this.getTerminologyCode(fields.type);
+        if (typeConcept) {
+          const type = {};
+          type.text = typeConcept.display;
+          type.coding = [{
+            system: 'https://digitalhealth.intrahealth.org/locType',
+            code: typeConcept.code,
+            display: typeConcept.display,
+          }];
+          const typeIndex = LocationResource.type.findIndex((type) => {
+            const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType');
+            return coding;
+          });
+          if (typeIndex === -1) {
+            LocationResource.type.push(type);
+          } else {
+            LocationResource.type[typeIndex] = type;
+          }
+        }
+      } else {
+        const typeIndex = LocationResource.type.findIndex((type) => {
+          const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/locType');
+          return coding;
+        });
+        if (typeIndex !== -1) {
+          LocationResource.type.splice(typeIndex, 1);
+        }
+      }
+      if (fields.status) {
+        LocationResource.status = fields.status;
+      } else {
+        LocationResource.status = 'active';
+      }
+      if (fields.lat || fields.long) {
+        if (!LocationResource.position) {
+          LocationResource.position = {};
+        }
+        if (fields.lat) {
+          LocationResource.position.latitude = fields.lat;
+        } else {
+          delete LocationResource.position.latitude;
+        }
+        if (fields.long) {
+          LocationResource.position.longitude = fields.long;
+        } else {
+          delete LocationResource.position.longitude;
+        }
+      } else {
+        delete LocationResource.position;
+      }
+      try {
+        fields.contact = JSON.parse(fields.contact);
+        if (!LocationResource.telecom) {
+          LocationResource.telecom = [];
+        }
+        if (fields.contact.phone) {
+          const phoneIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'phone');
+          if (phoneIndex === -1) {
+            LocationResource.telecom.push({
+              system: 'phone',
+              value: fields.contact.phone,
+            });
+          } else {
+            LocationResource.telecom[phoneIndex] = {
+              system: 'phone',
+              value: fields.contact.phone,
+            };
+          }
+        } else {
+          const phoneIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'phone');
+          if (phoneIndex !== -1) {
+            LocationResource.telecom.splice(phoneIndex, 1);
+          }
+        }
+        if (fields.contact.email) {
+          const emailIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'email');
+          if (emailIndex === -1) {
+            LocationResource.telecom.push({
+              system: 'email',
+              value: fields.contact.email,
+            });
+          } else {
+            LocationResource.telecom[emailIndex] = {
+              system: 'email',
+              value: fields.contact.email,
+            };
+          }
+        } else {
+          const emailIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'email');
+          if (emailIndex !== -1) {
+            LocationResource.telecom.splice(emailIndex, 1);
+          }
+        }
+        if (fields.contact.fax) {
+          const faxIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'fax');
+          if (faxIndex === -1) {
+            LocationResource.telecom.push({
+              system: 'fax',
+              value: fields.contact.fax,
+            });
+          } else {
+            LocationResource.telecom[faxIndex] = {
+              system: 'fax',
+              value: fields.contact.fax,
+            };
+          }
+        } else {
+          const faxIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'fax');
+          if (faxIndex !== -1) {
+            LocationResource.telecom.splice(faxIndex, 1);
+          }
+        }
+        if (fields.contact.website) {
+          const urlIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'url');
+          if (urlIndex === -1) {
+            LocationResource.telecom.push({
+              system: 'url',
+              value: fields.contact.website,
+            });
+          } else {
+            LocationResource.telecom[urlIndex] = {
+              system: 'url',
+              value: fields.contact.website,
+            };
+          }
+        } else {
+          const urlIndex = LocationResource.telecom.findIndex(telecom => telecom.system === 'url');
+          if (urlIndex !== -1) {
+            LocationResource.telecom.splice(urlIndex, 1);
+          }
+        }
+      } catch (error) {
+        winston.error(error);
+      }
+      if (fields.description) {
+        LocationResource.description = fields.description;
+      } else {
+        LocationResource.description = '';
+      }
+      if (fields.parent) {
+        LocationResource.partOf = {
+          reference: `Location/${fields.parent}`,
+        };
+      }
+      LocationResource.physicalType = {
+        coding: [{
+          system: 'http://hl7.org/fhir/location-physical-type',
+          code: 'bu',
+          display: 'Building',
+        }],
+        text: 'Building',
+      };
+      if (fields.action === 'request' && !editingLocation) {
+        const usernameURI = mixin.getCodesysteURI('usernames');
+        const statusesURI = mixin.getCodesysteURI('statuses');
+        const requestTypesURI = mixin.getCodesysteURI('requestTypes');
+        if (!LocationResource.meta) {
+          LocationResource.meta = {};
+        }
+        if (!LocationResource.meta.tag) {
+          LocationResource.meta.tag = [];
+        }
+        const tagExist = LocationResource.meta.tag.find(tag => tag.code === fields.username && tag.system === usernameURI.uri);
+        let version = 1;
+        if (tagExist) {
+          version = parseInt(tagExist.version) + 1;
+        }
+        LocationResource.meta.tag.push({
+          version: 'version 1',
+          system: usernameURI.uri,
+          code: fields.username,
+        });
+        LocationResource.meta.tag.push({
+          version: version.toString(),
+          system: statusesURI.uri,
+          code: 'pending',
+          display: 'Pending',
+        });
+        if (fields.requestType === 'add') {
+          LocationResource.meta.tag.push({
+            version: version.toString(),
+            system: requestTypesURI.uri,
+            code: 'add',
+            display: 'Request to add new facility',
+          });
+        } else if (fields.requestType === 'update') {
+          LocationResource.meta.tag.push({
+            version: version.toString(),
+            system: requestTypesURI.uri,
+            code: 'update',
+            display: 'Request to update facility details',
+          });
+        }
+      }
+
+      if (!OrganizationResource.id) {
+        OrganizationResource.id = uuid4();
+        OrganizationResource.resourceType = 'Organization';
+        OrganizationResource.meta = {};
+        OrganizationResource.meta.profile = [];
+        OrganizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Organization');
+        OrganizationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityOrganization');
+      }
+      OrganizationResource.name = fields.name;
+      LocationResource.managingOrganization = {
+        reference: `Organization/${OrganizationResource.id}`,
+      };
+      if (fields.ownership) {
+        const ownershipConcept = this.getTerminologyCode(fields.ownership);
+        if (ownershipConcept) {
+          if (!OrganizationResource.type) {
+            OrganizationResource.type = [];
+          }
+          const type = {};
+          type.text = ownershipConcept.display;
+          type.coding = [{
+            system: 'https://digitalhealth.intrahealth.org/orgType',
+            code: ownershipConcept.code,
+            display: ownershipConcept.display,
+          }];
+          const typeIndex = OrganizationResource.type.findIndex((type) => {
+            const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType');
+            return coding;
+          });
+          if (typeIndex === -1) {
+            OrganizationResource.type.push(type);
+          } else {
+            OrganizationResource.type[typeIndex] = type;
+          }
+        }
+      } else {
+        const typeIndex = OrganizationResource.type && OrganizationResource.type.findIndex((type) => {
+          const coding = type.coding.find(coding => coding.system === 'https://digitalhealth.intrahealth.org/orgType');
+          return coding;
+        });
+        if (typeIndex !== -1 && OrganizationResource.type) {
+          OrganizationResource.type.splice(typeIndex, 1);
+        }
+      }
+      const fhir = {};
+      fhir.entry = [];
+      fhir.type = 'batch';
+      fhir.resourceType = 'Bundle';
+      fhir.entry.push({
+        resource: LocationResource,
+        request: {
+          method: 'PUT',
+          url: `Location/${LocationResource.id}`,
+        },
+      });
+      if (OrganizationResource) {
+        fhir.entry.push({
+          resource: OrganizationResource,
+          request: {
+            method: 'PUT',
+            url: `Organization/${OrganizationResource.id}`,
+          },
+        });
+      }
+      this.saveLocations(fhir, database, (err, res) => {
+        if (err) {
+          winston.error(err);
+        }
+        callback(err);
+      });
     });
   },
 
@@ -1390,12 +1564,18 @@ module.exports = () => ({
       } else if (status === 'approved') {
         statusDisplay = 'Approved';
       }
+      let version = 0;
+      let latestTagIndex;
       for (const tagIndex in locationResource.resource.meta.tag) {
         const tag = locationResource.resource.meta.tag[tagIndex];
-        if (tag.system === statusesURI.uri) {
-          locationResource.resource.meta.tag[tagIndex].code = status;
-          locationResource.resource.meta.tag[tagIndex].display = statusDisplay;
+        if (tag.system === statusesURI.uri && parseInt(tag.version) > version) {
+          version = tag.version;
+          latestTagIndex = tagIndex;
         }
+      }
+      if (latestTagIndex !== undefined) {
+        locationResource.resource.meta.tag[latestTagIndex].code = status;
+        locationResource.resource.meta.tag[latestTagIndex].display = statusDisplay;
       }
 
       const fhir = {};
@@ -1421,15 +1601,19 @@ module.exports = () => ({
             }
             callback(null);
           });
-        },
-        (callback) => {
-          this.saveLocations(fhir, database, (err, res) => {
-            if (err) {
-              winston.error(err);
-              return callback('An error has occured while changing request status');
-            }
+        }, (callback) => {
+          // recreate the resource in requests database only if its not approved
+          if (status !== 'approved') {
+            this.saveLocations(fhir, database, (err, res) => {
+              if (err) {
+                winston.error(err);
+                return callback('An error has occured while changing request status');
+              }
+              return callback(null);
+            });
+          } else {
             return callback(null);
-          });
+          }
         },
       ], (err, response) => {
         if (status === 'approved') {
@@ -1939,96 +2123,96 @@ module.exports = () => ({
 
     const me = this;
     async.parallel({
-        source1Mapped(callback) {
-          me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
-            if (mapped.entry.length > 0) {
-              winston.error('Attempting to mark an already mapped location as no match');
-              return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
-            }
-            return callback(null, null);
-          });
-        },
+      source1Mapped(callback) {
+        me.getLocationByID(mappingDB, source1Id, false, (mapped) => {
+          if (mapped.entry.length > 0) {
+            winston.error('Attempting to mark an already mapped location as no match');
+            return callback(null, 'This location was already mapped, recalculate scores to update the level you are working on');
+          }
+          return callback(null, null);
+        });
       },
-      (err, res) => {
-        if (res.source1Mapped !== null) {
-          return callback(res.source1Mapped);
+    },
+    (err, res) => {
+      if (res.source1Mapped !== null) {
+        return callback(res.source1Mapped);
+      }
+      me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
+        if (mcsd.entry.length === 0) {
+          winston.error(`Location with ID ${source1Id} not found on the mCSD DB, this isnt expected, please cross check`);
+          return callback(true);
         }
-        me.getLocationByID(source1DB, source1Id, false, (mcsd) => {
-          if (mcsd.entry.length === 0) {
-            winston.error(`Location with ID ${source1Id} not found on the mCSD DB, this isnt expected, please cross check`);
-            return callback(true);
-          }
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'batch';
-          fhir.resourceType = 'Bundle';
-          const entry = [];
-          const resource = {};
-          resource.resourceType = 'Location';
-          resource.name = mcsd.entry[0].resource.name;
-          resource.id = source1Id;
+        const fhir = {};
+        fhir.entry = [];
+        fhir.type = 'batch';
+        fhir.resourceType = 'Bundle';
+        const entry = [];
+        const resource = {};
+        resource.resourceType = 'Location';
+        resource.name = mcsd.entry[0].resource.name;
+        resource.id = source1Id;
 
-          if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
-            resource.partOf = {
-              display: mcsd.entry[0].resource.partOf.display,
-              reference: mcsd.entry[0].resource.partOf.reference,
-            };
-          }
-          let typeCode;
-          let typeName;
-          if (recoLevel == totalLevels) {
-            typeCode = 'bu';
-            typeName = 'building';
-          } else {
-            typeCode = 'jdn';
-            typeName = 'Jurisdiction';
-          }
-          resource.physicalType = {
-            coding: [{
-              code: typeCode,
-              display: typeName,
-              system: 'http://hl7.org/fhir/location-physical-type',
-            }],
+        if (mcsd.entry[0].resource.hasOwnProperty('partOf')) {
+          resource.partOf = {
+            display: mcsd.entry[0].resource.partOf.display,
+            reference: mcsd.entry[0].resource.partOf.reference,
           };
-          resource.identifier = [];
-          const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
-            .segment(source1Id)
-            .toString();
-          resource.identifier.push({
+        }
+        let typeCode;
+        let typeName;
+        if (recoLevel == totalLevels) {
+          typeCode = 'bu';
+          typeName = 'building';
+        } else {
+          typeCode = 'jdn';
+          typeName = 'Jurisdiction';
+        }
+        resource.physicalType = {
+          coding: [{
+            code: typeCode,
+            display: typeName,
+            system: 'http://hl7.org/fhir/location-physical-type',
+          }],
+        };
+        resource.identifier = [];
+        const source1URL = URI(config.getConf('mCSD:url')).segment(source1DB).segment('fhir').segment('Location')
+          .segment(source1Id)
+          .toString();
+        resource.identifier.push({
+          system: source1System,
+          value: source1URL,
+        });
+        resource.meta = {};
+        resource.meta.tag = [];
+        if (type == 'nomatch') {
+          resource.meta.tag.push({
             system: source1System,
-            value: source1URL,
+            code: noMatchCode,
+            display: 'No Match',
           });
-          resource.meta = {};
-          resource.meta.tag = [];
-          if (type == 'nomatch') {
-            resource.meta.tag.push({
-              system: source1System,
-              code: noMatchCode,
-              display: 'No Match',
-            });
-          } else if (type == 'ignore') {
-            resource.meta.tag.push({
-              system: source1System,
-              code: ignoreCode,
-              display: 'Ignore',
-            });
+        } else if (type == 'ignore') {
+          resource.meta.tag.push({
+            system: source1System,
+            code: ignoreCode,
+            display: 'Ignore',
+          });
+        }
+        entry.push({
+          resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${resource.id}`,
+          },
+        });
+        fhir.entry = fhir.entry.concat(entry);
+        me.saveLocations(fhir, mappingDB, (err, res) => {
+          if (err) {
+            winston.error(err);
           }
-          entry.push({
-            resource,
-            request: {
-              method: 'PUT',
-              url: `Location/${resource.id}`,
-            },
-          });
-          fhir.entry = fhir.entry.concat(entry);
-          me.saveLocations(fhir, mappingDB, (err, res) => {
-            if (err) {
-              winston.error(err);
-            }
-            callback(err);
-          });
+          callback(err);
         });
       });
+    });
   },
   breakMatch(source1Id, mappingDB, source1DB, callback) {
     if (!source1Id) {
@@ -2161,10 +2345,10 @@ module.exports = () => ({
         let facilityParent = null;
         let facilityParentUUID = null;
         async.eachSeries(levels, (level, nxtLevel) => {
-          if (data[headerMapping[level]] != null &&
-            data[headerMapping[level]] != undefined &&
-            data[headerMapping[level]] != false &&
-            data[headerMapping[level]] != ''
+          if (data[headerMapping[level]] != null
+            && data[headerMapping[level]] != undefined
+            && data[headerMapping[level]] != false
+            && data[headerMapping[level]] != ''
           ) {
             let name = data[headerMapping[level]].trim();
             name = mixin.toTitleCaseSpace(name);

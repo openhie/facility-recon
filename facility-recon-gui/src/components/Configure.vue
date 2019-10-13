@@ -695,8 +695,7 @@ export default {
           this.$store.state.dialogError = true
           this.$store.state.errorTitle = 'Error'
           this.$store.state.errorColor = 'error'
-          this.$store.state.errorDescription =
-            'This feature can only be enabled if there is a defined datasource to serve as Source 2 for all reconciliation'
+          this.$store.state.errorDescription = 'This feature can only be enabled if there is a defined datasource to serve as Source 2 for all reconciliation'
           setTimeout(() => {
             this.$store.state.config.generalConfig.reconciliation.singleDataSource = false
           })

@@ -41,6 +41,7 @@ const dhis = require('./dhis')();
 const fhir = require('./fhir')();
 const hapi = require('./hapi');
 const scores = require('./scores')();
+const defaultSetups = require('./defaultSetup.js');
 
 const mongoUser = config.getConf('DB_USER');
 const mongoPasswd = config.getConf('DB_PASSWORD');
@@ -54,19 +55,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS' ||
-    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
-    req.path == '/authenticate/' ||
-    req.path == '/getSignupConf' ||
-    req.path == '/getGeneralConfig' ||
-    req.path == '/addUser/' ||
-    req.path.startsWith('/progress') ||
-    req.path == '/' ||
-    req.path.startsWith('/static/js') ||
-    req.path.startsWith('/static/config.json') ||
-    req.path.startsWith('/static/css') ||
-    req.path.startsWith('/static/img') ||
-    req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS'
+    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
+    || req.path == '/authenticate/'
+    || req.path == '/getSignupConf'
+    || req.path == '/getGeneralConfig'
+    || req.path == '/addUser/'
+    || req.path.startsWith('/progress')
+    || req.path == '/'
+    || req.path.startsWith('/static/js')
+    || req.path.startsWith('/static/config.json')
+    || req.path.startsWith('/static/css')
+    || req.path.startsWith('/static/img')
+    || req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -137,14 +138,17 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-            name: 'Admin',
-          },
-          {
-            name: 'Data Manager',
-          },
-          {
-            name: 'Guest',
-          },
+          name: 'Admin',
+          tasks: [],
+        },
+        {
+          name: 'Data Manager',
+          tasks: [],
+        },
+        {
+          name: 'Guest',
+          tasks: [],
+        },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -185,9 +189,10 @@ if (cluster.isMaster) {
     request.get(options, (err, res, body) => {
       if (!res) {
         winston.error('It appears that FHIR server is not running, quiting GOFR now ...');
-        // process.exit()
       }
       if (res.statusCode === 404) {
+        // launch
+        defaultSetups.initialize();
         async.series({
           createDefaultDB: (callback) => {
             hapi.createServer(defaultDB, (err) => {
@@ -274,7 +279,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete(workers[worker.process.pid]);
+    delete (workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -374,15 +379,18 @@ if (cluster.isMaster) {
             // get role name
             models.RolesModel.find({
               _id: data[0].role,
-            }).lean().exec((err, roles) => {
+            }).populate('tasks').lean().exec((err, roles) => {
               let role = null;
+              let tasks;
               if (roles.length === 1) {
                 role = roles[0].name;
+                tasks = roles[0].tasks;
               }
               winston.info(`Successfully Authenticated user ${fields.username}`);
               res.status(200).json({
                 token,
                 role,
+                tasks,
                 userID,
               });
             });
@@ -468,6 +476,46 @@ if (cluster.isMaster) {
             error: 'Internal error occured',
           });
         }
+      });
+    });
+  });
+
+  app.post('/updateRole', (req, res) => {
+    winston.info('Received a request to change account status');
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields) => {
+      let role;
+      try {
+        role = JSON.parse(fields.role);
+      } catch (error) {
+        return res.status(500).send('Invalid JSON of roles submitted');
+      }
+      winston.info('Received a request to update role');
+      models.RolesModel.findByIdAndUpdate(role.value, {
+        $set: {
+          tasks: [],
+        },
+      }, (err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('An error occured while removing tasks from role');
+          return res.status(500).send();
+        }
+        models.RolesModel.findByIdAndUpdate(role.value, {
+          $push: {
+            tasks: {
+              $each: role.tasks,
+            },
+          },
+        }, (err, data) => {
+          if (err) {
+            winston.error(err);
+            res.status(500).send(err);
+          } else {
+            winston.info('Role updated successfully');
+            res.status(200).send();
+          }
+        });
       });
     });
   });
@@ -1008,6 +1056,22 @@ if (cluster.isMaster) {
     models.RolesModel.find(idFilter).lean().exec((err, roles) => {
       winston.info(`sending back a list of ${roles.length} roles`);
       res.status(200).json(roles);
+    });
+  });
+
+  app.get('/getTasks/:id?', (req, res) => {
+    winston.info('Received a request to get tasks');
+    let idFilter;
+    if (req.params.id) {
+      idFilter = {
+        _id: req.params.id,
+      };
+    } else {
+      idFilter = {};
+    }
+    models.TasksModel.find(idFilter).lean().exec((err, tasks) => {
+      winston.info(`sending back a list of ${tasks.length} tasks`);
+      res.status(200).json(tasks);
     });
   });
 
@@ -2701,11 +2765,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config') &&
-          configData.config.hasOwnProperty('generalConfig') &&
-          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
-          configData.config.generalConfig.recoProgressNotification.enabled &&
-          configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config')
+          && configData.config.hasOwnProperty('generalConfig')
+          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
+          && configData.config.generalConfig.recoProgressNotification.enabled
+          && configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,

@@ -1,5 +1,8 @@
 <template>
-  <CreateFacility action='add'></CreateFacility>
+  <CreateFacility
+    action='request'
+    requestType='add'
+  ></CreateFacility>
 </template>
 <script>
 import CreateFacility from './CreateFacility'

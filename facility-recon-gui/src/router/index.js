@@ -7,6 +7,7 @@ import Configure from '@/components/Configure.vue'
 import Logout from '@/components/Logout.vue'
 import UsersList from '@/components/UsersList.vue'
 import AddUser from '@/components/AddUser.vue'
+import RolesManagement from '@/components/rolesManagement.vue'
 import ChangePassword from '@/components/ChangePassword.vue'
 import FacilityReconView from '@/components/FacilityReconView'
 import FacilityReconScores from '@/components/FacilityReconScores'
@@ -18,6 +19,7 @@ import DataSourcesPair from '@/components/DataSourcesPair/FacilityReconDataSourc
 import DHIS2Auth from '@/components/disabledAuth/DHIS2Auth'
 import AddJurisdiction from '@/components/FacilityRegistry/AddJurisdiction'
 import AddFacility from '@/components/FacilityRegistry/AddFacility'
+import RequestBuildingAddition from '@/components/FacilityRegistry/RequestBuildingAddition'
 import FacilitiesReport from '@/components/FacilityRegistry/FacilitiesReport'
 import RequestUpdateBuildingDetails from '@/components/FacilityRegistry/RequestUpdateBuildingDetails'
 import NewFacilitiesRequestsReport from '@/components/FacilityRegistry/NewFacilitiesRequestsReport'
@@ -29,6 +31,9 @@ import VueCookies from 'vue-cookies'
 import {
   store
 } from '../store/store.js'
+import {
+  tasksVerification
+} from '../modules/tasksVerification'
 
 Vue.use(Router)
 
@@ -47,6 +52,11 @@ let router = new Router({
       path: '/UsersList',
       name: 'UsersList',
       component: UsersList
+    },
+    {
+      path: '/RolesManagement',
+      name: 'RolesManagement',
+      component: RolesManagement
     },
     {
       path: '/ChangePassword',
@@ -116,11 +126,20 @@ let router = new Router({
     {
       path: '/RequestBuildingAddition',
       name: 'RequestBuildingAddition',
-      component: AddFacility,
-      props: (route) => ({
-        action: route.query.action,
-        requestType: route.query.requestType
-      })
+      component: RequestBuildingAddition,
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/RequestUpdateBuildingDetails',
@@ -130,7 +149,20 @@ let router = new Router({
         action: route.query.action,
         requestCategory: route.query.requestCategory,
         requestType: route.query.requestType
-      })
+      }),
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/FacilitiesUpdateRequestsReport',
@@ -140,30 +172,74 @@ let router = new Router({
         action: route.query.action,
         requestCategory: route.query.requestCategory,
         requestType: route.query.requestType
-      })
+      }),
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canView(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/AddJurisdiction',
       name: 'AddJurisdiction',
-      component: AddJurisdiction
+      component: AddJurisdiction,
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/AddFacility',
       name: 'AddFacility',
       component: AddFacility,
-      props: (route) => ({
-        action: route.query.action
-      })
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/FacilitiesReport',
       name: 'FacilitiesReport',
       component: FacilitiesReport,
-      props: (route) => ({
-        action: route.query.action,
-        requestCategory: route.query.requestCategory,
-        requestType: route.query.requestType
-      })
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canView(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/NewFacilitiesRequestsReport',
@@ -173,12 +249,38 @@ let router = new Router({
         action: route.query.action,
         requestCategory: route.query.requestCategory,
         requestType: route.query.requestType
-      })
+      }),
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canView(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/ServicesReport',
       name: 'ServicesReport',
-      component: ServicesReport
+      component: ServicesReport,
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canView(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/AddCodeSystem',
@@ -187,12 +289,38 @@ let router = new Router({
       props: (route) => ({
         codeSystemType: route.query.type,
         displayText: route.query.displayText
-      })
+      }),
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     },
     {
       path: '/AddService',
       name: 'AddService',
-      component: AddService
+      component: AddService,
+      beforeEnter: (to, from, next) => {
+        let hasTask = tasksVerification.canAdd(to.name)
+        if (hasTask) {
+          return next()
+        }
+        store.state.dialogError = true
+        store.state.errorTitle = 'Info'
+        store.state.errorColor = 'error'
+        store.state.errorDescription = `You dont have permission to access this page`
+        next({
+          path: from.path
+        })
+      }
     }
   ]
 })

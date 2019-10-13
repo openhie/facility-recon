@@ -40,7 +40,7 @@
             </v-list-tile>
           </v-list>
         </v-menu>
-        <v-tooltip bottom>
+        <v-tooltip right>
           <v-btn
             to="view"
             flat
@@ -65,7 +65,7 @@
             <v-icon>find_in_page</v-icon>{{ $t('App.menu.recoParent.msg')}}
           </v-btn>
           <v-list>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="dataSourcesPair"
                 slot="activator"
@@ -87,7 +87,7 @@
               </v-list-tile>
               <span>{{ $t('App.menu.createPair.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="scores"
                 slot="activator"
@@ -109,7 +109,7 @@
               </v-list-tile>
               <span>{{ $t('App.menu.reconcile.tooltip') }}</span>
             </v-tooltip>
-            <v-tooltip bottom>
+            <v-tooltip right>
               <v-list-tile
                 to="recoStatus"
                 slot="activator"
@@ -146,11 +146,11 @@
             <v-icon>location_on</v-icon>{{ $t('App.menu.facilityRegistry.msg')}}
           </v-btn>
           <v-list>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
-                to="RequestBuildingAddition?action=request&requestType=add"
+                v-if="tasksVerification.canAdd('RequestBuildingAddition')"
+                to="RequestBuildingAddition"
                 slot="activator"
-                v-if='$store.state.auth.role === "Guest"'
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.requestNewFacility.msg')}}
@@ -158,11 +158,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.requestNewFacility.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
-                to="RequestUpdateBuildingDetails?action=request&requestCategory=updateRequest&requestType=update"
+                v-if="tasksVerification.canAdd('RequestUpdateBuildingDetails')"
+                to="RequestUpdateBuildingDetails"
                 slot="activator"
-                v-if='$store.state.auth.role === "Guest"'
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.requestUpdateFacility.msg')}}
@@ -170,11 +170,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.requestUpdateFacility.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="AddJurisdiction"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddJurisdiction')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addJurisdiction.msg')}}
@@ -182,11 +182,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addJurisdiction.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
-                to="AddFacility?action=add"
+                v-if="tasksVerification.canAdd('AddFacility')"
+                to="AddFacility"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
               >
                 <v-list-tile-title>
                   <v-icon left>house</v-icon>{{ $t('App.menu.addFacility.msg')}}
@@ -196,16 +196,16 @@
             </v-tooltip>
             <v-list-tile
               to="FacilitiesReport"
-              v-if='$store.state.auth.role === "Admin"'
+              v-if="tasksVerification.canView('FacilitiesReport')"
             >
               <v-list-tile-title>
                 <v-icon left>list</v-icon>{{ $t('App.menu.facilitiesReport.msg')}}
               </v-list-tile-title>
             </v-list-tile>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
-                to="NewFacilitiesRequestsReport?action=request&requestCategory=requestsList&requestType=add"
-                v-if='$store.state.auth.role === "Guest" || $store.state.auth.role === "Admin"'
+                to="NewFacilitiesRequestsReport"
+                v-if="tasksVerification.canView('NewFacilitiesRequestsReport')"
                 slot="activator"
               >
                 <v-list-tile-title>
@@ -214,10 +214,10 @@
               </v-list-tile>
               <span>{{ $t('App.menu.newFacilitiesRequestsReport.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
-                to="FacilitiesUpdateRequestsReport?action=request&requestCategory=requestsList&requestType=update"
-                v-if='$store.state.auth.role === "Guest" || $store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canView('FacilitiesUpdateRequestsReport')"
+                to="FacilitiesUpdateRequestsReport"
                 slot="activator"
               >
                 <v-list-tile-title>
@@ -228,17 +228,17 @@
             </v-tooltip>
             <v-list-tile
               to="ServicesReport"
-              v-if='$store.state.auth.role === "Admin"'
+              v-if="tasksVerification.canView('ServicesReport')"
             >
               <v-list-tile-title>
                 <v-icon left>list</v-icon>{{ $t('App.menu.servicesReport.msg')}}
               </v-list-tile-title>
             </v-list-tile>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=serviceCategories&displayText=Service Categorie"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addServiceCategory.msg')}}
@@ -246,11 +246,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceCategory.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=serviceTypes&displayText=Service Type"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addServiceType.msg')}}
@@ -258,11 +258,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceType.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=specialties&displayText=Specialty"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addServiceSpecialty.msg')}}
@@ -270,11 +270,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceSpecialty.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=serviceEligibilities&displayText=Service Eligibility"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addServiceEligibility.msg')}}
@@ -282,11 +282,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceEligibility.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=languages&displayText=Language"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addLanguage.msg')}}
@@ -294,11 +294,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addLanguage.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=referralMethods&displayText=Referral Methods"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addReferralMethod.msg')}}
@@ -306,11 +306,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addReferralMethod.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=programs&displayText=Program"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addProgram.msg')}}
@@ -318,11 +318,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addProgram.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=serviceCharacteristics&displayText=Service Characteristics"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addCharacteristic.msg')}}
@@ -330,11 +330,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addCharacteristic.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="/AddCodeSystem?type=serviceProvisionConditions&displayText=Service Provision Condition"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
+                v-if="tasksVerification.canAdd('AddCodeSystem')"
               >
                 <v-list-tile-title>
                   <v-icon left>language</v-icon>{{ $t('App.menu.addServiceProvisionCondition.msg')}}
@@ -342,11 +342,11 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addServiceProvisionCondition.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip bottom>
+            <v-tooltip right>
               <v-list-tile
+                v-if="tasksVerification.canAdd('AddService')"
                 to="AddService"
                 slot="activator"
-                v-if='$store.state.auth.role === "Admin"'
               >
                 <v-list-tile-title>
                   <v-icon left>house</v-icon>{{ $t('App.menu.addService.msg')}}
@@ -369,7 +369,7 @@
             <v-icon>perm_identity</v-icon>{{ $t('App.menu.account.msg')}}
           </v-btn>
           <v-list>
-            <v-tooltip top>
+            <v-tooltip right>
               <v-list-tile
                 to="addUser"
                 slot="activator"
@@ -381,7 +381,7 @@
               </v-list-tile>
               <span>{{ $t('App.menu.addUser.tooltip')}}</span>
             </v-tooltip>
-            <v-tooltip bottom>
+            <v-tooltip right>
               <v-list-tile
                 to="usersList"
                 slot="activator"
@@ -392,6 +392,18 @@
                 </v-list-tile-title>
               </v-list-tile>
               <span>{{ $t('App.menu.usersList.tooltip')}}</span>
+            </v-tooltip>
+            <v-tooltip right>
+              <v-list-tile
+                to="rolesManagement"
+                slot="activator"
+                v-if='$store.state.auth.role === "Admin"'
+              >
+                <v-list-tile-title>
+                  <v-icon>perm_identity</v-icon>{{ $t('App.menu.rolesManagement.msg')}}
+                </v-list-tile-title>
+              </v-list-tile>
+              <span>{{ $t('App.menu.rolesManagement.tooltip')}}</span>
             </v-tooltip>
             <v-list-tile to="changePassword">
               <v-list-tile-title>
@@ -537,6 +549,9 @@ import { dataSourcePairMixin } from './components/DataSourcesPair/dataSourcePair
 import { eventBus } from './main'
 import { uuid } from 'vue-uuid'
 import VueCookies from 'vue-cookies'
+import {
+  tasksVerification
+} from './modules/tasksVerification'
 const backendServer = process.env.BACKEND_SERVER
 
 export default {
@@ -557,7 +572,8 @@ export default {
         { text: 'English', value: 'en' },
         { text: 'French', value: 'fr' }
       ],
-      activeDataSourcePair: {}
+      activeDataSourcePair: {},
+      tasksVerification: tasksVerification
     }
   },
   watch: {
@@ -838,6 +854,7 @@ export default {
     }
   },
   created () {
+    console.log(JSON.stringify(this.tasksVerification))
     this.$router.push({ name: 'AddDataSources' })
     this.$store.state.config.generalConfig = this.generalConfig
     if (VueCookies.get('token') && VueCookies.get('userID')) {
@@ -845,6 +862,7 @@ export default {
       this.$store.state.auth.userID = VueCookies.get('userID')
       this.$store.state.auth.username = VueCookies.get('username')
       this.$store.state.auth.role = VueCookies.get('role')
+      this.$store.state.auth.tasks = JSON.parse(VueCookies.get('tasks'))
       this.$store.state.signupFields = VueCookies.get('signupFields')
       this.$store.state.customSignupFields = VueCookies.get(
         'customSignupFields'

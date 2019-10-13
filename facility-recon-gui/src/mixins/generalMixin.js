@@ -6,7 +6,8 @@ const backendServer = process.env.BACKEND_SERVER
 export const generalMixin = {
   data () {
     return {
-      roles: []
+      roles: [],
+      tasks: []
     }
   },
   computed: {
@@ -93,11 +94,7 @@ export const generalMixin = {
         this.$store.state.config.generalConfig
       )
       axios
-        .get(
-          backendServer +
-          '/getGeneralConfig?defaultGenerConfig=' +
-          defaultGenerConfig
-        )
+        .get(backendServer + '/getGeneralConfig?defaultGenerConfig=' + defaultGenerConfig)
         .then(config => {
           if (config) {
             this.$store.state.config.generalConfig = config.data
@@ -118,18 +115,13 @@ export const generalMixin = {
     },
 
     translateDataHeader (source, level) {
-      let useCSVHeader = this.$store.state.config.userConfig.reconciliation
-        .useCSVHeader
+      let useCSVHeader = this.$store.state.config.userConfig.reconciliation.useCSVHeader
       let levelMapping = this.$store.state.levelMapping
       /**
        * if the use of CSV Headers is not enabled or csv header enabled but level mapping were not available
        * and instead the app manually mapped i.e level1 to level1, level2 to level2 .... facility to level5
        */
-      if (
-        !useCSVHeader ||
-        (useCSVHeader &&
-          levelMapping[source]['level' + level] === 'level' + level)
-      ) {
+      if (!useCSVHeader || (useCSVHeader && levelMapping[source]['level' + level] === 'level' + level)) {
         return 'Level ' + level
       }
       if (Object.keys(this.$store.state.levelMapping[source]).length > 0) {
@@ -219,11 +211,7 @@ export const generalMixin = {
         return dtSrc._id === this.$store.state.activePair.source2.id
       })
 
-      if (
-        dtSrc1 &&
-        dtSrc1.hasOwnProperty('userID') &&
-        dtSrc1.userID._id !== this.$store.state.auth.userID
-      ) {
+      if (dtSrc1 && dtSrc1.hasOwnProperty('userID') && dtSrc1.userID._id !== this.$store.state.auth.userID) {
         let limit = dtSrc1.sharedLocation.find(sharedLocation => {
           return sharedLocation.user === this.$store.state.auth.userID
         })
@@ -242,11 +230,7 @@ export const generalMixin = {
         }
       }
 
-      if (
-        dtSrc2 &&
-        dtSrc2.hasOwnProperty('userID') &&
-        dtSrc2.userID._id !== this.$store.state.auth.userID
-      ) {
+      if (dtSrc2 && dtSrc2.hasOwnProperty('userID') && dtSrc2.userID._id !== this.$store.state.auth.userID) {
         let limit = dtSrc2.sharedLocation.find(sharedLocation => {
           return sharedLocation.user === this.$store.state.auth.userID
         })
@@ -268,11 +252,7 @@ export const generalMixin = {
     },
     getLimitOrgIdOnDataSource (dataSource) {
       let limitOrgId
-      if (
-        dataSource &&
-        dataSource.hasOwnProperty('userID') &&
-        dataSource.userID._id !== this.$store.state.auth.userID
-      ) {
+      if (dataSource && dataSource.hasOwnProperty('userID') && dataSource.userID._id !== this.$store.state.auth.userID) {
         let limit = dataSource.sharedLocation.find(sharedLocation => {
           return sharedLocation.user === this.$store.state.auth.userID
         })
@@ -299,9 +279,20 @@ export const generalMixin = {
           for (let role of roles.data) {
             this.roles.push({
               text: role.name,
-              value: role._id
+              value: role._id,
+              tasks: role.tasks
             })
           }
+        })
+        .catch(err => {
+          console.log(err.response)
+        })
+    },
+    getTasks () {
+      axios
+        .get(backendServer + '/getTasks')
+        .then(tasks => {
+          this.tasks = tasks.data
         })
         .catch(err => {
           console.log(err.response)
@@ -349,9 +340,9 @@ export const generalMixin = {
         }
         return true
       } else if (process.env.NODE_ENV === 'development') {
-        this.$store.state.dhis.host = 'https://play.dhis2.org/2.32.0/'
-        this.$store.state.dhis.dev.auth.username = 'bombaliuser1'
-        this.$store.state.dhis.dev.auth.password = 'Qv?B/*w6'
+        this.$store.state.dhis.host = 'https://test.geoalign.datim.org/'
+        this.$store.state.dhis.dev.auth.username = 'Alicia_MOH_DataImport'
+        this.$store.state.dhis.dev.auth.password = 'P@$$w0rd@1'
         axios.defaults.params = {
           authDisabled: true
         }

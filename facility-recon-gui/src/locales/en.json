@@ -112,6 +112,10 @@
         "msg": "Users List",
         "tooltip": "Enable and Disable user accounts"
       },
+      "rolesManagement": {
+        "msg": "Roles Management",
+        "tooltip": "Add or remove specific tasks on roles"
+      },
       "changePassword": {
         "msg": "Change Password"
       },

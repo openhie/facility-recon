@@ -52,6 +52,10 @@ const Roles = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  tasks: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Tasks',
+  }],
 });
 
 const DataSources = new mongoose.Schema({
@@ -317,6 +321,15 @@ const MetaData = new mongoose.Schema({
     },
   },
 });
+const Tasks = new mongoose.Schema({
+  name: {
+    type: String,
+    unique: true,
+  },
+  display: {
+    type: String,
+  },
+});
 module.exports = {
   Users,
   Roles,
@@ -325,4 +338,5 @@ module.exports = {
   DataSourcePair,
   MetaData,
   usersFields,
+  Tasks,
 };

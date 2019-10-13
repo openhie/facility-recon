@@ -26,14 +26,14 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
-            color="primary"
-            @click="changeRequestStatus"
-          >Proceed</v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
             color="error"
             @click.native="confirm = false"
           >Cancel</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            @click="changeRequestStatus"
+          >Proceed</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -450,6 +450,9 @@ import axios from 'axios'
 import LiquorTree from 'liquor-tree'
 import { required } from 'vuelidate/lib/validators'
 import { generalMixin } from '../../mixins/generalMixin'
+import {
+  tasksVerification
+} from '@/modules/tasksVerification'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   mixins: [generalMixin],
@@ -539,7 +542,8 @@ export default {
       },
       requestStatus: '',
       confirm: false,
-      confirmTitle: ''
+      confirmTitle: '',
+      tasksVerification: tasksVerification
     }
   },
   methods: {
@@ -593,13 +597,23 @@ export default {
           return false
         }
       }
-      return true
+      if ((this.requestType === 'update' && this.tasksVerification.canApprove('FacilitiesUpdateRequestsReport')) ||
+        (this.requestType === 'add' && this.tasksVerification.canApprove('NewFacilitiesRequestsReport')) ||
+        (this.requestType === 'update' && this.tasksVerification.canReject('FacilitiesUpdateRequestsReport')) ||
+        (this.requestType === 'add' && this.tasksVerification.canReject('NewFacilitiesRequestsReport'))) {
+        return true
+      } else {
+        return false
+      }
     },
     canEditBuilding (item) {
       if (item.requestStatus === 'Approved' && this.requestCategory === 'requestsList') {
         return false
       }
-      return true
+      if (this.tasksVerification.canEdit('FacilitiesReport') || this.tasksVerification.canAdd('RequestUpdateBuildingDetails')) {
+        return true
+      }
+      return false
     },
     getBuildings () {
       this.facilities = []

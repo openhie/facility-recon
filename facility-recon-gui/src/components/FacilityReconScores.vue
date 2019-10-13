@@ -1511,23 +1511,11 @@ export default {
       let sourcesOwner = this.getDatasourceOwner()
       formData.append('source1Id', source1UUID)
       axios
-        .post(
-          backendServer +
-          '/breakMatch/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          sourcesOwner.source1Owner +
-          '/' +
-          sourcesOwner.source2Owner +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
+        }
         )
         .then(data => {
           this.$store.state.dynamicProgress = false
@@ -1574,25 +1562,12 @@ export default {
       let sourcesOwner = this.getDatasourceOwner()
       formData.append('source1Id', source1UUID)
       axios
-        .post(
-          backendServer +
-          '/breakMatch/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          sourcesOwner.source1Owner +
-          '/' +
-          sourcesOwner.source2Owner +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+        .post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
-        )
-        .then(data => {
+        }
+        ).then(data => {
           this.$store.state.dynamicProgress = false
           this.alert = true
           this.alertTitle = 'Information'
@@ -1638,21 +1613,11 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
       let userID = this.$store.state.activePair.userID._id
       axios
-        .post(
-          backendServer +
-          '/breakNoMatch/' +
-          type +
-          '/' +
-          this.getSource1() +
-          '/' +
-          this.getSource2() +
-          '/' +
-          userID,
-          formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+        .post(backendServer + '/breakNoMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
+        }
         )
         .then(data => {
           this.$store.state.dynamicProgress = false
@@ -1713,14 +1678,11 @@ export default {
       formData.append('totalLevels', this.$store.state.totalSource1Levels)
 
       axios
-        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
-          formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
-        )
-        .then(() => {
+        }).then(() => {
           this.$store.state.dynamicProgress = false
           // remove from Source 1 Unmatched
           if (type === 'nomatch') {

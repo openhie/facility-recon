@@ -1,8 +1,8 @@
 <template>
   <FacilitiesReport
-    :action='action'
-    :requestType='requestType'
-    :requestCategory='requestCategory'
+    action='request'
+    requestType='add'
+    requestCategory='requestsList'
   ></FacilitiesReport>
 </template>
 <script>

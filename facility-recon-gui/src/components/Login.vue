@@ -134,15 +134,13 @@ export default {
           this.$store.state.auth.username = this.username
           this.$store.state.auth.userID = authResp.data.userID
           this.$store.state.auth.role = authResp.data.role
+          this.$store.state.auth.tasks = authResp.data.tasks
           VueCookies.config('30d')
           VueCookies.set('token', this.$store.state.auth.token, 'infinity')
           VueCookies.set('userID', this.$store.state.auth.userID, 'infinity')
           VueCookies.set('role', this.$store.state.auth.role, 'infinity')
-          VueCookies.set(
-            'username',
-            this.$store.state.auth.username,
-            'infinity'
-          )
+          VueCookies.set('tasks', JSON.stringify(this.$store.state.auth.tasks), 'infinity')
+          VueCookies.set('username', this.$store.state.auth.username, 'infinity')
           this.$store.state.auth.role = authResp.data.role
           if (authResp.data.token) {
             this.$store.state.clientId = uuid.v4()

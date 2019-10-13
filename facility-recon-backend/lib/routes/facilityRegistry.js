@@ -169,9 +169,11 @@ router.get('/getServices', (req, res) => {
       srv.code = ident.value;
       srv.locations = service.resource.location.length;
       srv.type = [];
-      service.resource.type.forEach((type) => {
-        srv.type.push(type.text);
-      });
+      if (service.resource.type) {
+        service.resource.type.forEach((type) => {
+          srv.type.push(type.text);
+        });
+      }
       if (service.resource.active) {
         srv.active = 'Yes';
       } else {
@@ -212,9 +214,9 @@ router.get('/getBuildings', (req, res) => {
       const requestTypesURI = mixin.getCodesysteURI('requestTypes');
       const usernameURI = mixin.getCodesysteURI('usernames');
       async.each(buildings, (building, nxtBuilding) => {
-        if (action === 'request' &&
-          (requestCategory === 'requestsList' || requestedUser) &&
-          (!building.resource.meta || !building.resource.meta.tag || !Array.isArray(building.resource.meta.tag))) {
+        if (action === 'request'
+          && (requestCategory === 'requestsList' || requestedUser)
+          && (!building.resource.meta || !building.resource.meta.tag || !Array.isArray(building.resource.meta.tag))) {
           return nxtBuilding();
         }
         if (action === 'request' && requestType === 'add' && requestCategory === 'requestsList') {
@@ -335,8 +337,8 @@ router.get('/getBuildings', (req, res) => {
           getOrgType: (callback) => {
             row.ownership = {};
             if (
-              building.resource.managingOrganization &&
-              building.resource.managingOrganization.reference
+              building.resource.managingOrganization
+              && building.resource.managingOrganization.reference
             ) {
               const orgId = building.resource.managingOrganization.reference.split('/').pop();
               mcsd.getOrganizationByID({
@@ -404,15 +406,15 @@ router.get('/getCodeSystem', (req, res) => {
     return res.status(401).send();
   }
   mcsd.getCodeSystem({
-      codeSystemURI,
-    },
-    (codeSystem) => {
-      let codeSystemResource = [];
-      if (codeSystem.entry.length > 0 && codeSystem.entry[0].resource.concept) {
-        codeSystemResource = codeSystem.entry[0].resource.concept;
-      }
-      res.status(200).send(codeSystemResource);
-    });
+    codeSystemURI,
+  },
+  (codeSystem) => {
+    let codeSystemResource = [];
+    if (codeSystem.entry.length > 0 && codeSystem.entry[0].resource.concept) {
+      codeSystemResource = codeSystem.entry[0].resource.concept;
+    }
+    res.status(200).send(codeSystemResource);
+  });
 });
 
 router.get('/getTree', (req, res) => {
@@ -429,36 +431,36 @@ router.get('/getTree', (req, res) => {
   }
   winston.info('Fetching FR Locations');
   async.parallel({
-      locationChildren(callback) {
-        mcsd.getLocationChildren({
-            parent: sourceLimitOrgId,
-          },
-          (mcsdData) => {
-            winston.info('Done Fetching FR Locations');
-            return callback(false, mcsdData);
-          });
+    locationChildren(callback) {
+      mcsd.getLocationChildren({
+        parent: sourceLimitOrgId,
       },
-      parentDetails(callback) {
-        if (sourceLimitOrgId === topOrgId) {
-          return callback(false, false);
-        }
-        mcsd.getLocationByID('', sourceLimitOrgId, false, details => callback(false, details));
-      },
-    },
-    (error, response) => {
-      winston.info('Creating FR Tree');
-      mcsd.createTree(response.locationChildren, sourceLimitOrgId, includeBuilding, (tree) => {
-        if (sourceLimitOrgId !== topOrgId && response.parentDetails.entry) {
-          tree = {
-            text: response.parentDetails.entry[0].resource.name,
-            id: sourceLimitOrgId,
-            children: tree,
-          };
-        }
-        winston.info('Done Creating FR Tree');
-        res.status(200).json(tree);
+      (mcsdData) => {
+        winston.info('Done Fetching FR Locations');
+        return callback(false, mcsdData);
       });
+    },
+    parentDetails(callback) {
+      if (sourceLimitOrgId === topOrgId) {
+        return callback(false, false);
+      }
+      mcsd.getLocationByID('', sourceLimitOrgId, false, details => callback(false, details));
+    },
+  },
+  (error, response) => {
+    winston.info('Creating FR Tree');
+    mcsd.createTree(response.locationChildren, sourceLimitOrgId, includeBuilding, (tree) => {
+      if (sourceLimitOrgId !== topOrgId && response.parentDetails.entry) {
+        tree = {
+          text: response.parentDetails.entry[0].resource.name,
+          id: sourceLimitOrgId,
+          children: tree,
+        };
+      }
+      winston.info('Done Creating FR Tree');
+      res.status(200).json(tree);
     });
+  });
 });
 
 module.exports = router;
