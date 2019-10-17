@@ -5,24 +5,6 @@
       flat
       max-width="1000"
     >
-      <v-alert
-        style="width: 800px"
-        v-model="alertSuccess"
-        type="success"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
-      <v-alert
-        style="width: 800px"
-        v-model="alertFail"
-        type="error"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
       <v-card-title primary-title>
         <b>Adding New Service</b>
       </v-card-title>
@@ -767,7 +749,7 @@
           <v-card-actions>
             <v-btn
               flat
-              @click="$refs.form.reset()"
+              @click="$store.state.baseRouterViewKey++"
             >
               <v-icon>clear</v-icon>Clear
             </v-btn>
@@ -801,9 +783,6 @@ export default {
   },
   data () {
     return {
-      alertFail: false,
-      alertSuccess: false,
-      alertMsg: '',
       dateRangeErrors: [],
       timeRangeErrors: [],
       unavailabilityDescrErr: [],
@@ -989,12 +968,18 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
-        this.alertSuccess = true
-        this.alertMsg = 'Service added successfully!'
-        this.$refs.form.reset()
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '800px'
+        this.$store.state.alert.msg = 'Service added successfully!'
+        this.$store.state.alert.type = 'success'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
       }).catch((err) => {
-        this.alertFail = true
-        this.alertMsg = 'Failed to add service!'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '800px'
+        this.$store.state.alert.msg = 'Failed to add service!'
+        this.$store.state.alert.type = 'error'
+        this.$store.state.baseRouterViewKey += 1
         console.log(err)
       })
     },

@@ -2,43 +2,30 @@
   <v-container>
     <v-layout
       row
-      wrap>
-      <v-spacer/>
+      wrap
+    >
+      <v-spacer />
       <v-flex xs6>
-        <v-alert
-          style="width: 500px"
-          v-model="alertSuccess"
-          type="success"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
-        <v-alert
-          style="width: 500px"
-          v-model="alertFail"
-          type="error"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
         <v-card
           class="mx-auto"
-          style="max-width: 500px;">
+          style="max-width: 500px;"
+        >
           <v-system-bar
             color="deep-purple darken-4"
-            dark/>
+            dark
+          />
           <v-toolbar
             color="deep-purple accent-4"
             cards
             dark
-            flat>
+            flat
+          >
             <v-card-title class="title font-weight-regular">Change Password</v-card-title>
           </v-toolbar>
           <v-form
             ref="form"
-            class="pa-3 pt-4">
+            class="pa-3 pt-4"
+          >
             <v-text-field
               required
               @blur="$v.oldPassword.$touch()"
@@ -48,7 +35,8 @@
               type="password"
               box
               color="deep-purple"
-              label="Old Password"/>
+              label="Old Password"
+            />
             <v-text-field
               required
               @blur="$v.password.$touch()"
@@ -58,7 +46,8 @@
               type="password"
               box
               color="deep-purple"
-              label="Password"/>
+              label="Password"
+            />
             <v-text-field
               required
               @blur="$v.retype_password.$touch()"
@@ -68,26 +57,31 @@
               type="password"
               box
               color="deep-purple"
-              label="Re-type Password"/>
+              label="Re-type Password"
+            />
           </v-form>
-          <v-divider/>
+          <v-divider />
           <v-card-actions>
             <v-btn
               flat
-              @click="$refs.form.reset()">
+              @click="$store.state.baseRouterViewKey++"
+            >
               <v-icon>clear</v-icon>Clear
             </v-btn>
-            <v-spacer/>
+            <v-spacer />
             <v-btn
               @click="verifyPassword()"
               :disabled="$v.$invalid"
               class="white--text"
               color="deep-purple accent-4"
-              depressed><v-icon left>how_to_reg</v-icon>Change</v-btn>
+              depressed
+            >
+              <v-icon left>how_to_reg</v-icon>Change
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-flex>
-      <v-spacer/>
+      <v-spacer />
     </v-layout>
   </v-container>
 </template>
@@ -106,10 +100,7 @@ export default {
     return {
       oldPassword: '',
       password: '',
-      retype_password: '',
-      alertFail: false,
-      alertSuccess: false,
-      alertMsg: ''
+      retype_password: ''
     }
   },
   methods: {
@@ -130,18 +121,19 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(() => {
-        let fields = Object.keys(this.$v.$params)
-        for (let field of fields) {
-          this.$v[field].$reset()
-        }
-        this.$refs.form.reset()
-        this.$store.state.dynamicProgress = false
-        this.alertSuccess = true
-        this.alertMsg = 'Password changed successfully'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'Password changed successfully!'
+        this.$store.state.alert.type = 'success'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
       }).catch((err) => {
-        this.$store.state.dynamicProgress = false
-        this.alertFail = true
-        this.alertMsg = 'Password change failed'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'Password change failed!'
+        this.$store.state.alert.type = 'error'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
         console.log(err.response.data.error)
       })
     },

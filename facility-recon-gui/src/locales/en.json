@@ -4,6 +4,10 @@
     "initApp": "Initializing App",
     "source": "Source",
     "menu": {
+      "facilityRecon": {
+        "msg": "Facility Reconciliation",
+        "tooltip": "Facility Reconciliation"
+      },
       "createPair": {
         "msg": "Create and Manage Data Source Pair",
         "tooltip": "Select data sources to start mathing"
@@ -19,6 +23,22 @@
       "facilityRegistry": {
         "msg": "Facility Registry",
         "tooltip": "Facility Registry"
+      },
+      "createOrgHier": {
+        "msg": "Create Hierarchy",
+        "tooltip": "Add Facility And Jurisdition"
+      },
+      "healthService": {
+        "msg": "Healthcare Services",
+        "tooltip": "Add services and define service terminologies"
+      },
+      "healthServiceTerminologies": {
+        "msg": "Add Terminologies",
+        "tooltip": "Add service based terminologies"
+      },
+      "facilityRegReports": {
+        "msg": "Reports",
+        "tooltip": "View Reports"
       },
       "addJurisdiction": {
         "msg": "Add Jurisdiction",
@@ -90,7 +110,7 @@
       },
       "addService": {
         "msg": "Add Service",
-        "tooltip": "Add Service"
+        "tooltip": "Add Service offered by health facilities"
       },
       "services": {
         "msg": "Services",
@@ -110,7 +130,7 @@
       },
       "usersList": {
         "msg": "Users List",
-        "tooltip": "Enable and Disable user accounts"
+        "tooltip": "Manage user accounts"
       },
       "rolesManagement": {
         "msg": "Roles Management",
@@ -130,10 +150,12 @@
         "tooltip": "Upload CSV data and add remote DHIS2 or FHIR servers"
       },
       "viewDataSources": {
-        "msg": "View Data Sources"
+        "msg": "View Data Sources",
+        "tooltip": "View datasets that can be used for reconciliation"
       },
       "addDataSources": {
-        "msg": "Add Data Sources"
+        "msg": "Add Data Sources",
+        "tooltip": "Add a new dataset that you want to reconcile"
       },
       "view": {
         "msg": "View",

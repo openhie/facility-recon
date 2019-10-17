@@ -1,12 +1,47 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable func-names */
 require('./init');
 const winston = require('winston');
 const csv = require('fast-csv');
 const async = require('async');
+const moment = require('moment');
 const config = require('./config');
 
 module.exports = function () {
   return {
+    getLatestFacilityRequest(extensions, type, username) {
+      const facilityUpdateRequestURI = this.getCodesysteURI('facilityUpdateRequest');
+      const facilityAddRequestURI = this.getCodesysteURI('facilityAddRequest');
+      let requestURI;
+      if (type === 'add') {
+        requestURI = facilityAddRequestURI.uri;
+      } else if (type === 'update') {
+        requestURI = facilityUpdateRequestURI.uri;
+      }
+      let latestExt;
+      let latestDate;
+      for (const extension of extensions) {
+        if (extension.url === requestURI) {
+          let statusDate = extension.extension.find(ext => ext.url === 'statusDate');
+          const userFound = extension.extension.find(ext => ext.url === 'username' && ext.valueString === username);
+          if (username && !userFound) {
+            statusDate = null;
+          }
+          if (!latestExt && statusDate) {
+            latestExt = extension.extension;
+            latestDate = statusDate.valueDate;
+          } else if (statusDate) {
+            statusDate = moment(statusDate.valueDate).format('Y-M-DTHH:mm:ssZ');
+            latestDate = moment(latestDate).format('Y-M-DTHH:mm:ssZ');
+            if (statusDate > latestDate) {
+              latestExt = extension.extension;
+              latestDate = statusDate.valueDate;
+            }
+          }
+        }
+      }
+      return latestExt;
+    },
     createCodeableConcept(codes, system) {
       const codeableConcept = [];
       codes.forEach((code) => {
@@ -102,10 +137,10 @@ module.exports = function () {
           let rowMarkedInvalid = false;
           let index = 0;
           async.eachSeries(levels, (level, nxtLevel) => {
-            if (headerMapping[level] === null
-              || headerMapping[level] === 'null'
-              || headerMapping[level] === undefined
-              || !headerMapping[level]) {
+            if (headerMapping[level] === null ||
+              headerMapping[level] === 'null' ||
+              headerMapping[level] === undefined ||
+              !headerMapping[level]) {
               return nxtLevel();
             }
             if (data[headerMapping.code] == '') {
@@ -128,13 +163,13 @@ module.exports = function () {
               }
             }
             if (!rowMarkedInvalid) {
-              if (data[headerMapping[level]] === null
-                || data[headerMapping[level]] === undefined
-                || data[headerMapping[level]] === false
-                || !data[headerMapping[level]]
-                || data[headerMapping[level]] === ''
-                || !isNaN(headerMapping[level])
-                || data[headerMapping[level]] == 0) {
+              if (data[headerMapping[level]] === null ||
+                data[headerMapping[level]] === undefined ||
+                data[headerMapping[level]] === false ||
+                !data[headerMapping[level]] ||
+                data[headerMapping[level]] === '' ||
+                !isNaN(headerMapping[level]) ||
+                data[headerMapping[level]] == 0) {
                 const reason = `${headerMapping[level]} is blank`;
                 populateData(headerMapping, data, reason, invalid);
               } else {
@@ -142,11 +177,11 @@ module.exports = function () {
               }
             }
           }, () => {
-            if (data[headerMapping.facility] === null
-              || data[headerMapping.facility] === undefined
-              || data[headerMapping.facility] === false
-              || data[headerMapping.facility] === ''
-              || data[headerMapping.facility] == 0) {
+            if (data[headerMapping.facility] === null ||
+              data[headerMapping.facility] === undefined ||
+              data[headerMapping.facility] === false ||
+              data[headerMapping.facility] === '' ||
+              data[headerMapping.facility] == 0) {
               const reason = `${headerMapping.facility} is blank`;
               populateData(headerMapping, data, reason, invalid);
             }

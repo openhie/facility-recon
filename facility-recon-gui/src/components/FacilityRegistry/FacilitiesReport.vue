@@ -566,6 +566,7 @@ export default {
         let formData = new FormData()
         formData.append('id', this.facilityId)
         formData.append('status', this.requestStatus)
+        formData.append('requestType', this.requestType)
         axios.post(backendServer + '/FR/changeBuildingRequestStatus', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -668,6 +669,7 @@ export default {
       formData.append('code', this.code)
       formData.append('action', this.action)
       formData.append('requestType', this.requestType)
+      // formData.append('username', this.$store.state.auth.username)
       if (this.facilityType) {
         formData.append('type', this.facilityType)
       }

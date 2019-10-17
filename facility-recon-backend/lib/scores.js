@@ -13,7 +13,7 @@ const redisClient = redis.createClient({
   host: process.env.REDIS_HOST || '127.0.0.1',
 });
 const geodist = require('geodist');
-const _ = require('underscore');
+const lodash = require('lodash');
 const mixin = require('./mixin')();
 const config = require('./config');
 const mcsd = require('./mcsd')();
@@ -316,9 +316,9 @@ module.exports = function () {
                     const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                     // when parent constraint is On then automatch by name is also enabled by default
                     // when parent constraint is off then check if name automatch is also on
-                    if (lev == 0 &&
-                      !matchBroken &&
-                      (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                    if (lev == 0
+                      && !matchBroken
+                      && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                     ) {
                       const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       ignore.push(source2Entry.resource.id);
@@ -379,7 +379,7 @@ module.exports = function () {
                         });
                       } else {
                         const existingLev = Object.keys(thisRanking.potentialMatches);
-                        const max = _.max(existingLev);
+                        const max = lodash.max(existingLev);
                         if (lev < max) {
                           const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                           delete thisRanking.potentialMatches[max];
@@ -868,8 +868,8 @@ module.exports = function () {
 
                 const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                if (lev == 0 && !matchBroken &&
-                  (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                if (lev == 0 && !matchBroken
+                  && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                 ) {
                   const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                   ignore.push(source2Entry.resource.id);
@@ -964,7 +964,7 @@ module.exports = function () {
                     });
                   } else {
                     const existingLev = Object.keys(thisRanking.potentialMatches);
-                    const max = _.max(existingLev);
+                    const max = lodash.max(existingLev);
                     if (lev < max) {
                       const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                       delete thisRanking.potentialMatches[max];
@@ -1052,8 +1052,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id ||
-        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id
+        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

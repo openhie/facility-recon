@@ -326,6 +326,7 @@ let router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
+  store.state.alert.show = false
   if (!store.state.auth.token &&
     (!VueCookies.get('token') || VueCookies.get('token') === 'null' || !VueCookies.get('userID') || VueCookies.get('userID') === 'null')
   ) {

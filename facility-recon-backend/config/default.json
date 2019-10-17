@@ -96,14 +96,14 @@
     "uri": "https://codesystem.digitalhealth.intrahealth.org/serviceprovisionconditions",
     "name": "serviceProvisionConditions"
   }, {
-    "uri": "http://digitalhealth.intrahealth.org/usernames",
-    "name": "usernames"
+    "uri": "http://codesystem.digitalhealth.intrahealth.org/originalrequestid",
+    "name": "originalRequestId"
   }, {
-    "uri": "http://codesystem.digitalhealth.intrahealth.org/statuses",
-    "name": "statuses"
+    "uri": "http://codesystem.digitalhealth.intrahealth.org/facilityupdaterequest",
+    "name": "facilityUpdateRequest"
   }, {
-    "uri": "http://codesystem.digitalhealth.intrahealth.org/requesttypes",
-    "name": "requestTypes"
+    "uri": "http://codesystem.digitalhealth.intrahealth.org/facilityaddrequest",
+    "name": "facilityAddRequest"
   }],
   "hapi": {
     "DBUser": "hapi",

@@ -112,12 +112,6 @@
           </v-form>
           <v-divider></v-divider>
           <v-card-actions>
-            <v-btn
-              flat
-              @click="$refs.form.reset()"
-            >
-              Clear
-            </v-btn>
             <v-spacer></v-spacer>
             <v-btn
               @click="performExtraCheck"

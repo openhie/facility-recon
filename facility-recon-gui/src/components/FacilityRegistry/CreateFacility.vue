@@ -50,24 +50,6 @@
                 class="pt-4 mx-auto"
                 flat
               >
-                <v-alert
-                  style="width: 600px"
-                  v-model="alertSuccess"
-                  type="success"
-                  dismissible
-                  transition="scale-transition"
-                >
-                  {{alertMsg}}
-                </v-alert>
-                <v-alert
-                  style="width: 600px"
-                  v-model="alertFail"
-                  type="error"
-                  dismissible
-                  transition="scale-transition"
-                >
-                  {{alertMsg}}
-                </v-alert>
                 <v-card-title primary-title>
                   <b>
                     <template v-if="action === 'request'">
@@ -266,7 +248,7 @@
                     <v-card-actions>
                       <v-btn
                         flat
-                        @click="$refs.form.reset()"
+                        @click="$store.state.baseRouterViewKey++"
                       >
                         <v-icon>clear</v-icon>Clear
                       </v-btn>
@@ -318,9 +300,6 @@ export default {
   data () {
     return {
       loadingTree: false,
-      alertFail: false,
-      alertSuccess: false,
-      alertMsg: '',
       searchJurisdiction: '',
       activeJurisdiction: {},
       jurisdictionHierarchy: [],
@@ -430,13 +409,19 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
-        this.alertSuccess = true
-        this.alertMsg = 'Facility added successfully!'
-        this.$refs.form.reset()
-        this.getTree()
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '600px'
+        this.$store.state.alert.msg = 'Facility added successfully!'
+        this.$store.state.alert.type = 'success'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
       }).catch((err) => {
-        this.alertFail = true
-        this.alertMsg = 'Failed to add Facility!'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '600px'
+        this.$store.state.alert.msg = 'Failed to add Facility!'
+        this.$store.state.alert.type = 'error'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
         console.log(err)
       })
     }

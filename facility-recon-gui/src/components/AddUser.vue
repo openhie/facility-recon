@@ -6,24 +6,6 @@
     >
       <v-spacer />
       <v-flex xs6>
-        <v-alert
-          style="width: 500px"
-          v-model="alertSuccess"
-          type="success"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
-        <v-alert
-          style="width: 500px"
-          v-model="alertFail"
-          type="error"
-          dismissible
-          transition="scale-transition"
-        >
-          {{alertMsg}}
-        </v-alert>
         <v-card
           class="mx-auto"
           style="max-width: 500px;"
@@ -52,7 +34,7 @@
               v-model="firstName"
               box
               color="deep-purple"
-              label="First Name"
+              label="First Name*"
             />
             <v-text-field
               v-model="otherName"
@@ -68,7 +50,7 @@
               v-model="surname"
               box
               color="deep-purple"
-              label="Surname"
+              label="Surname*"
             />
             <v-text-field
               required
@@ -79,7 +61,7 @@
               v-model="phone"
               box
               color="deep-purple"
-              label="Phone"
+              label="Phone*"
             />
             <v-text-field
               required
@@ -100,7 +82,7 @@
               v-model="userName"
               box
               color="deep-purple"
-              label="Username"
+              label="Username*"
             />
             <label
               v-for='(type, name) in $store.state.customSignupFields'
@@ -132,7 +114,7 @@
               type="password"
               box
               color="deep-purple"
-              label="Password"
+              label="Password*"
             />
             <v-text-field
               required
@@ -143,7 +125,7 @@
               type="password"
               box
               color="deep-purple"
-              label="Re-type Password"
+              label="Re-type Password*"
             />
             <v-select
               required
@@ -155,14 +137,14 @@
               @change="$v.role.$touch()"
               :error-messages="roleErrors"
               box
-              label="Role"
+              label="Role*"
             ></v-select>
           </v-form>
           <v-divider />
           <v-card-actions>
             <v-btn
               flat
-              @click="$refs.form.reset()"
+              @click="$store.state.baseRouterViewKey++"
             >
               <v-icon>clear</v-icon>Clear
             </v-btn>
@@ -214,10 +196,7 @@ export default {
       role: '',
       customFields: [],
       phoneErrors: [],
-      emailErrors: [],
-      alertFail: false,
-      alertSuccess: false,
-      alertMsg: ''
+      emailErrors: []
     }
   },
   methods: {
@@ -269,18 +248,18 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then(() => {
-        let fields = Object.keys(this.$v.$params)
-        for (let field of fields) {
-          this.$v[field].$reset()
-        }
-        this.$refs.form.reset()
-        this.$store.state.dynamicProgress = false
-        this.alertSuccess = true
-        this.alertMsg = 'User added successfully'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'User added successfully'
+        this.$store.state.alert.type = 'success'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
       }).catch((err) => {
-        this.$store.state.dynamicProgress = false
-        this.alertFail = true
-        this.alertMsg = 'This user was not added, ensure userName is not used'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'This user was not added, ensure userName is not used'
+        this.$store.state.alert.type = 'error'
+        this.$store.state.baseRouterViewKey += 1
         console.log(err.response.data.error)
       })
     }

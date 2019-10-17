@@ -5,24 +5,6 @@
       flat
       max-width="500"
     >
-      <v-alert
-        style="width: 500px"
-        v-model="alertSuccess"
-        type="success"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
-      <v-alert
-        style="width: 500px"
-        v-model="alertFail"
-        type="error"
-        dismissible
-        transition="scale-transition"
-      >
-        {{alertMsg}}
-      </v-alert>
       <v-card-title primary-title>
         <b>Adding New {{displayText}}</b>
       </v-card-title>
@@ -53,7 +35,7 @@
           <v-card-actions>
             <v-btn
               flat
-              @click="$refs.form.reset()"
+              @click="$store.state.baseRouterViewKey++"
             >
               <v-icon>clear</v-icon>Clear
             </v-btn>
@@ -84,9 +66,6 @@ export default {
   props: ['codeSystemType', 'displayText'],
   data () {
     return {
-      alertFail: false,
-      alertSuccess: false,
-      alertMsg: '',
       name: '',
       code: ''
     }
@@ -102,12 +81,19 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
-        this.alertSuccess = true
-        this.alertMsg = 'Code system added successfully!'
-        this.$refs.form.reset()
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'Code system added successfully!'
+        this.$store.state.alert.type = 'success'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
       }).catch((err) => {
-        this.alertFail = true
-        this.alertMsg = 'Failed to add code system!'
+        this.$store.state.alert.show = true
+        this.$store.state.alert.width = '500px'
+        this.$store.state.alert.msg = 'Failed to add code system!'
+        this.$store.state.alert.type = 'error'
+        // increment component key to force component reload
+        this.$store.state.baseRouterViewKey += 1
         console.log(err)
       })
     }

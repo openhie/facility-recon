@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    {{$store.state.auth}}
+    Select role to edit tasks
     <v-select
       required
       :items="roles"

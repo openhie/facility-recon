@@ -8,6 +8,15 @@ Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
+    baseRouterViewKey: 0,
+    alert: {
+      width: '800px',
+      show: false,
+      msg: '',
+      type: 'success', // success or error
+      dismisible: true,
+      transition: 'scale-transition'
+    },
     auth: {
       username: '',
       userID: '',
