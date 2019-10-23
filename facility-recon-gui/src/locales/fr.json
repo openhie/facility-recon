@@ -65,12 +65,12 @@
         "tooltip": "Report about requests to update details of facilities"
       },
       "requestNewFacility": {
-        "msg": "Request Addition Of New Facility",
-        "tooltip": "Request Addition Of New Facility"
+        "msg": "Request Addition of New Facility",
+        "tooltip": "Request Addition of New Facility"
       },
       "requestUpdateFacility": {
-        "msg": "Request Update Of Facility Details",
-        "tooltip": "Request Update Of Facility Details"
+        "msg": "Request Update of Facility Details",
+        "tooltip": "Request Update of Facility Details"
       },
       "addServiceType": {
         "msg": "Add Service Type",

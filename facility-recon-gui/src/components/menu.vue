@@ -12,7 +12,11 @@
             <v-icon
               color="black"
               left
-            >sync</v-icon>{{ $t('App.menu.dataSourcesParent.msg')}}
+            >sync</v-icon>{{ $t('App.menu.dataSourcesParent.msg')}} <v-icon
+              color="black"
+              small
+              class="menuArrow"
+            >play_arrow</v-icon>
           </a>
           <ul class="child">
             <v-list class="lastMenu">
@@ -50,13 +54,13 @@
             </v-list>
           </ul>
         </li>
-        <v-list class="lastMenu">
+        <v-list :class="{ disabledMenu: Object.keys($store.state.activePair.source1).length===0,lastMenu: true }">
           <v-tooltip right>
             <v-list-tile
               slot="activator"
               to="view"
               color="white"
-              :disabled="Object.keys($store.state.activePair.source1).length === 0"
+              :disabled="Object.keys($store.state.activePair.source1).length===0"
             >
               <v-list-tile-title class="menuText">
                 <v-icon
@@ -76,10 +80,14 @@
             <v-icon
               left
               color="black"
-            >compare_arrows</v-icon>{{ $t('App.menu.reconcile.msg')}}
+            >compare_arrows</v-icon>{{ $t('App.menu.reconcile.msg')}} <v-icon
+              color="black"
+              small
+              class="menuArrow"
+            >play_arrow</v-icon>
           </a>
           <ul class="child">
-            <v-list class="lastMenu">
+            <v-list :class="{ disabledMenu: $store.state.dataSources.length <= 1 || $store.state.dataSourcePairs.length <= 0,lastMenu: true }">
               <v-tooltip right>
                 <v-list-tile
                   to="dataSourcesPair"
@@ -96,7 +104,7 @@
                 <span>{{ $t('App.menu.createPair.tooltip')}}</span>
               </v-tooltip>
             </v-list>
-            <v-list class="lastMenu">
+            <v-list :class="{ disabledMenu: Object.keys($store.state.activePair.source1).length === 0,lastMenu: true }">
               <v-tooltip right>
                 <v-list-tile
                   to="scores"
@@ -113,7 +121,7 @@
                 <span>{{ $t('App.menu.reconcile.tooltip') }}</span>
               </v-tooltip>
             </v-list>
-            <v-list class="lastMenu">
+            <v-list :class="{ disabledMenu: Object.keys($store.state.activePair.source1).length===0,lastMenu: true }">
               <v-tooltip right>
                 <v-list-tile
                   to="recoStatus"
@@ -139,241 +147,236 @@
         <v-icon>location_on</v-icon>{{ $t('App.menu.facilityRegistry.msg')}}
       </a>
       <ul class="child">
-        <li class="parent">
-          <a href="#">
-            <v-icon
-              left
-              color="black"
-            >format_list_numbered</v-icon>{{ $t('App.menu.createOrgHier.msg')}}
-          </a>
-          <ul class="child">
-            <v-list class="lastMenu">
-              <v-tooltip right>
-                <v-list-tile
-                  v-if="tasksVerification.canAdd('AddJurisdiction')"
-                  to="AddJurisdiction"
-                  slot="activator"
-                >
-                  <v-list-tile-title class="menuText">
-                    <v-icon
-                      left
-                      color="black"
-                    >home_work</v-icon>{{ $t('App.menu.addJurisdiction.msg')}}
-                  </v-list-tile-title>
-                </v-list-tile>
-                <span>{{ $t('App.menu.addJurisdiction.tooltip')}}</span>
-              </v-tooltip>
-            </v-list>
-            <v-list class="lastMenu">
-              <v-tooltip right>
-                <v-list-tile
-                  v-if="tasksVerification.canAdd('AddFacility')"
-                  to="AddFacility"
-                  slot="activator"
-                >
-                  <v-list-tile-title class="menuText">
-                    <v-icon
-                      left
-                      color="black"
-                    >house</v-icon>{{ $t('App.menu.addFacility.msg')}}
-                  </v-list-tile-title>
-                </v-list-tile>
-                <span>{{ $t('App.menu.addFacility.tooltip')}}</span>
-              </v-tooltip>
-            </v-list>
-          </ul>
-        </li>
-        <li class="parent">
-          <a href="#">
-            <v-icon
-              left
-              color="black"
-            >room_service</v-icon>{{$t('App.menu.healthService.msg')}}
-          </a>
-          <ul class="child">
-            <v-list class="lastMenu">
-              <v-tooltip right>
-                <v-list-tile
-                  v-if="tasksVerification.canAdd('AddService')"
-                  to="AddService"
-                  slot="activator"
-                >
-                  <v-list-tile-title class="menuText">
-                    <v-icon
-                      left
-                      color="black"
-                    >add</v-icon>{{ $t('App.menu.addService.msg')}}
-                  </v-list-tile-title>
-                </v-list-tile>
-                <span>{{ $t('App.menu.addService.tooltip')}}</span>
-              </v-tooltip>
-            </v-list>
-            <li class="parent">
-              <a
-                href="#"
-                style="margin-left: 15px"
-              >
+        <v-list
+          class="lastMenu"
+          v-if="tasksVerification.canAdd('AddJurisdiction')"
+        >
+          <v-tooltip right>
+            <v-list-tile
+              to="AddJurisdiction"
+              slot="activator"
+            >
+              <v-list-tile-title class="menuText">
                 <v-icon
                   left
                   color="black"
-                >add</v-icon>{{ $t('App.menu.healthServiceTerminologies.msg')}}
-              </a>
-              <ul class="child">
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=serviceCategories&displayText=Service Categorie"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addServiceCategory.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addServiceCategory.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=serviceTypes&displayText=Service Type"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addServiceType.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addServiceType.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=specialties&displayText=Specialty"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addServiceSpecialty.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addServiceSpecialty.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=serviceEligibilities&displayText=Service Eligibility"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addServiceEligibility.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addServiceEligibility.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=languages&displayText=Language"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addLanguage.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addLanguage.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=referralMethods&displayText=Referral Methods"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addReferralMethod.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addReferralMethod.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=programs&displayText=Program"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addProgram.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addProgram.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=serviceCharacteristics&displayText=Service Characteristics"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addCharacteristic.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addCharacteristic.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-                <v-list class="lastMenu">
-                  <v-tooltip right>
-                    <v-list-tile
-                      to="/AddCodeSystem?type=serviceProvisionConditions&displayText=Service Provision Condition"
-                      slot="activator"
-                      v-if="tasksVerification.canAdd('AddCodeSystem')"
-                    >
-                      <v-list-tile-title class="menuText">
-                        <v-icon
-                          left
-                          color="black"
-                        >add</v-icon>{{ $t('App.menu.addServiceProvisionCondition.msg')}}
-                      </v-list-tile-title>
-                    </v-list-tile>
-                    <span>{{ $t('App.menu.addServiceProvisionCondition.tooltip')}}</span>
-                  </v-tooltip>
-                </v-list>
-              </ul>
-            </li>
+                >home_work</v-icon>{{ $t('App.menu.addJurisdiction.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+            <span>{{ $t('App.menu.addJurisdiction.tooltip')}}</span>
+          </v-tooltip>
+        </v-list>
+        <v-list
+          class="lastMenu"
+          v-if="tasksVerification.canAdd('AddFacility')"
+        >
+          <v-tooltip right>
+            <v-list-tile
+              to="AddFacility"
+              slot="activator"
+            >
+              <v-list-tile-title class="menuText">
+                <v-icon
+                  left
+                  color="black"
+                >house</v-icon>{{ $t('App.menu.addFacility.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+            <span>{{ $t('App.menu.addFacility.tooltip')}}</span>
+          </v-tooltip>
+        </v-list>
+        <v-list
+          class="lastMenu"
+          v-if="tasksVerification.canAdd('AddService')"
+        >
+          <v-tooltip right>
+            <v-list-tile
+              to="AddService"
+              slot="activator"
+            >
+              <v-list-tile-title class="menuText">
+                <v-icon
+                  left
+                  color="black"
+                >room_service</v-icon>{{ $t('App.menu.addService.msg')}}
+              </v-list-tile-title>
+            </v-list-tile>
+            <span>{{ $t('App.menu.addService.tooltip')}}</span>
+          </v-tooltip>
+        </v-list>
+        <li
+          class="parent"
+          v-if="tasksVerification.canAdd('AddCodeSystem')"
+        >
+          <a
+            href="#"
+            style="margin-left: 15px"
+          >
+            <v-icon
+              left
+              color="black"
+            >add</v-icon>
+            {{ $t('App.menu.healthServiceTerminologies.msg')}}
+            <v-icon
+              color="black"
+              small
+              class="menuArrow"
+            >play_arrow</v-icon>
+          </a>
+          <ul class="child">
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=serviceCategories&displayText=Service Categorie"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addServiceCategory.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addServiceCategory.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=serviceTypes&displayText=Service Type"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addServiceType.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addServiceType.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=specialties&displayText=Specialty"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addServiceSpecialty.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addServiceSpecialty.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=serviceEligibilities&displayText=Service Eligibility"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addServiceEligibility.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addServiceEligibility.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=languages&displayText=Language"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addLanguage.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addLanguage.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=referralMethods&displayText=Referral Methods"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addReferralMethod.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addReferralMethod.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=programs&displayText=Program"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addProgram.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addProgram.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=serviceCharacteristics&displayText=Service Characteristics"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addCharacteristic.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addCharacteristic.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  to="/AddCodeSystem?type=serviceProvisionConditions&displayText=Service Provision Condition"
+                  slot="activator"
+                  v-if="tasksVerification.canAdd('AddCodeSystem')"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >add</v-icon>{{ $t('App.menu.addServiceProvisionCondition.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.addServiceProvisionCondition.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
           </ul>
         </li>
         <li class="parent">
@@ -381,14 +384,71 @@
             <v-icon
               left
               color="black"
-            >list</v-icon>{{ $t('App.menu.facilityRegReports.msg')}}
+            >call_made</v-icon>
+            {{ $t('App.menu.facilityRequests.msg')}}
+            <v-icon
+              color="black"
+              small
+              class="menuArrow"
+            >play_arrow</v-icon>
           </a>
           <ul class="child">
             <v-list class="lastMenu">
-              <v-list-tile
-                to="FacilitiesReport"
-                v-if="tasksVerification.canView('FacilitiesReport')"
-              >
+              <v-tooltip right>
+                <v-list-tile
+                  v-if="tasksVerification.canAdd('RequestBuildingAddition')"
+                  to="RequestBuildingAddition"
+                  slot="activator"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >call_made</v-icon>{{ $t('App.menu.requestNewFacility.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.requestNewFacility.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+            <v-list class="lastMenu">
+              <v-tooltip right>
+                <v-list-tile
+                  v-if="tasksVerification.canAdd('RequestUpdateBuildingDetails')"
+                  to="RequestUpdateBuildingDetails"
+                  slot="activator"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >call_made</v-icon>{{ $t('App.menu.requestUpdateFacility.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.requestUpdateFacility.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
+          </ul>
+        </li>
+
+        <li class="parent">
+          <a href="#">
+            <v-icon
+              left
+              color="black"
+            >list</v-icon>
+            {{ $t('App.menu.facilityRegReports.msg')}}
+            <v-icon
+              color="black"
+              small
+              class="menuArrow"
+            >play_arrow</v-icon>
+          </a>
+          <ul class="child">
+            <v-list
+              class="lastMenu"
+              v-if="tasksVerification.canView('FacilitiesReport')"
+            >
+              <v-list-tile to="FacilitiesReport">
                 <v-list-tile-title class="menuText">
                   <v-icon
                     left
@@ -397,11 +457,13 @@
                 </v-list-tile-title>
               </v-list-tile>
             </v-list>
-            <v-list class="lastMenu">
+            <v-list
+              class="lastMenu"
+              v-if="tasksVerification.canView('NewFacilitiesRequestsReport')"
+            >
               <v-tooltip right>
                 <v-list-tile
                   to="NewFacilitiesRequestsReport"
-                  v-if="tasksVerification.canView('NewFacilitiesRequestsReport')"
                   slot="activator"
                 >
                   <v-list-tile-title class="menuText">
@@ -414,10 +476,12 @@
                 <span>{{ $t('App.menu.newFacilitiesRequestsReport.tooltip')}}</span>
               </v-tooltip>
             </v-list>
-            <v-list class="lastMenu">
+            <v-list
+              class="lastMenu"
+              v-if="tasksVerification.canView('FacilitiesUpdateRequestsReport')"
+            >
               <v-tooltip right>
                 <v-list-tile
-                  v-if="tasksVerification.canView('FacilitiesUpdateRequestsReport')"
                   to="FacilitiesUpdateRequestsReport"
                   slot="activator"
                 >
@@ -431,11 +495,11 @@
                 <span>{{ $t('App.menu.facilitiesUpdateRequestsReport.tooltip')}}</span>
               </v-tooltip>
             </v-list>
-            <v-list class="lastMenu">
-              <v-list-tile
-                to="ServicesReport"
-                v-if="tasksVerification.canView('ServicesReport')"
-              >
+            <v-list
+              class="lastMenu"
+              v-if="tasksVerification.canView('ServicesReport')"
+            >
+              <v-list-tile to="ServicesReport">
                 <v-list-tile-title class="menuText">
                   <v-icon
                     left
@@ -635,5 +699,18 @@ li:hover {
 
 .menuText {
   color: black;
+}
+
+.menuArrow {
+  float: right;
+  margin-top: 25px;
+}
+
+.disabledMenu {
+  cursor: auto;
+}
+
+.disabledMenu:hover {
+  background-color: white;
 }
 </style>

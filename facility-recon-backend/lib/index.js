@@ -191,8 +191,6 @@ if (cluster.isMaster) {
         winston.error('It appears that FHIR server is not running, quiting GOFR now ...');
       }
       if (res.statusCode === 404) {
-        // launch
-        defaultSetups.initialize();
         async.series({
           createDefaultDB: (callback) => {
             hapi.createServer(defaultDB, (err) => {
@@ -214,6 +212,9 @@ if (cluster.isMaster) {
               callback(null);
             });
           },
+        }, () => {
+          // launch
+          defaultSetups.initialize();
         });
       } else {
         // check if FR has fake org id

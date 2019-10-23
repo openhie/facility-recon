@@ -80,7 +80,7 @@
           <v-toolbar>
             <v-btn
               v-if="$store.state.config.generalConfig.selfRegistration.enabled"
-              color="success"
+              color="primary"
               @click="displaySignup"
             >Signup</v-btn>
             <v-spacer></v-spacer>
@@ -88,7 +88,7 @@
               @click="authenticate()"
               :disabled="$v.$invalid"
               class="white--text"
-              color="success"
+              color="primary"
               depressed
             >Login</v-btn>
           </v-toolbar>

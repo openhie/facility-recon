@@ -49,28 +49,32 @@
         "tooltip": "Add Facility"
       },
       "facilitiesReport": {
-        "msg": "Facilities Report",
-        "tooltip": "Facilities Report"
+        "msg": "Facilities",
+        "tooltip": "Facilities"
       },
       "servicesReport": {
-        "msg": "Services Report",
-        "tooltip": "Services Report"
+        "msg": "Services",
+        "tooltip": "Services"
       },
       "newFacilitiesRequestsReport": {
-        "msg": "New Facilities Requests Report",
+        "msg": "New Facilities Requests",
         "tooltip": "Report on requests made to create new facilities"
       },
       "facilitiesUpdateRequestsReport": {
-        "msg": "Report Of Requested Facilities Updates",
+        "msg": "Requested Facilities Updates",
         "tooltip": "Report about requests to update details of facilities"
       },
+      "facilityRequests": {
+        "msg": "Requests",
+        "tooltip": "Send requests about addition of new facilities or update of facility details"
+      },
       "requestNewFacility": {
-        "msg": "Request Addition Of New Facility",
-        "tooltip": "Request Addition Of New Facility"
+        "msg": "Request Addition of New Facility",
+        "tooltip": "Request Addition of New Facility"
       },
       "requestUpdateFacility": {
-        "msg": "Request Update Of Facility Details",
-        "tooltip": "Request Update Of Facility Details"
+        "msg": "Request Update of Facility Details",
+        "tooltip": "Request Update of Facility Details"
       },
       "addServiceType": {
         "msg": "Add Service Type",

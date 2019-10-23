@@ -969,6 +969,9 @@ export default {
       return value.substring(0, 40)
     },
     displayId (value) {
+      if (!value) {
+        return
+      }
       let ids
       for (let val of value) {
         if (ids) {
