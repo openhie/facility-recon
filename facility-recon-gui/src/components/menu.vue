@@ -678,7 +678,7 @@ li:hover {
 }
 
 .lastMenu:hover {
-  background-color: #f0f0f0;
+  background-color: #f0f0f0 !important;
 }
 
 .parent li:hover {
@@ -692,7 +692,7 @@ li:hover {
 }
 
 .lastMenu {
-  background-color: white;
+  background-color: white !important;
   border-right: #ccc 1px solid;
   border-bottom: #ccc 1px solid;
 }
@@ -711,6 +711,6 @@ li:hover {
 }
 
 .disabledMenu:hover {
-  background-color: white;
+  background-color: white !important;
 }
 </style>
