@@ -245,7 +245,6 @@ export const scoresMixin = {
             this.$store.state.scoreSavingProgressData.percent = scoreSavingStatus.data.percent
           }
           if (parseInt(scoreSavingStatus.data.percent) === 100) {
-            console.log('done')
             this.$store.state.scoreSavingProgressData.savingMatches = false
             this.$store.state.scoreSavingProgressData.percent = 0
             this.clearProgress('scoreSavingStatus')

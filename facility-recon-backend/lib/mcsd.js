@@ -262,6 +262,7 @@ module.exports = () => ({
 
       const splParent = entityParent.split('/');
       entityParent = splParent[(splParent.length - 1)];
+      const locationID = entityParent;
       const url = `${URI(config.getConf('mCSD:url')).segment(database).segment('fhir').segment('Location')}?_id=${entityParent.toString()}`;
 
       const options = {
@@ -273,6 +274,10 @@ module.exports = () => ({
           return callback(parents);
         }
         body = JSON.parse(body);
+        if (!body.entry || body.entry.length === 0) {
+          winston.error(`Organization Unit with ID ${locationID} not found`);
+          return callback(parents);
+        }
         let long = null;
         let lat = null;
         if (body.entry[0].resource.hasOwnProperty('position')) {
@@ -679,6 +684,12 @@ module.exports = () => ({
         me.getLocationParentsFromDB(source2DB, source2Id, fakeOrgId, 'id', parents => callback(null, parents));
       },
     }, (err, res) => {
+      if (!res.source2mCSD || !res.source2mCSD.entry || res.source2mCSD.entry.length === 0) {
+        return callback(true, false);
+      }
+      if (!res.source1mCSD || !res.source1mCSD.entry || res.source1mCSD.entry.length === 0) {
+        return callback(true, false);
+      }
       if (res.source1Mapped !== null) {
         return callback(res.source1Mapped);
       }
