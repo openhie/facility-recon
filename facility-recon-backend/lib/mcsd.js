@@ -570,7 +570,7 @@ module.exports = () => ({
             url,
           };
           request.delete(options, (err, res, body) => {
-            this.cleanCache(`url_${url_prefix.toString()}`);
+            this.cleanCache(`url_${url_prefix.toString()}`, true);
             return callback1(false);
           });
         },
@@ -595,7 +595,7 @@ module.exports = () => ({
                     url,
                   };
                   request.delete(options, (err, res, body) => {
-                    this.cleanCache(`url_${url_prefix.toString()}`);
+                    this.cleanCache(`url_${url_prefix.toString()}`, true);
                     return nxtEntry();
                   });
                 }, () => nxtDB());
@@ -625,14 +625,24 @@ module.exports = () => ({
         winston.error(err);
         return callback(err);
       }
-      this.cleanCache(`url_${url}/Location`);
+      this.cleanCache(`url_${url}/Location`, true);
       callback(err, body);
     });
   },
-  cleanCache(key) {
-    redisClient.del(key, () => {
-      winston.info(`DELETING ${key} from cache because something was modified.`);
-    });
+  cleanCache(key, isPrefix) {
+    if (isPrefix) {
+      redisClient.keys(`${key  }*`, (err, keys) => {
+        for (const key of keys) {
+          redisClient.del(key, () => {
+            winston.info(`DELETING ${key} from cache because something was modified.`);
+          });
+        }
+      });
+    } else {
+      redisClient.del(key, () => {
+        winston.info(`DELETING ${key} from cache because something was modified.`);
+      });
+    }
   },
   saveMatch(source1Id, source2Id, source1DB, source2DB, mappingDB, recoLevel, totalLevels, type, autoMatch, flagComment, callback) {
     const flagCode = config.getConf('mapping:flagCode');
@@ -898,7 +908,7 @@ module.exports = () => ({
         url,
       };
       request.delete(options, (err, res, body) => {
-        this.cleanCache(`url_${url_prefix.toString()}`);
+        this.cleanCache(`url_${url_prefix.toString()}`, true);
         if (err) {
           winston.error(err);
           return callback(err);
@@ -1021,8 +1031,8 @@ module.exports = () => ({
         return callback(true, null);
       }
       request.delete(options, (err, res, body) => {
-        this.cleanCache(`url_${url_prefix.toString()}`);
-        this.cleanCache(`url_${source1UrlPrefix.toString()}`);
+        this.cleanCache(`url_${url_prefix.toString()}`, true);
+        this.cleanCache(`url_${source1UrlPrefix.toString()}`, true);
         if (err) {
           winston.error(err);
         }
@@ -1070,7 +1080,7 @@ module.exports = () => ({
       url,
     };
     request.delete(options, (err, res, body) => {
-      this.cleanCache(`url_${url_prefix.toString()}`);
+      this.cleanCache(`url_${url_prefix.toString()}`, true);
       if (err) {
         winston.error(err);
       }
