@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 require('./init');
 const request = require('request');
 const URI = require('urijs');
@@ -631,7 +632,7 @@ module.exports = () => ({
   },
   cleanCache(key, isPrefix) {
     if (isPrefix) {
-      redisClient.keys(`${key  }*`, (err, keys) => {
+      redisClient.keys(`${key}*`, (err, keys) => {
         for (const key of keys) {
           redisClient.del(key, () => {
             winston.info(`DELETING ${key} from cache because something was modified.`);
@@ -1109,6 +1110,7 @@ module.exports = () => ({
       entry: [],
     };
 
+    const invalidIDChars = [/\//g, /\s/g];
     csv
       .fromPath(filePath, {
         headers: true,
@@ -1127,7 +1129,9 @@ module.exports = () => ({
           winston.error(`Skipped ${JSON.stringify(data)}`);
           return;
         }
-        data[headerMapping.code] = data[headerMapping.code].replace(/\s/g, '-');
+        for (const invalidChar of invalidIDChars) {
+          data[headerMapping.code] = data[headerMapping.code].replace(invalidChar, '-');
+        }
         levels.sort();
         levels.reverse();
         let facilityParent = null;
