@@ -1,6 +1,5 @@
 <template>
   <v-container fluid>
-    {{$store.state.levelArray}}
     <template v-if='$store.state.uploadRunning'><br><br><br>
       <v-alert
         type="info"
