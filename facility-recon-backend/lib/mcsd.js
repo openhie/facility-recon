@@ -1144,12 +1144,16 @@ module.exports = () => ({
           ) {
             let name = data[headerMapping[level]].trim();
             name = mixin.toTitleCaseSpace(name);
+            const nameForID = name.toLowerCase();
             const levelNumber = parseInt(level.replace('level', ''));
             let mergedParents = '';
 
             // merge parents of this location
             for (let k = levelNumber - 1; k >= 1; k--) {
-              mergedParents += data[headerMapping[`level${k}`]];
+              let parent = data[headerMapping[`level${k}`]].trim();
+              parent = mixin.toTitleCaseSpace(parent);
+              parent = parent.toLowerCase();
+              mergedParents += parent;
             }
             if (levelNumber.toString().length < 2) {
               var namespaceMod = `${namespace}00${levelNumber}`;
@@ -1157,7 +1161,7 @@ module.exports = () => ({
               var namespaceMod = `${namespace}0${levelNumber}`;
             }
 
-            const UUID = uuid5(name + mergedParents, namespaceMod);
+            const UUID = uuid5(nameForID + mergedParents, namespaceMod);
             const topLevels = [...new Array(levelNumber)].map(Function.call, Number);
             // removing zero as levels starts from 1
             topLevels.splice(0, 1);
