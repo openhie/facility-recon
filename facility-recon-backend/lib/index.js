@@ -10,6 +10,7 @@ const formidable = require('formidable');
 const winston = require('winston');
 const https = require('https');
 const http = require('http');
+const URI = require('urijs');
 const os = require('os');
 const fs = require('fs');
 const request = require('request');
@@ -114,8 +115,8 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
 
-https.globalAgent.maxSockets = 32;
-http.globalAgent.maxSockets = 32;
+// https.globalAgent.maxSockets = 32;
+// http.globalAgent.maxSockets = 32;
 
 const topOrgId = config.getConf('mCSD:fakeOrgId');
 const topOrgName = config.getConf('mCSD:fakeOrgName');
@@ -2765,6 +2766,9 @@ if (cluster.isMaster) {
     const name = mixin.toTitleCase(req.params.name);
     winston.info(`Received request to delete data source with id ${id}`);
     mongo.deleteDataSource(id, name, sourceOwner, userID, (err, response) => {
+      const dbName = name + userID;
+      const cacheUrl = URI(config.getConf('mCSD:url')).segment(dbName).segment('fhir').toString();
+      mcsd.cleanCache(`url_${cacheUrl}`, true);
       if (err) {
         res.status(500).json({
           error: 'Unexpected error occured while deleting data source,please retry',
@@ -2870,15 +2874,18 @@ if (cluster.isMaster) {
   });
 
   app.delete('/deleteSourcePair', (req, res) => {
-    winston.info(`Received a request to delete data source pair with id ${req.params.id}`);
+    winston.info(`Received a request to delete data source pair with id ${req.params.pairId}`);
     const {
       pairId,
       userID,
     } = req.query;
     const source1Name = mixin.toTitleCase(req.query.source1Name);
     const source2Name = mixin.toTitleCase(req.query.source2Name);
+
     const dbName = source1Name + userID + source2Name;
     mongo.deleteSourcePair(pairId, dbName, (err, data) => {
+      const url = URI(config.getConf('mCSD:url')).segment(dbName).segment('fhir').toString();
+      mcsd.cleanCache(`url_${url}`, true);
       if (err) {
         winston.error(err);
         return res.send(500).send(err);

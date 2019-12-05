@@ -356,9 +356,9 @@ module.exports = function () {
                       const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                       // when parent constraint is On then automatch by name is also enabled by default
                       // when parent constraint is off then check if name automatch is also on
-                      if (lev == 0
-                        && !matchBroken
-                        && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                      if (lev == 0 &&
+                        !matchBroken &&
+                        (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                       ) {
                         const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                         ignore.push(source2Entry.resource.id);
@@ -483,14 +483,27 @@ module.exports = function () {
               timeout = 2000;
             }
             setTimeout(() => {
-              async.eachSeries(matchesToSave, (match, nxtMatch) => {
-                mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
-                  updateDataSavingPercent();
-                  return nxtMatch();
-                });
-              }, () => {
+              const promises = [];
+              for (const match of matchesToSave) {
+                promises.push(new Promise((resolve) => {
+                  mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
+                    updateDataSavingPercent();
+                    resolve();
+                  });
+                }));
+              }
+              Promise.all(promises).then(() => {
                 updateDataSavingPercent('done');
               });
+              // async.eachSeries(matchesToSave, (match, nxtMatch) => {
+              //   mcsd.saveMatch(match.source1Id, match.source2Id, match.source1DB, match.source2DB, match.mappingDB, match.recoLevel, match.totalLevels, 'match', true, false, () => {
+              //     updateDataSavingPercent();
+              //     return nxtMatch();
+              //   });
+              // }, () => {
+              //   console.timeEnd('saving')
+              //   updateDataSavingPercent('done');
+              // });
             }, timeout);
           });
         });
@@ -956,8 +969,8 @@ module.exports = function () {
 
                   const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                  if (lev == 0 && !matchBroken
-                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0 && !matchBroken &&
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                     ignore.push(source2Entry.resource.id);
@@ -1156,8 +1169,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id
-        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id ||
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },

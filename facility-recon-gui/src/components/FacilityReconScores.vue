@@ -364,8 +364,9 @@
             <v-icon>repeat_one</v-icon> Recalculate Scores
           </v-btn>
           <template v-else>
-            Saving matches for {{translateDataHeader('source1', $store.state.recoLevel - 2)}}
+            Saving matches for {{translateDataHeader('source1', $store.state.recoLevel - 1)}}
             <v-progress-linear
+              v-if='!saveProgressTimedout'
               color="error"
               width="20"
               height="20"
@@ -375,6 +376,11 @@
                 <span class="green--text"><b>{{$store.state.scoreSavingProgressData.percent}}%</b></span>
               </center>
             </v-progress-linear>
+            <v-progress-linear
+              v-else
+              indeterminate
+              color="red"
+            ></v-progress-linear>
           </template>
         </v-flex>
         <v-flex
@@ -1156,6 +1162,7 @@ export default {
   mixins: [scoresMixin, generalMixin],
   data () {
     return {
+      clientId: '',
       flagCommentDialog: false,
       flagComment: '',
       helpDialog: false,
@@ -1177,6 +1184,7 @@ export default {
       alertText: '',
       alertTitle: '',
       alert: false,
+      saveProgressTimedout: false,
       source1Parents: {},
       source1Filter: { text: '', level: '' },
       source1TreeUpdate: 0,
@@ -1271,7 +1279,18 @@ export default {
       let recoLevel = this.$store.state.recoLevel
       let totalSource1Levels = this.$store.state.totalSource1Levels
       let totalSource2Levels = this.$store.state.totalSource2Levels
-      const clientId = this.$store.state.clientId
+      if (this.clientId) {
+        let lastChar = this.clientId[this.clientId.length - 1]
+        lastChar = parseInt(lastChar)
+        lastChar += 1
+        this.clientId += lastChar
+      } else {
+        let lastChar = this.$store.state.clientId[this.$store.state.clientId.length - 1]
+        lastChar = parseInt(lastChar)
+        lastChar += 1
+        this.clientId = this.$store.state.clientId + lastChar
+      }
+
       let sourcesOwner = this.getDatasourceOwner()
       let userID = this.$store.state.activePair.userID._id
       let source1Owner = sourcesOwner.source1Owner
@@ -1280,7 +1299,7 @@ export default {
       let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
       let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
       let path = `id=${id}&source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path += `&recoLevel=${recoLevel}&clientId=${clientId}&userID=${userID}&parentConstraint=` + parentConstraint + '&getPotential=' + true
+      path += `&recoLevel=${recoLevel}&clientId=${this.clientId}&userID=${userID}&parentConstraint=` + parentConstraint + '&getPotential=' + true
       this.$store.state.dynamicProgress = true
       this.$store.state.progressTitle = 'Getting potential matches from server'
       axios.get(backendServer + '/reconcile/?' + path).then((response) => {
@@ -2132,6 +2151,7 @@ export default {
     }
   },
   created () {
+    // this.$store.state.scoreSavingProgressData.savingMatches = true
     if (this.$store.state.recalculateScores) {
       this.$store.state.recalculateScores = false
       this.getScores(false)
