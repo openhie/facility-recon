@@ -135,6 +135,24 @@ const SharedDataSourceLocations = new mongoose.Schema({
   },
 });
 
+const SMTP = new mongoose.Schema({
+  host: {
+    type: String,
+  },
+  port: {
+    type: String,
+  },
+  username: {
+    type: String,
+  },
+  password: {
+    type: String,
+  },
+  secured: {
+    type: Boolean,
+  },
+});
+
 const DataSourcePair = new mongoose.Schema({
   source1: {
     type: Schema.Types.ObjectId,
@@ -339,4 +357,5 @@ module.exports = {
   MetaData,
   usersFields,
   Tasks,
+  SMTP,
 };

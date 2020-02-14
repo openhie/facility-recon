@@ -108,8 +108,8 @@
   "hapi": {
     "DBUser": "hapi",
     "DBPassword": "hapi",
-    "defaultDBName": "gofr1",
-    "requestsDBName": "gofrrequests1",
+    "defaultDBName": "gofr",
+    "requestsDBName": "gofrrequests",
     "fhirVersion": "R4",
     "DBDependencyGrpID": "org.postgresql",
     "DBDependencyArtfactID": "postgresql",

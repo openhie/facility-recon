@@ -238,7 +238,7 @@ export default {
       formData.append('role', this.role)
       formData.append('status', status)
       formData.append('id', this.user._id)
-      axios.post(backendServer + '/changeAccountStatus/', formData, {
+      axios.post(backendServer + '/processUserAccoutRequest/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

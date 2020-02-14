@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable func-names */
@@ -14,6 +15,7 @@ const http = require('http');
 const os = require('os');
 const fs = require('fs');
 const request = require('request');
+const Cryptr = require('cryptr');
 const fsFinder = require('fs-finder');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -32,6 +34,7 @@ const async = require('async');
 const mongoose = require('mongoose');
 const models = require('./models');
 const schemas = require('./schemas');
+const mail = require('./mail')();
 const mixin = require('./mixin')();
 const mongo = require('./mongo')();
 const config = require('./config');
@@ -47,6 +50,9 @@ const mongoUser = config.getConf('DB_USER');
 const mongoPasswd = config.getConf('DB_PASSWORD');
 const mongoHost = config.getConf('DB_HOST');
 const mongoPort = config.getConf('DB_PORT');
+
+const cryptr = new Cryptr(config.getConf('auth:secret'));
+
 const app = express();
 const server = require('http').createServer(app);
 
@@ -55,19 +61,19 @@ const cleanReqPath = function (req, res, next) {
   return next();
 };
 const jwtValidator = function (req, res, next) {
-  if (req.method == 'OPTIONS'
-    || (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled)
-    || req.path == '/authenticate/'
-    || req.path == '/getSignupConf'
-    || req.path == '/getGeneralConfig'
-    || req.path == '/addUser/'
-    || req.path.startsWith('/progress')
-    || req.path == '/'
-    || req.path.startsWith('/static/js')
-    || req.path.startsWith('/static/config.json')
-    || req.path.startsWith('/static/css')
-    || req.path.startsWith('/static/img')
-    || req.path.startsWith('/favicon.ico')
+  if (req.method == 'OPTIONS' ||
+    (req.query.hasOwnProperty('authDisabled') && req.query.authDisabled) ||
+    req.path == '/authenticate/' ||
+    req.path == '/getSignupConf' ||
+    req.path == '/getGeneralConfig' ||
+    req.path == '/addUser/' ||
+    req.path.startsWith('/progress') ||
+    req.path == '/' ||
+    req.path.startsWith('/static/js') ||
+    req.path.startsWith('/static/config.json') ||
+    req.path.startsWith('/static/css') ||
+    req.path.startsWith('/static/img') ||
+    req.path.startsWith('/favicon.ico')
   ) {
     return next();
   }
@@ -138,17 +144,17 @@ if (cluster.isMaster) {
       if (data.length == 0) {
         winston.info('Default user not found, adding now ...');
         const roles = [{
-          name: 'Admin',
-          tasks: [],
-        },
-        {
-          name: 'Data Manager',
-          tasks: [],
-        },
-        {
-          name: 'Guest',
-          tasks: [],
-        },
+            name: 'Admin',
+            tasks: [],
+          },
+          {
+            name: 'Data Manager',
+            tasks: [],
+          },
+          {
+            name: 'Guest',
+            tasks: [],
+          },
         ];
         models.RolesModel.collection.insertMany(roles, (err, data) => {
           models.RolesModel.find({
@@ -280,7 +286,7 @@ if (cluster.isMaster) {
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code: ${code}, and signal: ${signal}`);
-    delete (workers[worker.process.pid]);
+    delete(workers[worker.process.pid]);
     console.log('Starting a new worker');
     const newworker = cluster.fork();
     workers[newworker.process.pid] = newworker;
@@ -454,6 +460,29 @@ if (cluster.isMaster) {
                     error: 'Internal error occured',
                   });
                 } else {
+                  // alert admin about this account
+                  if (fields.status === 'Pending') {
+                    models.RolesModel.find({
+                      name: 'Admin',
+                    }, (err, data) => {
+                      if (data && Array.isArray(data)) {
+                        const adminRoleId = data[0]._id;
+                        mongo.getUsersFromRoles([adminRoleId], (err, data) => {
+                          if (!err && data && Array.isArray(data)) {
+                            const emails = [];
+                            for (const dt of data) {
+                              emails.push(dt.email);
+                            }
+                            const subject = 'New account creation request'
+                            const emailText = `There is a new request to create an account on facility registry with username ${fields.userName}, please go and approve`;
+                            mail.send(subject, emailText, emails, () => {
+
+                            });
+                          }
+                        })
+                      }
+                    })
+                  }
                   winston.info('User created successfully');
                   res.status(200).json({
                     id: data._id,
@@ -521,7 +550,65 @@ if (cluster.isMaster) {
     });
   });
 
-  app.post('/changeAccountStatus', (req, res) => {
+  app.post('/saveSMTP', (req, res) => {
+    winston.info('Received a request to save SMTP Config');
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields) => {
+      models.SMTPModel.findOne({}, (err, data) => {
+        if (data) {
+          let password;
+          if (fields.password !== data.password) {
+            password = cryptr.encrypt(fields.password); // bcrypt.hashSync(fields.password, 8);
+          } else {
+            password = data.password;
+          }
+          models.SMTPModel.findByIdAndUpdate(data.id, {
+            host: fields.host,
+            port: fields.port,
+            username: fields.username,
+            password,
+            secured: fields.secured,
+          }, (err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('An error has occured while saving SMTP config');
+              return res.status(500).send();
+            }
+            res.status(200).send();
+          });
+        } else {
+          const smtp = new models.SMTPModel({
+            host: fields.host,
+            port: fields.port,
+            username: fields.username,
+            password: cryptr.encrypt(fields.password),
+            secured: fields.secured,
+          });
+          smtp.save((err, data) => {
+            if (err) {
+              winston.error(err);
+              winston.error('An error has occured while saving SMTP config');
+              return res.status(500).send();
+            }
+            res.status(200).send();
+          });
+        }
+      });
+    });
+  });
+
+  app.get('/getSMTP', (req, res) => {
+    winston.info('Received a request to get SMTP Config');
+    mongo.getSMTP((err, data) => {
+      if (err) {
+        winston.error('An error occured while getting SMTP config');
+        return res.status(500).send();
+      }
+      res.status(200).json(data);
+    });
+  });
+
+  app.post('/processUserAccoutRequest', (req, res) => {
     winston.info('Received a request to change account status');
     const form = new formidable.IncomingForm();
     form.parse(req, (err, fields) => {
@@ -542,6 +629,16 @@ if (cluster.isMaster) {
           res.status(500).send();
           return;
         }
+        const subject = 'Account status on facility registry';
+        let statusText = 'Rejected';
+        if (fields.status === 'Active') {
+          statusText = 'Approved';
+        }
+        const emailText = `Your account has been ${statusText}, you may now access the facility registry. Your username is ${data.userName}`;
+        const emails = [data.email];
+        mail.send(subject, emailText, emails, () => {
+
+        });
         winston.info('Account status has been changed');
         res.status(200).send();
       });
@@ -2766,11 +2863,11 @@ if (cluster.isMaster) {
           return callback(true, false);
         }
 
-        if (configData.hasOwnProperty('config')
-          && configData.config.hasOwnProperty('generalConfig')
-          && configData.config.generalConfig.hasOwnProperty('recoProgressNotification')
-          && configData.config.generalConfig.recoProgressNotification.enabled
-          && configData.config.generalConfig.recoProgressNotification.url
+        if (configData.hasOwnProperty('config') &&
+          configData.config.hasOwnProperty('generalConfig') &&
+          configData.config.generalConfig.hasOwnProperty('recoProgressNotification') &&
+          configData.config.generalConfig.recoProgressNotification.enabled &&
+          configData.config.generalConfig.recoProgressNotification.url
         ) {
           const {
             url,

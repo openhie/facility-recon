@@ -40,6 +40,10 @@
         "msg": "Rapports",
         "tooltip": "Voir les rapports"
       },
+      "historyReport": {
+        "msg": "Histoire",
+        "tooltip": "Suivre l'historique des installations et des services"
+      },
       "addJurisdiction": {
         "msg": "Ajouter une juridiction",
         "tooltip": "Ajouter des comtés / districts"

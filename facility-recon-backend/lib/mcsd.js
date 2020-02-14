@@ -18,6 +18,7 @@ const redis = require('redis');
 const cache = require('memory-cache');
 const moment = require('moment');
 const lodash = require('lodash');
+const mail = require('./mail')();
 const mongo = require('./mongo')();
 const mixin = require('./mixin')();
 const config = require('./config');
@@ -1213,7 +1214,9 @@ module.exports = () => ({
         LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_Location');
         LocationResource.meta.profile.push('http://ihe.net/fhir/StructureDefinition/IHE_mCSD_FacilityLocation');
       }
+      let oldName;
       if (fields.name) {
+        oldName = LocationResource.name;
         LocationResource.name = fields.name;
       }
       if (fields.alt_name) {
@@ -1532,6 +1535,53 @@ module.exports = () => ({
         if (err) {
           winston.error(err);
         }
+        if (!err && fields.action === 'request' && fields.requestCategory !== 'requestsList') {
+          const requestingUsername = fields.username;
+          const tasks = [];
+          let subject;
+          let emailText;
+          if (fields.requestType === 'add') {
+            tasks.push('facility_registry_can_approve_new_facility_request');
+            tasks.push('facility_registry_can_reject_new_facility_request');
+            subject = 'Request to add new facility';
+            emailText = `User ${requestingUsername} has sent a request of adding a facility with name ${LocationResource.name}`;
+          } else if (fields.requestType === 'update') {
+            tasks.push('facility_registry_can_reject_update_facility_details_requests');
+            tasks.push('facility_registry_can_approve_update_facility_details_requests');
+            subject = 'Request to update facility details';
+            emailText = `User ${requestingUsername} has sent a request of updating details about a facility with name ${LocationResource.name}`;
+          }
+          mongo.getTaskIdFromName(tasks, (err, data) => {
+            if (err || !data) {
+              return;
+            }
+            const tasksID = [];
+            for (const dt of data) {
+              tasksID.push(dt._id);
+            }
+            mongo.getRolesFromTasks(tasksID, (err, data) => {
+              if (err || !data) {
+                return;
+              }
+              const rolesId = [];
+              for (const dt of data) {
+                rolesId.push(dt._id);
+              }
+              mongo.getUsersFromRoles(rolesId, (err, data) => {
+                if (err || !data) {
+                  return;
+                }
+                const emails = [];
+                for (const dt of data) {
+                  emails.push(dt.email);
+                }
+                mail.send(subject, emailText, emails, () => {
+
+                });
+              });
+            });
+          });
+        }
         callback(err);
       });
     });
@@ -1642,7 +1692,25 @@ module.exports = () => ({
           });
         },
       ], (err, response) => {
-        if (status === 'approved') {
+        if (!err) {
+          let requestingUsername;
+          for (const ext of requestExtension) {
+            if (ext.url === 'username') {
+              requestingUsername = ext.valueString;
+            }
+          }
+          mongo.getUsersFromUsernames([requestingUsername], (err, data) => {
+            if (!err || !Array.isArray(data)) {
+              const subject = 'Status on Your Request';
+              const emailText = `Your request to ${requestType} facility with name ${locationResource.resource.name} has been ${status}`;
+              const emails = [data[0].email];
+              mail.send(subject, emailText, emails, () => {
+
+              });
+            }
+          });
+        }
+        if (!err && status === 'approved') {
           const facilityUpdateRequestURI = mixin.getCodesysteURI('facilityUpdateRequest');
           const facilityAddRequestURI = mixin.getCodesysteURI('facilityAddRequest');
           let requestURI;

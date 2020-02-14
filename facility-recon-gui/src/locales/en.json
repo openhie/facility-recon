@@ -40,6 +40,10 @@
         "msg": "Reports",
         "tooltip": "View Reports"
       },
+      "historyReport": {
+        "msg": "History",
+        "tooltip": "Track history of facilities and services"
+      },
       "addJurisdiction": {
         "msg": "Add Jurisdiction",
         "tooltip": "Add Counties/Districts"

@@ -508,6 +508,25 @@
                 </v-list-tile-title>
               </v-list-tile>
             </v-list>
+            <v-list
+              class="lastMenu"
+              v-if="tasksVerification.canView('FacilitiesReport')"
+            >
+              <v-tooltip right>
+                <v-list-tile
+                  to="History"
+                  slot="activator"
+                >
+                  <v-list-tile-title class="menuText">
+                    <v-icon
+                      left
+                      color="black"
+                    >list</v-icon>{{ $t('App.menu.historyReport.msg')}}
+                  </v-list-tile-title>
+                </v-list-tile>
+                <span>{{ $t('App.menu.historyReport.tooltip')}}</span>
+              </v-tooltip>
+            </v-list>
           </ul>
         </li>
       </ul>
@@ -712,5 +731,9 @@ li:hover {
 
 .disabledMenu:hover {
   background-color: white !important;
+}
+
+a:active {
+  color: red !important;
 }
 </style>

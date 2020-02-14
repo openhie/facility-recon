@@ -287,13 +287,13 @@ function processOrgUnit(metadata, hasKey) {
       mode: 'instance',
     };
     fhir.identifier = [{
-      system: 'http://dhis2.org/code',
-      value: org.code,
-    },
-    {
-      system: 'http://dhis2.org/id',
-      value: org.id,
-    },
+        system: 'http://dhis2.org/code',
+        value: org.code,
+      },
+      {
+        system: 'http://dhis2.org/id',
+        value: org.id,
+      },
     ];
     fhir.meta = {
       lastUpdated: org.lastUpdated,

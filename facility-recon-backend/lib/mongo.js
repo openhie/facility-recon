@@ -25,6 +25,89 @@ const mongoPort = config.getConf('DB_PORT');
 
 module.exports = function () {
   return {
+    /**
+     *
+     * @param {Array} names
+     */
+    getTaskIdFromName(names, callback) {
+      const query = models.TasksModel.find({
+        name: {
+          $in: names,
+        },
+      });
+      query.select('_id');
+      query.exec((err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('An error has occured while getting tasks by name');
+        }
+        return callback(err, data);
+      });
+    },
+    /**
+     *
+     * @param {Array} tasks
+     */
+    getRolesFromTasks(tasks, callback) {
+      const query = models.RolesModel.find({
+        tasks: {
+          $in: tasks,
+        },
+      });
+      query.select('_id name');
+      query.exec((err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('An error has occured while getting roles by tasks');
+        }
+        return callback(err, data);
+      });
+    },
+    /**
+     *
+     * @param {Array} roles
+     */
+    getUsersFromRoles(roles, callback) {
+      const query = models.UsersModel.find({
+        role: {
+          $in: roles,
+        },
+      });
+      query.exec((err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('An error has occured while getting roles by tasks');
+        }
+        return callback(err, data);
+      });
+    },
+    /**
+     *
+     * @param {Array} usernames
+     */
+    getUsersFromUsernames(usernames, callback) {
+      const query = models.UsersModel.find({
+        userName: {
+          $in: usernames,
+        },
+      });
+      query.exec((err, data) => {
+        if (err) {
+          winston.error(err);
+          winston.error('An error has occured while getting roles by tasks');
+        }
+        return callback(err, data);
+      });
+    },
+    getSMTP(callback) {
+      models.SMTPModel.findOne({}, (err, data) => {
+        if (err) {
+          winston.error(err);
+          return callback(err, data);
+        }
+        return callback(err, data);
+      });
+    },
     saveLevelMapping(levelData, database, callback) {
       winston.info('saving level data');
       const levels = Object.keys(levelData);

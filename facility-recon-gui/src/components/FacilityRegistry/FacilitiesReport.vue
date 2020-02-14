@@ -669,7 +669,7 @@ export default {
       formData.append('code', this.code)
       formData.append('action', this.action)
       formData.append('requestType', this.requestType)
-      // formData.append('username', this.$store.state.auth.username)
+      formData.append('username', this.$store.state.auth.username)
       if (this.facilityType) {
         formData.append('type', this.facilityType)
       }

@@ -9,6 +9,13 @@ const config = require('./config');
 
 module.exports = function () {
   return {
+    /**
+     *
+     * @param {Array} tasks
+     */
+    getRoleByTasks(tasks, callback) {
+
+    },
     getLatestFacilityRequest(extensions, type, username) {
       const facilityUpdateRequestURI = this.getCodesysteURI('facilityUpdateRequest');
       const facilityAddRequestURI = this.getCodesysteURI('facilityAddRequest');
@@ -70,7 +77,7 @@ module.exports = function () {
       if (!str) {
         return str;
       }
-      str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('');
+      str = str.toLowerCase().split(' ').map(word => word.replace(word[0], word[0].toUpperCase())).join('');
       return str.toLowerCase();
     },
     toTitleCaseSpace(str) {
