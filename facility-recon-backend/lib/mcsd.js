@@ -73,7 +73,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
+          if (mcsd.entry && mcsd.entry.length > 0) {
             codeSystems.entry = codeSystems.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -141,7 +141,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
+          if (mcsd.entry && mcsd.entry.length > 0) {
             organizations.entry = organizations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -212,7 +212,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (body.total > 0 && body.entry && body.entry.length > 0) {
+          if (body.entry && body.entry.length > 0) {
             services.entry = services.entry.concat(body.entry);
           }
           return callback(false, url);
@@ -277,7 +277,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (body.total > 0 && body.entry && body.entry.length > 0) {
+          if (body.entry && body.entry.length > 0) {
             locations.entry = locations.entry.concat(body.entry);
           }
           return callback(false, url);
@@ -331,7 +331,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
+          if (mcsd.entry && mcsd.entry.length > 0) {
             locations.entry = locations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -367,7 +367,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (body.total > 0 && body.entry && body.entry.length > 0) {
+          if (body.entry && body.entry.length > 0) {
             locations.entry = locations.entry.concat(body.entry);
           }
           return callback(false, url);
@@ -454,7 +454,7 @@ module.exports = () => ({
           if (next) {
             url = next.url;
           }
-          if (mcsd.total > 0 && mcsd.entry && mcsd.entry.length > 0) {
+          if (mcsd.entry && mcsd.entry.length > 0) {
             locations.entry = locations.entry.concat(mcsd.entry);
           }
           return callback(false, url);
@@ -913,7 +913,9 @@ module.exports = () => ({
         this.getCodeSystemFromCodesMinimal({
           codes: types,
           codeSystemName: 'serviceTypes',
-        }, concepts => callback(null, concepts));
+        }, concepts => {
+          callback(null, concepts);
+        });
       },
       category: (callback) => {
         const categories = JSON.parse(fields.category);

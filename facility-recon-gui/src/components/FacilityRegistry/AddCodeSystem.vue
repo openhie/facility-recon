@@ -26,6 +26,9 @@
             />
             <v-text-field
               required
+              @blur="$v.code.$touch()"
+              @change="$v.code.$touch()"
+              :error-messages="codeErrors"
               v-model="code"
               box
               color="deep-purple"
@@ -61,7 +64,8 @@ import { required } from 'vuelidate/lib/validators'
 const backendServer = process.env.BACKEND_SERVER
 export default {
   validations: {
-    name: { required }
+    name: { required },
+    code: { required }
   },
   props: ['codeSystemType', 'displayText'],
   data () {
@@ -103,6 +107,12 @@ export default {
       const errors = []
       if (!this.$v.name.$dirty) return errors
       !this.$v.name.required && errors.push('Name is required')
+      return errors
+    },
+    codeErrors () {
+      const errors = []
+      if (!this.$v.code.$dirty) return errors
+      !this.$v.code.required && errors.push('Code is required')
       return errors
     }
   }
