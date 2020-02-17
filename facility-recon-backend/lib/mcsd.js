@@ -1178,7 +1178,7 @@ module.exports = () => ({
     async.series([
       (callback) => {
         if (fields.id) {
-          this.getLocationByID('', fields.id, true, location => callback(null, location));
+          this.getLocationByID(database, fields.id, true, location => callback(null, location));
         } else {
           return callback(null);
         }
@@ -1458,8 +1458,16 @@ module.exports = () => ({
           valueString: fields.username,
         }, {
           url: 'statusDate',
-          valueDate: moment().format('Y-M-DTHH:mm:ssZ'),
+          valueDate: moment().format('YYYY-MM-DDTHH:mm:ssZ'),
         }];
+        if (fields.id && LocationResource.id && fields.id !== LocationResource.id) {
+          extension.push({
+            url: 'registryResourceId',
+            valueReference: {
+              reference: 'Location/' + fields.id,
+            },
+          });
+        }
         if (!LocationResource.extension) {
           LocationResource.extension = [];
         }
@@ -1533,7 +1541,7 @@ module.exports = () => ({
           url: `Location/${LocationResource.id}`,
         },
       });
-      this.saveLocations(fhir, database, (err, res) => {
+      this.saveLocations(fhir, database, (err, body) => {
         if (err) {
           winston.error(err);
         }
@@ -1594,20 +1602,19 @@ module.exports = () => ({
     status,
     requestType,
   }, callback) {
-    let database = config.getConf('hapi:requestsDBName');
-    const requestIdURI = mixin.getCodesysteURI('originalRequestId');
+    const database = config.getConf('hapi:requestsDBName');
     this.getLocationByID(database, id, true, (location) => {
       if (!location || !location.entry || location.entry.length === 0) {
         winston.error(`No location with id ${id} found`);
         return callback(`No location with id ${id} found`);
       }
-      const locationResource = location.entry.find(entry => entry.resource.resourceType === 'Location');
-      const organizationResource = location.entry.find(entry => entry.resource.resourceType === 'Organization');
-      if (!locationResource) {
+      const requestLocationResource = location.entry.find(entry => entry.resource.resourceType === 'Location');
+      const requestOrganizationResource = location.entry.find(entry => entry.resource.resourceType === 'Organization');
+      if (!requestLocationResource) {
         winston.error(`No location resource with id ${id} found`);
         return callback(`No location resource with id ${id} found`);
       }
-      const requestExtension = mixin.getLatestFacilityRequest(locationResource.resource.extension, requestType);
+      const requestExtension = mixin.getLatestFacilityRequest(requestLocationResource.resource.extension, requestType);
       if (!requestExtension || !Array.isArray(requestExtension)) {
         winston.error('Request extension cant be found, stop changing status');
         return callback(true);
@@ -1618,146 +1625,205 @@ module.exports = () => ({
         }
       }
 
-      async.series([
-        (callback) => {
-          this.deleteResource({
-            resource: 'Location',
-            id: locationResource.resource.id,
-            database,
-          }, (err) => {
-            if (err) {
-              return callback(err);
-            }
-            if (organizationResource) {
-              this.deleteResource({
-                resource: 'Organization',
-                id: organizationResource.resource.id,
-                database,
-              }, (err) => {
-                if (err) {
-                  return callback(err);
-                }
-                callback(null);
-              });
-            } else {
-              return callback(null);
-            }
-          });
-        }, (callback) => {
-          // save original id into extension then generate a new id for both org and location resource
-          const newLocationResource = lodash.cloneDeep(locationResource);
-          const newOrganizationResource = lodash.cloneDeep(organizationResource);
-          newLocationResource.resource.extension.push({
-            url: requestIdURI.uri,
-            valueString: newLocationResource.resource.id,
-          });
-          newLocationResource.resource.id = uuid4();
-          if (newOrganizationResource) {
-            if (!newOrganizationResource.resource.extension) {
-              newOrganizationResource.resource.extension = [];
-            }
-            newOrganizationResource.resource.extension.push({
-              url: requestIdURI.uri,
-              valueString: newOrganizationResource.resource.id,
-            });
-            newOrganizationResource.resource.id = uuid4();
-            newLocationResource.resource.managingOrganization = {
-              reference: `Organization/${newOrganizationResource.resource.id}`,
-            };
-          }
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'batch';
-          fhir.resourceType = 'Bundle';
-          if (newOrganizationResource) {
-            fhir.entry.push({
-              resource: newOrganizationResource.resource,
-              request: {
-                method: 'PUT',
-                url: `Organization/${newOrganizationResource.resource.id}`,
-              },
-            });
-          }
-          fhir.entry.push({
-            resource: newLocationResource.resource,
-            request: {
-              method: 'PUT',
-              url: `Location/${newLocationResource.resource.id}`,
-            },
-          });
-          this.saveLocations(fhir, database, (err, res) => {
-            if (err) {
-              winston.error(err);
-              return callback('An error has occured while changing request status');
-            }
-            return callback(null);
-          });
-        },
-      ], (err, response) => {
-        if (!err) {
-          let requestingUsername;
-          for (const ext of requestExtension) {
-            if (ext.url === 'username') {
-              requestingUsername = ext.valueString;
-            }
-          }
-          mongo.getUsersFromUsernames([requestingUsername], (err, data) => {
-            if (!err || !Array.isArray(data)) {
-              const subject = 'Status on Your Request';
-              const emailText = `Your request to ${requestType} facility with name ${locationResource.resource.name} has been ${status}`;
-              const emails = [data[0].email];
-              mail.send(subject, emailText, emails, () => {
+      const copyRequestLocationResource = lodash.cloneDeep(requestLocationResource);
+      const copyRequestOrganizationResource = lodash.cloneDeep(requestOrganizationResource);
 
+      const registryBundle = {};
+      const requestsBundle = {};
+      registryBundle.entry = [];
+      requestsBundle.entry = [];
+      registryBundle.type = 'batch';
+      requestsBundle.type = 'batch';
+      registryBundle.resourceType = 'Bundle';
+      requestsBundle.resourceType = 'Bundle';
+
+      let requestURI;
+      const facilityUpdateRequestURI = mixin.getCodesysteURI('facilityUpdateRequest');
+      const facilityAddRequestURI = mixin.getCodesysteURI('facilityAddRequest');
+      if (requestType === 'add' && status === 'approved') {
+        requestURI = facilityAddRequestURI.uri;
+      } else if (requestType === 'update') {
+        requestURI = facilityUpdateRequestURI.uri;
+      }
+
+      if (status === 'approved' && requestType === 'update') {
+        let updatingResourceID;
+        let ext = requestLocationResource.resource.extension && requestLocationResource.resource.extension.find((extension) => {
+          return extension.url === requestURI;
+        })
+        if (ext) {
+          const valRef = ext.extension.find((extension) => {
+            return extension.url === 'registryResourceId';
+          })
+          if (valRef) {
+            updatingResourceID = valRef.valueReference.reference.split('/').pop();
+          }
+        }
+        if (updatingResourceID) {
+          this.getLocationByID('', updatingResourceID, true, (regLoc) => {
+            if (!regLoc || !regLoc.entry || regLoc.entry.length === 0) {
+              winston.error(`No location with id ${updatingResourceID} found`);
+              return callback(`No location with id ${updatingResourceID} found`);
+            }
+            const registryLocationResource = regLoc.entry.find(entry => entry.resource.resourceType === 'Location');
+            const registryOganizationResource = regLoc.entry.find(entry => entry.resource.resourceType === 'Organization');
+            const registryLocationId = registryLocationResource.resource.id;
+            const registryLocationOrg = lodash.cloneDeep(registryLocationResource.resource.managingOrganization);
+            const registryOrganizationId = registryOganizationResource.resource.id;
+            Object.assign(registryLocationResource.resource, copyRequestLocationResource.resource);
+            Object.assign(registryOganizationResource.resource, copyRequestOrganizationResource.resource);
+            registryLocationResource.resource.id = registryLocationId;
+            registryLocationResource.resource.managingOrganization = registryLocationOrg;
+            if (registryOganizationResource && registryOganizationResource.resource) {
+              registryOganizationResource.resource.id = registryOrganizationId;
+            }
+            // remove request extension
+            for (const i in registryLocationResource.resource.extension) {
+              if (registryLocationResource.resource.extension[i].url === requestURI) {
+                registryLocationResource.resource.extension.splice(i, 1);
+              }
+            }
+            if (registryOganizationResource) {
+              registryBundle.entry.push({
+                resource: registryOganizationResource.resource,
+                request: {
+                  method: 'PUT',
+                  url: `Organization/${registryOganizationResource.resource.id}`,
+                },
               });
             }
-          });
-        }
-        if (!err && status === 'approved') {
-          const facilityUpdateRequestURI = mixin.getCodesysteURI('facilityUpdateRequest');
-          const facilityAddRequestURI = mixin.getCodesysteURI('facilityAddRequest');
-          let requestURI;
-          if (requestType === 'add') {
-            requestURI = facilityAddRequestURI.uri;
-          } else if (requestType === 'update') {
-            requestURI = facilityUpdateRequestURI.uri;
-          }
-          for (const i in locationResource.resource.extension) {
-            if (locationResource.resource.extension[i].url === requestURI) {
-              locationResource.resource.extension.splice(i, 1);
-            }
-          }
-          const fhir = {};
-          fhir.entry = [];
-          fhir.type = 'batch';
-          fhir.resourceType = 'Bundle';
-          if (organizationResource) {
-            fhir.entry.push({
-              resource: organizationResource.resource,
+            registryBundle.entry.push({
+              resource: registryLocationResource.resource,
               request: {
                 method: 'PUT',
-                url: `Organization/${organizationResource.resource.id}`,
+                url: `Location/${registryLocationResource.resource.id}`,
               },
             });
-          }
-          fhir.entry.push({
-            resource: locationResource.resource,
-            request: {
-              method: 'PUT',
-              url: `Location/${locationResource.resource.id}`,
-            },
-          });
-          database = '';
-          this.saveLocations(fhir, database, (err, res) => {
-            if (err) {
-              winston.error(err);
-              return callback(err);
-            }
-            return callback();
+            requestsBundle.entry.push({
+              resource: requestLocationResource.resource,
+              request: {
+                method: 'PUT',
+                url: `Location/${requestLocationResource.resource.id}`,
+              },
+            });
+            async.parallel({
+              updateRegistry: (callback) => {
+                this.saveLocations(registryBundle, '', (err, res) => {
+                  if (err) {
+                    winston.error(err);
+                    return callback(err);
+                  }
+                  return callback(null);
+                });
+              },
+              updateRequests: (callback) => {
+                this.saveLocations(requestsBundle, database, (err, res) => {
+                  if (err) {
+                    winston.error(err);
+                    return callback(err);
+                  }
+                  return callback(null);
+                });
+              },
+            }, (err) => {
+              if (err) {
+                return callback(err);
+              }
+              return callback();
+            });
           });
         } else {
-          return callback();
+          return callback(true);
         }
-      });
+      } else if (status === 'approved' && requestType === 'add') {
+        copyRequestLocationResource.resource.id = uuid4();
+        if (copyRequestOrganizationResource) {
+          copyRequestOrganizationResource.resource.id = uuid4();
+          copyRequestLocationResource.resource.managingOrganization = {
+            reference: "Organization/" + copyRequestOrganizationResource.resource.id
+          };
+        }
+        // remove request extension
+        for (const i in copyRequestLocationResource.resource.extension) {
+          if (copyRequestLocationResource.resource.extension[i].url === requestURI) {
+            copyRequestLocationResource.resource.extension.splice(i, 1);
+          }
+        }
+        // link the Location to be created into the registry with the requesting resource
+        for (const i in requestLocationResource.resource.extension) {
+          if (requestLocationResource.resource.extension[i].url === requestURI) {
+            requestLocationResource.resource.extension[i].extension.push({
+              url: 'registryResourceId',
+              valueReference: {
+                reference: 'Location/' + copyRequestLocationResource.resource.id,
+              },
+            });
+          }
+        }
+        if (copyRequestOrganizationResource) {
+          registryBundle.entry.push({
+            resource: copyRequestOrganizationResource.resource,
+            request: {
+              method: 'PUT',
+              url: `Organization/${copyRequestOrganizationResource.resource.id}`,
+            },
+          });
+        }
+        registryBundle.entry.push({
+          resource: copyRequestLocationResource.resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${copyRequestLocationResource.resource.id}`,
+          },
+        });
+        requestsBundle.entry.push({
+          resource: requestLocationResource.resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${requestLocationResource.resource.id}`,
+          },
+        });
+        async.parallel({
+          updateRegistry: (callback) => {
+            this.saveLocations(registryBundle, '', (err, res) => {
+              if (err) {
+                winston.error(err);
+                return callback(err);
+              }
+              return callback(null);
+            });
+          },
+          updateRequests: (callback) => {
+            this.saveLocations(requestsBundle, database, (err, res) => {
+              if (err) {
+                winston.error(err);
+                return callback(err);
+              }
+              return callback(null);
+            });
+          },
+        }, (err) => {
+          if (err) {
+            return callback(err);
+          }
+          return callback();
+        });
+      } else {
+        requestsBundle.entry.push({
+          resource: requestLocationResource.resource,
+          request: {
+            method: 'PUT',
+            url: `Location/${requestLocationResource.resource.id}`,
+          },
+        });
+        this.saveLocations(requestsBundle, database, (err, res) => {
+          if (err) {
+            winston.error(err);
+            return callback(err);
+          }
+          return callback(null);
+        });
+      }
     });
   },
 

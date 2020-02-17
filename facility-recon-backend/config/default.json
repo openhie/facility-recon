@@ -99,6 +99,9 @@
     "uri": "http://codesystem.digitalhealth.intrahealth.org/originalrequestid",
     "name": "originalRequestId"
   }, {
+    "uri": "http://codesystem.digitalhealth.intrahealth.org/updatingResourceID",
+    "name": "updatingResourceID"
+  }, {
     "uri": "http://codesystem.digitalhealth.intrahealth.org/facilityupdaterequest",
     "name": "facilityUpdateRequest"
   }, {
@@ -108,8 +111,8 @@
   "hapi": {
     "DBUser": "hapi",
     "DBPassword": "hapi",
-    "defaultDBName": "gofr",
-    "requestsDBName": "gofrrequests",
+    "defaultDBName": "gofr_empty",
+    "requestsDBName": "gofrrequests_empty",
     "fhirVersion": "R4",
     "DBDependencyGrpID": "org.postgresql",
     "DBDependencyArtfactID": "postgresql",
