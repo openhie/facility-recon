@@ -1,4 +1,4 @@
-FROM node:carbon
+FROM node:erbium-slim
 
 # install dependencies
 ADD package-lock.json /src/

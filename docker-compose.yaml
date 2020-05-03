@@ -24,8 +24,8 @@ services:
       - "3447:3447"
     restart: unless-stopped
 
-  facility-recon:
-    image: openhie/facility-recon:latest
+  facility-registry:
+    image: intrahealth/facility-registry:latest
     environment: 
       - HEARTH_URL=http://hearth:3447 
       - REDIS_HOST=redis 
