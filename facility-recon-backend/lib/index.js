@@ -115,8 +115,8 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 // socket config - large documents can cause machine to max files open
 
-// https.globalAgent.maxSockets = 32;
-// http.globalAgent.maxSockets = 32;
+https.globalAgent.maxSockets = 32;
+http.globalAgent.maxSockets = 32;
 
 const topOrgId = config.getConf('mCSD:fakeOrgId');
 const topOrgName = config.getConf('mCSD:fakeOrgName');
@@ -3097,6 +3097,32 @@ if (cluster.isMaster) {
             }
             if (data[headerMapping.code] == '') {
               populateData(headerMapping, data, 'Missing Facility ID', invalid);
+              rowMarkedInvalid = true;
+            }
+            let invalidCharsFound = false;
+            for (const char of data[headerMapping.code]) {
+              if (char === '.' || char === '-') {
+                continue;
+              }
+              if (char === '_') {
+                invalidCharsFound = true
+                break
+              }
+              let validate = /^\w+$/.test(char)
+              if (!validate) {
+                invalidCharsFound = true
+              }
+            }
+            if (invalidCharsFound) {
+              populateData(headerMapping, data, 'Invalid Characters In Facility ID, allowed chars are Aa-Zz, - and .', invalid);
+              rowMarkedInvalid = true;
+            }
+            if (!mixin.isFloat(data[headerMapping.lat]) && !mixin.isInt(data[headerMapping.lat])) {
+              populateData(headerMapping, data, 'Invalid Characters In latitude', invalid);
+              rowMarkedInvalid = true;
+            }
+            if (!mixin.isFloat(data[headerMapping.long]) && !mixin.isInt(data[headerMapping.long])) {
+              populateData(headerMapping, data, 'Invalid Characters In longitude', invalid);
               rowMarkedInvalid = true;
             }
             if (index === 0) {

@@ -10,7 +10,7 @@ const CancelToken = axios.CancelToken
 const backendServer = process.env.BACKEND_SERVER
 export const scoresMixin = {
   mixins: [generalMixin],
-  data() {
+  data () {
     return {
       loadingSource2Unmatched: false,
       loadingSource1Unmatched: false,
@@ -18,7 +18,7 @@ export const scoresMixin = {
     }
   },
   methods: {
-    scoreProgressCheckTimeout() {
+    scoreProgressCheckTimeout () {
       this.$store.state.scoresProgressData.scoreProgressTitle = 'Server is busy with automatching, please be patient'
       clearInterval(this.$store.state.scoresProgressData.progressReqTimer)
       let percent = parseInt(this.$store.state.scoresProgressData.scoreProgressPercent)
@@ -30,7 +30,7 @@ export const scoresMixin = {
         this.$store.state.scoresProgressData.scoreProgressTitle = 'Please be patient, waiting for server response'
       }
     },
-    scoreSavingProgressCheckTimeout() {
+    scoreSavingProgressCheckTimeout () {
       clearInterval(this.$store.state.scoreSavingProgressData.progressReqTimer)
       this.$store.state.scoreSavingProgressData.requestCancelled = true
       this.$store.state.scoreSavingProgressData.cancelTokenSource.cancel('Cancelling request.')
@@ -38,7 +38,7 @@ export const scoresMixin = {
       this.saveProgressTimedout = true
       console.log('timedout')
     },
-    checkScoreProgress() {
+    checkScoreProgress () {
       // if the req takes one minute without responding then display a message to user
       this.$store.state.scoresProgressData.cancelTokenSource = CancelToken.source()
       let time
@@ -189,7 +189,7 @@ export const scoresMixin = {
         }
       })
     },
-    checkScoreSavingStatus() {
+    checkScoreSavingStatus () {
       // if the req takes one minute without responding then display a message to user
       this.$store.state.scoreSavingProgressData.cancelTokenSource = CancelToken.source()
       this.$store.state.scoreSavingProgressData.progressReqTimer = setInterval(
@@ -250,7 +250,7 @@ export const scoresMixin = {
           }
         })
     },
-    getScores(getPotential) {
+    getScores (getPotential) {
       if (!getPotential) {
         getPotential = false
       }
@@ -311,28 +311,28 @@ export const scoresMixin = {
       })
       // this.$store.state.scoresProgressData.scoreProgressTimer = setInterval(this.checkScoreProgress, 2000)
     },
-    getSource1() {
+    getSource1 () {
       let source = this.$store.state.activePair.source1.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
-    getSource2() {
+    getSource2 () {
       let source = this.$store.state.activePair.source2.name
       if (source) {
         source = this.toTitleCase(source)
       }
       return source
     },
-    getSource1Name() {
+    getSource1Name () {
       return this.$store.state.activePair.source1.name
     },
-    getSource2Name() {
+    getSource2Name () {
       return this.$store.state.activePair.source2.name
     }
   },
-  created() {
+  created () {
     eventBus.$on('changeCSVHeaderNames', () => {
       this.$store.state.levelArray = []
       for (var k = 1; k < this.$store.state.totalSource1Levels; k++) {

@@ -4,6 +4,14 @@ const winston = require('winston');
 
 module.exports = function () {
   return {
+    isFloat(val) {
+      val = parseFloat(val);
+      return +val === val && (!isFinite(val) || !!(val % 1));
+    },
+    isInt(val) {
+      val = Number(val);
+      return val === +val && isFinite(val) && !(val % 1);
+    },
     toTitleCase(str) {
       if (!str) {
         return str;
