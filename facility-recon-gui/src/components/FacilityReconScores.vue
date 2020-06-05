@@ -1149,44 +1149,44 @@
   </v-container>
 </template>
 <script>
-import axios from 'axios'
-import LiquorTree from 'liquor-tree'
-import { scoresMixin } from '../mixins/scoresMixin'
-import { generalMixin } from '../mixins/generalMixin'
-import { eventBus } from '../main'
-import ReconciliationExport from './ReconciliationExport'
+import axios from "axios";
+import LiquorTree from "liquor-tree";
+import { scoresMixin } from "../mixins/scoresMixin";
+import { generalMixin } from "../mixins/generalMixin";
+import { eventBus } from "../main";
+import ReconciliationExport from "./ReconciliationExport";
 
-const backendServer = process.env.BACKEND_SERVER
+const backendServer = process.env.BACKEND_SERVER;
 
 export default {
   mixins: [scoresMixin, generalMixin],
-  data () {
+  data() {
     return {
-      clientId: '',
+      clientId: "",
       flagCommentDialog: false,
-      flagComment: '',
+      flagComment: "",
       helpDialog: false,
-      type: '',
-      source2Id: '',
-      source2Name: '',
-      sort_arrow: 'up',
-      pagination: { sortBy: 'score' },
+      type: "",
+      source2Id: "",
+      source2Name: "",
+      sort_arrow: "up",
+      pagination: { sortBy: "score" },
       recoLevel: 0,
-      searchUnmatchedSource2: '',
-      searchUnmatchedSource1: '',
-      searchPotential: '',
-      searchMatched: '',
-      searchNotMatched: '',
-      searchIgnore: '',
-      searchFlagged: '',
+      searchUnmatchedSource2: "",
+      searchUnmatchedSource1: "",
+      searchPotential: "",
+      searchMatched: "",
+      searchNotMatched: "",
+      searchIgnore: "",
+      searchFlagged: "",
       potentialMatches: [],
       showAllPotential: false,
-      alertText: '',
-      alertTitle: '',
+      alertText: "",
+      alertTitle: "",
       alert: false,
       saveProgressTimedout: false,
       source1Parents: {},
-      source1Filter: { text: '', level: '' },
+      source1Filter: { text: "", level: "" },
       source1TreeUpdate: 0,
       selectedSource1: {},
       selectedSource1Name: null,
@@ -1195,195 +1195,211 @@ export default {
       selectedSource1Long: null,
       selectedSource1Parents: [],
       dialog: false,
-      dialogWidth: '',
-      source1UnmatchedHeaders: [{ text: 'Location', value: 'name' }],
+      dialogWidth: "",
+      source1UnmatchedHeaders: [{ text: "Location", value: "name" }],
       noMatchHeaders: [
-        { text: 'Source 1 Location', value: 'source1Name' },
-        { text: 'Source 1 ID', value: 'source1Id' },
-        { text: 'Parents', value: 'parents' }
+        { text: "Source 1 Location", value: "source1Name" },
+        { text: "Source 1 ID", value: "source1Id" },
+        { text: "Parents", value: "parents" }
       ],
       flaggedHeaders: [
-        { text: 'Source 1 Location', value: 'source1Name' },
-        { text: 'Source 1 ID', value: 'source1Id' },
-        { text: 'Source 2 Location', value: 'source2Name' },
-        { text: 'Source 2 ID', value: 'source2Id' },
-        { text: 'Comment', value: 'flagComment' }
+        { text: "Source 1 Location", value: "source1Name" },
+        { text: "Source 1 ID", value: "source1Id" },
+        { text: "Source 2 Location", value: "source2Name" },
+        { text: "Source 2 ID", value: "source2Id" },
+        { text: "Comment", value: "flagComment" }
       ]
-    }
+    };
   },
   filters: {
-    removeCountry (parents) {
-      var parentsCopy = parents.slice(0)
-      parentsCopy.splice(parentsCopy.length - 1, 1)
-      return parentsCopy
+    removeCountry(parents) {
+      var parentsCopy = parents.slice(0);
+      parentsCopy.splice(parentsCopy.length - 1, 1);
+      return parentsCopy;
     },
-    joinParents (parents) {
-      return parents.join('->')
+    joinParents(parents) {
+      return parents.join("->");
     },
-    joinParentsAndReverse (parents) {
-      return [...parents].reverse().join('->')
+    joinParentsAndReverse(parents) {
+      return [...parents].reverse().join("->");
     }
   },
   methods: {
-    changeSort (column) {
+    changeSort(column) {
       if (this.pagination.sortBy === column) {
-        this.pagination.descending = !this.pagination.descending
+        this.pagination.descending = !this.pagination.descending;
       } else {
-        this.pagination.sortBy = column
-        this.pagination.descending = false
+        this.pagination.sortBy = column;
+        this.pagination.descending = false;
       }
       if (this.pagination.descending) {
-        this.sort_arrow = 'down'
+        this.sort_arrow = "down";
       } else {
-        this.sort_arrow = 'up'
+        this.sort_arrow = "up";
       }
     },
-    addListener () {
+    addListener() {
       const setListener = () => {
         if (this.$refs && this.$refs.source1Tree) {
-          this.$refs.source1Tree.$on('node:selected', node => {
-            this.source1Filter.text = node.data.text
-            let level = 1
+          this.$refs.source1Tree.$on("node:selected", node => {
+            this.source1Filter.text = node.data.text;
+            let level = 1;
             while (node.parent) {
-              node = node.parent
-              level++
+              node = node.parent;
+              level++;
             }
-            this.source1Filter.level = level
-          })
+            this.source1Filter.level = level;
+          });
         } else {
-          setTimeout(function () {
-            setListener()
-          }, 500)
+          setTimeout(function() {
+            setListener();
+          }, 500);
         }
-      }
-      setListener()
+      };
+      setListener();
     },
-    levelChanged (level) {
+    levelChanged(level) {
       if (this.$store.state.recoLevel === level) {
-        return
+        return;
       }
-      this.$store.state.recoLevel = level
-      this.getScores(false)
+      this.$store.state.recoLevel = level;
+      this.getScores(false);
       if (
         this.$store.state.recoLevel === this.$store.state.totalSource1Levels
       ) {
-        this.dialogWidth = '1440px'
+        this.dialogWidth = "1440px";
       } else {
-        this.dialogWidth = '1190px'
+        this.dialogWidth = "1190px";
       }
     },
-    getBuildingPotentialMatches (id) {
-      this.potentialMatches = []
-      let source1 = this.getSource1()
-      let source2 = this.getSource2()
-      let recoLevel = this.$store.state.recoLevel
-      let totalSource1Levels = this.$store.state.totalSource1Levels
-      let totalSource2Levels = this.$store.state.totalSource2Levels
+    getBuildingPotentialMatches(id) {
+      this.potentialMatches = [];
+      let source1 = this.getSource1();
+      let source2 = this.getSource2();
+      let recoLevel = this.$store.state.recoLevel;
+      let totalSource1Levels = this.$store.state.totalSource1Levels;
+      let totalSource2Levels = this.$store.state.totalSource2Levels;
       if (this.clientId) {
-        let lastChar = this.clientId[this.clientId.length - 1]
-        lastChar = parseInt(lastChar)
-        lastChar += 1
-        this.clientId += lastChar
+        let lastChar = this.clientId[this.clientId.length - 1];
+        lastChar = parseInt(lastChar);
+        lastChar += 1;
+        this.clientId += lastChar;
       } else {
-        let lastChar = this.$store.state.clientId[this.$store.state.clientId.length - 1]
-        lastChar = parseInt(lastChar)
-        lastChar += 1
-        this.clientId = this.$store.state.clientId + lastChar
+        let lastChar = this.$store.state.clientId[
+          this.$store.state.clientId.length - 1
+        ];
+        lastChar = parseInt(lastChar);
+        lastChar += 1;
+        this.clientId = this.$store.state.clientId + lastChar;
       }
 
-      let sourcesOwner = this.getDatasourceOwner()
-      let userID = this.$store.state.activePair.userID._id
-      let source1Owner = sourcesOwner.source1Owner
-      let source2Owner = sourcesOwner.source2Owner
-      let source1LimitOrgId = this.getLimitOrgIdOnActivePair().source1LimitOrgId
-      let source2LimitOrgId = this.getLimitOrgIdOnActivePair().source2LimitOrgId
-      let parentConstraint = JSON.stringify(this.$store.state.config.generalConfig.reconciliation.parentConstraint)
-      let path = `id=${id}&source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`
-      path += `&recoLevel=${recoLevel}&clientId=${this.clientId}&userID=${userID}&parentConstraint=` + parentConstraint + '&getPotential=' + true
-      this.$store.state.dynamicProgress = true
-      this.$store.state.progressTitle = 'Getting potential matches from server'
-      axios.get(backendServer + '/reconcile/?' + path).then((response) => {
-        this.$store.state.dynamicProgress = false
-        if (response.data) {
-          let scores = JSON.parse(response.data).responseData.scoreResults
-          if (scores.length > 0) {
-            let matches = scores[0]
-            const exactMatches = matches.exactMatch
-            if (Object.keys(exactMatches).length > 0) {
-              this.$store.state.dialogError = true
-              this.$store.state.errorDescription = 'This location is already mapped, please recalculate scores to get changes'
-              this.$store.state.errorTitle = 'Info'
-              this.$store.state.errorColor = 'error'
-              return
-            }
-            this.selectedSource1 = matches.source1
-            this.selectedSource1Name = matches.source1.name
-            this.selectedSource1Parents = matches.source1.parents
-            this.selectedSource1Lat = matches.source1.lat
-            this.selectedSource1Long = matches.source1.long
-            this.selectedSource1Id = matches.source1.id
-            for (let score in matches.potentialMatches) {
-              for (let j in matches.potentialMatches[score]) {
-                let potentials = matches.potentialMatches[score][j]
-                var matched = this.$store.state.matchedContent.find(matched => {
-                  return matched.source2Id === potentials.id
-                })
-                var flagged = this.$store.state.flagged.find(flagged => {
-                  return flagged.source2Id === potentials.id
-                })
-                if (matched) {
-                  continue
+      let sourcesOwner = this.getDatasourceOwner();
+      let userID = this.$store.state.activePair.userID._id;
+      let source1Owner = sourcesOwner.source1Owner;
+      let source2Owner = sourcesOwner.source2Owner;
+      let source1LimitOrgId = this.getLimitOrgIdOnActivePair()
+        .source1LimitOrgId;
+      let source2LimitOrgId = this.getLimitOrgIdOnActivePair()
+        .source2LimitOrgId;
+      let parentConstraint = JSON.stringify(
+        this.$store.state.config.generalConfig.reconciliation.parentConstraint
+      );
+      let path = `id=${id}&source1=${source1}&source2=${source2}&source1Owner=${source1Owner}&source2Owner=${source2Owner}&source1LimitOrgId=${source1LimitOrgId}&source2LimitOrgId=${source2LimitOrgId}&totalSource1Levels=${totalSource1Levels}&totalSource2Levels=${totalSource2Levels}`;
+      path +=
+        `&recoLevel=${recoLevel}&clientId=${this.clientId}&userID=${userID}&parentConstraint=` +
+        parentConstraint +
+        "&getPotential=" +
+        true;
+      this.$store.state.dynamicProgress = true;
+      this.$store.state.progressTitle = "Getting potential matches from server";
+      axios
+        .get(backendServer + "/reconcile/?" + path)
+        .then(response => {
+          this.$store.state.dynamicProgress = false;
+          if (response.data) {
+            let scores = JSON.parse(response.data).responseData.scoreResults;
+            if (scores.length > 0) {
+              let matches = scores[0];
+              const exactMatches = matches.exactMatch;
+              if (Object.keys(exactMatches).length > 0) {
+                this.$store.state.dialogError = true;
+                this.$store.state.errorDescription =
+                  "This location is already mapped, please recalculate scores to get changes";
+                this.$store.state.errorTitle = "Info";
+                this.$store.state.errorColor = "error";
+                return;
+              }
+              this.selectedSource1 = matches.source1;
+              this.selectedSource1Name = matches.source1.name;
+              this.selectedSource1Parents = matches.source1.parents;
+              this.selectedSource1Lat = matches.source1.lat;
+              this.selectedSource1Long = matches.source1.long;
+              this.selectedSource1Id = matches.source1.id;
+              for (let score in matches.potentialMatches) {
+                for (let j in matches.potentialMatches[score]) {
+                  let potentials = matches.potentialMatches[score][j];
+                  var matched = this.$store.state.matchedContent.find(
+                    matched => {
+                      return matched.source2Id === potentials.id;
+                    }
+                  );
+                  var flagged = this.$store.state.flagged.find(flagged => {
+                    return flagged.source2Id === potentials.id;
+                  });
+                  if (matched) {
+                    continue;
+                  }
+                  if (flagged) {
+                    continue;
+                  }
+                  this.potentialMatches.push({
+                    score: score,
+                    name: potentials.name,
+                    id: potentials.id,
+                    source2IdHierarchy: potentials.source2IdHierarchy,
+                    lat: potentials.lat,
+                    long: potentials.long,
+                    geoDistance: potentials.geoDistance,
+                    parents: potentials.parents,
+                    mappedParentName: potentials.mappedParentName
+                  });
                 }
-                if (flagged) {
-                  continue
-                }
-                this.potentialMatches.push({
-                  score: score,
-                  name: potentials.name,
-                  id: potentials.id,
-                  source2IdHierarchy: potentials.source2IdHierarchy,
-                  lat: potentials.lat,
-                  long: potentials.long,
-                  geoDistance: potentials.geoDistance,
-                  parents: potentials.parents,
-                  mappedParentName: potentials.mappedParentName
-                })
               }
             }
+            this.dialog = true;
+          } else {
+            this.dialog = true;
           }
-          this.dialog = true
-        } else {
-          this.dialog = true
-        }
-      }).catch((error) => {
-        console.log(error)
-      })
+        })
+        .catch(error => {
+          console.log(error);
+        });
     },
-    getJurisdictionPotentialMatches (id) {
-      this.potentialMatches = []
-      this.showAllPotential = false
+    getJurisdictionPotentialMatches(id) {
+      this.potentialMatches = [];
+      this.showAllPotential = false;
       for (let scoreResult of this.$store.state.scoreResults) {
         if (scoreResult.source1.id === id) {
-          this.selectedSource1 = scoreResult.source1
-          this.selectedSource1Name = scoreResult.source1.name
-          this.selectedSource1Parents = scoreResult.source1.parents
-          this.selectedSource1Lat = scoreResult.source1.lat
-          this.selectedSource1Long = scoreResult.source1.long
-          this.selectedSource1Id = scoreResult.source1.id
+          this.selectedSource1 = scoreResult.source1;
+          this.selectedSource1Name = scoreResult.source1.name;
+          this.selectedSource1Parents = scoreResult.source1.parents;
+          this.selectedSource1Lat = scoreResult.source1.lat;
+          this.selectedSource1Long = scoreResult.source1.long;
+          this.selectedSource1Id = scoreResult.source1.id;
           for (let score in scoreResult.potentialMatches) {
             for (let j in scoreResult.potentialMatches[score]) {
-              let potentials = scoreResult.potentialMatches[score][j]
+              let potentials = scoreResult.potentialMatches[score][j];
               var matched = this.$store.state.matchedContent.find(matched => {
-                return matched.source2Id === potentials.id
-              })
+                return matched.source2Id === potentials.id;
+              });
               var flagged = this.$store.state.flagged.find(flagged => {
-                return flagged.source2Id === potentials.id
-              })
+                return flagged.source2Id === potentials.id;
+              });
               if (matched) {
-                continue
+                continue;
               }
               if (flagged) {
-                continue
+                continue;
               }
               this.potentialMatches.push({
                 score: score,
@@ -1395,117 +1411,124 @@ export default {
                 geoDistance: potentials.geoDistance,
                 parents: potentials.parents,
                 mappedParentName: potentials.mappedParentName
-              })
+              });
             }
           }
         }
       }
-      this.dialog = true
+      this.dialog = true;
     },
-    getPotentialMatch (id) {
-      this.getBuildingPotentialMatches(id)
+    getPotentialMatch(id) {
+      this.getBuildingPotentialMatches(id);
       // if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
       //   this.getBuildingPotentialMatches(id)
       // } else {
       //   this.getJurisdictionPotentialMatches(id)
       // }
     },
-    potentialMatchComment (potentialMatch) {
-      let comment = ''
+    potentialMatchComment(potentialMatch) {
+      let comment = "";
       // check if ID different
-      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
-        let source1IDs = []
-        let source2IDs = []
+      if (
+        this.$store.state.recoLevel === this.$store.state.totalSource1Levels
+      ) {
+        let source1IDs = [];
+        let source2IDs = [];
         if (this.selectedSource1.source1IdHierarchy) {
-          source1IDs.push(this.selectedSource1.source1IdHierarchy[0].id)
-          for (let child of this.selectedSource1.source1IdHierarchy[0].children) {
-            source1IDs.push(child.id)
+          source1IDs.push(this.selectedSource1.source1IdHierarchy[0].id);
+          for (let child of this.selectedSource1.source1IdHierarchy[0]
+            .children) {
+            source1IDs.push(child.id);
           }
         }
         if (potentialMatch.source2IdHierarchy) {
-          source2IDs.push(potentialMatch.source2IdHierarchy[0].id)
+          source2IDs.push(potentialMatch.source2IdHierarchy[0].id);
           for (let child of potentialMatch.source2IdHierarchy[0].children) {
-            source2IDs.push(child.id)
+            source2IDs.push(child.id);
           }
         }
 
-        let exist = source1IDs.some(id1 => source2IDs.indexOf(id1) >= 0)
+        let exist = source1IDs.some(id1 => source2IDs.indexOf(id1) >= 0);
         if (!exist) {
           if (comment) {
-            comment += ', '
+            comment += ", ";
           }
-          comment += 'ID differ'
+          comment += "ID differ";
         }
       }
 
       // check if names are different
-      if (potentialMatch.name.toLowerCase() !== this.selectedSource1.name.toLowerCase()) {
+      if (
+        potentialMatch.name.toLowerCase() !==
+        this.selectedSource1.name.toLowerCase()
+      ) {
         if (comment) {
-          comment += ', '
+          comment += ", ";
         }
-        comment += 'Names differ'
+        comment += "Names differ";
       }
 
       // check if parents are different
-      const source2Parent = potentialMatch.mappedParentName
-      const source1Parent = this.selectedSource1.parents[0]
+      const source2Parent = potentialMatch.mappedParentName;
+      const source1Parent = this.selectedSource1.parents[0];
       if (source1Parent !== source2Parent) {
         if (comment) {
-          comment += ', '
+          comment += ", ";
         }
-        comment += 'Parents differ'
+        comment += "Parents differ";
       }
 
-      return comment
+      return comment;
     },
-    match (type, source2Id, source2Name, source2IdHierarchy, mappedParentName) {
-      this.matchType = type
-      this.source2Id = source2Id
-      this.source2Name = source2Name
-      this.source2IdHierarchy = source2IdHierarchy
-      this.mappedParentName = mappedParentName
+    match(type, source2Id, source2Name, source2IdHierarchy, mappedParentName) {
+      this.matchType = type;
+      this.source2Id = source2Id;
+      this.source2Name = source2Name;
+      this.source2IdHierarchy = source2IdHierarchy;
+      this.mappedParentName = mappedParentName;
       if (source2Id === null) {
-        this.alert = true
-        this.alertTitle = 'Information'
-        this.alertText = 'Select Source 2 Location to match against Source 1 Location'
-        return
+        this.alert = true;
+        this.alertTitle = "Information";
+        this.alertText =
+          "Select Source 2 Location to match against Source 1 Location";
+        return;
       }
-      if (type === 'flag') {
-        this.flagCommentDialog = true
+      if (type === "flag") {
+        this.flagCommentDialog = true;
       } else {
-        this.saveMatch()
+        this.saveMatch();
       }
     },
-    saveMatch () {
-      this.flagCommentDialog = false
-      this.$store.state.progressTitle = 'Saving match'
-      this.$store.state.dynamicProgress = true
-      let sourcesOwner = this.getDatasourceOwner()
-      let formData = new FormData()
-      formData.append('source1Id', this.selectedSource1Id)
-      formData.append('source2Id', this.source2Id)
-      formData.append('source1Owner', sourcesOwner.source1Owner)
-      formData.append('source2Owner', sourcesOwner.source2Owner)
-      formData.append('flagComment', this.flagComment)
-      formData.append('source1DB', this.getSource1())
-      formData.append('source2DB', this.getSource2())
-      formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalSource1Levels)
-      formData.append('userID', this.$store.state.activePair.userID._id)
+    saveMatch() {
+      this.flagCommentDialog = false;
+      this.$store.state.progressTitle = "Saving match";
+      this.$store.state.dynamicProgress = true;
+      let sourcesOwner = this.getDatasourceOwner();
+      let formData = new FormData();
+      formData.append("source1Id", this.selectedSource1Id);
+      formData.append("source2Id", this.source2Id);
+      formData.append("source1Owner", sourcesOwner.source1Owner);
+      formData.append("source2Owner", sourcesOwner.source2Owner);
+      formData.append("flagComment", this.flagComment);
+      formData.append("source1DB", this.getSource1());
+      formData.append("source2DB", this.getSource2());
+      formData.append("recoLevel", this.$store.state.recoLevel);
+      formData.append("totalLevels", this.$store.state.totalSource1Levels);
+      formData.append("userID", this.$store.state.activePair.userID._id);
       axios
-        .post(backendServer + '/match/' + this.matchType, formData, {
+        .post(backendServer + "/match/" + this.matchType, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            "Content-Type": "multipart/form-data"
           }
         })
         .then(response => {
-          this.$store.state.dynamicProgress = false
+          this.$store.state.dynamicProgress = false;
           // remove from Source 2 Unmatched
-          let source2Parents = null
+          let source2Parents = null;
           for (let k in this.$store.state.source2UnMatched) {
             if (this.$store.state.source2UnMatched[k].id === this.source2Id) {
-              source2Parents = this.$store.state.source2UnMatched[k].parents
-              this.$store.state.source2UnMatched.splice(k, 1)
+              source2Parents = this.$store.state.source2UnMatched[k].parents;
+              this.$store.state.source2UnMatched.splice(k, 1);
             }
           }
 
@@ -1515,8 +1538,8 @@ export default {
               this.$store.state.source1UnMatched[k].id ===
               this.selectedSource1Id
             ) {
-              if (this.matchType === 'match') {
-                ++this.$store.state.totalAllMapped
+              if (this.matchType === "match") {
+                ++this.$store.state.totalAllMapped;
                 this.$store.state.matchedContent.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
@@ -1527,9 +1550,9 @@ export default {
                   mappedParentName: this.mappedParentName,
                   source2Parents: source2Parents,
                   matchComments: response.data.matchComments
-                })
-              } else if (this.matchType === 'flag') {
-                ++this.$store.state.totalAllFlagged
+                });
+              } else if (this.matchType === "flag") {
+                ++this.$store.state.totalAllFlagged;
                 this.$store.state.flagged.push({
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
@@ -1540,37 +1563,47 @@ export default {
                   mappedParentName: this.mappedParentName,
                   source2Parents: source2Parents,
                   flagComment: this.flagComment
-                })
+                });
               }
-              this.$store.state.source1UnMatched.splice(k, 1)
+              this.$store.state.source1UnMatched.splice(k, 1);
             }
           }
-          this.flagComment = ''
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
+          this.flagComment = "";
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
         })
         .catch(err => {
-          this.flagComment = ''
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
-        })
+          this.flagComment = "";
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
+        });
     },
-    acceptFlag (source1Id) {
-      this.$store.state.progressTitle = 'Accepting flag'
-      this.$store.state.dynamicProgress = true
-      let formData = new FormData()
-      formData.append('source1Id', source1Id)
-      let userID = this.$store.state.activePair.userID._id
+    acceptFlag(source1Id) {
+      this.$store.state.progressTitle = "Accepting flag";
+      this.$store.state.dynamicProgress = true;
+      let formData = new FormData();
+      formData.append("source1Id", source1Id);
+      let userID = this.$store.state.activePair.userID._id;
       axios
-        .post(backendServer + '/acceptFlag/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .post(
+          backendServer +
+            "/acceptFlag/" +
+            this.getSource1() +
+            "/" +
+            this.getSource2() +
+            "/" +
+            userID,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        )
         .then(() => {
-          this.$store.state.dynamicProgress = false
+          this.$store.state.dynamicProgress = false;
           // Add from a list of Source 1 Matched and remove from list of Flagged
           for (let k in this.$store.state.flagged) {
             if (this.$store.state.flagged[k].source1Id === source1Id) {
@@ -1580,191 +1613,241 @@ export default {
                 source1Parents: this.$store.state.flagged[k].source1Parents,
                 source2Name: this.$store.state.flagged[k].source2Name,
                 source2Id: this.$store.state.flagged[k].source2Id,
-                source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
+                source2IdHierarchy: this.$store.state.flagged[k]
+                  .source2IdHierarchy,
                 mappedParentName: this.$store.state.flagged[k].mappedParentName,
                 source2Parents: this.$store.state.flagged[k].source2Parents
-              })
-              this.$store.state.flagged.splice(k, 1)
-              ++this.$store.state.totalAllMapped
-              --this.$store.state.totalAllFlagged
+              });
+              this.$store.state.flagged.splice(k, 1);
+              ++this.$store.state.totalAllMapped;
+              --this.$store.state.totalAllFlagged;
             }
           }
         })
         .catch(err => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
-          console.log(err)
-        })
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
+          console.log(err);
+        });
     },
-    breakMatch (source1Id) {
-      this.$store.state.progressTitle = 'Breaking match'
-      this.$store.state.dynamicProgress = true
-      let formData = new FormData()
-      let userID = this.$store.state.activePair.userID._id
-      let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source1Id', source1Id)
-      axios.post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
-      )
+    breakMatch(source1Id) {
+      this.$store.state.progressTitle = "Breaking match";
+      this.$store.state.dynamicProgress = true;
+      let formData = new FormData();
+      let userID = this.$store.state.activePair.userID._id;
+      let sourcesOwner = this.getDatasourceOwner();
+      formData.append("source1Id", source1Id);
+      axios
+        .post(
+          backendServer +
+            "/breakMatch/" +
+            this.getSource1() +
+            "/" +
+            this.getSource2() +
+            "/" +
+            sourcesOwner.source1Owner +
+            "/" +
+            sourcesOwner.source2Owner +
+            "/" +
+            userID,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        )
         .then(data => {
-          this.$store.state.dynamicProgress = false
+          this.$store.state.dynamicProgress = false;
           for (let k in this.$store.state.matchedContent) {
             if (this.$store.state.matchedContent[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.matchedContent[k].source1Name,
                 id: this.$store.state.matchedContent[k].source1Id,
                 parents: this.$store.state.matchedContent[k].source1Parents
-              })
+              });
               this.$store.state.source2UnMatched.push({
                 name: this.$store.state.matchedContent[k].source2Name,
                 id: this.$store.state.matchedContent[k].source2Id,
-                source2IdHierarchy: this.$store.state.matchedContent[k].source2IdHierarchy,
-                mappedParentName: this.$store.state.matchedContent[k].mappedParentName,
+                source2IdHierarchy: this.$store.state.matchedContent[k]
+                  .source2IdHierarchy,
+                mappedParentName: this.$store.state.matchedContent[k]
+                  .mappedParentName,
                 parents: this.$store.state.matchedContent[k].source2Parents
-              })
-              this.$store.state.matchedContent.splice(k, 1)
-              --this.$store.state.totalAllMapped
+              });
+              this.$store.state.matchedContent.splice(k, 1);
+              --this.$store.state.totalAllMapped;
             }
           }
         })
         .catch(err => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
-          console.log(err)
-        })
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
+          console.log(err);
+        });
     },
-    unFlag (source1Id) {
-      this.$store.state.progressTitle = 'Unflagging match'
-      this.$store.state.dynamicProgress = true
-      let formData = new FormData()
-      let userID = this.$store.state.activePair.userID._id
-      let sourcesOwner = this.getDatasourceOwner()
-      formData.append('source1Id', source1Id)
-      axios.post(backendServer + '/breakMatch/' + this.getSource1() + '/' + this.getSource2() + '/' + sourcesOwner.source1Owner + '/' + sourcesOwner.source2Owner + '/' + userID, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
-      )
+    unFlag(source1Id) {
+      this.$store.state.progressTitle = "Unflagging match";
+      this.$store.state.dynamicProgress = true;
+      let formData = new FormData();
+      let userID = this.$store.state.activePair.userID._id;
+      let sourcesOwner = this.getDatasourceOwner();
+      formData.append("source1Id", source1Id);
+      axios
+        .post(
+          backendServer +
+            "/breakMatch/" +
+            this.getSource1() +
+            "/" +
+            this.getSource2() +
+            "/" +
+            sourcesOwner.source1Owner +
+            "/" +
+            sourcesOwner.source2Owner +
+            "/" +
+            userID,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        )
         .then(data => {
-          this.$store.state.dynamicProgress = false
+          this.$store.state.dynamicProgress = false;
           for (let k in this.$store.state.flagged) {
             if (this.$store.state.flagged[k].source1Id === source1Id) {
               this.$store.state.source1UnMatched.push({
                 name: this.$store.state.flagged[k].source1Name,
                 id: this.$store.state.flagged[k].source1Id,
                 parents: this.$store.state.flagged[k].source1Parents
-              })
+              });
               this.$store.state.source2UnMatched.push({
                 name: this.$store.state.flagged[k].source2Name,
                 id: this.$store.state.flagged[k].source2Id,
-                source2IdHierarchy: this.$store.state.flagged[k].source2IdHierarchy,
+                source2IdHierarchy: this.$store.state.flagged[k]
+                  .source2IdHierarchy,
                 mappedParentName: this.$store.state.flagged[k].mappedParentName,
                 parents: this.$store.state.flagged[k].source2Parents
-              })
-              this.$store.state.flagged.splice(k, 1)
-              --this.$store.state.totalAllFlagged
+              });
+              this.$store.state.flagged.splice(k, 1);
+              --this.$store.state.totalAllFlagged;
             }
           }
         })
         .catch(err => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
-          console.log(err)
-        })
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
+          console.log(err);
+        });
     },
-    breakNoMatch (source1Id, type) {
-      this.$store.state.progressTitle = 'Breaking no match'
-      this.$store.state.dynamicProgress = true
-      let formData = new FormData()
-      formData.append('source1Id', source1Id)
-      formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalSource1Levels)
-      let userID = this.$store.state.activePair.userID._id
-      axios.post(backendServer + '/breakNoMatch/' + type + '/' + this.getSource1() + '/' + this.getSource2() + '/' + userID, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then(data => {
-        this.$store.state.dynamicProgress = false
-        if (type === 'nomatch') {
-          for (let k in this.$store.state.noMatchContent) {
-            if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
-              this.$store.state.source1UnMatched.push({
-                name: this.$store.state.noMatchContent[k].source1Name,
-                id: this.$store.state.noMatchContent[k].source1Id,
-                parents: this.$store.state.noMatchContent[k].parents
-              })
-              this.$store.state.noMatchContent.splice(k, 1)
-              --this.$store.state.totalAllNoMatch
+    breakNoMatch(source1Id, type) {
+      this.$store.state.progressTitle = "Breaking no match";
+      this.$store.state.dynamicProgress = true;
+      let formData = new FormData();
+      formData.append("source1Id", source1Id);
+      formData.append("recoLevel", this.$store.state.recoLevel);
+      formData.append("totalLevels", this.$store.state.totalSource1Levels);
+      let userID = this.$store.state.activePair.userID._id;
+      axios
+        .post(
+          backendServer +
+            "/breakNoMatch/" +
+            type +
+            "/" +
+            this.getSource1() +
+            "/" +
+            this.getSource2() +
+            "/" +
+            userID,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
             }
           }
-        } else if (type === 'ignore') {
-          for (let k in this.$store.state.ignoreContent) {
-            if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
-              this.$store.state.source1UnMatched.push({
-                name: this.$store.state.ignoreContent[k].source1Name,
-                id: this.$store.state.ignoreContent[k].source1Id,
-                parents: this.$store.state.ignoreContent[k].parents
-              })
-              this.$store.state.ignoreContent.splice(k, 1)
-              --this.$store.state.totalAllIgnore
+        )
+        .then(data => {
+          this.$store.state.dynamicProgress = false;
+          if (type === "nomatch") {
+            for (let k in this.$store.state.noMatchContent) {
+              if (this.$store.state.noMatchContent[k].source1Id === source1Id) {
+                this.$store.state.source1UnMatched.push({
+                  name: this.$store.state.noMatchContent[k].source1Name,
+                  id: this.$store.state.noMatchContent[k].source1Id,
+                  parents: this.$store.state.noMatchContent[k].parents
+                });
+                this.$store.state.noMatchContent.splice(k, 1);
+                --this.$store.state.totalAllNoMatch;
+              }
+            }
+          } else if (type === "ignore") {
+            for (let k in this.$store.state.ignoreContent) {
+              if (this.$store.state.ignoreContent[k].source1Id === source1Id) {
+                this.$store.state.source1UnMatched.push({
+                  name: this.$store.state.ignoreContent[k].source1Name,
+                  id: this.$store.state.ignoreContent[k].source1Id,
+                  parents: this.$store.state.ignoreContent[k].parents
+                });
+                this.$store.state.ignoreContent.splice(k, 1);
+                --this.$store.state.totalAllIgnore;
+              }
             }
           }
-        }
-      })
+        })
         .catch(err => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-          this.dialog = false
-          console.log(err)
-        })
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+          this.dialog = false;
+          console.log(err);
+        });
     },
-    noMatch (type) {
-      this.$store.state.progressTitle = 'Saving as no match'
-      this.$store.state.dynamicProgress = true
-      let userID = this.$store.state.activePair.userID._id
-      let sourcesOwner = this.getDatasourceOwner()
-      let source1Owner = sourcesOwner.source1Owner
-      let source2Owner = sourcesOwner.source2Owner
-      let formData = new FormData()
-      formData.append('source1Id', this.selectedSource1Id)
-      formData.append('recoLevel', this.$store.state.recoLevel)
-      formData.append('totalLevels', this.$store.state.totalSource1Levels)
+    noMatch(type) {
+      this.$store.state.progressTitle = "Saving as no match";
+      this.$store.state.dynamicProgress = true;
+      let userID = this.$store.state.activePair.userID._id;
+      let sourcesOwner = this.getDatasourceOwner();
+      let source1Owner = sourcesOwner.source1Owner;
+      let source2Owner = sourcesOwner.source2Owner;
+      let formData = new FormData();
+      formData.append("source1Id", this.selectedSource1Id);
+      formData.append("recoLevel", this.$store.state.recoLevel);
+      formData.append("totalLevels", this.$store.state.totalSource1Levels);
 
       axios
-        .post(backendServer + `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+        .post(
+          backendServer +
+            `/noMatch/${type}/${this.getSource1()}/${this.getSource2()}/${source1Owner}/${source2Owner}/${userID}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
           }
-        }
         )
         .then(() => {
-          this.$store.state.dynamicProgress = false
+          this.$store.state.dynamicProgress = false;
           // remove from Source 1 Unmatched
-          if (type === 'nomatch') {
+          if (type === "nomatch") {
             for (let k in this.$store.state.source1UnMatched) {
               if (
                 this.$store.state.source1UnMatched[k].id ===
@@ -1774,12 +1857,12 @@ export default {
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
                   parents: this.$store.state.source1UnMatched[k].parents
-                })
-                ++this.$store.state.totalAllNoMatch
-                this.$store.state.source1UnMatched.splice(k, 1)
+                });
+                ++this.$store.state.totalAllNoMatch;
+                this.$store.state.source1UnMatched.splice(k, 1);
               }
             }
-          } else if (type === 'ignore') {
+          } else if (type === "ignore") {
             for (let k in this.$store.state.source1UnMatched) {
               if (
                 this.$store.state.source1UnMatched[k].id ===
@@ -1789,161 +1872,163 @@ export default {
                   source1Name: this.selectedSource1Name,
                   source1Id: this.selectedSource1Id,
                   parents: this.$store.state.source1UnMatched[k].parents
-                })
-                ++this.$store.state.totalAllIgnore
-                this.$store.state.source1UnMatched.splice(k, 1)
+                });
+                ++this.$store.state.totalAllIgnore;
+                this.$store.state.source1UnMatched.splice(k, 1);
               }
             }
           }
-          this.dialog = false
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
+          this.dialog = false;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
         })
         .catch(err => {
-          this.$store.state.dynamicProgress = false
-          this.alert = true
-          this.alertTitle = 'Error'
-          this.alertText = err.response.data.error
-          this.dialog = false
-          this.selectedSource1Id = null
-          this.selectedSource1Name = null
-        })
+          this.$store.state.dynamicProgress = false;
+          this.alert = true;
+          this.alertTitle = "Error";
+          this.alertText = err.response.data.error;
+          this.dialog = false;
+          this.selectedSource1Id = null;
+          this.selectedSource1Name = null;
+        });
     },
-    back () {
-      this.searchPotential = ''
-      this.dialog = false
+    back() {
+      this.searchPotential = "";
+      this.dialog = false;
     }
   },
   computed: {
     nextLevelText: {
-      get: function () {
-        return this.translateDataHeader('source1', this.$store.state.recoLevel)
+      get: function() {
+        return this.translateDataHeader("source1", this.$store.state.recoLevel);
       },
-      set: function (newVal) { }
+      set: function(newVal) {}
     },
     currentLevelText: {
-      get: function () {
+      get: function() {
         return this.translateDataHeader(
-          'source1',
+          "source1",
           this.$store.state.recoLevel - 1
-        )
+        );
       },
-      set: function (newVal) { }
+      set: function(newVal) {}
     },
-    matchedHeaders () {
+    matchedHeaders() {
       let header = [
-        { text: 'Source1 Location', value: 'source1Name' },
-        { text: 'Source1 ID', value: 'source1Id' },
-        { text: 'Source2 Location', value: 'source2Name' },
-        { text: 'Source2 ID', value: 'source2Id' },
-        { text: 'Match Comment', value: 'matchComments' }
-      ]
-      return header
+        { text: "Source1 Location", value: "source1Name" },
+        { text: "Source1 ID", value: "source1Id" },
+        { text: "Source2 Location", value: "source2Name" },
+        { text: "Source2 ID", value: "source2Id" },
+        { text: "Match Comment", value: "matchComments" }
+      ];
+      return header;
     },
-    source1GridHeaders () {
-      let header = [{ text: 'Location', value: 'name' }]
+    source1GridHeaders() {
+      let header = [{ text: "Location", value: "name" }];
       if (this.$store.state.source1UnMatched.length > 0) {
         for (
           let i = this.$store.state.source1UnMatched[0].parents.length;
           i > 0;
           i--
         ) {
-          header.push({ text: 'Level ' + i, value: 'level' + (i + 1) })
+          header.push({ text: "Level " + i, value: "level" + (i + 1) });
         }
       }
-      header.splice(1, 1)
-      return header
+      header.splice(1, 1);
+      return header;
     },
-    potentialHeaders () {
-      var results = []
+    potentialHeaders() {
+      var results = [];
       results.push(
         { sortable: false },
-        { text: 'Source 2 Location', value: 'name', sortable: false },
-        { text: 'ID', value: 'id', sortable: false },
-        { text: 'Parent', value: 'source2Parent', sortable: false }
-      )
-      if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
+        { text: "Source 2 Location", value: "name", sortable: false },
+        { text: "ID", value: "id", sortable: false },
+        { text: "Parent", value: "source2Parent", sortable: false }
+      );
+      if (
+        this.$store.state.recoLevel === this.$store.state.totalSource1Levels
+      ) {
         results.push({
-          text: 'Geo Dist (Miles)',
-          value: 'geodist',
+          text: "Geo Dist (Miles)",
+          value: "geodist",
           sortable: false
-        })
+        });
       }
-      results.push({ text: 'Score', value: 'score' })
-      results.push({ text: 'Comment', value: 'comment' })
-      return results
+      results.push({ text: "Score", value: "score" });
+      results.push({ text: "Comment", value: "comment" });
+      return results;
     },
-    potentialAvailable () {
+    potentialAvailable() {
       return (
         this.$store.state.source2UnMatched !== null &&
         this.$store.state.source2UnMatched.length > this.potentialMatches.length
-      )
+      );
     },
-    allPotentialMatches () {
+    allPotentialMatches() {
       if (
         this.$store.state.source2UnMatched !== null &&
         this.$store.state.source2UnMatched.length >
-        this.potentialMatches.length &&
+          this.potentialMatches.length &&
         this.showAllPotential
       ) {
-        let results = []
+        let results = [];
         for (let addIt of this.$store.state.source2UnMatched) {
           let matched = this.potentialMatches.find(matched => {
-            return matched.id === addIt.id
-          })
+            return matched.id === addIt.id;
+          });
           if (!matched) {
-            addIt.score = 'N/A'
+            addIt.score = "N/A";
             if (!addIt.source2IdHierarchy && addIt.source2IdHierarchy) {
-              addIt.source2IdHierarchy = addIt.source2IdHierarchy
+              addIt.source2IdHierarchy = addIt.source2IdHierarchy;
             }
-            results.push(addIt)
+            results.push(addIt);
           }
         }
-        return this.potentialMatches.concat(results)
+        return this.potentialMatches.concat(results);
       } else {
-        return this.potentialMatches
+        return this.potentialMatches;
       }
     },
-    source1Tree () {
-      this.addListener()
+    source1Tree() {
+      this.addListener();
       const createTree = (current, results) => {
         for (let name in current) {
-          let add = { text: name }
-          add.children = []
-          createTree(current[name], add.children)
+          let add = { text: name };
+          add.children = [];
+          createTree(current[name], add.children);
           if (add.children.length === 0) {
-            delete add.children
+            delete add.children;
           }
-          results.push(add)
+          results.push(add);
         }
-      }
-      let results = []
+      };
+      let results = [];
       if (
         Object.keys(this.$store.state.source1Parents).length === 1 &&
-        Object.keys(this.$store.state.source1Parents)[0] === 'null'
+        Object.keys(this.$store.state.source1Parents)[0] === "null"
       ) {
-        return results
+        return results;
       }
-      createTree(this.$store.state.source1Parents, results)
+      createTree(this.$store.state.source1Parents, results);
       // This is needed because the tree doesn't show up on the initial page load without it
-      this.source1TreeUpdate++
-      return results
+      this.source1TreeUpdate++;
+      return results;
     },
-    source1Grid () {
+    source1Grid() {
       if (
         this.$store.state.source1UnMatched.length > 0 &&
-        this.source1Filter.level !== ''
+        this.source1Filter.level !== ""
       ) {
         let parentIdx =
           this.$store.state.source1UnMatched[0].parents.length -
-          this.source1Filter.level
+          this.source1Filter.level;
         return this.$store.state.source1UnMatched.filter(
           location => location.parents[parentIdx] === this.source1Filter.text
-        )
+        );
       }
-      return this.$store.state.source1UnMatched
+      return this.$store.state.source1UnMatched;
     },
-    goNextLevel () {
+    goNextLevel() {
       if (
         this.$store.state.recoLevel < this.$store.state.totalSource1Levels &&
         this.$store.state.source1UnMatched !== null &&
@@ -1953,12 +2038,12 @@ export default {
         this.$store.state.matchedContent !== null &&
         this.$store.state.matchedContent.length !== 0
       ) {
-        return 'yes'
+        return "yes";
       } else {
-        return 'no'
+        return "no";
       }
     },
-    lastLevelDone () {
+    lastLevelDone() {
       if (
         this.$store.state.recoLevel === this.$store.state.totalSource1Levels &&
         this.$store.state.source1UnMatched !== null &&
@@ -1966,216 +2051,216 @@ export default {
         this.$store.state.flagged !== null &&
         this.$store.state.flagged.length === 0
       ) {
-        return 'yes'
+        return "yes";
       } else {
-        return 'no'
+        return "no";
       }
     },
-    source1TotalRecords () {
+    source1TotalRecords() {
       if (this.$store.state.scoreResults) {
-        return this.$store.state.scoreResults.length
+        return this.$store.state.scoreResults.length;
       } else {
-        return 0
+        return 0;
       }
     },
-    source1TotalMatched () {
+    source1TotalMatched() {
       if (this.$store.state.matchedContent) {
-        return this.$store.state.matchedContent.length
+        return this.$store.state.matchedContent.length;
       } else {
-        return 0
+        return 0;
       }
     },
-    source1PercentMatched () {
+    source1PercentMatched() {
       if (this.source1TotalRecords === 0) {
-        return 0
+        return 0;
       } else {
         return parseFloat(
           ((this.source1TotalMatched * 100) / this.source1TotalRecords).toFixed(
             1
           )
-        )
+        );
       }
     },
-    source1TotalUnMatched () {
-      return this.source1TotalRecords - this.source1TotalMatched
+    source1TotalUnMatched() {
+      return this.source1TotalRecords - this.source1TotalMatched;
     },
-    source1PercentUnMatched () {
+    source1PercentUnMatched() {
       if (this.source1TotalRecords === 0) {
-        return 0
+        return 0;
       } else {
         return parseFloat(
           (
             (this.source1TotalUnMatched * 100) /
             this.source1TotalRecords
           ).toFixed(1)
-        )
+        );
       }
     },
-    totalFlagged () {
+    totalFlagged() {
       if (this.$store.state.flagged) {
-        return this.$store.state.flagged.length
+        return this.$store.state.flagged.length;
       } else {
-        return 0
+        return 0;
       }
     },
-    source1PercentFlagged () {
+    source1PercentFlagged() {
       if (this.$store.state.scoreResults.length === 0) {
-        return 0
+        return 0;
       } else if (this.$store.state.flagged) {
         return parseFloat(
           (
             (this.$store.state.flagged.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
-        )
+        );
       } else {
-        return 0
+        return 0;
       }
     },
-    source1TotalNoMatch () {
+    source1TotalNoMatch() {
       if (this.$store.state.noMatchContent) {
-        return this.$store.state.noMatchContent.length
+        return this.$store.state.noMatchContent.length;
       } else {
-        return 0
+        return 0;
       }
     },
-    source1TotalIgnore () {
+    source1TotalIgnore() {
       if (this.$store.state.ignoreContent) {
-        return this.$store.state.ignoreContent.length
+        return this.$store.state.ignoreContent.length;
       } else {
-        return 0
+        return 0;
       }
     },
-    source1PercentNoMatch () {
+    source1PercentNoMatch() {
       if (this.$store.state.scoreResults.length === 0) {
-        return 0
+        return 0;
       } else if (this.$store.state.noMatchContent) {
         return parseFloat(
           (
             (this.$store.state.noMatchContent.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
-        )
+        );
       } else {
-        return 0
+        return 0;
       }
     },
-    source1PercentIgnore () {
+    source1PercentIgnore() {
       if (this.$store.state.scoreResults.length === 0) {
-        return 0
+        return 0;
       } else if (this.$store.state.ignoreContent) {
         return parseFloat(
           (
             (this.$store.state.ignoreContent.length * 100) /
             this.$store.state.scoreResults.length
           ).toFixed(1)
-        )
+        );
       } else {
-        return 0
+        return 0;
       }
     },
-    source2TotalRecords () {
+    source2TotalRecords() {
       if (this.$store.state.source2TotalRecords) {
-        return this.$store.state.source2TotalRecords
+        return this.$store.state.source2TotalRecords;
       } else {
-        return 0
+        return 0;
       }
     },
-    source2TotalUnmatched () {
+    source2TotalUnmatched() {
       if (this.source2TotalRecords > 0 && this.$store.state.matchedContent) {
         return (
           parseInt(this.source2TotalRecords) -
           parseInt(this.$store.state.matchedContent.length)
-        )
+        );
       } else {
-        return 0
+        return 0;
       }
     },
-    source2PercentUnmatched () {
+    source2PercentUnmatched() {
       if (this.$store.state.source2TotalRecords === 0) {
-        return 0
+        return 0;
       } else {
         return parseFloat(
           (
             (this.source2TotalUnmatched * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
-        )
+        );
       }
     },
-    source2PercentFlagged () {
+    source2PercentFlagged() {
       if (this.$store.state.source2TotalRecords === 0) {
-        return 0
+        return 0;
       } else if (this.$store.state.flagged) {
         return parseFloat(
           (
             (this.$store.state.flagged.length * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
-        )
+        );
       } else {
-        return 0
+        return 0;
       }
     },
-    source2TotalMatched () {
-      return this.source1TotalMatched
+    source2TotalMatched() {
+      return this.source1TotalMatched;
     },
-    source2PercentMatched () {
+    source2PercentMatched() {
       if (this.$store.state.source2TotalRecords === 0) {
-        return 0
+        return 0;
       } else {
         return parseFloat(
           (
             (this.source2TotalMatched * 100) /
             this.$store.state.source2TotalRecords
           ).toFixed(1)
-        )
+        );
       }
     },
-    source2NotInSource1 () {
-      var missing = this.source2TotalRecords - this.source1TotalRecords
+    source2NotInSource1() {
+      var missing = this.source2TotalRecords - this.source1TotalRecords;
       if (missing < 0) {
-        return 0
+        return 0;
       } else {
-        return missing
+        return missing;
       }
     },
-    source2PercentNotInSource1 () {
+    source2PercentNotInSource1() {
       if (this.source2NotInSource1 === 0) {
-        return 0
+        return 0;
       }
       var percent = parseFloat(
         ((this.source2NotInSource1 * 100) / this.source2TotalRecords).toFixed(1)
-      )
-      return parseFloat(percent)
+      );
+      return parseFloat(percent);
     }
   },
-  created () {
+  created() {
     // this.$store.state.scoreSavingProgressData.savingMatches = true
     if (this.$store.state.recalculateScores) {
-      this.$store.state.recalculateScores = false
-      this.getScores(false)
+      this.$store.state.recalculateScores = false;
+      this.getScores(false);
     }
-    eventBus.$on('changeCSVHeaderNames', () => {
+    eventBus.$on("changeCSVHeaderNames", () => {
       let levelName = this.translateDataHeader(
-        'source1',
+        "source1",
         this.$store.state.recoLevel
-      )
-      this.nextLevelText = levelName
-      this.currentLevelText = levelName
-    })
-    this.addListener()
+      );
+      this.nextLevelText = levelName;
+      this.currentLevelText = levelName;
+    });
+    this.addListener();
     if (this.$store.state.recoLevel === this.$store.state.totalSource1Levels) {
-      this.dialogWidth = 'auto'
+      this.dialogWidth = "auto";
     } else {
-      this.dialogWidth = '1190px'
+      this.dialogWidth = "1190px";
     }
   },
   components: {
-    'liquor-tree': LiquorTree,
-    'appRecoExport': ReconciliationExport
+    "liquor-tree": LiquorTree,
+    appRecoExport: ReconciliationExport
   }
-}
+};
 </script>
 <style>
 </style>

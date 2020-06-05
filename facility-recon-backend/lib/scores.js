@@ -356,9 +356,9 @@ module.exports = function () {
                       const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
                       // when parent constraint is On then automatch by name is also enabled by default
                       // when parent constraint is off then check if name automatch is also on
-                      if (lev == 0
-                        && !matchBroken
-                        && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                      if (lev == 0 &&
+                        !matchBroken &&
+                        (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                       ) {
                         const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                         ignore.push(source2Entry.resource.id);
@@ -711,10 +711,10 @@ module.exports = function () {
               }
               mcsd.getLocationParentsFromData(entityParent, mcsdSource1All, 'names', (source1Parents) => {
                 const ident = source1Entry.resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
-                let source1BuildingId = null;
-                if (ident) {
-                  source1BuildingId = ident.value;
-                }
+                let source1BuildingId = source1Entry.resource.id;
+                // if (ident) {
+                //   source1BuildingId = ident.value;
+                // }
                 const source1IdHierarchy = mixin.createIdHierarchy(mcsdSource1, source1BuildingId);
                 thisRanking.source1 = {
                   name: source1Entry.resource.name,
@@ -828,11 +828,11 @@ module.exports = function () {
               }
               source1ParentReceived.then(() => {
                 thisRanking = {};
-                let source1BuildingId = null;
+                let source1BuildingId = source1Entry.resource.id;
                 const ident = source1Entry.resource.identifier.find(identifier => identifier.system == 'https://digitalhealth.intrahealth.org/source1');
-                if (ident) {
-                  source1BuildingId = ident.value;
-                }
+                // if (ident) {
+                //   source1BuildingId = ident.value;
+                // }
                 let parents;
                 if (source1Parents[source1Parents.length - 1].id == topOrgId) {
                   parents = source1ParentNames.slice(0, source1Parents.length - 1);
@@ -969,8 +969,8 @@ module.exports = function () {
 
                   const lev = levenshtein.get(source2Name.toLowerCase(), source1Name.toLowerCase());
 
-                  if (lev == 0 && !matchBroken
-                    && (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
+                  if (lev == 0 && !matchBroken &&
+                    (parentsDiffer == false || (parentConstraint.enabled == false && parentConstraint.nameAutoMatch == true) || recoLevel == 2)
                   ) {
                     const source2IdHierarchy = mixin.createIdHierarchy(mcsdSource2, source2Entry.resource.id);
                     ignore.push(source2Entry.resource.id);
@@ -1169,8 +1169,8 @@ module.exports = function () {
         return callback();
       }
       const status = mcsdMapped.entry.find(
-        entry => entry.resource.id === id
-        || (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
+        entry => entry.resource.id === id ||
+        (entry.resource.hasOwnProperty('identifier') && entry.resource.identifier.find(identifier => identifier.value === id)),
       );
       return callback(status);
     },
