@@ -3099,29 +3099,11 @@ if (cluster.isMaster) {
               populateData(headerMapping, data, 'Missing Facility ID', invalid);
               rowMarkedInvalid = true;
             }
-            // let invalidCharsFound = false;
-            // for (const char of data[headerMapping.code]) {
-            //   if (char === '.' || char === '-') {
-            //     continue;
-            //   }
-            //   if (char === '_') {
-            //     invalidCharsFound = true
-            //     break
-            //   }
-            //   let validate = /^\w+$/.test(char)
-            //   if (!validate) {
-            //     invalidCharsFound = true
-            //   }
-            // }
-            // if (invalidCharsFound) {
-            //   populateData(headerMapping, data, 'Invalid Characters In Facility ID, allowed chars are Aa-Zz, - and .', invalid);
-            //   rowMarkedInvalid = true;
-            // }
-            if (!mixin.isFloat(data[headerMapping.lat]) && !mixin.isInt(data[headerMapping.lat])) {
+            if (data[headerMapping.lat] && !mixin.isFloat(data[headerMapping.lat]) && !mixin.isInt(data[headerMapping.lat])) {
               populateData(headerMapping, data, 'Invalid Characters In latitude', invalid);
               rowMarkedInvalid = true;
             }
-            if (!mixin.isFloat(data[headerMapping.long]) && !mixin.isInt(data[headerMapping.long])) {
+            if (data[headerMapping.long] && !mixin.isFloat(data[headerMapping.long]) && !mixin.isInt(data[headerMapping.long])) {
               populateData(headerMapping, data, 'Invalid Characters In longitude', invalid);
               rowMarkedInvalid = true;
             }
