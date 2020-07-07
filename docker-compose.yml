@@ -2,18 +2,21 @@ version: "3.3"
 
 services:
   mongo:
+    container_name: mongo-gofr
     image: mongo:3.6
     ports:
       - "27017:27017"
     restart: unless-stopped
 
   redis:
+    container_name: redis-gofr
     image: redis
     ports:
       - "6379:6379"
     restart: unless-stopped
 
   hearth:
+    container_name: hearth-gofr
     image: intrahealth/hearth:latest
     environment:
       - mongodb__url=mongodb://mongo/hearth-dev
@@ -25,6 +28,7 @@ services:
     restart: unless-stopped
 
   facility-recon:
+    container_name: facility-recon
     image: openhie/facility-recon:latest
     environment: 
       - HEARTH_URL=http://hearth:3447 
