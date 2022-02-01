@@ -73,7 +73,7 @@
     "webpack-bundle-analyzer": "^2.9.0",
     "webpack-dev-server": "^2.11.2",
     "webpack-merge": "^4.1.0",
-    "zip-local": "^0.3.4"
+    "zip-local": "^0.3.5"
   },
   "browserslist": [
     "> 1%",
